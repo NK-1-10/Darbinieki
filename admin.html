@@ -1,0 +1,276 @@
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Admin</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+        h2, h3 { margin-top: 20px; }
+        button { padding: 8px 12px; margin: 4px 0; border-radius: 6px; border: 1px solid #aaa; background: #e0e0e0; cursor: pointer; }
+        button:hover { background: #d5d5d5; }
+        ul { list-style: none; padding: 0; margin: 6px 0; max-width: 400px; }
+        li { background:#fff; margin:6px 0; padding:8px 10px; border-radius:6px; border:1px solid #ccc; display: flex; justify-content: space-between; align-items: center; }
+        li span { flex-grow: 1; }
+        .pw { color:#666; font-style:italic; margin-left:8px; }
+        details { margin-bottom: 15px; background: #fff; border: 1px solid #ccc; border-radius: 6px; padding: 10px; max-width: 450px; }
+        summary { cursor: pointer; font-weight: bold; padding: 4px; }
+        table { border-collapse: collapse; margin-top: 20px; width: 100%; background: #fff; }
+        th, td { border: 1px solid #333; padding: 6px 12px; text-align: center; }
+        #filters { background: #fff; border: 1px solid #ccc; padding: 10px; border-radius: 6px; max-width: 700px; margin-bottom: 15px; }
+        select { padding: 4px 6px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+<h2>Pievienot darbiniekus un mašīnas</h2>
+
+<details open>
+    <summary>👷 Pievienot darbiniekus</summary>
+    <button id="addWorkerBtn">➕ Pievienot darbinieku</button>
+    <ul id="workerList"></ul>
+</details>
+
+<details>
+    <summary>🚗 Pievienot mašīnas</summary>
+    <button id="addCarBtn">➕ pievienot mašīnu</button>
+    <ul id="carList"></ul>
+</details>
+
+<div style="text-align: right; margin-bottom: 10px;">
+    <button id="clearTableBtn" style="background:#ff6666; color:white;">Clear Table</button>
+</div>
+
+<h3> Tabula</h3>
+
+<div id="filters">
+    <label>Mēnesis:
+        <select id="filterMonth"><option value="">All</option></select>
+    </label>
+
+    <label>Darbinieks:
+        <select id="filterWorker"><option value="">All</option></select>
+    </label>
+
+    <label>Datums:
+        <select id="filterDate"><option value="">All</option></select>
+    </label>
+
+    <label>Mašīna:
+        <select id="filterCar"><option value="">All</option></select>
+    </label>
+
+    <br><br>
+
+    <label>Sort By:
+        <select id="sortBy">
+            <option value="">None</option>
+            <option value="month">Month</option>
+            <option value="worker">Worker</option>
+            <option value="date">Date</option>
+            <option value="car">Car</option>
+            <option value="hours">Hours</option>
+        </select>
+    </label>
+
+    <button id="clearFilters"> Clear Filters</button>
+</div>
+
+<div id="tableContainer"></div>
+
+<script>
+const STORAGE_KEY = "workers";
+const CAR_STORAGE_KEY = "cars";
+let workers = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+let cars = JSON.parse(localStorage.getItem(CAR_STORAGE_KEY)) || [];
+let schedule = JSON.parse(localStorage.getItem("schedule")) || [];
+
+const workerList = document.getElementById("workerList");
+const carList = document.getElementById("carList");
+const tableContainer = document.getElementById("tableContainer");
+const addWorkerBtn = document.getElementById("addWorkerBtn");
+const addCarBtn = document.getElementById("addCarBtn");
+
+const filterMonth = document.getElementById("filterMonth");
+const filterWorker = document.getElementById("filterWorker");
+const filterDate = document.getElementById("filterDate");
+const filterCar = document.getElementById("filterCar");
+const sortBy = document.getElementById("sortBy");
+const clearFilters = document.getElementById("clearFilters");
+
+// --------------------------------------------------Cleartable------------
+const clearTableBtn = document.getElementById("clearTableBtn");
+
+clearTableBtn.addEventListener("click", () => {
+    if(confirm("Are you sure you want to clear the entire table? This cannot be undone.")) {
+        schedule = []; // Clear schedule array
+        localStorage.setItem("schedule", JSON.stringify(schedule)); // Update localStorage
+        renderTable(); // Re-render table
+        populateFilters(); // Reset filters
+        alert("Table has been cleared.");
+    }
+});
+//-------------------------------------------------------------------------
+
+// ---------- Month Order ----------
+const MONTH_ORDER = ["Janvāris","Februāris","Marts","Aprīlis","Maijs","Jūnijs",
+                     "Jūlijs","Augusts","Septembris","Octobris","Novemberis","Decemberis"];
+
+// ---------- Worker Management ----------
+function saveWorkers(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(workers)); }
+function renderWorkers(){
+    workerList.innerHTML = "";
+    if(!workers.length){ workerList.innerHTML="<li>No workers added yet.</li>"; return; }
+    workers.forEach((w,idx)=>{
+        const li = document.createElement("li");
+        li.innerHTML = `<span><strong>${w.name}</strong> ${w.Temppassword?`<span class="pw">(Temp: ${w.Temppassword})</span>`:""}</span>
+                        <button data-index="${idx}" style="background:#ffb3b3;">Remove</button>`;
+        workerList.appendChild(li);
+    });
+    workerList.querySelectorAll("button").forEach(btn=>{
+        btn.onclick = ()=>{
+            const idx = Number(btn.dataset.index);
+            if(confirm(`Remove worker "${workers[idx].name}"?`)){
+                workers.splice(idx,1);
+                saveWorkers();
+                renderWorkers();
+                populateFilters();
+                renderTable();
+            }
+        }
+    });
+}
+addWorkerBtn.onclick=()=>{
+    const name = prompt("Enter worker name:");
+    if(!name || !name.trim()) return;
+    if(workers.some(w=>w.name.toLowerCase()===name.toLowerCase())){ alert("Worker exists!"); return; }
+    const tempPass = prompt(`Enter temporary password for ${name}:`);
+    if(!tempPass || !tempPass.trim()) return;
+    workers.push({name:name.trim(), Temppassword: tempPass.trim()});
+    saveWorkers();
+    renderWorkers();
+    populateFilters();
+}
+renderWorkers();
+
+// ---------- Car Management ----------
+function saveCars(){ localStorage.setItem(CAR_STORAGE_KEY, JSON.stringify(cars)); }
+function renderCars(){
+    carList.innerHTML="";
+    if(!cars.length){ carList.innerHTML="<li>No cars added yet.</li>"; return; }
+    cars.forEach((c,idx)=>{
+        const li=document.createElement("li");
+        li.innerHTML=`<span><strong>${c}</strong></span>
+                      <button data-index="${idx}" style="background:#ffb3b3;">Remove</button>`;
+        carList.appendChild(li);
+    });
+    carList.querySelectorAll("button").forEach(btn=>{
+        btn.onclick=()=>{
+            const idx = Number(btn.dataset.index);
+            if(confirm(`Remove car "${cars[idx]}"?`)){
+                cars.splice(idx,1);
+                saveCars();
+                renderCars();
+                populateFilters();
+            }
+        }
+    });
+}
+addCarBtn.onclick=()=>{
+    const name = prompt("Enter new car:");
+    if(!name||!name.trim()) return;
+    if(cars.some(c=>c.toLowerCase()===name.toLowerCase())){ alert("Car exists!"); return; }
+    cars.push(name.trim());
+    saveCars();
+    renderCars();
+    populateFilters();
+}
+renderCars();
+
+// ---------- Filters ----------
+function populateFilters(){
+    function fill(select, list){
+        const old = select.value;
+        select.innerHTML=`<option value="">All</option>`+list.map(v=>`<option value="${v}">${v}</option>`).join("");
+        if(list.includes(old)) select.value=old;
+    }
+    fill(filterMonth, [...new Set(schedule.map(e=>e.month))]);
+    fill(filterWorker, workers.map(w=>w.name));
+    fill(filterDate, [...new Set(schedule.map(e=>e.date))]);
+    fill(filterCar, cars);
+}
+populateFilters();
+
+function applyFilters(e){
+    return (!filterMonth.value || e.month===filterMonth.value) &&
+           (!filterWorker.value || e.worker===filterWorker.value) &&
+           (!filterDate.value || e.date===filterDate.value) &&
+           (!filterCar.value || e.car===filterCar.value);
+}
+
+// ---------- Parse Hours ----------
+function parseHours(hStr){
+    const match=hStr.match(/(\d+)h (\d+)m/);
+    if(!match) return 0;
+    return parseInt(match[1])*60 + parseInt(match[2]);
+}
+
+// ---------- Render Table ----------
+function renderTable(){
+    populateFilters();
+    let filtered = schedule.filter(applyFilters);
+
+    const key = sortBy.value;
+    if(key){
+        filtered.sort((a,b)=>{
+            if(key==="month"){
+                return MONTH_ORDER.indexOf(a.month)-MONTH_ORDER.indexOf(b.month);
+            } else if(key==="hours"){
+                return parseHours(a.hours)-parseHours(b.hours);
+            } else if(key==="date"){
+                return a.date-b.date;
+            } else {
+                return a[key]>b[key]?1:(a[key]<b[key]?-1:0);
+            }
+        });
+    }
+
+    if(!filtered.length){ tableContainer.innerHTML="<p>No matching schedule entries.</p>"; return; }
+
+    let html=`<table>
+        <tr>
+            <th>Mēnesis</th>
+            <th>Darbinieks</th>
+            <th>Datums</th>
+            <th>Mašīna</th>
+            <th>Kopš</th>
+            <th>Līdz</th>
+            <th>Stundas</th>
+        </tr>`;
+
+    filtered.forEach(e=>{
+        html+=`<tr>
+            <td>${e.month}</td>
+            <td>${e.worker}</td>
+            <td>${e.date}</td>
+            <td>${e.car}</td>
+            <td>${e.fromTime}</td>
+            <td>${e.toTime}</td>
+            <td>${e.hours}</td>
+        </tr>`;
+    });
+
+    html+="</table>";
+    tableContainer.innerHTML=html;
+}
+
+// ---------- Listeners ----------
+[filterMonth, filterWorker, filterDate, filterCar, sortBy].forEach(el=>el.addEventListener("change", renderTable));
+clearFilters.addEventListener("click", ()=>{
+    filterMonth.value=""; filterWorker.value=""; filterDate.value=""; filterCar.value=""; sortBy.value="";
+    renderTable();
+});
+
+renderTable();
+</script>
+</body>
+</html>
