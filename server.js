@@ -12,7 +12,29 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
-// LOGIN loģika
+// --- IELĀDĒT DATUS (GET) ---
+app.get('/api/workers', async (req, res) => {
+  try {
+    const result = await pool.query("SELECT name, temp_password FROM users WHERE role = 'worker'");
+    res.json(result.rows);
+  } catch (err) { res.status(500).json(err.message); }
+});
+
+app.get('/api/cars', async (req, res) => {
+  try {
+    const result = await pool.query("SELECT name FROM cars");
+    res.json(result.rows.map(row => row.name));
+  } catch (err) { res.status(500).json(err.message); }
+});
+
+app.get('/api/schedule', async (req, res) => {
+  try {
+    const result = await pool.query("SELECT * FROM schedule");
+    res.json(result.rows);
+  } catch (err) { res.status(500).json(err.message); }
+});
+
+// --- SAGLABĀT DATUS (POST) ---
 app.post('/api/login', async (req, res) => {
   const { username, password } = req.body;
   try {
@@ -26,7 +48,6 @@ app.post('/api/login', async (req, res) => {
   } catch (err) { res.status(500).json(err.message); }
 });
 
-// Pievienot darbinieku
 app.post('/api/workers', async (req, res) => {
   const { name, temp_password } = req.body;
   try {
@@ -35,11 +56,21 @@ app.post('/api/workers', async (req, res) => {
   } catch (err) { res.status(500).json(err.message); }
 });
 
-// Pievienot mašīnu
 app.post('/api/cars', async (req, res) => {
   const { name } = req.body;
   try {
     await pool.query('INSERT INTO cars (name) VALUES ($1)', [name]);
+    res.json({ success: true });
+  } catch (err) { res.status(500).json(err.message); }
+});
+
+app.post('/api/schedule', async (req, res) => {
+  const { worker_name, month, date, car, from_time, to_time, hours } = req.body;
+  try {
+    await pool.query(
+      'INSERT INTO schedule (worker_name, month, date, car, from_time, to_time, hours) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+      [worker_name, month, date, car, from_time, to_time, hours]
+    );
     res.json({ success: true });
   } catch (err) { res.status(500).json(err.message); }
 });
