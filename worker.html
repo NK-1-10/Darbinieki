@@ -43,165 +43,101 @@
 
     <div id="tableContainer"></div>
 
-    <script>
-        // ---------- Session Check ----------
-        const user = JSON.parse(localStorage.getItem("loggedInUser"));
-        if (!user || user.role !== "worker") {
-            alert("Please log in first!");
-            window.location.href = "login.html";
-        }
-        document.getElementById("welcome").textContent = `Logged in as: ${user.name}`;
+   <script>
+    const user = JSON.parse(localStorage.getItem("loggedInUser"));
+    if (!user || user.role !== "worker") {
+        window.location.href = "index.html";
+    }
+    document.getElementById("welcome").textContent = `Logged in as: ${user.name}`;
 
-        document.getElementById("logoutBtn").addEventListener("click", () => {
-            localStorage.removeItem("loggedInUser");
-            window.location.href = "login.html";
+    const scheduleForm = document.getElementById("scheduleForm");
+    const carSelect = document.getElementById("car");
+    const tableContainer = document.getElementById("tableContainer");
+
+    // Ielādēt datus no Railway
+    async function loadWorkerData() {
+        const [cRes, sRes] = await Promise.all([
+            fetch('/api/cars'),
+            fetch('/api/schedule')
+        ]);
+        const cars = await cRes.json();
+        const allSchedule = await sRes.json();
+
+        // Mašīnu dropdown
+        carSelect.innerHTML = '<option value="">Mašīna:</option>';
+        cars.forEach(c => {
+            const opt = document.createElement("option");
+            opt.value = c;
+            opt.textContent = c;
+            carSelect.appendChild(opt);
         });
 
-        // ---------- Variables ----------
-        const scheduleForm = document.getElementById("scheduleForm");
-        const tableContainer = document.getElementById("tableContainer");
-        const hoursDisplay = document.getElementById("hoursDisplay");
-
-        const monthSelect = document.getElementById("month");
-        const dateSelect = document.getElementById("date");
-        const carSelect = document.getElementById("car");
-        const fromHourSelect = document.getElementById("fromHour");
-        const fromMinuteSelect = document.getElementById("fromMinute");
-        const toHourSelect = document.getElementById("toHour");
-        const toMinuteSelect = document.getElementById("toMinute");
-
-        let schedule = JSON.parse(localStorage.getItem("schedule")) || [];
-        const cars = JSON.parse(localStorage.getItem("cars")) || [];
-
-        // ---------- Populate selects ----------
-        const months = ["Janvāris","Februāris","Marts","Aprīlis","Maijs","Jūnijs","Jūlijs","Augusts","Septembris","Octobris","Novemberis","Decemberis"];
-        months.forEach(m => { const opt = document.createElement("option"); opt.value=m; opt.textContent=m; monthSelect.appendChild(opt); });
-
-        cars.forEach(c => { const opt = document.createElement("option"); opt.value=c; opt.textContent=c; carSelect.appendChild(opt); });
-
-        for(let i=1;i<=31;i++){ const opt=document.createElement("option"); opt.value=i; opt.textContent=i; dateSelect.appendChild(opt); }
-
-        function populateTimeDropdowns(selectHour, selectMinute) {
-            for(let h=0;h<24;h++){ const opt=document.createElement("option"); opt.value=h; opt.textContent=h.toString().padStart(2,'0'); selectHour.appendChild(opt);}
-            for(let m=0;m<60;m++){ const opt=document.createElement("option"); opt.value=m; opt.textContent=m.toString().padStart(2,'0'); selectMinute.appendChild(opt);}
-        }
-
-        populateTimeDropdowns(fromHourSelect, fromMinuteSelect);
-        populateTimeDropdowns(toHourSelect, toMinuteSelect);
-
-        // ---------- Calculate hours ----------
-        function calculateHours(fromH, fromM, toH, toM){
-            let startMinutes = fromH*60 + fromM;
-            let endMinutes = toH*60 + toM;
-            let diff = endMinutes - startMinutes;
-            if(diff < 0) diff += 24*60;
-            const hours = Math.floor(diff/60);
-            const minutes = diff % 60;
-            return { hours, minutes };
-        }
-
-        function updateHours(){
-            const fromH = parseInt(fromHourSelect.value || 0);
-            const fromM = parseInt(fromMinuteSelect.value || 0);
-            const toH = parseInt(toHourSelect.value || 0);
-            const toM = parseInt(toMinuteSelect.value || 0);
-            const { hours, minutes } = calculateHours(fromH, fromM, toH, toM);
-            hoursDisplay.textContent = `Hours: ${hours}h ${minutes}m`;
-        }
-
-        [fromHourSelect, fromMinuteSelect, toHourSelect, toMinuteSelect].forEach(el=>el.addEventListener("change", updateHours));
-
-        // ---------- Render Table ----------
-      function renderTable(){
-    const userEntries = schedule.filter(e => e.worker === user.name);
-    if(!userEntries.length){ 
-        tableContainer.innerHTML="<p>No schedule entries.</p>"; 
-        return; 
+        renderTable(allSchedule.filter(e => e.worker_name === user.name));
     }
 
-    // Sort by month order, then by date
-    const MONTH_ORDER = ["Janvāris","Februāris","Marts","Aprīlis","Maijs","Jūnijs",
-                         "Jūlijs","Augusts","Septembris","Octobris","Novemberis","Decemberis"];
-    
-    userEntries.sort((a,b)=>{
-        const monthDiff = MONTH_ORDER.indexOf(a.month) - MONTH_ORDER.indexOf(b.month);
-        if(monthDiff !== 0) return monthDiff;
-        return a.date - b.date; // sort by date within the month
-    });
+    // Saglabāt jaunu ierakstu
+    scheduleForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const { hours, minutes } = calculateHours(
+            parseInt(document.getElementById("fromHour").value),
+            parseInt(document.getElementById("fromMinute").value),
+            parseInt(document.getElementById("toHour").value),
+            parseInt(document.getElementById("toMinute").value)
+        );
 
-    let html="<table><tr><th>Month</th><th>Date</th><th>Car</th><th>From</th><th>To</th><th>Hours</th><th>Action</th></tr>";
-    userEntries.forEach((e, index)=>{
-        html+=`<tr>
-            <td>${e.month}</td>
-            <td>${e.date}</td>
-            <td>${e.car}</td>
-            <td>${e.fromTime}</td>
-            <td>${e.toTime}</td>
-            <td>${e.hours}</td>
-            <td><button class="deleteEntryBtn" data-index="${index}">Delete</button></td>
-        </tr>`;
-    });
-    html+="</table>"; 
-    tableContainer.innerHTML=html;
+        const entry = {
+            worker_name: user.name,
+            month: document.getElementById("month").value,
+            date: parseInt(document.getElementById("date").value),
+            car: carSelect.value,
+            from_time: `${document.getElementById("fromHour").value}:${document.getElementById("fromMinute").value}`,
+            to_time: `${document.getElementById("toHour").value}:${document.getElementById("toMinute").value}`,
+            hours: `${hours}h ${minutes}m`
+        };
 
-    // Add event listeners for delete buttons
-    document.querySelectorAll(".deleteEntryBtn").forEach(btn=>{
-        btn.addEventListener("click", ()=>{
-            const idx = Number(btn.dataset.index);
-            // Find the actual index in the full schedule array
-            const entryToDelete = userEntries[idx];
-            const scheduleIndex = schedule.findIndex(e => 
-                e.worker === entryToDelete.worker &&
-                e.month === entryToDelete.month &&
-                e.date === entryToDelete.date &&
-                e.car === entryToDelete.car &&
-                e.fromTime === entryToDelete.fromTime &&
-                e.toTime === entryToDelete.toTime
-            );
-            if(scheduleIndex !== -1 && confirm("Are you sure you want to delete this entry?")){
-                schedule.splice(scheduleIndex, 1);
-                localStorage.setItem("schedule", JSON.stringify(schedule));
-                renderTable();
-            }
+        const res = await fetch('/api/schedule', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(entry)
         });
+
+        if(res.ok) {
+            alert("Saglabāts datubāzē!");
+            scheduleForm.reset();
+            loadWorkerData();
+        }
     });
-}
 
-        renderTable();
+    // Palīgfunkcijas laika dropdowniem un aprēķinam
+    function populateTimeDropdowns(sH, sM) {
+        for(let i=0; i<24; i++) sH.add(new Option(i.toString().padStart(2,'0'), i));
+        for(let i=0; i<60; i++) sM.add(new Option(i.toString().padStart(2,'0'), i));
+    }
+    populateTimeDropdowns(document.getElementById("fromHour"), document.getElementById("fromMinute"));
+    populateTimeDropdowns(document.getElementById("toHour"), document.getElementById("toMinute"));
 
-        // ---------- Form Submission ----------
-        scheduleForm.addEventListener("submit", function(e){
-            e.preventDefault();
+    function calculateHours(fH, fM, tH, tM) {
+        let diff = (tH * 60 + tM) - (fH * 60 + fM);
+        if(diff < 0) diff += 1440;
+        return { hours: Math.floor(diff/60), minutes: diff%60 };
+    }
 
-            const month = monthSelect.value;
-            const date = dateSelect.value;
-            const car = carSelect.value;
-            const fromH = parseInt(fromHourSelect.value);
-            const fromM = parseInt(fromMinuteSelect.value);
-            const toH = parseInt(toHourSelect.value);
-            const toM = parseInt(toMinuteSelect.value);
-
-            const { hours, minutes } = calculateHours(fromH, fromM, toH, toM);
-            const fromTime = `${fromH.toString().padStart(2,'0')}:${fromM.toString().padStart(2,'0')}`;
-            const toTime = `${toH.toString().padStart(2,'0')}:${toM.toString().padStart(2,'0')}`;
-
-            const entry = { 
-    month, 
-    worker: user.name, 
-    date, 
-    car, 
-    fromTime, 
-    toTime, 
-    hours: `${hours}h ${minutes}m`
-};
-
-schedule.unshift(entry);  // <-- NEW
-localStorage.setItem("schedule", JSON.stringify(schedule));
-
-renderTable();
-scheduleForm.reset();
-hoursDisplay.textContent = "Hours: 0h 0m";
+    function renderTable(data) {
+        if(!data.length) { tableContainer.innerHTML = "Nav ierakstu."; return; }
+        let html = "<table><tr><th>Month</th><th>Date</th><th>Car</th><th>From</th><th>To</th><th>Hours</th></tr>";
+        data.forEach(e => {
+            html += `<tr><td>${e.month}</td><td>${e.date}</td><td>${e.car}</td><td>${e.from_time}</td><td>${e.to_time}</td><td>${e.hours}</td></tr>`;
         });
-    </script>
+        tableContainer.innerHTML = html + "</table>";
+    }
+
+    // Logout
+    document.getElementById("logoutBtn").onclick = () => {
+        localStorage.removeItem("loggedInUser");
+        window.location.href = "index.html";
+    };
+
+    loadWorkerData();
+</script>
 </body>
 </html>
