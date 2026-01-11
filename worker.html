@@ -53,85 +53,115 @@
     const scheduleForm = document.getElementById("scheduleForm");
     const carSelect = document.getElementById("car");
     const tableContainer = document.getElementById("tableContainer");
+    const hoursDisplay = document.getElementById("hoursDisplay");
 
-    // Ielādēt datus no Railway
-    async function loadWorkerData() {
-        const [cRes, sRes] = await Promise.all([
-            fetch('/api/cars'),
-            fetch('/api/schedule')
-        ]);
-        const cars = await cRes.json();
-        const allSchedule = await sRes.json();
+    // 1. Aizpildām visus dropdownus uzreiz
+    const months = ["Janvāris", "Februāris", "Marts", "Aprīlis", "Maijs", "Jūnijs", "Jūlijs", "Augusts", "Septembris", "Oktobris", "Novembris", "Decembris"];
+    const monthSelect = document.getElementById("month");
+    months.forEach(m => monthSelect.add(new Option(m, m)));
 
-        // Mašīnu dropdown
-        carSelect.innerHTML = '<option value="">Mašīna:</option>';
-        cars.forEach(c => {
-            const opt = document.createElement("option");
-            opt.value = c;
-            opt.textContent = c;
-            carSelect.appendChild(opt);
-        });
+    const dateSelect = document.getElementById("date");
+    for (let i = 1; i <= 31; i++) dateSelect.add(new Option(i, i));
 
-        renderTable(allSchedule.filter(e => e.worker_name === user.name));
+    function populateTimeDropdowns(sH, sM) {
+        for (let i = 0; i < 24; i++) {
+            let val = i.toString().padStart(2, '0');
+            sH.add(new Option(val, val));
+        }
+        for (let i = 0; i < 60; i += 5) {
+            let val = i.toString().padStart(2, '0');
+            sM.add(new Option(val, val));
+        }
+    }
+    populateTimeDropdowns(document.getElementById("fromHour"), document.getElementById("fromMinute"));
+    populateTimeDropdowns(document.getElementById("toHour"), document.getElementById("toMinute"));
+
+    // 2. Aprēķina loģika un ekrāna atjaunošana
+    function calculateHours(fH, fM, tH, tM) {
+        let diff = (parseInt(tH) * 60 + parseInt(tM)) - (parseInt(fH) * 60 + parseInt(fM));
+        if (diff < 0) diff += 1440;
+        return { hours: Math.floor(diff / 60), minutes: diff % 60 };
     }
 
-    // Saglabāt jaunu ierakstu
+    const updateDisplay = () => {
+        const { hours, minutes } = calculateHours(
+            document.getElementById("fromHour").value,
+            document.getElementById("fromMinute").value,
+            document.getElementById("toHour").value,
+            document.getElementById("toMinute").value
+        );
+        hoursDisplay.textContent = `Stundas: ${hours}h ${minutes}m`;
+    };
+
+    ["fromHour", "fromMinute", "toHour", "toMinute"].forEach(id => {
+        document.getElementById(id).addEventListener("change", updateDisplay);
+    });
+
+    // 3. Datu ielāde un tabula
+    async function loadWorkerData() {
+        try {
+            const [cRes, sRes] = await Promise.all([
+                fetch('/api/cars'),
+                fetch('/api/schedule')
+            ]);
+            const cars = await cRes.json();
+            const allSchedule = await sRes.json();
+
+            carSelect.innerHTML = '<option value="">Mašīna:</option>';
+            cars.forEach(c => {
+                const opt = new Option(c, c);
+                carSelect.appendChild(opt);
+            });
+
+            renderTable(allSchedule.filter(e => e.worker_name === user.name));
+        } catch (err) {
+            console.error("Kļūda ielādējot datus:", err);
+        }
+    }
+
+    // 4. Saglabāšana
     scheduleForm.addEventListener("submit", async (e) => {
         e.preventDefault();
-        const { hours, minutes } = calculateHours(
-            parseInt(document.getElementById("fromHour").value),
-            parseInt(document.getElementById("fromMinute").value),
-            parseInt(document.getElementById("toHour").value),
-            parseInt(document.getElementById("toMinute").value)
-        );
+        const fH = document.getElementById("fromHour").value;
+        const fM = document.getElementById("fromMinute").value;
+        const tH = document.getElementById("toHour").value;
+        const tM = document.getElementById("toMinute").value;
+
+        const { hours, minutes } = calculateHours(fH, fM, tH, tM);
 
         const entry = {
             worker_name: user.name,
             month: document.getElementById("month").value,
-            date: parseInt(document.getElementById("date").value),
+            date: document.getElementById("date").value,
             car: carSelect.value,
-            from_time: `${document.getElementById("fromHour").value}:${document.getElementById("fromMinute").value}`,
-            to_time: `${document.getElementById("toHour").value}:${document.getElementById("toMinute").value}`,
+            from_time: `${fH}:${fM}`,
+            to_time: `${tH}:${tM}`,
             hours: `${hours}h ${minutes}m`
         };
 
         const res = await fetch('/api/schedule', {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(entry)
         });
 
-        if(res.ok) {
+        if (res.ok) {
             alert("Saglabāts datubāzē!");
             scheduleForm.reset();
+            updateDisplay();
             loadWorkerData();
         }
     });
 
-    // Palīgfunkcijas laika dropdowniem un aprēķinam
-    function populateTimeDropdowns(sH, sM) {
-        for(let i=0; i<24; i++) sH.add(new Option(i.toString().padStart(2,'0'), i));
-        for(let i=0; i<60; i++) sM.add(new Option(i.toString().padStart(2,'0'), i));
-    }
-    populateTimeDropdowns(document.getElementById("fromHour"), document.getElementById("fromMinute"));
-    populateTimeDropdowns(document.getElementById("toHour"), document.getElementById("toMinute"));
-
-    function calculateHours(fH, fM, tH, tM) {
-        let diff = (tH * 60 + tM) - (fH * 60 + fM);
-        if(diff < 0) diff += 1440;
-        return { hours: Math.floor(diff/60), minutes: diff%60 };
-    }
-
     function renderTable(data) {
-        if(!data.length) { tableContainer.innerHTML = "Nav ierakstu."; return; }
-        let html = "<table><tr><th>Month</th><th>Date</th><th>Car</th><th>From</th><th>To</th><th>Hours</th></tr>";
+        if (!data || !data.length) { tableContainer.innerHTML = "Nav ierakstu."; return; }
+        let html = "<table><tr><th>Mēnesis</th><th>Datums</th><th>Auto</th><th>No</th><th>Līdz</th><th>Kopā</th></tr>";
         data.forEach(e => {
             html += `<tr><td>${e.month}</td><td>${e.date}</td><td>${e.car}</td><td>${e.from_time}</td><td>${e.to_time}</td><td>${e.hours}</td></tr>`;
         });
         tableContainer.innerHTML = html + "</table>";
     }
 
-    // Logout
     document.getElementById("logoutBtn").onclick = () => {
         localStorage.removeItem("loggedInUser");
         window.location.href = "index.html";
