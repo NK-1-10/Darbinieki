@@ -52,28 +52,13 @@
     <p class="hint">If using a temporary password, you will be prompted to set a new password.</p>
   </form>
 
-  <script>
+<script>
     document.addEventListener("DOMContentLoaded", () => {
       const form = document.getElementById("loginForm");
       const usernameInput = document.getElementById("username");
       const passwordInput = document.getElementById("password");
 
-      const ADMIN = { username: "admin", password: "admin123", role: "admin" };
-
-      const getWorkers = () => {
-        try {
-          const workers = JSON.parse(localStorage.getItem("workers"));
-          return Array.isArray(workers) ? workers : [];
-        } catch {
-          return [];
-        }
-      };
-
-      const saveWorkers = (workers) => {
-        localStorage.setItem("workers", JSON.stringify(workers));
-      };
-
-      form.addEventListener("submit", (e) => {
+      form.addEventListener("submit", async (e) => {
         e.preventDefault();
 
         const username = usernameInput.value.trim();
@@ -84,61 +69,30 @@
           return;
         }
 
-        const workers = getWorkers();
+        // Sūtām pieprasījumu uz serveri
+        try {
+          const response = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+          });
 
-        // --- Admin login ---
-        if (username === ADMIN.username && password === ADMIN.password) {
-          localStorage.setItem("loggedInUser", JSON.stringify({ name: ADMIN.username, role: "admin" }));
-          window.location.href = "admin.html";
-          return;
-        }
-
-        // --- Worker login ---
-        const workerIdx = workers.findIndex(w => w.name === username || w.username === username);
-        if (workerIdx === -1) {
-          alert("Incorrect username or password.");
-          return;
-        }
-
-        const worker = workers[workerIdx];
-        const tempPassword = worker.Temppassword || worker.tempPassword;
-
-        // Temporary password logic
-        if (tempPassword && password === tempPassword) {
-          let newPassword = null;
-          while (true) {
-            newPassword = prompt("You are using a temporary password. Enter a new password:");
-            if (newPassword === null) {
-              alert("Password change cancelled. Login aborted.");
-              return;
-            }
-            newPassword = newPassword.trim();
-            if (newPassword.length === 0) {
-              alert("Password cannot be empty.");
-              continue;
-            }
-            break;
+          if (response.ok) {
+            const user = await response.json();
+            // Saglabājam sesiju, lai lapa zinātu, kas ir ielogojies
+            localStorage.setItem("loggedInUser", JSON.stringify(user));
+            
+            // Pārvirzām atkarībā no lomas
+            window.location.href = user.role === "admin" ? "admin.html" : "worker.html";
+          } else {
+            const err = await response.json();
+            alert(err.error || "Incorrect username or password.");
           }
-          worker.password = newPassword;
-          delete worker.Temppassword;
-          delete worker.tempPassword;
-          saveWorkers(workers);
-          localStorage.setItem("loggedInUser", JSON.stringify({ name: worker.name, role: "worker" }));
-          alert("Password updated. Logging in...");
-          window.location.href = "worker.html";
-          return;
+        } catch (err) {
+          alert("Server error. Please try again later.");
         }
-
-        // Normal password check
-        if (worker.password && password === worker.password) {
-          localStorage.setItem("loggedInUser", JSON.stringify({ name: worker.name, role: "worker" }));
-          window.location.href = "worker.html";
-          return;
-        }
-
-        alert("Incorrect username or password.");
       });
     });
-  </script>
+</script>
 </body>
 </html>
