@@ -34,20 +34,50 @@ app.get('/api/schedule', async (req, res) => {
   } catch (err) { res.status(500).json(err.message); }
 });
 
-// --- SAGLABĀT DATUS (POST) ---
 app.post('/api/login', async (req, res) => {
   const { username, password } = req.body;
   try {
     const result = await pool.query('SELECT * FROM users WHERE name = $1', [username]);
     if (result.rows.length === 0) return res.status(401).json({ error: "Lietotājs nav atrasts" });
+    
     const user = result.rows[0];
-    if (password === user.password || password === user.temp_password) {
-      return res.json({ name: user.name, role: user.role });
+
+    // Pārbaudām, vai ienāk ar pagaidu paroli
+    if (user.temp_password && password === user.temp_password) {
+      return res.json({ 
+        name: user.name, 
+        role: user.role, 
+        needsPasswordChange: true // Frontend zinās, ka jāprasa jauna parole
+      });
+    } 
+    
+    // Pārbaudām parasto paroli
+    if (user.password && password === user.password) {
+      return res.json({ 
+        name: user.name, 
+        role: user.role, 
+        needsPasswordChange: false 
+      });
     }
+
     res.status(401).json({ error: "Nepareiza parole" });
   } catch (err) { res.status(500).json(err.message); }
 });
 
+// 2. JAUNS: Funkcija paroles maiņai
+app.post('/api/change-password', async (req, res) => {
+  const { username, newPassword } = req.body;
+  try {
+    // Iestatām jauno paroli un izdzēšam pagaidu paroli (set to NULL)
+    await pool.query(
+      'UPDATE users SET password = $1, temp_password = NULL WHERE name = $2',
+      [newPassword, username]
+    );
+    res.json({ success: true });
+  } catch (err) { res.status(500).json(err.message); }
+});
+
+// Pārējās tavas funkcijas paliek tādas pašas:
 app.post('/api/workers', async (req, res) => {
   const { name, temp_password } = req.body;
   try {
