@@ -75,5 +75,5 @@ app.post('/api/schedule', async (req, res) => {
   } catch (err) { res.status(500).json(err.message); }
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => console.log(`Serveris griežas uz ${PORT}`));
