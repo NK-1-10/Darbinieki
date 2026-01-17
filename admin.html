@@ -79,7 +79,7 @@
 
 <script>
     const MONTH_ORDER = ["Janvāris","Februāris","Marts","Aprīlis","Maijs","Jūnijs",
-                         "Jūlijs","Augusts","Septembris","Octobris","Novemberis","Decemberis"];
+                     "Jūlijs","Augusts","Septembris","Oktobris","Novembris","Decembris"];
 
     // Elementi
     const workerList = document.getElementById("workerList");
@@ -98,24 +98,29 @@
 
     // 1. FUNKCIJA: Ielādēt visu no Railway datubāzes
     async function loadData() {
-        try {
-            const [wRes, cRes, sRes] = await Promise.all([
-                fetch('/api/workers'),
-                fetch('/api/cars'),
-                fetch('/api/schedule')
-            ]);
+    try {
+        const [wRes, cRes, sRes] = await Promise.all([
+            fetch('/api/workers'),
+            fetch('/api/cars'),
+            fetch('/api/schedule')
+        ]);
 
-            workers = await wRes.json();
-            cars = await cRes.json();
-            schedule = await sRes.json();
+        workers = await wRes.json();
+        cars = await cRes.json();
+        schedule = await sRes.json();
 
-            renderWorkers();
-            renderCars();
-            renderTable();
-        } catch (err) {
-            console.error("Kļūda ielādējot datus:", err);
-        }
+        renderWorkers();
+        renderCars();
+        
+        // AIZPILDĀM FILTRUS NO TABULAS DATIEM
+        fillFilter(filterMonth, schedule.map(e => e.month));
+        fillFilter(filterDate, schedule.map(e => e.date).sort((a,b) => a-b));
+        
+        renderTable();
+    } catch (err) {
+        console.error("Kļūda ielādējot datus:", err);
     }
+}
 
     // 2. DARBINIEKU PIEVIENOŠANA (Sūta uz Railway)
     document.getElementById("addWorkerBtn").onclick = async () => {
@@ -183,30 +188,39 @@
     }
 
     function renderTable() {
-        let filtered = schedule.filter(e => {
-            return (!filterMonth.value || e.month === filterMonth.value) &&
-                   (!filterWorker.value || e.worker_name === filterWorker.value) &&
-                   (!filterDate.value || String(e.date) === filterDate.value) &&
-                   (!filterCar.value || e.car === filterCar.value);
+    let filtered = schedule.filter(e => {
+        return (!filterMonth.value || e.month === filterMonth.value) &&
+               (!filterWorker.value || e.worker_name === filterWorker.value) &&
+               (!filterDate.value || String(e.date) === filterDate.value) &&
+               (!filterCar.value || e.car === filterCar.value);
+    });
+
+    // UZLABOTA KĀRTOŠANA
+    const key = sortBy.value;
+    if (key) {
+        filtered.sort((a, b) => {
+            if (key === 'month') {
+                return MONTH_ORDER.indexOf(a.month) - MONTH_ORDER.indexOf(b.month);
+            }
+            if (key === 'date') {
+                return parseInt(a.date) - parseInt(b.date);
+            }
+            // Standarta kārtošana tekstam (darbinieks, mašīna)
+            return String(a[key]).localeCompare(String(b[key]));
         });
-
-        // Kārtošana
-        const key = sortBy.value;
-        if(key) {
-            filtered.sort((a,b) => a[key] > b[key] ? 1 : -1);
-        }
-
-        if(!filtered.length) {
-            tableContainer.innerHTML = "<p>Nav ierakstu.</p>";
-            return;
-        }
-
-        let html = `<table><tr><th>Mēnesis</th><th>Darbinieks</th><th>Datums</th><th>Mašīna</th><th>Kopš</th><th>Līdz</th><th>Stundas</th></tr>`;
-        filtered.forEach(e => {
-            html += `<tr><td>${e.month}</td><td>${e.worker_name}</td><td>${e.date}</td><td>${e.car}</td><td>${e.from_time}</td><td>${e.to_time}</td><td>${e.hours}</td></tr>`;
-        });
-        tableContainer.innerHTML = html + `</table>`;
     }
+
+    if (!filtered.length) {
+        tableContainer.innerHTML = "<p>Nav ierakstu.</p>";
+        return;
+    }
+
+    let html = `<table><tr><th>Mēnesis</th><th>Darbinieks</th><th>Datums</th><th>Mašīna</th><th>Kopš</th><th>Līdz</th><th>Stundas</th></tr>`;
+    filtered.forEach(e => {
+        html += `<tr><td>${e.month}</td><td>${e.worker_name}</td><td>${e.date}</td><td>${e.car}</td><td>${e.from_time}</td><td>${e.to_time}</td><td>${e.hours}</td></tr>`;
+    });
+    tableContainer.innerHTML = html + `</table>`;
+}
 
     // Klausītāji filtriem
     [filterMonth, filterWorker, filterDate, filterCar, sortBy].forEach(el => el.addEventListener("change", renderTable));
