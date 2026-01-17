@@ -155,9 +155,22 @@
 
     // 4. VIZUALIZĀCIJA (Tava vecā loģika, bet pielāgota)
     function renderWorkers() {
-        workerList.innerHTML = workers.map(w => `<li><strong>${w.name}</strong> <span class="pw">(Temp: ${w.temp_password})</span></li>`).join("");
-        fillFilter(filterWorker, workers.map(w => w.name));
-    }
+    // 1. Izveidojam sarakstu, pārbaudot katru darbinieku
+    workerList.innerHTML = workers.map(w => {
+        // Pārbaudām, vai parole ir nomainīta (ir NULL vai teksts "NULL")
+        const isChanged = !w.temp_password || w.temp_password === "NULL";
+        
+        // Izvēlamies, ko rādīt pie paroles
+        const pwDisplay = isChanged 
+            ? `<span style="color: #28a745; font-weight: bold;">✓ Nomainīta</span>` 
+            : `<span class="pw" style="color: #666;">(Temp: ${w.temp_password})</span>`;
+
+        return `<li><strong>${w.name}</strong> ${pwDisplay}</li>`;
+    }).join("");
+
+    // 2. Atjauninām filtru
+    fillFilter(filterWorker, workers.map(w => w.name));
+}
 
     function renderCars() {
         carList.innerHTML = cars.map(c => `<li><strong>${c}</strong></li>`).join("");
