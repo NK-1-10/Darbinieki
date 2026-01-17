@@ -155,20 +155,16 @@
 
     // 4. VIZUALIZĀCIJA (Tava vecā loģika, bet pielāgota)
     function renderWorkers() {
-    // 1. Izveidojam sarakstu, pārbaudot katru darbinieku
+    // Izveidojam sarakstu, kurā rādām TIKAI darbinieka vārdu
     workerList.innerHTML = workers.map(w => {
-        // Pārbaudām, vai parole ir nomainīta (ir NULL vai teksts "NULL")
-        const isChanged = !w.temp_password || w.temp_password === "NULL";
-        
-        // Izvēlamies, ko rādīt pie paroles
-        const pwDisplay = isChanged 
-            ? `<span style="color: #28a745; font-weight: bold;">✓ Nomainīta</span>` 
-            : `<span class="pw" style="color: #666;">(Temp: ${w.temp_password})</span>`;
-
-        return `<li><strong>${w.name}</strong> ${pwDisplay}</li>`;
+        return `
+            <li style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                <strong>${w.name}</strong>
+                <button onclick="deleteWorker('${w.name}')" style="margin-left: 10px; padding: 2px 8px;">Dzēst</button>
+            </li>`;
     }).join("");
 
-    // 2. Atjauninām filtru
+    // Atjauninām filtru (dropdown izvēlni)
     fillFilter(filterWorker, workers.map(w => w.name));
 }
 
