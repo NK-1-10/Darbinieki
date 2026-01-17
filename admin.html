@@ -155,16 +155,19 @@
 
     // 4. VIZUALIZĀCIJA (Tava vecā loģika, bet pielāgota)
     function renderWorkers() {
-    // Izveidojam sarakstu, kurā rādām TIKAI darbinieka vārdu
     workerList.innerHTML = workers.map(w => {
+        // Ja temp_password nav NULL un nav tukšs, mēs to parādām
+        const tempPassHtml = (w.temp_password && w.temp_password !== "NULL") 
+            ? `<span style="color: #666; font-size: 0.9em;"> (Temp: ${w.temp_password})</span>` 
+            : ""; // Ja parole nomainīta, šeit būs tukšums
+
         return `
-            <li style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                <strong>${w.name}</strong>
-                <button onclick="deleteWorker('${w.name}')" style="margin-left: 10px; padding: 2px 8px;">Dzēst</button>
+            <li style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding: 5px; border: 1px solid #eee; border-radius: 4px;">
+                <span><strong>${w.name}</strong>${tempPassHtml}</span>
+                <button onclick="deleteWorker('${w.name}')" style="padding: 2px 10px; cursor: pointer;">Dzēst</button>
             </li>`;
     }).join("");
 
-    // Atjauninām filtru (dropdown izvēlni)
     fillFilter(filterWorker, workers.map(w => w.name));
 }
 
