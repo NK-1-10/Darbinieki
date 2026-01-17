@@ -10,7 +10,6 @@
         button:hover { background: #d5d5d5; }
         ul { list-style: none; padding: 0; margin: 6px 0; max-width: 400px; }
         li { background:#fff; margin:6px 0; padding:8px 10px; border-radius:6px; border:1px solid #ccc; display: flex; justify-content: space-between; align-items: center; }
-        li span { flex-grow: 1; }
         .pw { color:#666; font-style:italic; margin-left:8px; font-size: 0.9em; }
         details { margin-bottom: 15px; background: #fff; border: 1px solid #ccc; border-radius: 6px; padding: 10px; max-width: 450px; }
         summary { cursor: pointer; font-weight: bold; padding: 4px; }
@@ -32,7 +31,7 @@
 
 <details>
     <summary>🚗 Pievienot mašīnas</summary>
-    <button id="addCarBtn">➕ pievienot mašīnu</button>
+    <button id="addCarBtn">➕ Pievienot mašīnu</button>
     <ul id="carList"></ul>
 </details>
 
@@ -40,28 +39,17 @@
     <button id="clearTableBtn" style="background:#ff6666; color:white; border:none;">Clear Table</button>
 </div>
 
-<h3> Tabula</h3>
+<h3>Tabula</h3>
 
 <div id="filters">
-    <label>Mēnesis:
-        <select id="filterMonth"><option value="">Visi</option></select>
-    </label>
-
-    <label>Darbinieks:
-        <select id="filterWorker"><option value="">Visi</option></select>
-    </label>
-
-    <label>Datums:
-        <select id="filterDate"><option value="">Visi</option></select>
-    </label>
-
-    <label>Mašīna:
-        <select id="filterCar"><option value="">Visi</option></select>
-    </label>
+    <label>Mēnesis: <select id="filterMonth"><option value="">All</option></select></label>
+    <label>Darbinieks: <select id="filterWorker"><option value="">All</option></select></label>
+    <label>Datums: <select id="filterDate"><option value="">All</option></select></label>
+    <label>Mašīna: <select id="filterCar"><option value="">All</option></select></label>
 
     <br><br>
 
-    <label>Sort By:
+    <label>Sort By (top):
         <select id="sortBy">
             <option value="">None</option>
             <option value="month">Month</option>
@@ -72,7 +60,7 @@
         </select>
     </label>
 
-    <button id="clearFilters"> Clear Filters</button>
+    <button id="clearFilters">Clear Filters</button>
 </div>
 
 <div id="tableContainer"></div>
@@ -94,7 +82,6 @@
     const MONTH_ORDER = ["Janvāris","Februāris","Marts","Aprīlis","Maijs","Jūnijs",
                          "Jūlijs","Augusts","Septembris","Oktobris","Novembris","Decembris"];
 
-    // Elementi
     const workerList = document.getElementById("workerList");
     const carList = document.getElementById("carList");
     const tableContainer = document.getElementById("tableContainer");
@@ -109,7 +96,6 @@
     let cars = [];
     let schedule = [];
 
-    // 1. Ielādēt datus
     async function loadData() {
         try {
             const [wRes, cRes, sRes] = await Promise.all([
@@ -117,24 +103,20 @@
                 fetch('/api/cars'),
                 fetch('/api/schedule')
             ]);
-
             workers = await wRes.json();
             cars = await cRes.json();
             schedule = await sRes.json();
 
             renderWorkers();
             renderCars();
-            
             fillFilter(filterMonth, schedule.map(e => e.month));
             fillFilter(filterDate, schedule.map(e => e.date).sort((a,b) => a-b));
-            
             renderTable();
         } catch (err) {
             console.error("Kļūda ielādējot datus:", err);
         }
     }
 
-    // 2. Sinhronizācijas funkcija
     function handleSortChange(e) {
         const val = e.target.value;
         sortBy1.value = val;
@@ -142,7 +124,6 @@
         renderTable();
     }
 
-    // 3. Pievienošana
     document.getElementById("addWorkerBtn").onclick = async () => {
         const name = prompt("Ievadiet darbinieka vārdu:");
         if(!name || !name.trim()) return;
@@ -168,20 +149,18 @@
         if(res.ok) { alert("Pievienota!"); loadData(); }
     };
 
-    // 4. Dzēšana
     async function deleteWorker(name) {
         if(!confirm(`Dzēst darbinieku ${name}?`)) return;
         const res = await fetch(`/api/workers/${encodeURIComponent(name)}`, { method: 'DELETE' });
         if(res.ok) { loadData(); }
     }
 
-    // 5. Renderēšana
     function renderWorkers() {
         workerList.innerHTML = workers.map(w => {
             const tempPassHtml = (w.temp_password && w.temp_password !== "NULL") 
                 ? `<span class="pw">(Temp: ${w.temp_password})</span>` : "";
             return `<li><span><strong>${w.name}</strong>${tempPassHtml}</span>
-                    <button onclick="deleteWorker('${w.name}')">Dzēst</button></li>`;
+                    <button onclick="deleteWorker('${w.name}')" style="margin-left:10px;">Dzēst</button></li>`;
         }).join("");
         fillFilter(filterWorker, workers.map(w => w.name));
     }
@@ -193,7 +172,7 @@
 
     function fillFilter(select, list) {
         const current = select.value;
-        const uniqueValues = [...new Set(list)]; // Šeit mēs izmantojam Set, lai nebūtu dublikātu
+        const uniqueValues = [...new Set(list)];
         select.innerHTML = `<option value="">Visi</option>` + 
             uniqueValues.map(v => `<option value="${v}">${v}</option>`).join("");
         select.value = current;
@@ -229,7 +208,6 @@
         tableContainer.innerHTML = html + `</table>`;
     }
 
-    // Klausītāji
     [filterMonth, filterWorker, filterDate, filterCar].forEach(el => el.addEventListener("change", renderTable));
     sortBy1.addEventListener("change", handleSortChange);
     sortBy2.addEventListener("change", handleSortChange);
@@ -239,15 +217,7 @@
         renderTable();
     };
 
-    // Pievienojam Clear Table pogas darbību
-    document.getElementById("clearTableBtn").onclick = async () => {
-        if(!confirm("VAI TIEŠĀM dzēst visus datus no tabulas?")) return;
-        const res = await fetch('/api/schedule', { method: 'DELETE' });
-        if(res.ok) { alert("Tabula iztīrīta!"); loadData(); }
-    };
-
-    // Sākotnējā datu ielāde
-        loadData();
-    </script>
+    loadData();
+</script>
 </body>
 </html>
