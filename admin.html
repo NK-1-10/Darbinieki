@@ -63,6 +63,17 @@
     <button id="clearFilters">Clear Filters</button>
 </div>
 
+ <label>Sort By (bottom):
+        <select id="sortBy2">
+            <option value="">None</option>
+            <option value="month">Month</option>
+            <option value="worker">Worker</option>
+            <option value="date">Date</option>
+            <option value="car">Car</option>
+            <option value="hours">Hours</option>
+        </select>
+    </label>
+    
 <div id="tableContainer"></div>
 
 
@@ -78,6 +89,7 @@
     const filterDate = document.getElementById("filterDate");
     const filterCar = document.getElementById("filterCar");
     const sortBy1 = document.getElementById("sortBy");
+    const sortBy2 = document.getElementById("sortBy2");
   
 
     let workers = [];
