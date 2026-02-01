@@ -6,29 +6,81 @@
     <title>Admin Panelis</title>
     <style>
         body {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
-  margin: 0;
-  background: #f4f6f1;
-  color: #0f1a14;
-}
-        h2, h3 { margin-top: 20px; }
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+            margin: 0;
+            background: #f4f6f1;
+            color: #0f1a14;
+            /* Centering the body content */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        h2, h3 { margin-top: 20px; text-align: center; }
+        
         button { padding: 8px 12px; margin: 4px 0; border-radius: 6px; border: 1px solid #aaa; background: #e0e0e0; cursor: pointer; }
         button:hover { background: #d5d5d5; }
-        ul { list-style: none; padding: 0; margin: 6px 0; max-width: 400px; }
+        
+        /* Centering lists and details */
+        ul { list-style: none; padding: 0; margin: 6px auto; width: 100%; max-width: 400px; }
         li { background:#fff; margin:6px 0; padding:8px 10px; border-radius:6px; border:1px solid #ccc; display: flex; justify-content: space-between; align-items: center; }
+        
         .pw { color:#666; font-style:italic; margin-left:8px; font-size: 0.9em; }
-        details { margin-bottom: 15px; background: #fff; border: 1px solid #ccc; border-radius: 6px; padding: 10px; max-width: 450px; }
+        
+        details { 
+            margin: 0 auto 15px auto; 
+            background: #fff; 
+            border: 1px solid #ccc; 
+            border-radius: 6px; 
+            padding: 10px; 
+            width: 100%;
+            max-width: 450px; 
+            text-align: center; /* Centers button and summary text */
+        }
+        
         summary { cursor: pointer; font-weight: bold; padding: 4px; }
         
-        /* Tabulas stili */
-        #table-wrapper { background: #fff; border: 1px solid #333; border-radius: 6px; overflow: hidden; margin-top: 20px; }
-        .table-controls { background: #eee; padding: 10px; border-bottom: 1px solid #333; display: flex; gap: 20px; align-items: center; }
+        /* Table styles */
+        #table-wrapper { 
+            background: #fff; 
+            border: 1px solid #333; 
+            border-radius: 6px; 
+            overflow: hidden; 
+            margin-top: 20px; 
+            width: 100%;
+            max-width: 900px; /* Adjusted for better visibility */
+        }
+        
+        .table-controls { background: #eee; padding: 10px; border-bottom: 1px solid #333; display: flex; gap: 20px; align-items: center; justify-content: center; }
+        
         table { border-collapse: collapse; width: 100%; }
         th, td { border: 1px solid #ccc; padding: 8px 12px; text-align: center; }
         th { background: #f9f9f9; }
         
-        #filters { background: #fff; border: 1px solid #ccc; padding: 10px; border-radius: 6px; max-width: 750px; margin-bottom: 15px; }
+        #filters { 
+            background: #fff; 
+            border: 1px solid #ccc; 
+            padding: 15px; 
+            border-radius: 6px; 
+            max-width: 750px; 
+            margin: 0 auto 15px auto; 
+            text-align: center;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+        }
+        
         select { padding: 4px 6px; border-radius: 4px; }
+
+        /* Container for the Clear Table button to center it */
+        .action-bar {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
@@ -47,9 +99,11 @@
     <ul id="carList"></ul>
 </details>
 
-<div style="text-align: right; margin-bottom: 10px;">
+<div class="action-bar">
     <button id="clearTableBtn" style="background:#ff6666; color:white; border:none;">Clear Table</button>
 </div>
+
+<hr style="width: 100%; max-width: 750px; margin: 20px 0; border: 0; border-top: 1px solid #ccc;">
 
 <h3>Meklēšanas filtri</h3>
 
@@ -58,7 +112,7 @@
     <label>Darbinieks: <select id="filterWorker"><option value="">Visi</option></select></label>
     <label>Datums: <select id="filterDate"><option value="">Visi</option></select></label>
     <label>Mašīna: <select id="filterCar"><option value="">Visi</option></select></label>
-    <button id="clearFilters" style="margin-left: 10px;">Notīrīt filtrus</button>
+    <button id="clearFilters">Notīrīt filtrus</button>
 </div>
 
 <div id="table-wrapper">
