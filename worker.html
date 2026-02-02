@@ -11,38 +11,23 @@
     </style>
 </head>
 <body>
-    <h2 id="welcome"></h2>
-    <button id="logoutBtn">Logout</button>
-    <br>
-    <br>
-
-    <form id="scheduleForm">
-        <select id="month" required>
-            <option value="">Mēnesis:</option>
-        </select>
-
-        <select id="date" required>
-            <option value="">Datums:</option>
-        </select>
+    <div class="card">
+        <h2 id="welcome"></h2>
+        <div id="status">Statuss: Gaidīšana</div>
 
         <select id="car" required>
-            <option value="">Mašīna:</option>
+            <option value="">-- Izvēlies mašīnu --</option>
         </select>
 
-        <label>Kopš:</label>
-        <select id="fromHour" required></select> :
-        <select id="fromMinute" required></select>
+        <button id="startBtn" class="btn btn-start">SĀKT DARBU</button>
+        <button id="stopBtn" class="btn btn-stop" style="display:none;">BEIGT DARBU</button>
+        
+        <br><br>
+        <button id="logoutBtn">Logout</button>
+    </div>
 
-        <label>Līdz:</label>
-        <select id="toHour" required></select> :
-        <select id="toMinute" required></select>
-
-        <span id="hoursDisplay">Stundas:  0h 0m</span>
-        <button type="submit">Pievienot</button>
-    </form>
-
+    <h3>Tavi pēdējie ieraksti:</h3>
     <div id="tableContainer"></div>
-
    <script>
     const user = JSON.parse(localStorage.getItem("loggedInUser"));
     if (!user || user.role !== "worker") {
