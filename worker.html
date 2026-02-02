@@ -164,6 +164,38 @@
         window.location.href = "index.html";
     };
 
+       // START poga
+    document.getElementById("startBtn").onclick = async () => {
+        if (!carSelect.value) return alert("Lūdzu, izvēlies mašīnu!");
+
+        const res = await fetch('/api/start-work', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ worker_name: user.name, car: carSelect.value })
+        });
+
+        if (res.ok) { loadWorkerData(); }
+    };
+
+    // STOP poga
+    document.getElementById("stopBtn").onclick = async () => {
+        if (!confirm("Vai tiešām beigt darbu?")) return;
+
+        const res = await fetch('/api/stop-work', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ worker_name: user.name })
+        });
+
+        if (res.ok) {
+            carSelect.disabled = false;
+            carSelect.value = "";
+            document.getElementById("startBtn").style.display = "block";
+            document.getElementById("stopBtn").style.display = "none";
+            loadWorkerData();
+        }
+    };
+
     loadWorkerData();
 </script>
 </body>
