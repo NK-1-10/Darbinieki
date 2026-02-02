@@ -270,6 +270,31 @@
         renderTable();
     };
 
+    document.getElementById("clearTableBtn").onclick = async () => {
+    // Drošības nolūkos pajautājam apstiprinājumu
+    const confirmClear = confirm("Vai tiešām vēlaties izdzēst VISUS ierakstus no tabulas? Šo darbību nevar atcelt.");
+    
+    if (confirmClear) {
+        try {
+            const res = await fetch('/api/schedule', {
+                method: 'DELETE'
+            });
+
+            if (res.ok) {
+                alert("Tabula ir veiksmīgi notīrīta!");
+                loadData(); // Pārlādējam datus, lai tabula kļūtu tukša
+            } else {
+                alert("Kļūda dzēšot datus.");
+            }
+        } catch (err) {
+            console.error("Servera kļūda:", err);
+            alert("Neizdevās sazināties ar serveri.");
+        }
+    }
+};
+
+   
+
     // Darbinieku un mašīnu pievienošanas loģika (nemainīga)
     document.getElementById("addWorkerBtn").onclick = async () => {
         const name = prompt("Ievadiet darbinieka vārdu:");
