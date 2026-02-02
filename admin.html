@@ -53,6 +53,7 @@
     const statusDiv = document.getElementById("status");
 
     // 1. Ielādējam mašīnas un esošos datus
+   // 1. Ielādējam mašīnas un esošos datus
     async function init() {
         const [cRes, sRes] = await Promise.all([
             fetch('/api/cars'),
@@ -61,8 +62,13 @@
         const cars = await cRes.json();
         const schedule = await sRes.json();
 
+        // PIEVIENO ŠO RINDIŅU ŠEIT:
+        carSelect.innerHTML = '<option value="">-- Izvēlies mašīnu --</option>';
+
         // Aizpildām mašīnu izvēlni
         cars.forEach(c => carSelect.add(new Option(c, c)));
+        
+        // ... tālāk viss paliek kā bija ...
 
         // Pārbaudām, vai darbiniekam jau ir aktīvs darbs (start_time ir, bet end_time nav)
         const activeJob = schedule.find(e => e.worker_name === user.name && !e.end_time);
