@@ -92,15 +92,27 @@
             const cars = await cRes.json();
             const allSchedule = await sRes.json();
 
-            carSelect.innerHTML = '<option value="">Mašīna:</option>';
+            // REIZI ŠEIT: Iztīrām sarakstu pirms pievienošanas
+            carSelect.innerHTML = '<option value="">-- Izvēlies mašīnu --</option>';
+            
             cars.forEach(c => {
-                const opt = new Option(c, c);
-                carSelect.appendChild(opt);
+                carSelect.add(new Option(c, c));
             });
+
+            // Pārbaude: vai darbiniekam jau ir aktīvs darbs?
+            const activeJob = allSchedule.find(e => e.worker_name === user.name && !e.end_time);
+            if (activeJob) {
+                // Ja ir aktīvs darbs, parādām STOP pogu
+                document.getElementById("startBtn").style.display = "none";
+                document.getElementById("stopBtn").style.display = "block";
+                carSelect.value = activeJob.car;
+                carSelect.disabled = true;
+                document.getElementById("status").innerHTML = `Strādā ar: <b>${activeJob.car}</b><br><small>Sākts: ${activeJob.start_time}</small>`;
+            }
 
             renderTable(allSchedule.filter(e => e.worker_name === user.name));
         } catch (err) {
-            console.error("Kļūda ielādējot datus:", err);
+            console.error("Kļūda:", err);
         }
     }
 
