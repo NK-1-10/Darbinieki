@@ -34,6 +34,17 @@ app.get('/api/schedule', async (req, res) => {
   } catch (err) { res.status(500).json(err.message); }
 });
 
+app.delete('/api/schedule', async (req, res) => {
+  try {
+    // Šī ir komanda, kas iztīra PostgreSQL tabulu
+    await pool.query("DELETE FROM schedule");
+    res.json({ success: true, message: "Tabula iztīrīta" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.post('/api/login', async (req, res) => {
   const { username, password } = req.body;
   try {
