@@ -35,167 +35,86 @@
     }
     document.getElementById("welcome").textContent = `Logged in as: ${user.name}`;
 
-    const scheduleForm = document.getElementById("scheduleForm");
     const carSelect = document.getElementById("car");
     const tableContainer = document.getElementById("tableContainer");
-    const hoursDisplay = document.getElementById("hoursDisplay");
 
-    // 1. Aizpildām visus dropdownus uzreiz
-    const months = ["Janvāris", "Februāris", "Marts", "Aprīlis", "Maijs", "Jūnijs", "Jūlijs", "Augusts", "Septembris", "Oktobris", "Novembris", "Decembris"];
-    const monthSelect = document.getElementById("month");
-    months.forEach(m => monthSelect.add(new Option(m, m)));
-
-    const dateSelect = document.getElementById("date");
-    for (let i = 1; i <= 31; i++) dateSelect.add(new Option(i, i));
-
-    function populateTimeDropdowns(sH, sM) {
-        for (let i = 0; i < 24; i++) {
-            let val = i.toString().padStart(2, '0');
-            sH.add(new Option(val, val));
-        }
-        for (let i = 0; i < 60; i += 5) {
-            let val = i.toString().padStart(2, '0');
-            sM.add(new Option(val, val));
-        }
-    }
-    populateTimeDropdowns(document.getElementById("fromHour"), document.getElementById("fromMinute"));
-    populateTimeDropdowns(document.getElementById("toHour"), document.getElementById("toMinute"));
-
-    // 2. Aprēķina loģika un ekrāna atjaunošana
-    function calculateHours(fH, fM, tH, tM) {
-        let diff = (parseInt(tH) * 60 + parseInt(tM)) - (parseInt(fH) * 60 + parseInt(fM));
-        if (diff < 0) diff += 1440;
-        return { hours: Math.floor(diff / 60), minutes: diff % 60 };
-    }
-
-    const updateDisplay = () => {
-        const { hours, minutes } = calculateHours(
-            document.getElementById("fromHour").value,
-            document.getElementById("fromMinute").value,
-            document.getElementById("toHour").value,
-            document.getElementById("toMinute").value
-        );
-        hoursDisplay.textContent = `Stundas: ${hours}h ${minutes}m`;
-    };
-
-    ["fromHour", "fromMinute", "toHour", "toMinute"].forEach(id => {
-        document.getElementById(id).addEventListener("change", updateDisplay);
-    });
-
-    // 3. Datu ielāde un tabula
+    // 1. Funkcija datu ielādei (Pārcelta uz augšu)
     async function loadWorkerData() {
         try {
             const [cRes, sRes] = await Promise.all([
                 fetch('/api/cars'),
                 fetch('/api/schedule')
             ]);
+            
+            if (!cRes.ok || !sRes.ok) throw new Error("Servera kļūda");
+
             const cars = await cRes.json();
             const allSchedule = await sRes.json();
 
-            // REIZI ŠEIT: Iztīrām sarakstu pirms pievienošanas
+            // Aizpildām mašīnu sarakstu
             carSelect.innerHTML = '<option value="">-- Izvēlies mašīnu --</option>';
-            
             cars.forEach(c => {
                 carSelect.add(new Option(c, c));
             });
 
-            // Pārbaude: vai darbiniekam jau ir aktīvs darbs?
+            // Pārbaudām aktīvo darbu
             const activeJob = allSchedule.find(e => e.worker_name === user.name && !e.end_time);
             if (activeJob) {
-                // Ja ir aktīvs darbs, parādām STOP pogu
                 document.getElementById("startBtn").style.display = "none";
                 document.getElementById("stopBtn").style.display = "block";
                 carSelect.value = activeJob.car;
                 carSelect.disabled = true;
-                document.getElementById("status").innerHTML = `Strādā ar: <b>${activeJob.car}</b><br><small>Sākts: ${activeJob.start_time}</small>`;
+                document.getElementById("status").innerHTML = `Strādā ar: <b>${activeJob.car}</b>`;
+            } else {
+                document.getElementById("startBtn").style.display = "block";
+                document.getElementById("stopBtn").style.display = "none";
+                carSelect.disabled = false;
+                document.getElementById("status").textContent = "Statuss: Gaidīšana";
             }
 
             renderTable(allSchedule.filter(e => e.worker_name === user.name));
         } catch (err) {
-            console.error("Kļūda:", err);
+            console.error("Kļūda ielādējot datus:", err);
         }
     }
 
-    // 4. Saglabāšana
-    scheduleForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const fH = document.getElementById("fromHour").value;
-        const fM = document.getElementById("fromMinute").value;
-        const tH = document.getElementById("toHour").value;
-        const tM = document.getElementById("toMinute").value;
-
-        const { hours, minutes } = calculateHours(fH, fM, tH, tM);
-
-        const entry = {
-            worker_name: user.name,
-            month: document.getElementById("month").value,
-            date: document.getElementById("date").value,
-            car: carSelect.value,
-            from_time: `${fH}:${fM}`,
-            to_time: `${tH}:${tM}`,
-            hours: `${hours}h ${minutes}m`
-        };
-
-        const res = await fetch('/api/schedule', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(entry)
-        });
-
-        if (res.ok) {
-            alert("Saglabāts datubāzē!");
-            scheduleForm.reset();
-            updateDisplay();
-            loadWorkerData();
-        }
-    });
-
+    // 2. Tabulas renderēšana
     function renderTable(data) {
         if (!data || !data.length) { tableContainer.innerHTML = "Nav ierakstu."; return; }
-        let html = "<table><tr><th>Mēnesis</th><th>Datums</th><th>Auto</th><th>No</th><th>Līdz</th><th>Kopā</th></tr>";
+        let html = "<table><tr><th>Auto</th><th>Sākums</th><th>Beigas</th></tr>";
         data.forEach(e => {
-            html += `<tr><td>${e.month}</td><td>${e.date}</td><td>${e.car}</td><td>${e.from_time}</td><td>${e.to_time}</td><td>${e.hours}</td></tr>`;
+            html += `<tr><td>${e.car}</td><td>${e.start_time || '-'}</td><td>${e.end_time || 'Aktīvs'}</td></tr>`;
         });
         tableContainer.innerHTML = html + "</table>";
     }
+
+    // 3. Pogas funkcijas
+    document.getElementById("startBtn").onclick = async () => {
+        if (!carSelect.value) return alert("Lūdzu, izvēlies mašīnu!");
+        const res = await fetch('/api/start-work', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ worker_name: user.name, car: carSelect.value })
+        });
+        if (res.ok) loadWorkerData();
+    };
+
+    document.getElementById("stopBtn").onclick = async () => {
+        if (!confirm("Vai tiešām beigt darbu?")) return;
+        const res = await fetch('/api/stop-work', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ worker_name: user.name })
+        });
+        if (res.ok) loadWorkerData();
+    };
 
     document.getElementById("logoutBtn").onclick = () => {
         localStorage.removeItem("loggedInUser");
         window.location.href = "index.html";
     };
 
-       // START poga
-    document.getElementById("startBtn").onclick = async () => {
-        if (!carSelect.value) return alert("Lūdzu, izvēlies mašīnu!");
-
-        const res = await fetch('/api/start-work', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ worker_name: user.name, car: carSelect.value })
-        });
-
-        if (res.ok) { loadWorkerData(); }
-    };
-
-    // STOP poga
-    document.getElementById("stopBtn").onclick = async () => {
-        if (!confirm("Vai tiešām beigt darbu?")) return;
-
-        const res = await fetch('/api/stop-work', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ worker_name: user.name })
-        });
-
-        if (res.ok) {
-            carSelect.disabled = false;
-            carSelect.value = "";
-            document.getElementById("startBtn").style.display = "block";
-            document.getElementById("stopBtn").style.display = "none";
-            loadWorkerData();
-        }
-    };
-
+    // PALAIŽAM IELĀDI
     loadWorkerData();
 </script>
 </body>
