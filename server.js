@@ -23,8 +23,12 @@ app.get('/api/workers', async (req, res) => {
 app.get('/api/cars', async (req, res) => {
   try {
     const result = await pool.query("SELECT name FROM cars");
+    console.log("Dati no DB:", result.rows); // Šis parādīsies Railway logos
     res.json(result.rows.map(row => row.name));
-  } catch (err) { res.status(500).json(err.message); }
+  } catch (err) { 
+    console.error("DB KĻŪDA:", err.message); // Šis parādīs kļūdu, ja tāda būs
+    res.status(500).json({ error: err.message }); 
+  }
 });
 
 app.get('/api/schedule', async (req, res) => {
