@@ -5,7 +5,7 @@
     <title>Darbinieks</title>
     <style>
         body {
-        background-color: blue !important;
+        background-color: Coral;
         margin: 0;
         padding: 20px;
         font-family: Arial, sans-serif;
@@ -53,7 +53,7 @@
     const tableContainer = document.getElementById("tableContainer");
 
     // 1. Funkcija datu ielādei (Pārcelta uz augšu)
-    async function loadWorkerData() {
+   async function loadWorkerData() {
         try {
             const [cRes, sRes] = await Promise.all([
                 fetch('/api/cars'),
@@ -65,25 +65,27 @@
             const cars = await cRes.json();
             const allSchedule = await sRes.json();
 
-            // Aizpildām mašīnu sarakstu
             carSelect.innerHTML = '<option value="">-- Izvēlies mašīnu --</option>';
             cars.forEach(c => {
                 carSelect.add(new Option(c, c));
             });
 
-            // Pārbaudām aktīvo darbu
-            const activeJob = allSchedule.find(e => e.worker_name === user.name && !e.end_time);
+            // Svarīgi: te mēs pārbaudām 'beigu_laiks', nevis 'end_time'
+            const activeJob = allSchedule.find(e => e.worker_name === user.name && !e.beigu_laiks);
+            
             if (activeJob) {
                 document.getElementById("startBtn").style.display = "none";
                 document.getElementById("stopBtn").style.display = "block";
                 carSelect.value = activeJob.car;
                 carSelect.disabled = true;
                 document.getElementById("status").innerHTML = `Strādā ar: <b>${activeJob.car}</b>`;
+                document.getElementById("startTimeDisplay").innerText = `Tu sāki darbu: ${activeJob.sākuma_laiks}`;
             } else {
                 document.getElementById("startBtn").style.display = "block";
                 document.getElementById("stopBtn").style.display = "none";
                 carSelect.disabled = false;
                 document.getElementById("status").textContent = "Statuss: Gaidīšana";
+                document.getElementById("startTimeDisplay").innerText = "";
             }
 
             renderTable(allSchedule.filter(e => e.worker_name === user.name));
@@ -92,12 +94,12 @@
         }
     }
 
-    // 2. Tabulas renderēšana
     function renderTable(data) {
         if (!data || !data.length) { tableContainer.innerHTML = "Nav ierakstu."; return; }
         let html = "<table><tr><th>Auto</th><th>Sākums</th><th>Beigas</th></tr>";
         data.forEach(e => {
-            html += `<tr><td>${e.car}</td><td>${e.start_time || '-'}</td><td>${e.end_time || 'Aktīvs'}</td></tr>`;
+            // Lietojam latviskos nosaukumus no DB
+            html += `<tr><td>${e.car}</td><td>${e.sākuma_laiks || '-'}</td><td>${e.beigu_laiks || 'Aktīvs'}</td></tr>`;
         });
         tableContainer.innerHTML = html + "</table>";
     }
