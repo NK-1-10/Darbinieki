@@ -94,15 +94,31 @@
         }
     }
 
-    function renderTable(data) {
-        if (!data || !data.length) { tableContainer.innerHTML = "Nav ierakstu."; return; }
-        let html = "<table><tr><th>Auto</th><th>Sākums</th><th>Beigas</th></tr>";
-        data.forEach(e => {
-            // Lietojam latviskos nosaukumus no DB
-            html += `<tr><td>${e.car}</td><td>${e.sākuma_laiks || '-'}</td><td>${e.beigu_laiks || 'Aktīvs'}</td></tr>`;
-        });
-        tableContainer.innerHTML = html + "</table>";
-    }
+   function renderTable(data) {
+    if (!data || !data.length) { tableContainer.innerHTML = "Nav ierakstu."; return; }
+    
+    let html = `
+        <table>
+            <tr>
+                <th>Auto</th>
+                <th>Datums</th>
+                <th>Sākums</th>
+                <th>Beigas</th>
+                <th>Stundas</th>
+            </tr>`;
+            
+    data.forEach(e => {
+        html += `
+            <tr>
+                <td>${e.car}</td>
+                <td>${e.date || '-'}</td>
+                <td>${e.sākuma_laiks || '-'}</td>
+                <td>${e.beigu_laiks || 'Aktīvs'}</td>
+                <td>${e.hours ? e.hours + ' h' : '-'}</td>
+            </tr>`;
+    });
+    tableContainer.innerHTML = html + "</table>";
+}
 
     // 3. Pogas funkcijas
     document.getElementById("startBtn").onclick = async () => {
