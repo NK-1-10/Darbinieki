@@ -124,33 +124,49 @@ app.post('/api/schedule', async (req, res) => {
 app.post('/api/start-work', async (req, res) => {
     const { worker_name, car } = req.body;
     try {
-        const startTime = new Date().toLocaleString('lv-LV'); 
-        // Izmantojam 'sākuma_laiks', kā rāda tava DB bilde
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('lv-LV'); // 03.02.2026
+        const timeStr = now.toLocaleTimeString('lv-LV', { hour: '2-digit', minute: '2-digit' }); // 19:45
+
         await pool.query(
-            'INSERT INTO schedule (worker_name, car, sākuma_laiks) VALUES ($1, $2, $3)',
-            [worker_name, car, startTime]
+            'INSERT INTO schedule (worker_name, car, date, sākuma_laiks) VALUES ($1, $2, $3, $4)',
+            [worker_name, car, dateStr, timeStr]
         );
-        res.json({ success: true, startTime });
-    } catch (err) { 
-        console.error(err.message);
-        res.status(500).json({ error: err.message }); 
-    }
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 // --- BEIGT DARBU ---
 app.post('/api/stop-work', async (req, res) => {
     const { worker_name } = req.body;
     try {
-        const endTime = new Date().toLocaleString('lv-LV');
-        // Izmantojam 'beigu_laiks' un pārbaudām, kur 'beigu_laiks' ir NULL
-        await pool.query(
-            'UPDATE schedule SET beigu_laiks = $1 WHERE worker_name = $2 AND beigu_laiks IS NULL',
-            [endTime, worker_name]
+        const now = new Date();
+        const endTimeStr = now.toLocaleTimeString('lv-LV', { hour: '2-digit', minute: '2-digit' });
+
+        // 1. Atrodam sākuma laiku, lai aprēķinātu stundas
+        const result = await pool.query(
+            'SELECT sākuma_laiks FROM schedule WHERE worker_name = $1 AND beigu_laiks IS NULL',
+            [worker_name]
         );
-        res.json({ success: true, endTime });
-    } catch (err) { 
-        res.status(500).json({ error: err.message }); 
-    }
+
+        if (result.rows.length > 0) {
+            const startTimeStr = result.rows[0].sākuma_laiks;
+            
+            // Aprēķinām nostrādāto laiku (vienkāršots aprēķins stundās)
+            const [startH, startM] = startTimeStr.split(':').map(Number);
+            const endH = now.getHours();
+            const endM = now.getMinutes();
+            
+            const totalMinutes = (endH * 60 + endM) - (startH * 60 + startM);
+            const diffHours = (totalMinutes / 60).toFixed(2); // Piemēram, 2.50 stundas
+
+            await pool.query(
+                'UPDATE schedule SET beigu_laiks = $1, hours = $2 WHERE worker_name = $3 AND beigu_laiks IS NULL',
+                [endTimeStr, diffHours, worker_name]
+            );
+        }
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 const PORT = process.env.PORT || 8080;
