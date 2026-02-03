@@ -14,6 +14,7 @@
     <div class="card">
         <h2 id="welcome"></h2>
         <div id="status">Statuss: Gaidīšana</div>
+<div id="startTimeDisplay" style="color: green; font-weight: bold;"></div>
 
         <select id="car" required>
             <option value="">-- Izvēlies mašīnu --</option>
@@ -90,14 +91,37 @@
 
     // 3. Pogas funkcijas
     document.getElementById("startBtn").onclick = async () => {
-        if (!carSelect.value) return alert("Lūdzu, izvēlies mašīnu!");
-        const res = await fetch('/api/start-work', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ worker_name: user.name, car: carSelect.value })
-        });
-        if (res.ok) loadWorkerData();
-    };
+    if (!carSelect.value) return alert("Lūdzu, izvēlies mašīnu!");
+
+    // 1. Iegūstam laiku no datora (tāpat kā tavā piemērā) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    const now = new Date();
+    const formattedTime = now.toLocaleTimeString('lv-LV', { 
+        hour: '2-digit', 
+        minute: '2-digit', 
+        second: '2-digit' 
+    });
+    const formattedDate = now.toLocaleDateString('lv-LV');
+    const fullTimestamp = `${formattedDate} ${formattedTime}`;
+    // 2. Nosūtām datus uz serveri
+    const res = await fetch('/api/start-work', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+            worker_name: user.name, 
+            car: carSelect.value 
+        })
+    });
+    if (res.ok) {
+        // 3. Ja serveris apstiprina, parādām laiku ekrānā
+        document.getElementById("startTimeDisplay").innerText = `Tu sāki darbu: ${fullTimestamp}`;
+        const poga = document.getElementById("stopBtn");
+        poga.style.display = "block";
+        // Pārlādējam datus (pogas un tabulu)
+        loadWorkerData();
+    } else {
+        alert("Kļūda saglabājot sākuma laiku.");
+    }
+};
 
     document.getElementById("stopBtn").onclick = async () => {
         if (!confirm("Vai tiešām beigt darbu?")) return;
