@@ -120,35 +120,37 @@ app.post('/api/schedule', async (req, res) => {
   } catch (err) { res.status(500).json(err.message); }
 });
 
-// 1. Sākt darbu (Izveido jaunu ierakstu ar sākuma laiku)
+// --- SĀKT DARBU ---
 app.post('/api/start-work', async (req, res) => {
-  const { worker_name, car } = req.body;
-  try {
-    const startTime = new Date().toLocaleString('lv-LV'); // Iegūst laiku Latvijas formātā kā tekstu
-    await pool.query(
-      'INSERT INTO schedule (worker_name, car, start_time) VALUES ($1, $2, $3)',
-      [worker_name, car, startTime]
-    );
-    res.json({ success: true, startTime });
-  } catch (err) { 
-    res.status(500).json({ error: err.message }); 
-  }
+    const { worker_name, car } = req.body;
+    try {
+        const startTime = new Date().toLocaleString('lv-LV'); 
+        // Izmantojam 'sākuma_laiks', kā rāda tava DB bilde
+        await pool.query(
+            'INSERT INTO schedule (worker_name, car, sākuma_laiks) VALUES ($1, $2, $3)',
+            [worker_name, car, startTime]
+        );
+        res.json({ success: true, startTime });
+    } catch (err) { 
+        console.error(err.message);
+        res.status(500).json({ error: err.message }); 
+    }
 });
 
-// 2. Beigt darbu (Atrod pēdējo ierakstu bez beigu laika un ieraksta to)
+// --- BEIGT DARBU ---
 app.post('/api/stop-work', async (req, res) => {
-  const { worker_name } = req.body;
-  try {
-    const endTime = new Date().toLocaleString('lv-LV');
-    // Atjaunina jaunāko ierakstu šim darbiniekam, kuram end_time vēl ir tukšs (NULL)
-    await pool.query(
-      'UPDATE schedule SET end_time = $1 WHERE worker_name = $2 AND end_time IS NULL',
-      [endTime, worker_name]
-    );
-    res.json({ success: true, endTime });
-  } catch (err) { 
-    res.status(500).json({ error: err.message }); 
-  }
+    const { worker_name } = req.body;
+    try {
+        const endTime = new Date().toLocaleString('lv-LV');
+        // Izmantojam 'beigu_laiks' un pārbaudām, kur 'beigu_laiks' ir NULL
+        await pool.query(
+            'UPDATE schedule SET beigu_laiks = $1 WHERE worker_name = $2 AND beigu_laiks IS NULL',
+            [endTime, worker_name]
+        );
+        res.json({ success: true, endTime });
+    } catch (err) { 
+        res.status(500).json({ error: err.message }); 
+    }
 });
 
 const PORT = process.env.PORT || 8080;
