@@ -375,15 +375,17 @@
 
 
     function renderCars() {
-        // Sakārtojam automašīnas alfabētiski (latviešu valodā)
-        const sortedCars = [...cars].sort((a, b) => a.localeCompare(b, 'lv'));
+    const sortedCars = [...cars].sort((a, b) => a.localeCompare(b, 'lv'));
 
-        // Izmantojam sakārtoto masīvu (sortedCars), lai izveidotu sarakstu
-        carList.innerHTML = sortedCars.map(c => `<li><strong>${c}</strong></li>`).join("");
+    carList.innerHTML = sortedCars.map(c => 
+        `<li>
+            <strong>${c}</strong>
+            <button onclick="deleteCar('${c}')" style="margin-left:10px;">Dzēst</button>
+        </li>`
+    ).join("");
 
-        // Arī filtrā mašīnas tagad būs alfabētiskā secībā
-        fillFilter(filterCar, sortedCars);
-    }
+    fillFilter(filterCar, sortedCars);
+}
 
 
 
@@ -590,6 +592,24 @@
         if(res.ok) { loadData(); }
 
     }
+
+    async function deleteCar(name) {
+    if (!confirm(`Vai tiešām vēlaties dzēst mašīnu ${name}?`)) return;
+
+    try {
+        const res = await fetch(`/api/cars/${encodeURIComponent(name)}`, { 
+            method: 'DELETE' 
+        });
+
+        if (res.ok) {
+            loadData(); // Atsvaidzinām sarakstu
+        } else {
+            alert("Kļūda dzēšot mašīnu.");
+        }
+    } catch (err) {
+        console.error("Tīkla kļūda:", err);
+    }
+}
 
     document.getElementById("clearTableBtn").onclick = async () => {
     // Drošības nolūkos pajautājam apstiprinājumu
