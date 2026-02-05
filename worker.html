@@ -17,14 +17,17 @@
         <div id="status">Statuss: Gaidīšana</div>
 <div id="startTimeDisplay" style="color: green; font-weight: bold;"></div>
 
+        <button id="AtWork" class="btn btn-start">SĀKT DARBU</button>
+        <button id="LeaveWork" class="btn btn-start style="display:none;">BEIGT DARBU</button>
+
         <select id="car" required>
             <option value="">-- Izvēlies mašīnu --</option>
         </select>
 
-        <button id="AtWork" class="btn btn-start">SĀKT DARBU</button>
+        
         <button id="startBtn" class="btn btn-start style="display:none;">Sāku strādāt</button>
         <button id="stopBtn" class="btn btn-stop" style="display:none;">beidzu strādāt</button>
-        <button id="LeaveWork" class="btn btn-start style="display:none;">BEIGT DARBU</button>
+       
 
         
         <br><br>
@@ -60,13 +63,24 @@
             cars.forEach(c => {
                 carSelect.add(new Option(c, c));
             });
+            const ierados = document.getElementById("AtWork");
+            ierados.addEventListener("click", function(){
+                document.getElementById("startBtn").style.display = "none";
+                document.getElementById("stopBtn").style.display = "block";
+                document.getElementById("AtWork").style.display = "blobk";
+                document.getElementById("LeaveWork").style.display = "none";
+            });
 
+            
             // Svarīgi: te mēs pārbaudām 'beigu_laiks', nevis 'end_time'
             const activeJob = allSchedule.find(e => e.worker_name === user.name && !e.beigu_laiks);
+            
             
             if (activeJob) {
                 document.getElementById("startBtn").style.display = "none";
                 document.getElementById("stopBtn").style.display = "block";
+                document.getElementById("AtWork").style.display = "none";
+                document.getElementById("LeaveWork").style.display = "block";
                 carSelect.value = activeJob.car;
                 carSelect.disabled = true;
                 document.getElementById("status").innerHTML = `Strādā ar: <b>${activeJob.car}</b>`;
@@ -74,6 +88,8 @@
             } else {
                 document.getElementById("startBtn").style.display = "block";
                 document.getElementById("stopBtn").style.display = "none";
+                document.getElementById("AtWork").style.display = "none";
+                document.getElementById("LeaveWork").style.display = "block";
                 carSelect.disabled = false;
                 document.getElementById("status").textContent = "Statuss: Gaidīšana";
                 document.getElementById("startTimeDisplay").innerText = "";
