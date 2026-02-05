@@ -122,20 +122,25 @@ app.post('/api/schedule', async (req, res) => {
 
 // --- SĀKT DARBU ---
 app.post('/api/start-work', async (req, res) => {
-    // 1. Paņemam start_time no req.body (to, ko sūta tavs JS)
     const { worker_name, car, start_time } = req.body; 
     try {
-        // Izmantojam start_time, lai sadalītu datumu un laiku
-        // Pieņemot, ka sūti "05.02.2026 10:15:00"
-        const [datePart, timePart] = start_time.split(' ');
+        // start_time nāk kā "05.02.2026. 10:22:36"
+        const parts = start_time.split(' ');
+        const datePart = parts[0];
+        const timePart = parts[1];
+
+        // Iegūstam mēneša nosaukumu latviski
+        const monthNames = ["Janvāris", "Februāris", "Marts", "Aprīlis", "Maijs", "Jūnijs",
+                           "Jūlijs", "Augusts", "Septembris", "Oktobris", "Novembris", "Decembris"];
+        const monthIndex = parseInt(datePart.split('.')[1]) - 1;
+        const monthStr = monthNames[monthIndex];
 
         await pool.query(
-            'INSERT INTO schedule (worker_name, car, date, sākuma_laiks) VALUES ($1, $2, $3, $4)',
-            [worker_name, car, datePart, timePart]
+            'INSERT INTO schedule (worker_name, car, date, sākuma_laiks, month) VALUES ($1, $2, $3, $4, $5)',
+            [worker_name, car, datePart, timePart, monthStr]
         );
         res.json({ success: true });
     } catch (err) { 
-        console.error(err);
         res.status(500).json({ error: err.message }); 
     }
 });
