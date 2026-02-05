@@ -17,8 +17,8 @@
         <div id="status">Statuss: Gaidīšana</div>
 <div id="startTimeDisplay" style="color: green; font-weight: bold;"></div>
 
-        <button id="AtWork" class="btn btn-start">SĀKT DARBU</button>
-        <button id="LeaveWork" class="btn btn-start style="display:none;">BEIGT DARBU</button>
+        <button id="AtWork" class="btn start style="display:none">SĀKT DARBU</button>
+        <button id="LeaveWork" class="btn end style="display:none;">BEIGT DARBU</button>
 
         <select id="car" required>
             <option value="">-- Izvēlies mašīnu --</option>
@@ -65,9 +65,9 @@
             });
             const ierados = document.getElementById("AtWork");
             ierados.addEventListener("click", function(){
-                document.getElementById("startBtn").style.display = "none";
+                document.getElementById("startBtn").style.display = "block";
                 document.getElementById("stopBtn").style.display = "block";
-                document.getElementById("AtWork").style.display = "none";
+                document.getElementById("AtWork").style.display = "block";
                 document.getElementById("LeaveWork").style.display = "block";
             });
 
