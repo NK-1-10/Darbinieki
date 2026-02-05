@@ -69,8 +69,8 @@
                 carSelect.add(new Option(c, c));
             });
 
-
-
+            // Svarīgi: te mēs pārbaudām 'beigu_laiks', nevis 'end_time'
+            const activeJob = allSchedule.find(e => e.worker_name === user.name && !e.beigu_laiks);
             
             const ierados = document.getElementById("AtWork");
             ierados.addEventListener("click", function(){
@@ -82,15 +82,18 @@
 
             const prom = document.getElementById("LeaveWork");
             prom.addEventListener("click", function(){
+                if(activeJob){
+                document.getElementById("startBtn").style.display = "none";
+                document.getElementById("stopBtn").style.display = "block";
+                document.getElementById("AtWork").style.display = "none";
+                document.getElementById("LeaveWork").style.display = "block";
+                } else{
                 document.getElementById("startBtn").style.display = "none";
                 document.getElementById("stopBtn").style.display = "none";
                 document.getElementById("AtWork").style.display = "block";
                 document.getElementById("LeaveWork").style.display = "none";
+                }
             });
-
-            
-            // Svarīgi: te mēs pārbaudām 'beigu_laiks', nevis 'end_time'
-            const activeJob = allSchedule.find(e => e.worker_name === user.name && !e.beigu_laiks);
             
             
             if (activeJob) {
