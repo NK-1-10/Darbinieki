@@ -131,6 +131,18 @@ app.delete('/api/workers/:name', async (req, res) => {
     }
 });
 
+// --- DZĒST MAŠĪNU ---
+app.delete('/api/cars/:name', async (req, res) => {
+    const carName = req.params.name;
+    try {
+        await pool.query('DELETE FROM cars WHERE name = $1', [carName]);
+        res.json({ success: true, message: `Mašīna ${carName} izdzēsta.` });
+    } catch (err) {
+        console.error("Kļūda dzēšot mašīnu:", err.message);
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // --- SĀKT DARBU ---
 app.post('/api/start-work', async (req, res) => {
     const { worker_name, car, start_time } = req.body; 
