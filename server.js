@@ -142,12 +142,13 @@ app.post('/api/start-work', async (req, res) => {
 
 // --- BEIGT DARBU ---
 app.post('/api/stop-work', async (req, res) => {
-    const { worker_name } = req.body;
+    // 1. Paņemam laiku no klienta
+    const { worker_name, end_time } = req.body; 
     try {
-        const now = new Date();
-        const endTimeStr = now.toLocaleTimeString('lv-LV', { hour: '2-digit', minute: '2-digit' });
+        // Paņemam tikai laika daļu (HH:MM:SS) priekš datubāzes, ja nepieciešams
+        const timePart = end_time.split(' ')[1];
 
-        // 1. Atrodam sākuma laiku, lai aprēķinātu stundas
+        // Atrodam sākuma laiku
         const result = await pool.query(
             'SELECT sākuma_laiks FROM schedule WHERE worker_name = $1 AND beigu_laiks IS NULL',
             [worker_name]
@@ -156,21 +157,29 @@ app.post('/api/stop-work', async (req, res) => {
         if (result.rows.length > 0) {
             const startTimeStr = result.rows[0].sākuma_laiks;
             
-            // Aprēķinām nostrādāto laiku (vienkāršots aprēķins stundās)
+            // Aprēķins
             const [startH, startM] = startTimeStr.split(':').map(Number);
-            const endH = now.getHours();
-            const endM = now.getMinutes();
+            const [endH, endM] = timePart.split(':').map(Number);
             
-            const totalMinutes = (endH * 60 + endM) - (startH * 60 + startM);
-            const diffHours = (totalMinutes / 60).toFixed(2); // Piemēram, 2.50 stundas
+            let totalMinutes = (endH * 60 + endM) - (startH * 60 + startM);
+            
+            // Ja darbs beidzas pēc pusnakts
+            if (totalMinutes < 0) totalMinutes += 24 * 60;
+
+            const diffHours = (totalMinutes / 60).toFixed(2);
 
             await pool.query(
                 'UPDATE schedule SET beigu_laiks = $1, hours = $2 WHERE worker_name = $3 AND beigu_laiks IS NULL',
-                [endTimeStr, diffHours, worker_name]
+                [timePart, diffHours, worker_name]
             );
+            res.json({ success: true });
+        } else {
+            res.status(404).json({ error: "Nav aktīva darba seanssa" });
         }
-        res.json({ success: true });
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) { 
+        console.error(err);
+        res.status(500).json({ error: err.message }); 
+    }
 });
 
 const PORT = process.env.PORT || 8080;
