@@ -355,23 +355,22 @@
 
 
 
-    function renderWorkers() {
+   function renderWorkers() {
+    // Sakārtojam darbiniekus alfabētiskā secībā pēc vārda
+    const sortedWorkers = [...workers].sort((a, b) => 
+        a.name.localeCompare(b.name, 'lv')
+    );
 
-        workerList.innerHTML = workers.map(w => {
+    workerList.innerHTML = sortedWorkers.map(w => {
+        const tempPassHtml = (w.temp_password && w.temp_password !== "NULL") 
+            ? `<span class="pw">(Temp: ${w.temp_password})</span>` : "";
+        
+        return `<li><span><strong>${w.name}</strong>${tempPassHtml}</span>
+                <button onclick="deleteWorker('${w.name}')" style="margin-left:10px;">Dzēst</button></li>`;
+    }).join("");
 
-            const tempPassHtml = (w.temp_password && w.temp_password !== "NULL") 
-
-                ? `<span class="pw">(Temp: ${w.temp_password})</span>` : "";
-
-            return `<li><span><strong>${w.name}</strong>${tempPassHtml}</span>
-
-                    <button onclick="deleteWorker('${w.name}')" style="margin-left:10px;">Dzēst</button></li>`;
-
-        }).join("");
-
-        fillFilter(filterWorker, workers.map(w => w.name));
-
-    }
+    fillFilter(filterWorker, sortedWorkers.map(w => w.name));
+}
 
 
 
