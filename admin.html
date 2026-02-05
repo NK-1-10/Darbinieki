@@ -498,21 +498,12 @@
         filtered.forEach(e => {
 
             html += `<tr>
-
-                <td>${e.month}</td>
-
+                <td>${e.month || '-'}</td>
                 <td>${e.worker_name}</td>
-
                 <td>${e.date}</td>
-
                 <td>${e.car}</td>
-
-                <td>${e.sākuma_laiks}</td>
-
-                <td>${e.beigu_laiks}</td>
-
-                <td>${e.hours}</td>
-
+                <td>${e.sākuma_laiks || '-'}</td>  <td>${e.beigu_laiks || 'Aktīvs'}</td>
+                <td>${e.hours || '-'}</td>
             </tr>`;
 
         });
