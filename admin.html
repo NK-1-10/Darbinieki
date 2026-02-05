@@ -12,6 +12,17 @@
 
     <style>
 
+        #totalHoursDisplay {
+    background: #eef2eb;
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    display: inline-block;
+}
+#totalHoursValue {
+    color: #2c7a7b; /* Skaista zilganzaļa krāsa cipariem */
+}
+
         body {
 
             font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
@@ -276,6 +287,10 @@
 
         </label>
 
+        <div id="totalHoursDisplay" style="margin: 10px; font-size: 1.2em; font-weight: bold; color: #0f1a14;">
+    Kopā nostrādātās stundas: <span id="totalHoursValue">0.00</span> h
+</div>
+
     </div>
 
     <div id="tableContainer"></div>
@@ -415,6 +430,17 @@
             (!filterCar.value || e.car === filterCar.value);
         });
 
+        // --- ŠEIT IR PAPILDINĀJUMS (STUNDU SKAITĪŠANA) ---
+        const total = filtered.reduce((sum, item) => {
+            // Pārvēršam 'hours' par skaitli. Ja ir null vai teksts, izmantojam 0.
+            const h = parseFloat(item.hours) || 0;
+            return sum + h;
+        }, 0);
+
+        // Atjaunojam summu ekrānā (toFixed(2) nozīmē 2 zīmes aiz komata)
+        document.getElementById("totalHoursValue").textContent = total.toFixed(2);
+        // ------------------------------------------------
+
 // Ja lietotājs nav izvēlējies kārtošanu, rādām jaunākos (pēc ID) augšā
         if (!sortBy1.value && !sortBy2.value) {
             filtered.sort((a, b) => b.id - a.id); 
@@ -438,53 +464,39 @@
 }
 
 
+       // 3. Zīmējam tabulu
         if (!filtered.length) {
-
             tableContainer.innerHTML = "<p style='padding:20px;'>Nav ierakstu.</p>";
-
             return;
-
         }
 
 
 
         let html = `<table>
-
             <tr>
-
                 <th>Mēnesis</th>
-
                 <th>Darbinieks</th>
-
                 <th>Datums</th>
-
                 <th>Mašīna</th>
-
                 <th>Kopš</th>
-
                 <th>Līdz</th>
-
                 <th>Stundas</th>
-
             </tr>`;
 
         
 
         filtered.forEach(e => {
-
             html += `<tr>
                 <td>${e.month || '-'}</td>
                 <td>${e.worker_name}</td>
                 <td>${e.date}</td>
                 <td>${e.car}</td>
-                <td>${e.sākuma_laiks || '-'}</td>  <td>${e.beigu_laiks || 'Aktīvs'}</td>
+                <td>${e.sākuma_laiks || '-'}</td>
+                <td>${e.beigu_laiks || 'Aktīvs'}</td>
                 <td>${e.hours || '-'}</td>
             </tr>`;
-
         });
-
         tableContainer.innerHTML = html + `</table>`;
-
     }
 
 
