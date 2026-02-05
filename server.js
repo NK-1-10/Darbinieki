@@ -118,6 +118,17 @@ app.post('/api/schedule', async (req, res) => {
     );
     res.json({ success: true });
   } catch (err) { res.status(500).json(err.message); }
+  
+});//IZDZĒST DARBINIEKU
+app.delete('/api/workers/:name', async (req, res) => {
+    const workerName = req.params.name;
+    try {
+        await pool.query('DELETE FROM users WHERE name = $1 AND role = $2', [workerName, 'worker']);
+        res.json({ success: true, message: `Darbinieks ${workerName} izdzēsts.` });
+    } catch (err) {
+        console.error("Kļūda dzēšot darbinieku:", err.message);
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // --- SĀKT DARBU ---
