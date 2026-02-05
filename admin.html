@@ -375,11 +375,14 @@
 
 
     function renderCars() {
+        // Sakārtojam automašīnas alfabētiski (latviešu valodā)
+        const sortedCars = [...cars].sort((a, b) => a.localeCompare(b, 'lv'));
 
-        carList.innerHTML = cars.map(c => `<li><strong>${c}</strong></li>`).join("");
+        // Izmantojam sakārtoto masīvu (sortedCars), lai izveidotu sarakstu
+        carList.innerHTML = sortedCars.map(c => `<li><strong>${c}</strong></li>`).join("");
 
-        fillFilter(filterCar, cars);
-
+        // Arī filtrā mašīnas tagad būs alfabētiskā secībā
+        fillFilter(filterCar, sortedCars);
     }
 
 
