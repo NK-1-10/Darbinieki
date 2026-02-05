@@ -159,14 +159,32 @@ const sākuma_laiks = fullTimestamp;
 };
 
     document.getElementById("stopBtn").onclick = async () => {
-        if (!confirm("Vai tiešām beigt darbu?")) return;
-        const res = await fetch('/api/stop-work', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ worker_name: user.name })
-        });
-        if (res.ok) loadWorkerData();
-    };
+    if (!confirm("Vai tiešām beigt darbu?")) return;
+
+    // 1. Iegūstam beigu laiku tieši tagad
+    const now = new Date();
+    const formattedTime = now.toLocaleTimeString('lv-LV', { 
+        hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false 
+    });
+    const formattedDate = now.toLocaleDateString('lv-LV');
+    const fullTimestamp = `${formattedDate} ${formattedTime}`;
+
+    // 2. Sūtām uz serveri
+    const res = await fetch('/api/stop-work', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+            worker_name: user.name,
+            end_time: fullTimestamp // Sūtām precīzu laiku no datora
+        })
+    });
+
+    if (res.ok) {
+        loadWorkerData();
+    } else {
+        alert("Kļūda beidzot darbu.");
+    }
+};
 
     document.getElementById("logoutBtn").onclick = () => {
         localStorage.removeItem("loggedInUser");
