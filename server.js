@@ -33,7 +33,8 @@ app.get('/api/cars', async (req, res) => {
 
 app.get('/api/schedule', async (req, res) => {
   try {
-    const result = await pool.query("SELECT * FROM schedule");
+    // Pievienojam ORDER BY id DESC, lai jaunākie dati vienmēr nāktu pirmie
+    const result = await pool.query("SELECT * FROM schedule ORDER BY id DESC");
     res.json(result.rows);
   } catch (err) { res.status(500).json(err.message); }
 });
