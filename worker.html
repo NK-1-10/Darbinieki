@@ -74,6 +74,7 @@
             
             const ierados = document.getElementById("AtWork");
             ierados.addEventListener("click", function(){
+                const atWork = true;
                 document.getElementById("startBtn").style.display = "block";
                 document.getElementById("stopBtn").style.display = "none";
                 document.getElementById("AtWork").style.display = "none";
@@ -99,8 +100,6 @@
             if (activeJob) {
                 document.getElementById("startBtn").style.display = "none";
                 document.getElementById("stopBtn").style.display = "block";
-                document.getElementById("AtWork").style.display = "none";
-                document.getElementById("LeaveWork").style.display = "block";
                 carSelect.value = activeJob.car;
                 carSelect.disabled = true;
                 document.getElementById("status").innerHTML = `Strādā ar: <b>${activeJob.car}</b>`;
@@ -108,8 +107,6 @@
             } else {
                 document.getElementById("startBtn").style.display = "none";
                 document.getElementById("stopBtn").style.display = "none";
-                document.getElementById("AtWork").style.display = "block";
-                document.getElementById("LeaveWork").style.display = "none";
                 carSelect.disabled = false;
                 document.getElementById("status").textContent = "Statuss: Gaidīšana";
                 document.getElementById("startTimeDisplay").innerText = "";
