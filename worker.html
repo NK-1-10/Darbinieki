@@ -68,12 +68,24 @@
             cars.forEach(c => {
                 carSelect.add(new Option(c, c));
             });
+
+
+
+            
             const ierados = document.getElementById("AtWork");
             ierados.addEventListener("click", function(){
                 document.getElementById("startBtn").style.display = "block";
                 document.getElementById("stopBtn").style.display = "none";
                 document.getElementById("AtWork").style.display = "none";
                 document.getElementById("LeaveWork").style.display = "block";
+            });
+
+            const prom = document.getElementById("LeaveWork");
+            prom.addEventListener("click", function(){
+                document.getElementById("startBtn").style.display = "none";
+                document.getElementById("stopBtn").style.display = "none";
+                document.getElementById("AtWork").style.display = "block";
+                document.getElementById("LeaveWork").style.display = "none";
             });
 
             
