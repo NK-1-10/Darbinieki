@@ -122,18 +122,22 @@ app.post('/api/schedule', async (req, res) => {
 
 // --- SĀKT DARBU ---
 app.post('/api/start-work', async (req, res) => {
-    const { worker_name, car } = req.body;
+    // 1. Paņemam start_time no req.body (to, ko sūta tavs JS)
+    const { worker_name, car, start_time } = req.body; 
     try {
-        const now = new Date();
-        const dateStr = now.toLocaleDateString('lv-LV'); // 03.02.2026
-        const timeStr = now.toLocaleTimeString('lv-LV', { hour: '2-digit', minute: '2-digit' }); // 19:45
+        // Izmantojam start_time, lai sadalītu datumu un laiku
+        // Pieņemot, ka sūti "05.02.2026 10:15:00"
+        const [datePart, timePart] = start_time.split(' ');
 
         await pool.query(
             'INSERT INTO schedule (worker_name, car, date, sākuma_laiks) VALUES ($1, $2, $3, $4)',
-            [worker_name, car, dateStr, timeStr]
+            [worker_name, car, datePart, timePart]
         );
         res.json({ success: true });
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) { 
+        console.error(err);
+        res.status(500).json({ error: err.message }); 
+    }
 });
 
 // --- BEIGT DARBU ---
