@@ -325,45 +325,32 @@
 
 
     async function loadData() {
-
         try {
-
-            // Piezīme: API ceļi paliek tie paši
-
+            // Noņemam start-work un stop-work, jo tie nav domāti datu ielādei
             const [wRes, cRes, sRes] = await Promise.all([
-
                 fetch('/api/workers'),
                 fetch('/api/cars'),
-                fetch('/api/schedule'),
-                fetch('/api/start-work'),
-                fetch('/api/stop-work')
-
+                fetch('/api/schedule')
             ]);
 
+            // Pārbaudām, vai serveris vispār atbildēja veiksmīgi
+            if (!wRes.ok || !cRes.ok || !sRes.ok) throw new Error("Neizdevās iegūt datus no servera");
+
             workers = await wRes.json();
-
             cars = await cRes.json();
-
             schedule = await sRes.json();
 
-
-
             renderWorkers();
-
             renderCars();
-
+            
+            // Filtru aizpildīšana
             fillFilter(filterMonth, schedule.map(e => e.month));
-
             fillFilter(filterDate, schedule.map(e => e.date).sort((a,b) => a-b));
-
+            
             renderTable();
-
         } catch (err) {
-
             console.error("Kļūda ielādējot datus:", err);
-
         }
-
     }
 
 
