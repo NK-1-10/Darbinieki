@@ -333,10 +333,10 @@
             const [wRes, cRes, sRes] = await Promise.all([
 
                 fetch('/api/workers'),
-
                 fetch('/api/cars'),
-
-                fetch('/api/schedule')
+                fetch('/api/schedule'),
+                fetch('/api/start-work'),
+                fetch('/api/stop-work')
 
             ]);
 
@@ -422,11 +422,12 @@
 
             return (!filterMonth.value || e.month === filterMonth.value) &&
 
-                   (!filterWorker.value || e.worker_name === filterWorker.value) &&
+            (!filterWorker.value || e.worker_name === filterWorker.value) &&
 
-                   (!filterDate.value || String(e.date) === filterDate.value) &&
+            (!filterDate.value || String(e.date) === filterDate.value) &&
 
-                   (!filterCar.value || e.car === filterCar.value);
+            (!filterCar.value || e.car === filterCar.value);
+            
 
         });
 
@@ -506,9 +507,9 @@
 
                 <td>${e.car}</td>
 
-                <td>${e.from_time}</td>
+                <td>${e.sākuma_laiks}</td>
 
-                <td>${e.to_time}</td>
+                <td>${e.beigu_laiks}</td>
 
                 <td>${e.hours}</td>
 
