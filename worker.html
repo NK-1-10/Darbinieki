@@ -86,10 +86,10 @@
                 document.getElementById("status").innerHTML = `Strādā ar: <b>${activeJob.car}</b>`;
                 document.getElementById("startTimeDisplay").innerText = `Tu sāki darbu: ${activeJob.sākuma_laiks}`;
             } else {
-                document.getElementById("startBtn").style.display = "block";
+                document.getElementById("startBtn").style.display = "none";
                 document.getElementById("stopBtn").style.display = "none";
-                document.getElementById("AtWork").style.display = "none";
-                document.getElementById("LeaveWork").style.display = "block";
+                document.getElementById("AtWork").style.display = "block";
+                document.getElementById("LeaveWork").style.display = "none";
                 carSelect.disabled = false;
                 document.getElementById("status").textContent = "Statuss: Gaidīšana";
                 document.getElementById("startTimeDisplay").innerText = "";
