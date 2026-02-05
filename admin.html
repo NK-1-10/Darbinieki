@@ -408,50 +408,34 @@
     // Galvenā tabulas renderēšanas un kārtošanas funkcija
 
     function renderTable() {
-
         let filtered = schedule.filter(e => {
-
             return (!filterMonth.value || e.month === filterMonth.value) &&
-
             (!filterWorker.value || e.worker_name === filterWorker.value) &&
-
             (!filterDate.value || String(e.date) === filterDate.value) &&
-
             (!filterCar.value || e.car === filterCar.value);
-            
-
         });
 
+// Ja lietotājs nav izvēlējies kārtošanu, rādām jaunākos (pēc ID) augšā
+        if (!sortBy1.value && !sortBy2.value) {
+            filtered.sort((a, b) => b.id - a.id); 
+        } else {
 
-
-        const sortLogic = (a, b, key) => {
-
-            if (!key) return 0;
-
-            if (key === 'month') return MONTH_ORDER.indexOf(a.month) - MONTH_ORDER.indexOf(b.month);
-
-            if (key === 'date') return parseInt(a.date) - parseInt(b.date);
-
-            if (key === 'hours') return parseFloat(a.hours) - parseFloat(b.hours);
-
-            return String(a[key] || "").localeCompare(String(b[key] || ""));
-
-        };
-
-
+            const sortLogic = (a, b, key) => {
+                if (!key) return 0;
+                if (key === 'month') return MONTH_ORDER.indexOf(a.month) - MONTH_ORDER.indexOf(b.month);
+                if (key === 'date') return parseInt(a.date) - parseInt(b.date);
+                if (key === 'hours') return parseFloat(a.hours) - parseFloat(b.hours);
+                return String(a[key] || "").localeCompare(String(b[key] || ""));
+            };
 
         // Kārtošana pēc diviem līmeņiem
 
         filtered.sort((a, b) => {
-
-            let res = sortLogic(a, b, sortBy1.value);
-
-            if (res === 0) res = sortLogic(a, b, sortBy2.value);
-
-            return res;
-
-        });
-
+                let res = sortLogic(a, b, sortBy1.value);
+                if (res === 0) res = sortLogic(a, b, sortBy2.value);
+                return res;
+            });
+}
 
 
         if (!filtered.length) {
