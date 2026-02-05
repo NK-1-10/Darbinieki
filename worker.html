@@ -129,17 +129,21 @@
     const formattedTime = now.toLocaleTimeString('lv-LV', { 
         hour: '2-digit', 
         minute: '2-digit', 
-        second: '2-digit' 
+        second: '2-digit',
+        hour12: false // Pārliecināmies, ka ir 24h formāts
     });
     const formattedDate = now.toLocaleDateString('lv-LV');
     const fullTimestamp = `${formattedDate} ${formattedTime}`;
     // 2. Nosūtām datus uz serveri
+const sākuma_laiks = fullTimestamp;
+        
     const res = await fetch('/api/start-work', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
             worker_name: user.name, 
-            car: carSelect.value 
+            car: carSelect.value,
+            start_time: sākuma_laiks
         })
     });
     if (res.ok) {
