@@ -41,7 +41,7 @@
 </head>
 <body>
 
-<h2>Pievienot darbiniekus un mašīnas</h2>
+<h2 style="text-align: left;">Pievienot darbiniekus un mašīnas</h2>
 
 <details class="pogas">
     <summary>👷 Pievienot darbiniekus</summary>
@@ -55,9 +55,6 @@
     <ul id="carList"></ul>
 </details>
 
-<div class="action-bar">
-    <button id="clearTableBtn" style="background:#ff6666; color:white; border:none;">Clear Table</button>
-</div>
 
 <hr style="width: 100%; max-width: 750px; margin: 20px 0; border: 0; border-top: 1px solid #ccc;">
 
@@ -69,6 +66,10 @@
     <label>Datums: <select id="filterDate"><option value="">Visi</option></select></label>
     <label>Mašīna: <select id="filterCar"><option value="">Visi</option></select></label>
     <button id="clearFilters">Notīrīt filtrus</button>
+</div>
+
+    <div class="action-bar">
+    <button id="clearTableBtn" style="background:#ff6666; color:white; border:none;">Clear Table</button>
 </div>
 
 <div id="table-wrapper">
