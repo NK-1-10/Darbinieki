@@ -15,24 +15,22 @@ const pool = new Pool({
 
 // --- PAMATA RESURSI ---
 app.get('/api/cars', async (req, res) => {
-    const r = await pool.query("SELECT name FROM cars ORDER BY name");
+    const r = await pool.query("SELECT name FROM cars ORDER BY name ASC");
     res.json(r.rows.map(row => row.name));
 });
 app.get('/api/objects', async (req, res) => {
-    const r = await pool.query("SELECT name FROM objects ORDER BY name");
+    const r = await pool.query("SELECT name FROM objects ORDER BY name ASC");
     res.json(r.rows.map(row => row.name));
 });
 app.get('/api/work-types', async (req, res) => {
-    const r = await pool.query("SELECT name FROM work_types ORDER BY name");
+    const r = await pool.query("SELECT name FROM work_types ORDER BY name ASC");
     res.json(r.rows.map(row => row.name));
 });
 
-// --- KONKRĒTI DARBI (schedule tabula - image_92f4c6.png) ---
+// --- SCHEDULE (image_92f4c6.png) ---
 app.get('/api/schedule', async (req, res) => {
-    try {
-        const result = await pool.query("SELECT * FROM schedule ORDER BY id DESC");
-        res.json(result.rows);
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    const r = await pool.query("SELECT * FROM schedule ORDER BY id DESC");
+    res.json(r.rows);
 });
 
 app.post('/api/start-work', async (req, res) => {
@@ -59,35 +57,35 @@ app.post('/api/stop-work', async (req, res) => {
             const start = active.rows[0].sākuma_laiks;
             const [sh, sm, ss] = start.split(':').map(Number);
             const [eh, em, es] = timeOnly.split(':').map(Number);
-            let diffSec = (eh * 3600 + em * 60 + es) - (sh * 3600 + sm * 60 + ss);
-            if (diffSec < 0) diffSec += 86400;
-            const hoursStr = (diffSec / 3600).toFixed(2); // Saglabājam kā tekstu "0.02"
+            let diff = (eh * 3600 + em * 60 + es) - (sh * 3600 + sm * 60 + ss);
+            if (diff < 0) diff += 86400;
+            const hoursStr = (diff / 3600).toFixed(2); // Saglabā kā tekstu
 
             await pool.query(
                 'UPDATE schedule SET beigu_laiks=$1, hours=$2 WHERE worker_name=$3 AND beigu_laiks IS NULL',
                 [timeOnly, hoursStr, worker_name]
             );
             res.json({ success: true });
-        } else { res.status(404).json({ error: "Nav aktīva seansa" }); }
+        } else { res.status(404).json({ error: "Nav aktīva darba" }); }
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// --- MAIŅU UZSKAITE (darba_stundas tabula - image_934b7d.png) ---
-app.post('/api/darba-stundas', async (req, res) => {
-    const { darbinieks, datums, sāka_darbu, beidza_darbu, month, stundas } = req.body;
-    try {
-        await pool.query(
-            'INSERT INTO darba_stundas (darbinieks, datums, sāka_darbu, beidza_darbu, month, stundas) VALUES ($1,$2,$3,$4,$5,$6)',
-            [darbinieks, datums, sāka_darbu, beidza_darbu, month, stundas]
-        );
-        res.json({ success: true });
-    } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
+// --- DARBA STUNDAS (image_934b7d.png) ---
 app.get('/api/darba-stundas', async (req, res) => {
     const r = await pool.query("SELECT * FROM darba_stundas ORDER BY id DESC");
     res.json(r.rows);
 });
 
+app.post('/api/darba-stundas', async (req, res) => {
+    const { darbinieks, datums, sāka_darbu, beidza_darbu, month, stundas } = req.body;
+    try {
+        await pool.query(
+            'INSERT INTO darba_stundas (darbinieks, datums, sāka_darbu, beidza_darbu, month, stundas) VALUES ($1,$2,$3,$4,$5,$6)',
+            [darbinieks, datums, sāka_darbu, beidza_darbu, month, String(stundas)] // Nodrošinam text formātu
+        );
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 const PORT = process.env.PORT || 8080;
-app.listen(PORT, () => console.log(`Serveris gatavs portā ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Server on ${PORT}`));
