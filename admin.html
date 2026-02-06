@@ -157,25 +157,25 @@
             fetch('/api/workers'), 
             fetch('/api/cars'), 
             fetch('/api/schedule'),
-            fetch('/api/work-types'), // JAUNS
-            fetch('/api/objects')     // JAUNS
+            fetch('/api/work-types'), // Jauns maršruts
+            fetch('/api/objects')     // Jauns maršruts
         ]);
         
         workers = await wRes.json();
         cars = await cRes.json();
         schedule = await sRes.json();
-        works_types = await wtRes.json(); // JAUNS
-        objects = await oRes.json();     // JAUNS
+        works_types = await wtRes.json(); // Saglabājam darba veidus
+        objects = await oRes.json();     // Saglabājam objektus
         
         renderWorkers();
         renderCars();
-        renderWork();   // JAUNS
-        renderObject(); // JAUNS
+        renderWork();   // Izsaucam zīmēšanu
+        renderObject(); // Izsaucam zīmēšanu
         
         fillFilter(filterMonth, schedule.map(e => e.month));
         fillFilter(filterDate, schedule.map(e => e.date).sort((a,b) => a-b));
         renderTable();
-    } catch (err) { console.error("Kļūda:", err); }
+    } catch (err) { console.error("Kļūda ielādējot datus:", err); }
 }
 
     function renderWorkers() {
@@ -248,31 +248,42 @@ function renderObject() {
         renderTable();
     };
 
-    document.getElementById("addWorkBtn").onclick = async () => {
-    const name = prompt("Ievadiet jaunu darba veidu (piem. Rakšana):");
+    // 4. Pogas "Pievienot" darbības
+document.getElementById("addWorkBtn").onclick = async () => {
+    const name = prompt("Ievadiet darba veidu:");
     if(!name || !name.trim()) return;
     const res = await fetch('/api/work-types', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ name: name.trim() }) });
-    if(res.ok) { alert("Pievienots!"); loadData(); }
+    if(res.ok) loadData();
 };
 
 document.getElementById("addObjectBtn").onclick = async () => {
-    const name = prompt("Ievadiet jaunu objektu:");
+    const name = prompt("Ievadiet objektu:");
     if(!name || !name.trim()) return;
     const res = await fetch('/api/objects', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ name: name.trim() }) });
-    if(res.ok) { alert("Pievienots!"); loadData(); }
+    if(res.ok) loadData();
 };
 
 // 5. Dzēšanas funkcijas
 async function deleteWorkType(name) {
-    if (!confirm(`Dzēst darba veidu ${name}?`)) return;
-    await fetch(`/api/work-types/${encodeURIComponent(name)}`, { method: 'DELETE' });
-    loadData();
+    if(confirm(`Dzēst darbu: ${name}?`)) {
+        await fetch(`/api/work-types/${encodeURIComponent(name)}`, { method: 'DELETE' });
+        loadData();
+    }
 }
 
 async function deleteObject(name) {
-    if (!confirm(`Dzēst objektu ${name}?`)) return;
-    await fetch(`/api/objects/${encodeURIComponent(name)}`, { method: 'DELETE' });
-    loadData();
+    if(confirm(`Dzēst objektu: ${name}?`)) {
+        await fetch(`/api/objects/${encodeURIComponent(name)}`, { method: 'DELETE' });
+        loadData();
+    }
+}
+
+    function renderWork() {
+    workList.innerHTML = works_types.map(w => `<li><strong>${w}</strong><button onclick="deleteWorkType('${w}')">Dzēst</button></li>`).join("");
+}
+
+function renderObject() {
+    objectList.innerHTML = objects.map(o => `<li><strong>${o}</strong><button onclick="deleteObject('${o}')">Dzēst</button></li>`).join("");
 }
 
     document.getElementById("addWorkerBtn").onclick = async () => {
