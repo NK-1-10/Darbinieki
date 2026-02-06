@@ -5,22 +5,88 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Darbinieks</title>
     <style>
+        body { font-family: sans-serif; background-color: #f4f4f9; padding: 20px; color: #333; }
         
-        button { padding: 8px 12px; margin: 4px 0; border-radius: 6px; border: 1px solid #aaa; background: #e0e0e0; cursor: pointer; }
-        
-        .btn-end { display: none; margin-left: auto; }
-        table { border-collapse: collapse; margin-top: 15px; width: 100%; }
-        th, td { border: 1px solid #333; padding: 6px 12px; text-align: center; }
-        form { margin-bottom: 20px; }
-        select, input, button { margin: 4px; padding: 4px; }
-        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-
-        #workControls { 
-            background: #fff; border: 1px solid #ccc; padding: 15px; border-radius: 6px; 
-            width: 100%; max-width: 750px; margin: 0 0 15px 0; 
-            display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 10px; 
+        /* Galvenā karte */
+        .card { 
+            background: white; 
+            padding: 25px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08); 
+            max-width: 800px; 
+            margin: 0 auto;
         }
+
+        h2 { margin-top: 0; color: #2c3e50; }
+
+        /* Statusa josla */
+        #status { margin-bottom: 10px; font-size: 1.1em; }
+        #startTimeDisplay { margin-bottom: 20px; font-size: 0.95em; }
+
+        /* Kontroles bloks (Selecti un Pogas) */
+        #workControls { 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 12px; 
+            align-items: center; 
+            padding: 20px; 
+            background: #f8f9fa; 
+            border: 1px solid #e9ecef; 
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        /* Select elementu stils (līdzīgs admin mēneša filtram) */
+        select { 
+            padding: 10px 15px; 
+            border-radius: 8px; 
+            border: 1px solid #ced4da; 
+            background-color: white; 
+            font-size: 14px; 
+            outline: none;
+            min-width: 180px;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        select:focus { border-color: #80bdff; }
+        select:disabled { background-color: #e9ecef; cursor: not-allowed; }
+
+        /* Pogas */
+        button { 
+            padding: 10px 20px; 
+            border-radius: 8px; 
+            border: none; 
+            font-weight: bold; 
+            cursor: pointer; 
+            transition: all 0.2s ease;
+        }
+
+        #AtWork { background: #007bff; color: white; }
+        #AtWork:hover { background: #0056b3; }
+
+        #LeaveWork { background: #dc3545; color: white; display: none; margin-left: auto; }
+        #LeaveWork:hover { background: #a71d2a; }
+
+        #startBtn { background: #28a745; color: white; }
+        #startBtn:hover { background: #218838; }
+
+        #stopBtn { background: #ffc107; color: #212529; }
+        #stopBtn:hover { background: #e0a800; }
+
+        #logoutBtn { background: #6c757d; color: white; margin-top: 10px; }
+
+        /* Tabula */
+        table { border-collapse: collapse; margin-top: 25px; width: 100%; background: white; border-radius: 8px; overflow: hidden; }
+        th { background: #f8f9fa; border-bottom: 2px solid #dee2e6; padding: 12px; font-weight: bold; }
+        td { border-bottom: 1px solid #eee; padding: 12px; text-align: center; }
         
+        h3 { margin-top: 40px; border-left: 4px solid #007bff; padding-left: 10px; }
+
+        @media (max-width: 600px) {
+            #workControls { flex-direction: column; align-items: stretch; }
+            select { width: 100%; }
+        }
     </style>
 </head>
 <body>
@@ -29,10 +95,12 @@
         <div id="status">Statuss: Gaidīšana</div>
         <div id="startTimeDisplay" style="color: green; font-weight: bold;"></div>
 
-        <button id="AtWork" class="btn start">ESMU DARBĀ</button>
-        <button id="LeaveWork" class="btn-end">DODOS PROJĀ</button>
+        <div style="display: flex; width: 100%; margin-bottom: 15px;">
+            <button id="AtWork">ESMU DARBĀ</button>
+            <button id="LeaveWork">DODOS PROJĀ</button>
+        </div>
 
-        <div id="workControls" style="margin-top: 15px;">
+        <div id="workControls">
             <select id="car" required>
                 <option value="">-- Izvēlies mašīnu --</option>
             </select>
@@ -43,11 +111,10 @@
                 <option value="">-- Izvēlies darba veidu --</option>
             </select>
             
-            <button id="startBtn" class="btn btn-start" style="display:none;">Sāku strādāt</button>
-            <button id="stopBtn" class="btn btn-stop" style="display:none;">beidzu strādāt</button>
+            <button id="startBtn" style="display:none;">Sākt darbu</button>
+            <button id="stopBtn" style="display:none;">Beigt darbu</button>
         </div>
 
-        <br><br>
         <button id="logoutBtn">Logout</button>
     </div>
 
@@ -68,7 +135,6 @@
 
     async function loadWorkerData() {
         try {
-            // Ielādējam mašīnas, objektus un darba veidus (no sarakstiem, ko adminis izveidoja)
             const [cRes, oRes, wRes, sRes] = await Promise.all([
                 fetch('/api/cars'),
                 fetch('/api/objects'),
@@ -81,14 +147,12 @@
             const workTypes = await wRes.json();
             const allSchedule = await sRes.json();
 
-            // Aizpildām izvēlnes
             fillSelect(carSelect, cars, "-- Izvēlies mašīnu --");
             fillSelect(objectSelect, objects, "-- Izvēlies objektu --");
             fillSelect(workSelect, workTypes, "-- Izvēlies darba veidu --");
 
             const activeJob = allSchedule.find(e => e.worker_name === user.name && !e.beigu_laiks);
             
-            // Pogas "Esmu darbā" loģika
             document.getElementById("AtWork").onclick = () => {
                 document.getElementById("startBtn").style.display = "block";
                 document.getElementById("AtWork").style.display = "none";
@@ -147,8 +211,8 @@
             body: JSON.stringify({ 
                 worker_name: user.name, 
                 car: carSelect.value,
-                objekts: objectSelect.value, // Nosūtām objektu
-                darbs: workSelect.value,     // Nosūtām darba veidu
+                objekts: objectSelect.value,
+                darbs: workSelect.value,
                 start_time: fullTimestamp 
             })
         });
