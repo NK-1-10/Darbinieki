@@ -31,6 +31,50 @@ app.get('/api/cars', async (req, res) => {
   }
 });
 
+// --- DARBA VEIDI ---
+app.get('/api/work-types', async (req, res) => {
+    try {
+        const result = await pool.query("SELECT name FROM work_types ORDER BY name ASC");
+        res.json(result.rows.map(row => row.name));
+    } catch (err) { res.status(500).json(err.message); }
+});
+
+app.post('/api/work-types', async (req, res) => {
+    try {
+        await pool.query('INSERT INTO work_types (name) VALUES ($1)', [req.body.name]);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json(err.message); }
+});
+
+app.delete('/api/work-types/:name', async (req, res) => {
+    try {
+        await pool.query('DELETE FROM work_types WHERE name = $1', [req.params.name]);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json(err.message); }
+});
+
+// --- OBJEKTI ---
+app.get('/api/objects', async (req, res) => {
+    try {
+        const result = await pool.query("SELECT name FROM objects ORDER BY name ASC");
+        res.json(result.rows.map(row => row.name));
+    } catch (err) { res.status(500).json(err.message); }
+});
+
+app.post('/api/objects', async (req, res) => {
+    try {
+        await pool.query('INSERT INTO objects (name) VALUES ($1)', [req.body.name]);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json(err.message); }
+});
+
+app.delete('/api/objects/:name', async (req, res) => {
+    try {
+        await pool.query('DELETE FROM objects WHERE name = $1', [req.params.name]);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json(err.message); }
+});
+
 app.get('/api/schedule', async (req, res) => {
   try {
     // Pievienojam ORDER BY id DESC, lai jaunākie dati vienmēr nāktu pirmie
