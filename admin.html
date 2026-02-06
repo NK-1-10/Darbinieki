@@ -5,45 +5,60 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Admin Panelis</title>
     <style>
-        /* Vizuālais noformējums stundu skaitītājam un tabulai */
+        /* 1. LABOJUMS: Mainām align-items uz flex-start, lai viss sāktos no kreisās malas */
+        body { 
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; 
+            margin: 0; 
+            background: #f4f6f1; 
+            color: #0f1a14; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: flex-start; 
+            padding: 20px; 
+        }
+
         #totalHoursDisplay { background: #eef2eb; padding: 10px 20px; border-radius: 8px; border: 1px solid #ccc; display: inline-block; }
         #totalHoursValue { color: #2c7a7b; }
-        body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; margin: 0; background: #f4f6f1; color: #0f1a14; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        h2, h3 { margin-top: 20px; text-align: center; }
+        
+        /* 2. LABOJUMS: Virsrakstiem noņemam center */
+        h2, h3 { margin-top: 20px; text-align: left; width: 100%; }
+        
         button { padding: 8px 12px; margin: 4px 0; border-radius: 6px; border: 1px solid #aaa; background: #e0e0e0; cursor: pointer; }
         button:hover { background: #d5d5d5; }
-        ul { list-style: none; padding: 0; margin: 6px auto; width: 100%; max-width: 400px; }
+        
+        ul { list-style: none; padding: 0; margin: 6px 0; width: 100%; max-width: 400px; }
         li { background:#fff; margin:6px 0; padding:8px 10px; border-radius:6px; border:1px solid #ccc; display: flex; justify-content: space-between; align-items: center; }
+        
         .pw { color:#666; font-style:italic; margin-left:8px; font-size: 0.9em; }
-        details { margin: 0 auto 15px auto; background: #fff; border: 1px solid #ccc; border-radius: 6px; padding: 10px; width: 100%; max-width: 450px; text-align: center; }
+
+        /* 3. LABOJUMS: Details un pogas klase */
+        details { margin-bottom: 15px; background: #fff; border: 1px solid #ccc; border-radius: 6px; padding: 10px; width: 100%; max-width: 450px; }
+        .pogas { text-align: left; }
         summary { cursor: pointer; font-weight: bold; padding: 4px; }
+
+        /* 4. LABOJUMS: Filtru un tabulas novietojums */
+        #filters { 
+            background: #fff; border: 1px solid #ccc; padding: 15px; border-radius: 6px; 
+            width: 100%; max-width: 750px; margin: 0 0 15px 0; 
+            display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 10px; 
+        }
+
         #table-wrapper { background: #fff; border: 1px solid #333; border-radius: 6px; overflow: hidden; margin-top: 20px; width: 100%; max-width: 900px; }
-        .table-controls { background: #eee; padding: 10px; border-bottom: 1px solid #333; display: flex; gap: 20px; align-items: center; justify-content: center; }
+        .table-controls { background: #eee; padding: 10px; border-bottom: 1px solid #333; display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
+        
         table { border-collapse: collapse; width: 100%; }
         th, td { border: 1px solid #ccc; padding: 8px 12px; text-align: center; }
         th { background: #f9f9f9; }
-        #filters { background: #fff; border: 1px solid #ccc; padding: 15px; border-radius: 6px; max-width: 750px; margin: 0 auto 15px auto; text-align: center; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+        
         select { padding: 4px 6px; border-radius: 4px; }
-        .action-bar { width: 100%; display: flex; justify-content: center; margin-bottom: 10px; }
-        .pogas {
-    text-align: left;        /* Teksts un pogas pa kreisi */
-    margin-left: 0;          /* Nodrošina, ka nav nobīdes no malas */
-    margin-right: auto;      /* Pārējo brīvo vietu atstāj labajā pusē */
-    display: block;          /* Pārliecināmies, ka elements uzvedas kā bloks */
-}
-
-/* Ja gribi, lai arī pogas iekšpusē nereaģētu uz nekādu centrēšanu */
-.pogas button {
-    display: inline-block;
-    margin: 5px 0;           /* Atstarpes starp pogām */
-}
+        .action-bar { width: 100%; display: flex; justify-content: flex-start; margin: 10px 0; }
     </style>
 </head>
 <body>
 
 <h2 style="text-align: left;">Pievienot darbiniekus un mašīnas</h2>
 
-<details class="pogas">
+<details class="pogas" open>
     <summary>👷 Pievienot darbiniekus</summary>
     <button id="addWorkerBtn">➕ Pievienot darbinieku</button>
     <ul id="workerList"></ul>
@@ -54,7 +69,6 @@
     <button id="addCarBtn">➕ Pievienot mašīnu</button>
     <ul id="carList"></ul>
 </details>
-
 
 <hr style="width: 100%; max-width: 750px; margin: 20px 0; border: 0; border-top: 1px solid #ccc;">
 
@@ -68,7 +82,7 @@
     <button id="clearFilters">Notīrīt filtrus</button>
 </div>
 
-    <div class="action-bar">
+<div class="action-bar">
     <button id="clearTableBtn" style="background:#ff6666; color:white; border:none;">Clear Table</button>
 </div>
 
@@ -94,7 +108,7 @@
                 <option value="hours">Stundas</option>
             </select>
         </label>
-        <div id="totalHoursDisplay" style="margin: 10px; font-size: 1.2em; font-weight: bold; color: #0f1a14;">
+        <div id="totalHoursDisplay">
             Kopā nostrādātās stundas: <span id="totalHoursValue">0.00</span> h
         </div>
     </div>
@@ -102,10 +116,8 @@
 </div>
 
 <script>
-    // Mēnešu secības definīcija pareizai kārtošanai
+    // Šeit paliek tava nemainītā loģika...
     const MONTH_ORDER = ["Janvāris","Februāris","Marts","Aprīlis","Maijs","Jūnijs","Jūlijs","Augusts","Septembris","Oktobris","Novembris","Decembris"];
-    
-    // HTML elementu saglabāšana mainīgajos
     const workerList = document.getElementById("workerList");
     const carList = document.getElementById("carList");
     const tableContainer = document.getElementById("tableContainer");
@@ -116,12 +128,10 @@
     const sortBy1 = document.getElementById("sortBy");
     const sortBy2 = document.getElementById("sortBy2");
     
-    // Mainīgie, kuros glabāsies no servera saņemtie dati
     let workers = [];
     let cars = [];
     let schedule = [];
 
-    // Galvenā funkcija, kas pieprasa datus no servera (API)
     async function loadData() {
         try {
             const [wRes, cRes, sRes] = await Promise.all([fetch('/api/workers'), fetch('/api/cars'), fetch('/api/schedule')]);
@@ -129,8 +139,6 @@
             workers = await wRes.json();
             cars = await cRes.json();
             schedule = await sRes.json();
-            
-            // Pēc datu saņemšanas, tos attēlo ekrānā
             renderWorkers();
             renderCars();
             fillFilter(filterMonth, schedule.map(e => e.month));
@@ -139,7 +147,6 @@
         } catch (err) { console.error("Kļūda:", err); }
     }
 
-    // Funkcija, kas izveido darbinieku sarakstu alfabētiskā secībā
     function renderWorkers() {
         const sortedWorkers = [...workers].sort((a, b) => a.name.localeCompare(b.name, 'lv'));
         workerList.innerHTML = sortedWorkers.map(w => {
@@ -149,14 +156,12 @@
         fillFilter(filterWorker, sortedWorkers.map(w => w.name));
     }
 
-    // Funkcija, kas izveido mašīnu sarakstu alfabētiskā secībā
     function renderCars() {
         const sortedCars = [...cars].sort((a, b) => a.localeCompare(b, 'lv'));
         carList.innerHTML = sortedCars.map(c => `<li><strong>${c}</strong><button onclick="deleteCar('${c}')">Dzēst</button></li>`).join("");
         fillFilter(filterCar, sortedCars);
     }
 
-    // Palīgfunkcija, kas aizpilda filtru izvēlnes (select) ar unikālām vērtībām
     function fillFilter(select, list) {
         const current = select.value;
         const uniqueValues = [...new Set(list)];
@@ -164,21 +169,15 @@
         select.value = current;
     }
 
-    // Funkcija, kas filtrē, kārto un uzzīmē galveno datu tabulu
     function renderTable() {
-        // Datu filtrēšana pēc lietotāja izvēles
         let filtered = schedule.filter(e => {
             return (!filterMonth.value || e.month === filterMonth.value) &&
             (!filterWorker.value || e.worker_name === filterWorker.value) &&
             (!filterDate.value || String(e.date) === filterDate.value) &&
             (!filterCar.value || e.car === filterCar.value);
         });
-
-        // Stundu summēšana visiem nofiltrētajiem ierakstiem
         const total = filtered.reduce((sum, item) => sum + (parseFloat(item.hours) || 0), 0);
         document.getElementById("totalHoursValue").textContent = total.toFixed(2);
-
-        // Tabulas kārtošanas loģika
         if (!sortBy1.value && !sortBy2.value) {
             filtered.sort((a, b) => b.id - a.id); 
         } else {
@@ -191,8 +190,6 @@
             };
             filtered.sort((a, b) => sortLogic(a, b, sortBy1.value) || sortLogic(a, b, sortBy2.value));
         }
-
-        // Tabulas HTML ģenerēšana
         if (!filtered.length) { tableContainer.innerHTML = "<p style='padding:20px;'>Nav ierakstu.</p>"; return; }
         let html = `<table><tr><th>Mēnesis</th><th>Darbinieks</th><th>Datums</th><th>Mašīna</th><th>Kopš</th><th>Līdz</th><th>Stundas</th></tr>`;
         filtered.forEach(e => {
@@ -201,16 +198,12 @@
         tableContainer.innerHTML = html + `</table>`;
     }
 
-    // Klausītāji, kas reaģē uz izmaiņām filtros vai kārtošanā
     [filterMonth, filterWorker, filterDate, filterCar, sortBy1, sortBy2].forEach(el => el.addEventListener("change", renderTable));
-    
-    // Filtru notīrīšanas poga
     document.getElementById("clearFilters").onclick = () => {
         [filterMonth, filterWorker, filterDate, filterCar, sortBy1, sortBy2].forEach(el => el.value = "");
         renderTable();
     };
 
-    // Jauna darbinieka pievienošana (izsauc prompt logus)
     document.getElementById("addWorkerBtn").onclick = async () => {
         const name = prompt("Ievadiet darbinieka vārdu:");
         if(!name || !name.trim()) return;
@@ -220,7 +213,6 @@
         if(res.ok) { alert("Pievienots!"); loadData(); }
     };
 
-    // Jaunas mašīnas pievienošana
     document.getElementById("addCarBtn").onclick = async () => {
         const name = prompt("Ievadiet jaunu mašīnu:");
         if(!name || !name.trim()) return;
@@ -228,14 +220,12 @@
         if(res.ok) { alert("Pievienota!"); loadData(); }
     };
 
-    // Darbinieka dzēšana
     async function deleteWorker(name) {
         if(!confirm(`Dzēst darbinieku ${name}?`)) return;
         const res = await fetch(`/api/workers/${encodeURIComponent(name)}`, { method: 'DELETE' });
         if(res.ok) loadData();
     }
 
-    // Mašīnas dzēšana
     async function deleteCar(name) {
         if (!confirm(`Vai tiešām vēlaties dzēst mašīnu ${name}?`)) return;
         try {
@@ -244,7 +234,6 @@
         } catch (err) { console.error(err); }
     }
 
-    // Visas grafika tabulas pilnīga notīrīšana
     document.getElementById("clearTableBtn").onclick = async () => {
         if (confirm("Vai tiešām vēlaties izdzēst VISUS ierakstus?")) {
             try {
@@ -254,7 +243,6 @@
         }
     };
 
-    // Sākotnējā datu ielāde, kad lapa tiek atvērta
     loadData();
 </script>
 </body>
