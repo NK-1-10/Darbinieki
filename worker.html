@@ -3,93 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Darbinieks</title>
+    <title>Darbinieka Panelis</title>
     <style>
-        body { 
-            font-family: system-ui, -apple-system, sans-serif; 
-            margin: 0; 
-            background: #f4f6f1; 
-            color: #0f1a14; 
-            padding: 20px; 
-            display: flex;
-            flex-direction: column;
-            align-items: center; /* Mainīts uz center labākam vizuālajam tēlam */
-        }
-        .card { 
-            background: white; 
-            padding: 25px; 
-            border-radius: 12px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08); 
-            width: 100%;
-            max-width: 1000px; 
-            margin-bottom: 20px;
-        }
-        h2 { margin-top: 0; color: #2c3e50; }
-        #status { margin-bottom: 10px; font-size: 1.1em; }
-        #startTimeDisplay { margin-bottom: 20px; font-size: 0.95em; }
-
-        /* Kontroles bloks */
-        #workControls { 
-            display: flex; flex-wrap: wrap; gap: 12px; align-items: center; 
-            padding: 20px; background: #f8f9fa; border: 1px solid #e9ecef; 
-            border-radius: 10px; margin-bottom: 20px;
-        }
-        select { padding: 10px 15px; border-radius: 8px; border: 1px solid #ced4da; font-size: 14px; min-width: 180px; cursor: pointer; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; margin: 0; padding: 20px; color: #333; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 1000px; margin: 0 auto 20px; }
+        h2, h3 { color: #1a202c; margin-top: 0; }
         
-        button { padding: 10px 20px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; transition: all 0.2s ease; }
-        #AtWork { background: #007bff; color: white; }
-        #LeaveWork { background: #dc3545; color: white; display: none; margin-left: auto; }
-        #startBtn { background: #28a745; color: white; }
-        #stopBtn { background: #ffc107; color: #212529; }
-        #logoutBtn { background: #6c757d; color: white; margin-top: 20px; }
-
-        /* Tabulas stils */
-        table { border-collapse: collapse; margin-top: 15px; width: 100%; background: white; font-size: 13px; }
-        th { background: #f8f9fa; border-bottom: 2px solid #dee2e6; padding: 12px; }
-        td { border-bottom: 1px solid #eee; padding: 12px; text-align: center; }
+        /* Maiņas pogas */
+        .shift-controls { display: flex; gap: 10px; margin-bottom: 20px; }
+        button { padding: 12px 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        #AtWork { background: #3182ce; color: white; width: 100%; }
+        #LeaveWork { background: #e53e3e; color: white; display: none; width: 100%; }
         
-        .flex-container { display: flex; gap: 20px; width: 100%; margin-top: 20px; align-items: flex-start; }
-        .side-box { flex: 1; background: #fff; padding: 20px; border-radius: 10px; border: 1px solid #ccc; }
+        /* Darba kontrole */
+        .work-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; background: #f8fafc; padding: 15px; border-radius: 10px; border: 1px solid #e2e8f0; margin-bottom: 20px; }
+        select { padding: 10px; border-radius: 6px; border: 1px solid #cbd5e0; width: 100%; }
+        #startBtn { background: #38a169; color: white; }
+        #stopBtn { background: #d69e2e; color: white; display: none; }
+
+        /* Taimeris un info */
+        .info-row { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 20px; }
+        .info-box { flex: 1; min-width: 250px; padding: 20px; border: 1px solid #edf2f7; border-radius: 10px; text-align: center; }
+        #activeTimerDisplay { font-size: 2.5rem; font-weight: bold; color: #2d3748; }
+        
+        /* Tabulas */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9rem; }
+        th { background: #edf2f7; text-align: left; padding: 10px; border-bottom: 2px solid #e2e8f0; }
+        td { padding: 10px; border-bottom: 1px solid #edf2f7; }
+        .logout-btn { background: #718096; color: white; margin-top: 10px; }
     </style>
 </head>
 <body>
+
     <div class="card">
-        <h2 id="welcome"></h2>
+        <h2 id="welcome">Darbinieks: Ielādē...</h2>
         
-        <div style="display: flex; width: 100%; margin-bottom: 15px; gap: 10px;">
+        <div class="shift-controls">
             <button id="AtWork">SĀKT MAIŅU</button>
             <button id="LeaveWork">BEIGT MAIŅU</button>
         </div>
 
-        <div id="workControls">
-            <select id="car"><option value="">-- Izvēlies mašīnu --</option></select>
-            <select id="object"><option value="">-- Izvēlies objektu --</option></select>
-            <select id="work"><option value="">-- Izvēlies darba veidu --</option></select>
-            <button id="startBtn" style="display:none;">Sākt konkrētu darbu</button>
-            <button id="stopBtn" style="display:none;">Beigt konkrētu darbu</button>
+        <div id="workControls" class="work-grid">
+            <select id="car"><option value="">-- Auto --</option></select>
+            <select id="object"><option value="">-- Objekts --</option></select>
+            <select id="work"><option value="">-- Darba veids --</option></select>
+            <button id="startBtn">Sākt darbu</button>
+            <button id="stopBtn">Beigt darbu</button>
         </div>
 
-        <div id="status">Statuss: Gaidīšana</div>
-        <div id="startTimeDisplay" style="color: green; font-weight: bold;"></div>
-
-        <div class="flex-container">
-            <div class="side-box" style="max-width: 300px;">
+        <div class="info-row">
+            <div class="info-box">
                 <h3>Aktīvais laiks</h3>
-                <div id="activeTimerDisplay" style="font-size: 32px; font-weight: bold; color: #2c7a7b; margin-bottom: 15px;">00:00:00</div>
+                <div id="activeTimerDisplay">00:00:00</div>
+                <div id="status" style="margin-top:10px; color: #718096;">Statuss: Gaidīšana</div>
             </div>
-
-            <div class="side-box">
-                <h3 style="margin-top:0;">Pēdējās maiņas (DarbaStundas)</h3>
+            <div class="info-box">
+                <h3>Pēdējās maiņas</h3>
                 <div id="shiftTableContainer">Ielādē...</div>
             </div>
         </div>
 
-        <button id="logoutBtn">Iziet</button>
+        <button class="logout-btn" id="logoutBtn">Iziet</button>
     </div>
 
-    <div class="card" style="max-width: 1000px;">
-        <h3>Tavi pēdējie veiktie darbi:</h3>
-        <div id="tableContainer"></div>
+    <div class="card">
+        <h3>Tavi pēdējie veiktie darbi (Schedule):</h3>
+        <div id="tableContainer">Ielādē...</div>
     </div>
 
 <script>
@@ -98,7 +77,6 @@
     document.getElementById("welcome").textContent = `Darbinieks: ${user.name}`;
 
     const MONTHS = ["Janvāris","Februāris","Marts","Aprīlis","Maijs","Jūnijs","Jūlijs","Augusts","Septembris","Oktobris","Novembris","Decembris"];
-    // Mēģinām ielādēt saglabāto laiku no localStorage
     let mainShiftStart = localStorage.getItem(`shift_${user.name}`) ? new Date(localStorage.getItem(`shift_${user.name}`)) : null;
     let timerInterval;
 
@@ -116,18 +94,20 @@
             fillSelect("object", objs);
             fillSelect("work", works);
             
-            renderScheduleTable(sched.filter(i => i.worker_name === user.name));
-            renderShiftTable(hours.filter(i => i.darbinieks === user.name));
+            renderSchedule(sched.filter(i => i.worker_name === user.name));
+            renderShifts(hours.filter(i => i.darbinieks === user.name));
 
             if (mainShiftStart) startUI();
             
+            // Pārbauda aktīvo darbu schedule tabulā
             const activeJob = sched.find(i => i.worker_name === user.name && !i.beigu_laiks);
             if (activeJob) {
                 document.getElementById("startBtn").style.display = "none";
                 document.getElementById("stopBtn").style.display = "block";
                 document.getElementById("status").innerHTML = `Strādā: <b>${activeJob.objekts}</b>`;
+                ["car", "object", "work"].forEach(id => document.getElementById(id).disabled = true);
             }
-        } catch (err) { console.error("Datu ielādes kļūda"); }
+        } catch (err) { console.error("Kļūda ielādējot datus:", err); }
     }
 
     function fillSelect(id, data) {
@@ -135,7 +115,7 @@
         s.innerHTML = `<option value="">-- Izvēlies --</option>` + data.map(i => `<option value="${i}">${i}</option>`).join('');
     }
 
-    // MAIŅAS KONTROLE
+    // MAIŅAS KONTROLE (DarbaStundas)
     document.getElementById("AtWork").onclick = () => {
         mainShiftStart = new Date();
         localStorage.setItem(`shift_${user.name}`, mainShiftStart.toISOString());
@@ -145,7 +125,6 @@
     function startUI() {
         document.getElementById("AtWork").style.display = "none";
         document.getElementById("LeaveWork").style.display = "block";
-        document.getElementById("startBtn").style.display = "block";
         if (timerInterval) clearInterval(timerInterval);
         timerInterval = setInterval(() => {
             const diff = new Date(new Date() - mainShiftStart);
@@ -154,35 +133,32 @@
     }
 
     document.getElementById("LeaveWork").onclick = async () => {
-        if (!confirm("Vai tiešām beigt darba dienu?")) return;
+        if (!confirm("Vai tiešām beigt maiņu?")) return;
         const now = new Date();
-        const diffHours = ((now - mainShiftStart) / 3600000).toFixed(2);
+        const diffHrs = ((now - mainShiftStart) / 3600000).toFixed(2);
         
-        const res = await fetch('/api/darba-stundas', {
+        await fetch('/api/darba-stundas', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
                 darbinieks: user.name,
                 datums: now.toLocaleDateString('lv-LV'),
-                sāka_darbu: mainShiftStart.toLocaleTimeString('lv-LV', {hour:'2-digit', minute:'2-digit', second:'2-digit'}),
-                beidza_darbu: now.toLocaleTimeString('lv-LV', {hour:'2-digit', minute:'2-digit', second:'2-digit'}),
+                sāka_darbu: mainShiftStart.toLocaleTimeString('lv-LV', {hour:'2-digit', minute:'2-digit'}),
+                beidza_darbu: now.toLocaleTimeString('lv-LV', {hour:'2-digit', minute:'2-digit'}),
                 month: MONTHS[now.getMonth()],
-                stundas: diffHours + " h" // Saglabājam kā tekstu "0.50 h"
+                stundas: diffHrs + " h" // Sūtam kā tekstu
             })
         });
-
-        if (res.ok) {
-            localStorage.removeItem(`shift_${user.name}`);
-            location.reload();
-        }
+        localStorage.removeItem(`shift_${user.name}`);
+        location.reload();
     };
 
-    // KONKRĒTA DARBA KONTROLE
+    // DARBA KONTROLE (Schedule)
     document.getElementById("startBtn").onclick = async () => {
         const car = document.getElementById("car").value;
         const obj = document.getElementById("object").value;
         const wrk = document.getElementById("work").value;
-        if (!car || !obj || !wrk) return alert("Izvēlies auto, objektu un darbu!");
+        if (!car || !obj || !wrk) return alert("Aizpildi visus laukus!");
 
         const now = new Date();
         await fetch('/api/start-work', {
@@ -209,23 +185,24 @@
         location.reload();
     };
 
-    function renderScheduleTable(data) {
-        let h = `<table><tr><th>Auto</th><th>Objekts</th><th>Sākums</th><th>Beigas</th><th>Stundas</th></tr>`;
+    function renderSchedule(data) {
+        let h = `<table><tr><th>Auto</th><th>Objekts</th><th>Sākums</th><th>H</th></tr>`;
         data.reverse().forEach(r => {
-            h += `<tr><td>${r.car}</td><td>${r.objekts}</td><td>${r.sākuma_laiks}</td><td>${r.beigu_laiks || '-'}</td><td><b>${r.hours || '0.00'} h</b></td></tr>`;
+            h += `<tr><td>${r.car}</td><td>${r.objekts}</td><td>${r.sākuma_laiks}</td><td>${r.hours || '...'}</td></tr>`;
         });
         document.getElementById("tableContainer").innerHTML = h + `</table>`;
     }
 
-    function renderShiftTable(data) {
-        let h = `<table><tr><th>Datums</th><th>Sāka</th><th>Beidza</th><th>Kopā</th></tr>`;
+    function renderShifts(data) {
+        let h = `<table><tr><th>Datums</th><th>Sāka</th><th>H</th></tr>`;
         data.reverse().slice(0, 5).forEach(r => {
-            h += `<tr><td>${r.datums}</td><td>${r.sāka_darbu}</td><td>${r.beidza_darbu}</td><td><b>${r.stundas}</b></td></tr>`;
+            h += `<tr><td>${r.datums}</td><td>${r.sāka_darbu}</td><td><b>${r.stundas}</b></td></tr>`;
         });
         document.getElementById("shiftTableContainer").innerHTML = h + `</table>`;
     }
 
     document.getElementById("logoutBtn").onclick = () => { localStorage.clear(); window.location.href = "index.html"; };
+    
     init();
 </script>
 </body>
