@@ -76,4 +76,134 @@
             Kopā nostrādātās stundas: <span id="totalHoursValue">0.00</span> h
         </div>
     </div>
-    <div
+    <div id="tableContainer"></div>
+</div>
+<script>
+    const MONTH_ORDER = ["Janvāris","Februāris","Marts","Aprīlis","Maijs","Jūnijs","Jūlijs","Augusts","Septembris","Oktobris","Novembris","Decembris"];
+    const workerList = document.getElementById("workerList");
+    const carList = document.getElementById("carList");
+    const tableContainer = document.getElementById("tableContainer");
+    const filterMonth = document.getElementById("filterMonth");
+    const filterWorker = document.getElementById("filterWorker");
+    const filterDate = document.getElementById("filterDate");
+    const filterCar = document.getElementById("filterCar");
+    const sortBy1 = document.getElementById("sortBy");
+    const sortBy2 = document.getElementById("sortBy2");
+    let workers = [];
+    let cars = [];
+    let schedule = [];
+
+    async function loadData() {
+        try {
+            const [wRes, cRes, sRes] = await Promise.all([fetch('/api/workers'), fetch('/api/cars'), fetch('/api/schedule')]);
+            if (!wRes.ok || !cRes.ok || !sRes.ok) throw new Error("Neizdevās iegūt datus");
+            workers = await wRes.json();
+            cars = await cRes.json();
+            schedule = await sRes.json();
+            renderWorkers();
+            renderCars();
+            fillFilter(filterMonth, schedule.map(e => e.month));
+            fillFilter(filterDate, schedule.map(e => e.date).sort((a,b) => a-b));
+            renderTable();
+        } catch (err) { console.error("Kļūda:", err); }
+    }
+
+    function renderWorkers() {
+        const sortedWorkers = [...workers].sort((a, b) => a.name.localeCompare(b.name, 'lv'));
+        workerList.innerHTML = sortedWorkers.map(w => {
+            const tempPassHtml = (w.temp_password && w.temp_password !== "NULL") ? `<span class="pw">(Temp: ${w.temp_password})</span>` : "";
+            return `<li><span><strong>${w.name}</strong>${tempPassHtml}</span><button onclick="deleteWorker('${w.name}')">Dzēst</button></li>`;
+        }).join("");
+        fillFilter(filterWorker, sortedWorkers.map(w => w.name));
+    }
+
+    function renderCars() {
+        const sortedCars = [...cars].sort((a, b) => a.localeCompare(b, 'lv'));
+        carList.innerHTML = sortedCars.map(c => `<li><strong>${c}</strong><button onclick="deleteCar('${c}')">Dzēst</button></li>`).join("");
+        fillFilter(filterCar, sortedCars);
+    }
+
+    function fillFilter(select, list) {
+        const current = select.value;
+        const uniqueValues = [...new Set(list)];
+        select.innerHTML = `<option value="">Visi</option>` + uniqueValues.map(v => `<option value="${v}">${v}</option>`).join("");
+        select.value = current;
+    }
+
+    function renderTable() {
+        let filtered = schedule.filter(e => {
+            return (!filterMonth.value || e.month === filterMonth.value) &&
+            (!filterWorker.value || e.worker_name === filterWorker.value) &&
+            (!filterDate.value || String(e.date) === filterDate.value) &&
+            (!filterCar.value || e.car === filterCar.value);
+        });
+        const total = filtered.reduce((sum, item) => sum + (parseFloat(item.hours) || 0), 0);
+        document.getElementById("totalHoursValue").textContent = total.toFixed(2);
+        if (!sortBy1.value && !sortBy2.value) {
+            filtered.sort((a, b) => b.id - a.id); 
+        } else {
+            const sortLogic = (a, b, key) => {
+                if (!key) return 0;
+                if (key === 'month') return MONTH_ORDER.indexOf(a.month) - MONTH_ORDER.indexOf(b.month);
+                if (key === 'date') return parseInt(a.date) - parseInt(b.date);
+                if (key === 'hours') return parseFloat(a.hours) - parseFloat(b.hours);
+                return String(a[key] || "").localeCompare(String(b[key] || ""));
+            };
+            filtered.sort((a, b) => sortLogic(a, b, sortBy1.value) || sortLogic(a, b, sortBy2.value));
+        }
+        if (!filtered.length) { tableContainer.innerHTML = "<p style='padding:20px;'>Nav ierakstu.</p>"; return; }
+        let html = `<table><tr><th>Mēnesis</th><th>Darbinieks</th><th>Datums</th><th>Mašīna</th><th>Kopš</th><th>Līdz</th><th>Stundas</th></tr>`;
+        filtered.forEach(e => {
+            html += `<tr><td>${e.month || '-'}</td><td>${e.worker_name}</td><td>${e.date}</td><td>${e.car}</td><td>${e.sākuma_laiks || '-'}</td><td>${e.beigu_laiks || 'Aktīvs'}</td><td>${e.hours || '-'}</td></tr>`;
+        });
+        tableContainer.innerHTML = html + `</table>`;
+    }
+
+    [filterMonth, filterWorker, filterDate, filterCar, sortBy1, sortBy2].forEach(el => el.addEventListener("change", renderTable));
+    document.getElementById("clearFilters").onclick = () => {
+        [filterMonth, filterWorker, filterDate, filterCar, sortBy1, sortBy2].forEach(el => el.value = "");
+        renderTable();
+    };
+
+    document.getElementById("addWorkerBtn").onclick = async () => {
+        const name = prompt("Ievadiet darbinieka vārdu:");
+        if(!name || !name.trim()) return;
+        const temp_pass = prompt(`Ievadiet pagaidu paroli priekš ${name}:`);
+        if(!temp_pass || !temp_pass.trim()) return;
+        const res = await fetch('/api/workers', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ name: name.trim(), temp_password: temp_pass.trim() }) });
+        if(res.ok) { alert("Pievienots!"); loadData(); }
+    };
+
+    document.getElementById("addCarBtn").onclick = async () => {
+        const name = prompt("Ievadiet jaunu mašīnu:");
+        if(!name || !name.trim()) return;
+        const res = await fetch('/api/cars', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ name: name.trim() }) });
+        if(res.ok) { alert("Pievienota!"); loadData(); }
+    };
+
+    async function deleteWorker(name) {
+        if(!confirm(`Dzēst darbinieku ${name}?`)) return;
+        const res = await fetch(`/api/workers/${encodeURIComponent(name)}`, { method: 'DELETE' });
+        if(res.ok) loadData();
+    }
+
+    async function deleteCar(name) {
+        if (!confirm(`Vai tiešām vēlaties dzēst mašīnu ${name}?`)) return;
+        try {
+            const res = await fetch(`/api/cars/${encodeURIComponent(name)}`, { method: 'DELETE' });
+            if (res.ok) loadData();
+        } catch (err) { console.error(err); }
+    }
+
+    document.getElementById("clearTableBtn").onclick = async () => {
+        if (confirm("Vai tiešām vēlaties izdzēst VISUS ierakstus?")) {
+            try {
+                const res = await fetch('/api/schedule', { method: 'DELETE' });
+                if (res.ok) { alert("Notīrīts!"); loadData(); }
+            } catch (err) { console.error(err); }
+        }
+    };
+    loadData();
+</script>
+</body>
+</html>
