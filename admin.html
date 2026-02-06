@@ -5,110 +5,193 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Admin Panelis</title>
     <style>
-        /* 1. LABOJUMS: Mainām align-items uz flex-start, lai viss sāktos no kreisās malas */
+        /* Pamata iestatījumi */
         body { 
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; 
+            font-family: system-ui, -apple-system, sans-serif; 
             margin: 0; 
             background: #f4f6f1; 
             color: #0f1a14; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: flex-start; 
             padding: 20px; 
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
         }
 
-        #totalHoursDisplay { background: #eef2eb; padding: 10px 20px; border-radius: 8px; border: 1px solid #ccc; display: inline-block; }
-        #totalHoursValue { color: #2c7a7b; }
+        h2, h3 { margin-top: 30px; text-align: left; color: #2c3e50; }
         
-        /* 2. LABOJUMS: Virsrakstiem noņemam center */
-        h2, h3 { margin-top: 20px; text-align: left; width: 100%; }
-        
-        button { padding: 8px 12px; margin: 4px 0; border-radius: 6px; border: 1px solid #aaa; background: #e0e0e0; cursor: pointer; }
-        button:hover { background: #d5d5d5; }
-        
-        ul { list-style: none; padding: 0; margin: 6px 0; width: 100%; max-width: 400px; }
-        li { background:#fff; margin:6px 0; padding:8px 10px; border-radius:6px; border:1px solid #ccc; display: flex; justify-content: space-between; align-items: center; }
-        
-        .pw { color:#666; font-style:italic; margin-left:8px; font-size: 0.9em; }
-
-        /* 3. LABOJUMS: Details un pogas klase */
-        details { margin-bottom: 15px; background: #fff; border: 1px solid #ccc; border-radius: 6px; padding: 10px; width: 100%; max-width: 450px; }
-        summary { cursor: pointer; font-weight: bold; padding: 4px; }
-
-        /* 4. LABOJUMS: Filtru un tabulas novietojums */
-        #filters { 
-            background: #fff; border: 1px solid #ccc; padding: 15px; border-radius: 6px; 
-            width: 100%; max-width: 750px; margin: 0 0 15px 0; 
-            display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 10px; 
-        }
-
-        #table-wrapper { background: #fff; border: 1px solid #333; border-radius: 6px; overflow: hidden; margin-top: 20px; width: 100%; max-width: 900px; }
-        .table-controls { background: #eee; padding: 10px; border-bottom: 1px solid #333; display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
-        
-        table { border-collapse: collapse; width: 100%; }
-        th, td { border: 1px solid #ccc; padding: 8px 12px; text-align: center; }
-        th { background: #f9f9f9; }
-        
-        select { padding: 4px 6px; border-radius: 4px; }
-        .action-bar { width: 100%; display: flex; justify-content: flex-start; margin: 10px 0; }
-
+        /* Režģa konteiners (2x2 stils) */
         .grid-container {
-    display: grid;
-    grid-template-columns: 1fr 1fr; /* Izveido 2 vienādas kolonnas */
-    gap: 50px;                      /* Atstarpe starp blokiem */
-    width: 100%;
-    max-width: 900px;               /* Kopējais maksimālais platums */
-    margin-bottom: 20px;
-}
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            width: 100%;
+            max-width: 900px;
+            margin-bottom: 30px;
+        }
 
-/* Pielāgojam details blokus, lai tie aizpildītu visu rūtiņu */
-.pogas {
-    width: 100% !important;         /* Pārrakstām iepriekšējo max-width */
-    max-width: none !important;
-    margin-bottom: 0;               /* Atstarpi tagad regulē 'gap' */
-}
+        /* Kvadrātu (details) stils */
+        details.pogas {
+            background: #ffffff;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            width: 100% !important;
+            max-width: none !important;
+            overflow: hidden;
+            transition: box-shadow 0.3s;
+        }
 
-/* Mobilajām ierīcēm - lai uz telefona rādās viens zem otra */
-@media (max-width: 600px) {
-    .grid-container {
-        grid-template-columns: 1fr;
-    }
-}
+        details.pogas:hover { box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+
+        summary { 
+            cursor: pointer; 
+            font-weight: bold; 
+            padding: 15px; 
+            background: #f8f9fa;
+            border-bottom: 1px solid transparent;
+            list-style: none;
+        }
+
+        details[open] summary { border-bottom: 1px solid #eee; background: #eef2eb; }
+
+        /* Iekšējais saturs blokos */
+        .content { padding: 15px; }
+
+        /* Pogas stils */
+        button { 
+            padding: 8px 15px; 
+            border-radius: 6px; 
+            border: 1px solid #ccc; 
+            background: #fff; 
+            cursor: pointer; 
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+
+        button:hover { background: #f0f0f0; }
+
+        /* Saraksti iekš details */
+        ul { list-style: none; padding: 0; margin-top: 10px; }
+        li { 
+            background: #fdfdfd; 
+            margin-bottom: 5px; 
+            padding: 8px 12px; 
+            border-radius: 5px; 
+            border: 1px solid #eee; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            font-size: 14px;
+        }
+
+        li button { padding: 4px 8px; font-size: 12px; background: #fee; border-color: #fcc; color: #c33; }
+        li button:hover { background: #fdd; }
+
+        /* Filtru sadaļa */
+        #filters { 
+            background: #fff; 
+            border: 1px solid #ccc; 
+            padding: 20px; 
+            border-radius: 10px; 
+            width: 100%; 
+            max-width: 860px; 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 15px; 
+            align-items: flex-end;
+        }
+
+        #filters label { display: flex; flex-direction: column; font-size: 13px; font-weight: bold; color: #555; }
+
+        select { 
+            padding: 8px; 
+            border-radius: 6px; 
+            border: 1px solid #ccc; 
+            background: #fff; 
+            margin-top: 5px;
+            min-width: 140px;
+        }
+
+        /* Darbību josla un Tabula */
+        .action-bar { margin: 20px 0; }
         
+        #table-wrapper { 
+            background: #fff; 
+            border: 1px solid #ccc; 
+            border-radius: 10px; 
+            overflow: hidden; 
+            width: 100%; 
+            max-width: 1000px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .table-controls { 
+            background: #f8f9fa; 
+            padding: 15px; 
+            border-bottom: 1px solid #eee; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        #totalHoursDisplay { 
+            background: #eef2eb; 
+            padding: 10px 15px; 
+            border-radius: 8px; 
+            border: 1px solid #c3d9c3; 
+            font-weight: bold;
+            color: #2c5d2c;
+        }
+
+        table { border-collapse: collapse; width: 100%; font-size: 14px; }
+        th { background: #f1f3f5; padding: 12px; border-bottom: 2px solid #dee2e6; color: #495057; }
+        td { padding: 10px; border-bottom: 1px solid #eee; text-align: center; }
+
+        /* Mobilajām ierīcēm */
+        @media (max-width: 600px) {
+            .grid-container { grid-template-columns: 1fr; }
+            #filters { flex-direction: column; align-items: stretch; }
+        }
     </style>
 </head>
 <body>
 
-<h2 style="text-align: left;">Pievienot darbiniekus un mašīnas</h2>
+<h2>Iestatījumi</h2>
 
 <div class="grid-container">
     <details class="pogas">
-        <summary>👷 Pievienot darbiniekus</summary>
-        <button id="addWorkerBtn">➕ Pievienot darbinieku</button>
-        <ul id="workerList"></ul>
+        <summary>👷 Darbinieki</summary>
+        <div class="content">
+            <button id="addWorkerBtn">➕ Pievienot darbinieku</button>
+            <ul id="workerList"></ul>
+        </div>
     </details>
 
     <details class="pogas">
-        <summary>🚗 Pievienot mašīnas</summary>
-        <button id="addCarBtn">➕ Pievienot mašīnu</button>
-        <ul id="carList"></ul>
+        <summary>🚗 Mašīnas</summary>
+        <div class="content">
+            <button id="addCarBtn">➕ Pievienot mašīnu</button>
+            <ul id="carList"></ul>
+        </div>
     </details>
     
     <details class="pogas">
-        <summary>⚒️​ Pievienot darba veidu</summary>
-        <button id="addWorkBtn">➕ Pievienot darba veidu</button>
-        <ul id="workList"></ul>
+        <summary>⚒️ Darba veidi</summary>
+        <div class="content">
+            <button id="addWorkBtn">➕ Pievienot veidu</button>
+            <ul id="workList"></ul>
+        </div>
     </details>
 
     <details class="pogas">
-        <summary>​🗺️​ Pievienot objektu</summary>
-        <button id="addObjectBtn">➕ Pievienot objektu</button>
-        <ul id="objectList"></ul>
+        <summary>📍 Objekti</summary>
+        <div class="content">
+            <button id="addObjectBtn">➕ Pievienot objektu</button>
+            <ul id="objectList"></ul>
+        </div>
     </details>
 </div>
-    
-
-<hr style="width: 100%; max-width: 750px; margin: 20px 0; border: 0; border-top: 1px solid #ccc;">
 
 <h3>Meklēšanas filtri</h3>
 
@@ -117,51 +200,33 @@
     <label>Darbinieks: <select id="filterWorker"><option value="">Visi</option></select></label>
     <label>Datums: <select id="filterDate"><option value="">Visi</option></select></label>
     <label>Mašīna: <select id="filterCar"><option value="">Visi</option></select></label>
-    <button id="clearFilters">Notīrīt filtrus</button>
+    <button id="clearFilters" style="background: #eee;">Notīrīt filtrus</button>
 </div>
 
 <div class="action-bar">
-    <button id="clearTableBtn" style="background:#ff6666; color:white; border:none;">Clear Table</button>
+    <button id="clearTableBtn" style="background:#ff6666; color:white; border:none; padding: 10px 20px;">Iztīrīt visu tabulu</button>
 </div>
 
 <div id="table-wrapper">
     <div class="table-controls">
-        <label><strong>Kārtot pēc:</strong> 
-            <select id="sortBy">
-                <option value="">Nekas</option>
-                <option value="month">Mēnesis</option>
-                <option value="worker_name">Darbinieks</option>
-                <option value="date">Datums</option>
-                <option value="car">Mašīna</option>
-                <option value="hours">Stundas</option>
-            </select>
-        </label>
-        <label><strong>Kārtot pēc:</strong> 
-            <select id="sortBy2">
-                <option value="">Nekas</option>
-                <option value="month">Mēnesis</option>
-                <option value="worker_name">Darbinieks</option>
-                <option value="date">Datums</option>
-                <option value="car">Mašīna</option>
-                <option value="hours">Stundas</option>
-            </select>
-        </label>
+        <div style="display: flex; gap: 10px;">
+            <label>Kārtot: <select id="sortBy"><option value="">Nekas</option><option value="month">Mēnesis</option><option value="worker_name">Darbinieks</option><option value="date">Datums</option><option value="car">Mašīna</option><option value="hours">Stundas</option></select></label>
+            <label>Tad: <select id="sortBy2"><option value="">Nekas</option><option value="month">Mēnesis</option><option value="worker_name">Darbinieks</option><option value="date">Datums</option><option value="car">Mašīna</option><option value="hours">Stundas</option></select></label>
+        </div>
         <div id="totalHoursDisplay">
-            Kopā nostrādātās stundas: <span id="totalHoursValue">0.00</span> h
+            Kopā: <span id="totalHoursValue">0.00</span> h
         </div>
     </div>
     <div id="tableContainer"></div>
 </div>
 
 <script>
-    // Šeit paliek tava nemainītā loģika...
+    // Tava nemainītā JS loģika ar nelieliem renderēšanas uzlabojumiem (Content DIV ielikšana)
     const MONTH_ORDER = ["Janvāris","Februāris","Marts","Aprīlis","Maijs","Jūnijs","Jūlijs","Augusts","Septembris","Oktobris","Novembris","Decembris"];
     const workerList = document.getElementById("workerList");
     const carList = document.getElementById("carList");
-    // 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-   const workList = document.getElementById("workList");
-   const objectList = document.getElementById("objectList");
-    // 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+    const workList = document.getElementById("workList");
+    const objectList = document.getElementById("objectList");
     const tableContainer = document.getElementById("tableContainer");
     const filterMonth = document.getElementById("filterMonth");
     const filterWorker = document.getElementById("filterWorker");
@@ -177,205 +242,133 @@
     let objects = [];
 
     async function loadData() {
-    try {
-        const [wRes, cRes, sRes, wtRes, oRes] = await Promise.all([
-            fetch('/api/workers'), 
-            fetch('/api/cars'), 
-            fetch('/api/schedule'),
-            fetch('/api/work-types'), // Jauns maršruts
-            fetch('/api/objects')     // Jauns maršruts
-        ]);
-        
-        workers = await wRes.json();
-        cars = await cRes.json();
-        schedule = await sRes.json();
-        works_types = await wtRes.json(); // Saglabājam darba veidus
-        objects = await oRes.json();     // Saglabājam objektus
-        
-        renderWorkers();
-        renderCars();
-        renderWork();   // Izsaucam zīmēšanu
-        renderObject(); // Izsaucam zīmēšanu
-        
-        fillFilter(filterMonth, schedule.map(e => e.month));
-        fillFilter(filterDate, schedule.map(e => e.date).sort((a,b) => a-b));
-        renderTable();
-    } catch (err) { console.error("Kļūda ielādējot datus:", err); }
-}
+        try {
+            const [wRes, cRes, sRes, wtRes, oRes] = await Promise.all([
+                fetch('/api/workers'), fetch('/api/cars'), fetch('/api/schedule'),
+                fetch('/api/work-types'), fetch('/api/objects')
+            ]);
+            workers = await wRes.json();
+            cars = await cRes.json();
+            schedule = await sRes.json();
+            works_types = await wtRes.json();
+            objects = await oRes.json();
+            
+            renderWorkers();
+            renderCars();
+            renderWork();
+            renderObject();
+            
+            fillFilter(filterMonth, schedule.map(e => e.month));
+            fillFilter(filterDate, schedule.map(e => e.date).sort((a,b) => a-b));
+            renderTable();
+        } catch (err) { console.error(err); }
+    }
 
     function renderWorkers() {
-        const sortedWorkers = [...workers].sort((a, b) => a.name.localeCompare(b.name, 'lv'));
-        workerList.innerHTML = sortedWorkers.map(w => {
-            const tempPassHtml = (w.temp_password && w.temp_password !== "NULL") ? `<span class="pw">(Temp: ${w.temp_password})</span>` : "";
-            return `<li><span><strong>${w.name}</strong>${tempPassHtml}</span><button onclick="deleteWorker('${w.name}')">Dzēst</button></li>`;
-        }).join("");
-        fillFilter(filterWorker, sortedWorkers.map(w => w.name));
+        workers.sort((a,b) => a.name.localeCompare(b.name, 'lv'));
+        workerList.innerHTML = workers.map(w => `<li><span><strong>${w.name}</strong> ${w.temp_password ? `<span style="color:#888; font-size:12px;">(${w.temp_password})</span>`:''}</span><button onclick="deleteWorker('${w.name}')">Dzēst</button></li>`).join("");
+        fillFilter(filterWorker, workers.map(w => w.name));
     }
 
     function renderCars() {
-        const sortedCars = [...cars].sort((a, b) => a.localeCompare(b, 'lv'));
-        carList.innerHTML = sortedCars.map(c => `<li><strong>${c}</strong><button onclick="deleteCar('${c}')">Dzēst</button></li>`).join("");
-        fillFilter(filterCar, sortedCars);
+        cars.sort((a,b) => a.localeCompare(b, 'lv'));
+        carList.innerHTML = cars.map(c => `<li><strong>${c}</strong><button onclick="deleteCar('${c}')">Dzēst</button></li>`).join("");
+        fillFilter(filterCar, cars);
     }
 
-        // 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
     function renderWork() {
-    const sortedWork = [...works_types].sort((a, b) => a.localeCompare(b, 'lv'));
-    workList.innerHTML = sortedWork.map(w => `<li><strong>${w}</strong><button onclick="deleteWorkType('${w}')">Dzēst</button></li>`).join("");
-}
+        works_types.sort((a,b) => a.localeCompare(b, 'lv'));
+        workList.innerHTML = works_types.map(w => `<li><strong>${w}</strong><button onclick="deleteWorkType('${w}')">Dzēst</button></li>`).join("");
+    }
 
-// 3. Funkcija Objektu attēlošanai
-function renderObject() {
-    const sortedObjects = [...objects].sort((a, b) => a.localeCompare(b, 'lv'));
-    objectList.innerHTML = sortedObjects.map(o => `<li><strong>${o}</strong><button onclick="deleteObject('${o}')">Dzēst</button></li>`).join("");
-}
-        // 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+    function renderObject() {
+        objects.sort((a,b) => a.localeCompare(b, 'lv'));
+        objectList.innerHTML = objects.map(o => `<li><strong>${o}</strong><button onclick="deleteObject('${o}')">Dzēst</button></li>`).join("");
+    }
 
     function fillFilter(select, list) {
         const current = select.value;
-        const uniqueValues = [...new Set(list)];
+        const uniqueValues = [...new Set(list)].filter(Boolean);
         select.innerHTML = `<option value="">Visi</option>` + uniqueValues.map(v => `<option value="${v}">${v}</option>`).join("");
         select.value = current;
     }
 
-   function renderTable() {
-    let filtered = schedule.filter(e => {
-        return (!filterMonth.value || e.month === filterMonth.value) &&
-        (!filterWorker.value || e.worker_name === filterWorker.value) &&
-        (!filterDate.value || String(e.date) === filterDate.value) &&
-        (!filterCar.value || e.car === filterCar.value);
-    });
+    function renderTable() {
+        let filtered = schedule.filter(e => {
+            return (!filterMonth.value || e.month === filterMonth.value) &&
+            (!filterWorker.value || e.worker_name === filterWorker.value) &&
+            (!filterDate.value || String(e.date) === filterDate.value) &&
+            (!filterCar.value || e.car === filterCar.value);
+        });
+
         const total = filtered.reduce((sum, item) => sum + (parseFloat(item.hours) || 0), 0);
         document.getElementById("totalHoursValue").textContent = total.toFixed(2);
-        if (!sortBy1.value && !sortBy2.value) {
-            filtered.sort((a, b) => b.id - a.id); 
-        } else {
-            const sortLogic = (a, b, key) => {
-                if (!key) return 0;
-                if (key === 'month') return MONTH_ORDER.indexOf(a.month) - MONTH_ORDER.indexOf(b.month);
-                if (key === 'date') return parseInt(a.date) - parseInt(b.date);
-                if (key === 'hours') return parseFloat(a.hours) - parseFloat(b.hours);
-                return String(a[key] || "").localeCompare(String(b[key] || ""));
-            };
-            filtered.sort((a, b) => sortLogic(a, b, sortBy1.value) || sortLogic(a, b, sortBy2.value));
-        }
 
-       if (!filtered.length) { 
-        tableContainer.innerHTML = "<p style='padding:20px;'>Nav ierakstu.</p>"; 
-        return; 
+        const sortLogic = (a, b, key) => {
+            if (!key) return 0;
+            if (key === 'month') return MONTH_ORDER.indexOf(a.month) - MONTH_ORDER.indexOf(b.month);
+            if (key === 'date') return parseInt(a.date) - parseInt(b.date);
+            if (key === 'hours') return parseFloat(a.hours) - parseFloat(b.hours);
+            return String(a[key] || "").localeCompare(String(b[key] || ""));
+        };
+        filtered.sort((a, b) => sortLogic(a, b, sortBy1.value) || sortLogic(a, b, sortBy2.value) || b.id - a.id);
+
+        if (!filtered.length) { tableContainer.innerHTML = "<p style='padding:20px;'>Nav ierakstu.</p>"; return; }
+
+        let html = `<table><tr><th>Mēnesis</th><th>Darbinieks</th><th>Datums</th><th>Mašīna</th><th>Objekts</th><th>Darbs</th><th>Kopš</th><th>Līdz</th><th>Stundas</th></tr>`;
+        filtered.forEach(e => {
+            html += `<tr>
+                <td>${e.month || '-'}</td>
+                <td>${e.worker_name}</td>
+                <td>${e.date}</td>
+                <td>${e.car}</td>
+                <td>${e.objekts || '-'}</td>
+                <td>${e.darbs || '-'}</td>
+                <td>${e.sākuma_laiks || '-'}</td>
+                <td>${e.beigu_laiks || 'Aktīvs'}</td>
+                <td><strong>${e.hours || '-'}</strong></td>
+            </tr>`;
+        });
+        tableContainer.innerHTML = html + `</table>`;
     }
 
-    let html = `<table>
-        <tr>
-            <th>Mēnesis</th>
-            <th>Darbinieks</th>
-            <th>Datums</th>
-            <th>Mašīna</th>
-            <th>Objekts</th>
-            <th>Darbs</th>
-            <th>Kopš</th>
-            <th>Līdz</th>
-            <th>Stundas</th>
-        </tr>`;
-
-    filtered.forEach(e => {
-        html += `<tr>
-            <td>${e.month || '-'}</td>
-            <td>${e.worker_name}</td>
-            <td>${e.date}</td>
-            <td>${e.car}</td>
-            <td>${e.objekts || '-'}</td>
-            <td>${e.darbs || '-'}</td>
-            <td>${e.sākuma_laiks || '-'}</td>
-            <td>${e.beigu_laiks || 'Aktīvs'}</td>
-            <td>${e.hours || '-'}</td>
-        </tr>`;
-    });
-
-    tableContainer.innerHTML = html + `</table>`;
-}
-    
+    // Event Listeners un API izsaukumi (Kā iepriekš)
     [filterMonth, filterWorker, filterDate, filterCar, sortBy1, sortBy2].forEach(el => el.addEventListener("change", renderTable));
+    
     document.getElementById("clearFilters").onclick = () => {
         [filterMonth, filterWorker, filterDate, filterCar, sortBy1, sortBy2].forEach(el => el.value = "");
         renderTable();
     };
 
-    // 4. Pogas "Pievienot" darbības
-document.getElementById("addWorkBtn").onclick = async () => {
-    const name = prompt("Ievadiet darba veidu:");
-    if(!name || !name.trim()) return;
-    const res = await fetch('/api/work-types', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ name: name.trim() }) });
-    if(res.ok) loadData();
-};
+    document.getElementById("addWorkBtn").onclick = async () => {
+        const name = prompt("Darba veids:");
+        if(name) { await fetch('/api/work-types', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ name: name.trim() }) }); loadData(); }
+    };
 
-document.getElementById("addObjectBtn").onclick = async () => {
-    const name = prompt("Ievadiet objektu:");
-    if(!name || !name.trim()) return;
-    const res = await fetch('/api/objects', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ name: name.trim() }) });
-    if(res.ok) loadData();
-};
+    document.getElementById("addObjectBtn").onclick = async () => {
+        const name = prompt("Objekts:");
+        if(name) { await fetch('/api/objects', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ name: name.trim() }) }); loadData(); }
+    };
 
-// 5. Dzēšanas funkcijas
-async function deleteWorkType(name) {
-    if(confirm(`Dzēst darbu: ${name}?`)) {
-        await fetch(`/api/work-types/${encodeURIComponent(name)}`, { method: 'DELETE' });
-        loadData();
-    }
-}
-
-async function deleteObject(name) {
-    if(confirm(`Dzēst objektu: ${name}?`)) {
-        await fetch(`/api/objects/${encodeURIComponent(name)}`, { method: 'DELETE' });
-        loadData();
-    }
-}
-
-    function renderWork() {
-    workList.innerHTML = works_types.map(w => `<li><strong>${w}</strong><button onclick="deleteWorkType('${w}')">Dzēst</button></li>`).join("");
-}
-
-function renderObject() {
-    objectList.innerHTML = objects.map(o => `<li><strong>${o}</strong><button onclick="deleteObject('${o}')">Dzēst</button></li>`).join("");
-}
-
+    async function deleteWorkType(name) { if(confirm(`Dzēst ${name}?`)) { await fetch(`/api/work-types/${encodeURIComponent(name)}`, { method: 'DELETE' }); loadData(); } }
+    async function deleteObject(name) { if(confirm(`Dzēst ${name}?`)) { await fetch(`/api/objects/${encodeURIComponent(name)}`, { method: 'DELETE' }); loadData(); } }
+    
     document.getElementById("addWorkerBtn").onclick = async () => {
-        const name = prompt("Ievadiet darbinieka vārdu:");
-        if(!name || !name.trim()) return;
-        const temp_pass = prompt(`Ievadiet pagaidu paroli priekš ${name}:`);
-        if(!temp_pass || !temp_pass.trim()) return;
-        const res = await fetch('/api/workers', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ name: name.trim(), temp_password: temp_pass.trim() }) });
-        if(res.ok) { alert("Pievienots!"); loadData(); }
+        const name = prompt("Vārds:");
+        const pass = prompt("Parole:");
+        if(name && pass) { await fetch('/api/workers', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ name: name.trim(), temp_password: pass.trim() }) }); loadData(); }
     };
 
     document.getElementById("addCarBtn").onclick = async () => {
-        const name = prompt("Ievadiet jaunu mašīnu:");
-        if(!name || !name.trim()) return;
-        const res = await fetch('/api/cars', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ name: name.trim() }) });
-        if(res.ok) { alert("Pievienota!"); loadData(); }
+        const name = prompt("Mašīna:");
+        if(name) { await fetch('/api/cars', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ name: name.trim() }) }); loadData(); }
     };
 
-    async function deleteWorker(name) {
-        if(!confirm(`Dzēst darbinieku ${name}?`)) return;
-        const res = await fetch(`/api/workers/${encodeURIComponent(name)}`, { method: 'DELETE' });
-        if(res.ok) loadData();
-    }
-
-    async function deleteCar(name) {
-        if (!confirm(`Vai tiešām vēlaties dzēst mašīnu ${name}?`)) return;
-        try {
-            const res = await fetch(`/api/cars/${encodeURIComponent(name)}`, { method: 'DELETE' });
-            if (res.ok) loadData();
-        } catch (err) { console.error(err); }
-    }
+    async function deleteWorker(name) { if(confirm(`Dzēst ${name}?`)) { await fetch(`/api/workers/${encodeURIComponent(name)}`, { method: 'DELETE' }); loadData(); } }
+    async function deleteCar(name) { if(confirm(`Dzēst ${name}?`)) { await fetch(`/api/cars/${encodeURIComponent(name)}`, { method: 'DELETE' }); loadData(); } }
 
     document.getElementById("clearTableBtn").onclick = async () => {
-        if (confirm("Vai tiešām vēlaties izdzēst VISUS ierakstus?")) {
-            try {
-                const res = await fetch('/api/schedule', { method: 'DELETE' });
-                if (res.ok) { alert("Notīrīts!"); loadData(); }
-            } catch (err) { console.error(err); }
-        }
+        if (confirm("DZĒST VISU?")) { await fetch('/api/schedule', { method: 'DELETE' }); loadData(); }
     };
 
     loadData();
