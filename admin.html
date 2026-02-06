@@ -25,19 +25,31 @@
         #filters { background: #fff; border: 1px solid #ccc; padding: 15px; border-radius: 6px; max-width: 750px; margin: 0 auto 15px auto; text-align: center; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
         select { padding: 4px 6px; border-radius: 4px; }
         .action-bar { width: 100%; display: flex; justify-content: center; margin-bottom: 10px; }
+        .pogas {
+    text-align: left;        /* Teksts un pogas pa kreisi */
+    margin-left: 0;          /* Nodrošina, ka nav nobīdes no malas */
+    margin-right: auto;      /* Pārējo brīvo vietu atstāj labajā pusē */
+    display: block;          /* Pārliecināmies, ka elements uzvedas kā bloks */
+}
+
+/* Ja gribi, lai arī pogas iekšpusē nereaģētu uz nekādu centrēšanu */
+.pogas button {
+    display: inline-block;
+    margin: 5px 0;           /* Atstarpes starp pogām */
+}
     </style>
 </head>
 <body>
 
 <h2>Pievienot darbiniekus un mašīnas</h2>
 
-<details open>
+<details class="pogas">
     <summary>👷 Pievienot darbiniekus</summary>
     <button id="addWorkerBtn">➕ Pievienot darbinieku</button>
     <ul id="workerList"></ul>
 </details>
 
-<details>
+<details class="pogas">
     <summary>🚗 Pievienot mašīnas</summary>
     <button id="addCarBtn">➕ Pievienot mašīnu</button>
     <ul id="carList"></ul>
