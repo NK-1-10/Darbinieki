@@ -133,6 +133,20 @@
     const workSelect = document.getElementById("work");
     const tableContainer = document.getElementById("tableContainer");
 
+    // --- PALĪGFUNKCIJAS ---
+    function fillSelect(selectEl, data, defaultText) {
+        const currentVal = selectEl.value;
+        selectEl.innerHTML = `<option value="">${defaultText}</option>`;
+        data.forEach(item => {
+            const opt = document.createElement("option");
+            opt.value = item;
+            opt.textContent = item;
+            selectEl.appendChild(opt);
+        });
+        selectEl.value = currentVal;
+    }
+
+    // --- DATU IELĀDE ---
     async function loadWorkerData() {
         try {
             const [cRes, oRes, wRes, sRes] = await Promise.all([
@@ -152,31 +166,33 @@
             fillSelect(workSelect, workTypes, "-- Izvēlies darba veidu --");
 
             const activeJob = allSchedule.find(e => e.worker_name === user.name && !e.beigu_laiks);
-            
-            document.getElementById("AtWork").onclick = () => {
-                document.getElementById("startBtn").style.display = "block";
-                document.getElementById("AtWork").style.display = "none";
-                document.getElementById("LeaveWork").style.display = "block";
-            };
+            const shiftStartTime = localStorage.getItem(`shift_start_${user.name}`);
 
+            // UI STĀVOKĻA VADĪBA
             if (activeJob) {
                 document.getElementById("startBtn").style.display = "none";
                 document.getElementById("stopBtn").style.display = "block";
-                document.getElementById("AtWork").style.display = "none";
-                document.getElementById("LeaveWork").style.display = "block";
-                
+                [carSelect, objectSelect, workSelect].forEach(s => s.disabled = true);
                 carSelect.value = activeJob.car;
                 objectSelect.value = activeJob.objekts || "";
                 workSelect.value = activeJob.darbs || "";
-                
-                [carSelect, objectSelect, workSelect].forEach(s => s.disabled = true);
-                
                 document.getElementById("status").innerHTML = `Strādā: <b>${activeJob.objekts}</b> (${activeJob.car})`;
                 document.getElementById("startTimeDisplay").innerText = `Sāki: ${activeJob.sākuma_laiks}`;
             } else {
                 [carSelect, objectSelect, workSelect].forEach(s => s.disabled = false);
-                document.getElementById("status").textContent = "Statuss: Gaidīšana";
+                document.getElementById("startBtn").style.display = shiftStartTime ? "block" : "none";
+                document.getElementById("stopBtn").style.display = "none";
+                document.getElementById("status").textContent = shiftStartTime ? "Statuss: Maiņa sākta" : "Statuss: Gaidīšana";
                 document.getElementById("startTimeDisplay").innerText = "";
+            }
+
+            // Maiņas pogu redzamība
+            if (shiftStartTime || activeJob) {
+                document.getElementById("AtWork").style.display = "none";
+                document.getElementById("LeaveWork").style.display = "block";
+            } else {
+                document.getElementById("AtWork").style.display = "block";
+                document.getElementById("LeaveWork").style.display = "none";
             }
 
             renderTable(allSchedule.filter(e => e.worker_name === user.name));
@@ -185,23 +201,61 @@
         }
     }
 
-    function fillSelect(selectEl, data, defaultText) {
-        const currentVal = selectEl.value;
-        selectEl.innerHTML = `<option value="">${defaultText}</option>`;
-        data.forEach(item => {
-            const opt = document.createElement("option");
-            opt.value = item;
-            opt.textContent = item;
-            selectEl.appendChild(opt);
-        });
-        selectEl.value = currentVal;
-    }
+    // --- POGU NOTIKUMI ---
+
+    document.getElementById("AtWork").onclick = () => {
+        localStorage.setItem(`shift_start_${user.name}`, new Date().toISOString());
+        loadWorkerData(); // Pārlādējam UI
+    };
+
+    document.getElementById("LeaveWork").onclick = async () => {
+        const currentSchedule = await fetch('/api/schedule').then(r => r.json());
+        const activeJob = currentSchedule.find(e => e.worker_name === user.name && !e.beigu_laiks);
+        
+        if (activeJob) {
+            alert("Kļūda: Tev vēl ir aktīvs darbs! Pabeidz to, pirms dodies prom.");
+            return;
+        }
+
+        if (!confirm("Vai tiešām vēlies beigt darba dienu?")) return;
+
+        const tagad = new Date();
+        const shiftStart = localStorage.getItem(`shift_start_${user.name}`);
+        let nostradatasStundas = "0.00";
+        
+        if (shiftStart) {
+            const diffMs = tagad - new Date(shiftStart);
+            nostradatasStundas = (diffMs / 3600000).toFixed(2);
+        }
+
+        try {
+            const response = await fetch('/api/darba-stundas', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    darbinieks: user.name,
+                    datums: tagad.toLocaleDateString('lv-LV'),
+                    sāka_darbu: shiftStart ? new Date(shiftStart).toLocaleTimeString('lv-LV') : "--",
+                    beidza_darbu: tagad.toLocaleTimeString('lv-LV'),
+                    month: new Intl.DateTimeFormat('lv-LV', { month: 'long' }).format(tagad),
+                    stundas: nostradatasStundas + " h"
+                })
+            });
+
+            if (response.ok) {
+                localStorage.removeItem(`shift_start_${user.name}`);
+                alert("Darba diena noslēgta!");
+                location.reload(); 
+            }
+        } catch (err) {
+            alert("Servera kļūda!");
+        }
+    };
 
     document.getElementById("startBtn").onclick = async () => {
         if (!carSelect.value || !objectSelect.value || !workSelect.value) {
             return alert("Aizpildi visus laukus!");
         }
-
         const now = new Date();
         const fullTimestamp = `${now.toLocaleDateString('lv-LV')} ${now.toLocaleTimeString('lv-LV')}`;
         
@@ -216,7 +270,6 @@
                 start_time: fullTimestamp 
             })
         });
-
         if (res.ok) loadWorkerData();
     };
 
@@ -224,7 +277,6 @@
         if (!confirm("Beigt darbu?")) return;
         const now = new Date();
         const fullTimestamp = `${now.toLocaleDateString('lv-LV')} ${now.toLocaleTimeString('lv-LV')}`;
-
         const res = await fetch('/api/stop-work', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
