@@ -190,26 +190,31 @@ app.delete('/api/cars/:name', async (req, res) => {
 
 // --- SĀKT DARBU ---
 app.post('/api/start-work', async (req, res) => {
-    const { worker_name, car, start_time } = req.body; 
-    try {
-        // start_time nāk kā "05.02.2026. 10:22:36"
-        const parts = start_time.split(' ');
-        const datePart = parts[0];
-        const timePart = parts[1];
+    // 1. Saņemam datus no darbinieka lapas
+    const { worker_name, car, start_time, objekts, darbs } = req.body; 
 
-        // Iegūstam mēneša nosaukumu latviski
-        const monthNames = ["Janvāris", "Februāris", "Marts", "Aprīlis", "Maijs", "Jūnijs",
-                           "Jūlijs", "Augusts", "Septembris", "Oktobris", "Novembris", "Decembris"];
+    try {
+        const parts = start_time.split(' ');
+        const datePart = parts[0]; // Datums
+        const timePart = parts[1]; // Laiks
+        
+        // Mēneša noteikšana (tavai statistikai)
+        const monthNames = ["Janvāris", "Februāris", "Marts", "Aprīlis", "Maijs", "Jūnijs", "Jūlijs", "Augusts", "Septembris", "Oktobris", "Novembris", "Decembris"];
         const monthIndex = parseInt(datePart.split('.')[1]) - 1;
         const monthStr = monthNames[monthIndex];
 
+        // 2. Ierakstām datubāzē visās atbilstošajās kolonnās
         await pool.query(
-            'INSERT INTO schedule (worker_name, car, date, sākuma_laiks, month) VALUES ($1, $2, $3, $4, $5)',
-            [worker_name, car, datePart, timePart, monthStr]
+            `INSERT INTO schedule 
+            (worker_name, car, date, sākuma_laiks, month, objekts, darbs) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+            [worker_name, car, datePart, timePart, monthStr, objekts, darbs]
         );
+
         res.json({ success: true });
-    } catch (err) { 
-        res.status(500).json({ error: err.message }); 
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: err.message });
     }
 });
 
