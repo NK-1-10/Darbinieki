@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Admin Panelis</title>
     <style>
+        /* Vizuālais noformējums stundu skaitītājam un tabulai */
         #totalHoursDisplay { background: #eef2eb; padding: 10px 20px; border-radius: 8px; border: 1px solid #ccc; display: inline-block; }
         #totalHoursValue { color: #2c7a7b; }
         body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; margin: 0; background: #f4f6f1; color: #0f1a14; display: flex; flex-direction: column; align-items: center; padding: 20px; }
@@ -27,22 +28,29 @@
     </style>
 </head>
 <body>
+
 <h2>Pievienot darbiniekus un mašīnas</h2>
+
 <details open>
     <summary>👷 Pievienot darbiniekus</summary>
     <button id="addWorkerBtn">➕ Pievienot darbinieku</button>
     <ul id="workerList"></ul>
 </details>
+
 <details>
     <summary>🚗 Pievienot mašīnas</summary>
     <button id="addCarBtn">➕ Pievienot mašīnu</button>
     <ul id="carList"></ul>
 </details>
+
 <div class="action-bar">
     <button id="clearTableBtn" style="background:#ff6666; color:white; border:none;">Clear Table</button>
 </div>
+
 <hr style="width: 100%; max-width: 750px; margin: 20px 0; border: 0; border-top: 1px solid #ccc;">
+
 <h3>Meklēšanas filtri</h3>
+
 <div id="filters">
     <label>Mēnesis: <select id="filterMonth"><option value="">Visi</option></select></label>
     <label>Darbinieks: <select id="filterWorker"><option value="">Visi</option></select></label>
@@ -50,6 +58,7 @@
     <label>Mašīna: <select id="filterCar"><option value="">Visi</option></select></label>
     <button id="clearFilters">Notīrīt filtrus</button>
 </div>
+
 <div id="table-wrapper">
     <div class="table-controls">
         <label><strong>Kārtot pēc:</strong> 
@@ -78,8 +87,12 @@
     </div>
     <div id="tableContainer"></div>
 </div>
+
 <script>
+    // Mēnešu secības definīcija pareizai kārtošanai
     const MONTH_ORDER = ["Janvāris","Februāris","Marts","Aprīlis","Maijs","Jūnijs","Jūlijs","Augusts","Septembris","Oktobris","Novembris","Decembris"];
+    
+    // HTML elementu saglabāšana mainīgajos
     const workerList = document.getElementById("workerList");
     const carList = document.getElementById("carList");
     const tableContainer = document.getElementById("tableContainer");
@@ -89,10 +102,13 @@
     const filterCar = document.getElementById("filterCar");
     const sortBy1 = document.getElementById("sortBy");
     const sortBy2 = document.getElementById("sortBy2");
+    
+    // Mainīgie, kuros glabāsies no servera saņemtie dati
     let workers = [];
     let cars = [];
     let schedule = [];
 
+    // Galvenā funkcija, kas pieprasa datus no servera (API)
     async function loadData() {
         try {
             const [wRes, cRes, sRes] = await Promise.all([fetch('/api/workers'), fetch('/api/cars'), fetch('/api/schedule')]);
@@ -100,6 +116,8 @@
             workers = await wRes.json();
             cars = await cRes.json();
             schedule = await sRes.json();
+            
+            // Pēc datu saņemšanas, tos attēlo ekrānā
             renderWorkers();
             renderCars();
             fillFilter(filterMonth, schedule.map(e => e.month));
@@ -108,6 +126,7 @@
         } catch (err) { console.error("Kļūda:", err); }
     }
 
+    // Funkcija, kas izveido darbinieku sarakstu alfabētiskā secībā
     function renderWorkers() {
         const sortedWorkers = [...workers].sort((a, b) => a.name.localeCompare(b.name, 'lv'));
         workerList.innerHTML = sortedWorkers.map(w => {
@@ -117,12 +136,14 @@
         fillFilter(filterWorker, sortedWorkers.map(w => w.name));
     }
 
+    // Funkcija, kas izveido mašīnu sarakstu alfabētiskā secībā
     function renderCars() {
         const sortedCars = [...cars].sort((a, b) => a.localeCompare(b, 'lv'));
         carList.innerHTML = sortedCars.map(c => `<li><strong>${c}</strong><button onclick="deleteCar('${c}')">Dzēst</button></li>`).join("");
         fillFilter(filterCar, sortedCars);
     }
 
+    // Palīgfunkcija, kas aizpilda filtru izvēlnes (select) ar unikālām vērtībām
     function fillFilter(select, list) {
         const current = select.value;
         const uniqueValues = [...new Set(list)];
@@ -130,15 +151,21 @@
         select.value = current;
     }
 
+    // Funkcija, kas filtrē, kārto un uzzīmē galveno datu tabulu
     function renderTable() {
+        // Datu filtrēšana pēc lietotāja izvēles
         let filtered = schedule.filter(e => {
             return (!filterMonth.value || e.month === filterMonth.value) &&
             (!filterWorker.value || e.worker_name === filterWorker.value) &&
             (!filterDate.value || String(e.date) === filterDate.value) &&
             (!filterCar.value || e.car === filterCar.value);
         });
+
+        // Stundu summēšana visiem nofiltrētajiem ierakstiem
         const total = filtered.reduce((sum, item) => sum + (parseFloat(item.hours) || 0), 0);
         document.getElementById("totalHoursValue").textContent = total.toFixed(2);
+
+        // Tabulas kārtošanas loģika
         if (!sortBy1.value && !sortBy2.value) {
             filtered.sort((a, b) => b.id - a.id); 
         } else {
@@ -151,6 +178,8 @@
             };
             filtered.sort((a, b) => sortLogic(a, b, sortBy1.value) || sortLogic(a, b, sortBy2.value));
         }
+
+        // Tabulas HTML ģenerēšana
         if (!filtered.length) { tableContainer.innerHTML = "<p style='padding:20px;'>Nav ierakstu.</p>"; return; }
         let html = `<table><tr><th>Mēnesis</th><th>Darbinieks</th><th>Datums</th><th>Mašīna</th><th>Kopš</th><th>Līdz</th><th>Stundas</th></tr>`;
         filtered.forEach(e => {
@@ -159,12 +188,16 @@
         tableContainer.innerHTML = html + `</table>`;
     }
 
+    // Klausītāji, kas reaģē uz izmaiņām filtros vai kārtošanā
     [filterMonth, filterWorker, filterDate, filterCar, sortBy1, sortBy2].forEach(el => el.addEventListener("change", renderTable));
+    
+    // Filtru notīrīšanas poga
     document.getElementById("clearFilters").onclick = () => {
         [filterMonth, filterWorker, filterDate, filterCar, sortBy1, sortBy2].forEach(el => el.value = "");
         renderTable();
     };
 
+    // Jauna darbinieka pievienošana (izsauc prompt logus)
     document.getElementById("addWorkerBtn").onclick = async () => {
         const name = prompt("Ievadiet darbinieka vārdu:");
         if(!name || !name.trim()) return;
@@ -174,6 +207,7 @@
         if(res.ok) { alert("Pievienots!"); loadData(); }
     };
 
+    // Jaunas mašīnas pievienošana
     document.getElementById("addCarBtn").onclick = async () => {
         const name = prompt("Ievadiet jaunu mašīnu:");
         if(!name || !name.trim()) return;
@@ -181,12 +215,14 @@
         if(res.ok) { alert("Pievienota!"); loadData(); }
     };
 
+    // Darbinieka dzēšana
     async function deleteWorker(name) {
         if(!confirm(`Dzēst darbinieku ${name}?`)) return;
         const res = await fetch(`/api/workers/${encodeURIComponent(name)}`, { method: 'DELETE' });
         if(res.ok) loadData();
     }
 
+    // Mašīnas dzēšana
     async function deleteCar(name) {
         if (!confirm(`Vai tiešām vēlaties dzēst mašīnu ${name}?`)) return;
         try {
@@ -195,6 +231,7 @@
         } catch (err) { console.error(err); }
     }
 
+    // Visas grafika tabulas pilnīga notīrīšana
     document.getElementById("clearTableBtn").onclick = async () => {
         if (confirm("Vai tiešām vēlaties izdzēst VISUS ierakstus?")) {
             try {
@@ -203,6 +240,8 @@
             } catch (err) { console.error(err); }
         }
     };
+
+    // Sākotnējā datu ielāde, kad lapa tiek atvērta
     loadData();
 </script>
 </body>
