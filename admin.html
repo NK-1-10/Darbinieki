@@ -69,6 +69,19 @@
     <button id="addCarBtn">➕ Pievienot mašīnu</button>
     <ul id="carList"></ul>
 </details>
+    
+    <details class="pogas">
+    <summary>⚒️​ Pievienot darba veidu</summary>
+    <button id="addWorkBtn">➕ Pievienot darba veidu</button>
+    <ul id="workList"></ul>
+</details>
+
+<details class="pogas">
+    <summary>​🗺️​ Pievienot objektu</summary>
+    <button id="addObjectBtn">➕ Pievienot objektu</button>
+    <ul id="objectList"></ul>
+</details>
+    
 
 <hr style="width: 100%; max-width: 750px; margin: 20px 0; border: 0; border-top: 1px solid #ccc;">
 
@@ -120,6 +133,10 @@
     const MONTH_ORDER = ["Janvāris","Februāris","Marts","Aprīlis","Maijs","Jūnijs","Jūlijs","Augusts","Septembris","Oktobris","Novembris","Decembris"];
     const workerList = document.getElementById("workerList");
     const carList = document.getElementById("carList");
+    // 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+   const workList = document.getElementById("workList");
+   const objectList = document.getElementById("objectList");
+    // 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
     const tableContainer = document.getElementById("tableContainer");
     const filterMonth = document.getElementById("filterMonth");
     const filterWorker = document.getElementById("filterWorker");
@@ -131,21 +148,35 @@
     let workers = [];
     let cars = [];
     let schedule = [];
+    let works_types = [];
+    let objects = [];
 
     async function loadData() {
-        try {
-            const [wRes, cRes, sRes] = await Promise.all([fetch('/api/workers'), fetch('/api/cars'), fetch('/api/schedule')]);
-            if (!wRes.ok || !cRes.ok || !sRes.ok) throw new Error("Neizdevās iegūt datus");
-            workers = await wRes.json();
-            cars = await cRes.json();
-            schedule = await sRes.json();
-            renderWorkers();
-            renderCars();
-            fillFilter(filterMonth, schedule.map(e => e.month));
-            fillFilter(filterDate, schedule.map(e => e.date).sort((a,b) => a-b));
-            renderTable();
-        } catch (err) { console.error("Kļūda:", err); }
-    }
+    try {
+        const [wRes, cRes, sRes, wtRes, oRes] = await Promise.all([
+            fetch('/api/workers'), 
+            fetch('/api/cars'), 
+            fetch('/api/schedule'),
+            fetch('/api/work-types'), // JAUNS
+            fetch('/api/objects')     // JAUNS
+        ]);
+        
+        workers = await wRes.json();
+        cars = await cRes.json();
+        schedule = await sRes.json();
+        works_types = await wtRes.json(); // JAUNS
+        objects = await oRes.json();     // JAUNS
+        
+        renderWorkers();
+        renderCars();
+        renderWork();   // JAUNS
+        renderObject(); // JAUNS
+        
+        fillFilter(filterMonth, schedule.map(e => e.month));
+        fillFilter(filterDate, schedule.map(e => e.date).sort((a,b) => a-b));
+        renderTable();
+    } catch (err) { console.error("Kļūda:", err); }
+}
 
     function renderWorkers() {
         const sortedWorkers = [...workers].sort((a, b) => a.name.localeCompare(b.name, 'lv'));
@@ -161,6 +192,19 @@
         carList.innerHTML = sortedCars.map(c => `<li><strong>${c}</strong><button onclick="deleteCar('${c}')">Dzēst</button></li>`).join("");
         fillFilter(filterCar, sortedCars);
     }
+
+        // 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+    function renderWork() {
+    const sortedWork = [...works_types].sort((a, b) => a.localeCompare(b, 'lv'));
+    workList.innerHTML = sortedWork.map(w => `<li><strong>${w}</strong><button onclick="deleteWorkType('${w}')">Dzēst</button></li>`).join("");
+}
+
+// 3. Funkcija Objektu attēlošanai
+function renderObject() {
+    const sortedObjects = [...objects].sort((a, b) => a.localeCompare(b, 'lv'));
+    objectList.innerHTML = sortedObjects.map(o => `<li><strong>${o}</strong><button onclick="deleteObject('${o}')">Dzēst</button></li>`).join("");
+}
+        // 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 
     function fillFilter(select, list) {
         const current = select.value;
@@ -203,6 +247,33 @@
         [filterMonth, filterWorker, filterDate, filterCar, sortBy1, sortBy2].forEach(el => el.value = "");
         renderTable();
     };
+
+    document.getElementById("addWorkBtn").onclick = async () => {
+    const name = prompt("Ievadiet jaunu darba veidu (piem. Rakšana):");
+    if(!name || !name.trim()) return;
+    const res = await fetch('/api/work-types', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ name: name.trim() }) });
+    if(res.ok) { alert("Pievienots!"); loadData(); }
+};
+
+document.getElementById("addObjectBtn").onclick = async () => {
+    const name = prompt("Ievadiet jaunu objektu:");
+    if(!name || !name.trim()) return;
+    const res = await fetch('/api/objects', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ name: name.trim() }) });
+    if(res.ok) { alert("Pievienots!"); loadData(); }
+};
+
+// 5. Dzēšanas funkcijas
+async function deleteWorkType(name) {
+    if (!confirm(`Dzēst darba veidu ${name}?`)) return;
+    await fetch(`/api/work-types/${encodeURIComponent(name)}`, { method: 'DELETE' });
+    loadData();
+}
+
+async function deleteObject(name) {
+    if (!confirm(`Dzēst objektu ${name}?`)) return;
+    await fetch(`/api/objects/${encodeURIComponent(name)}`, { method: 'DELETE' });
+    loadData();
+}
 
     document.getElementById("addWorkerBtn").onclick = async () => {
         const name = prompt("Ievadiet darbinieka vārdu:");
