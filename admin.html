@@ -213,13 +213,13 @@ function renderObject() {
         select.value = current;
     }
 
-    function renderTable() {
-        let filtered = schedule.filter(e => {
-            return (!filterMonth.value || e.month === filterMonth.value) &&
-            (!filterWorker.value || e.worker_name === filterWorker.value) &&
-            (!filterDate.value || String(e.date) === filterDate.value) &&
-            (!filterCar.value || e.car === filterCar.value);
-        });
+   function renderTable() {
+    let filtered = schedule.filter(e => {
+        return (!filterMonth.value || e.month === filterMonth.value) &&
+        (!filterWorker.value || e.worker_name === filterWorker.value) &&
+        (!filterDate.value || String(e.date) === filterDate.value) &&
+        (!filterCar.value || e.car === filterCar.value);
+    });
         const total = filtered.reduce((sum, item) => sum + (parseFloat(item.hours) || 0), 0);
         document.getElementById("totalHoursValue").textContent = total.toFixed(2);
         if (!sortBy1.value && !sortBy2.value) {
@@ -234,14 +234,42 @@ function renderObject() {
             };
             filtered.sort((a, b) => sortLogic(a, b, sortBy1.value) || sortLogic(a, b, sortBy2.value));
         }
-        if (!filtered.length) { tableContainer.innerHTML = "<p style='padding:20px;'>Nav ierakstu.</p>"; return; }
-        let html = `<table><tr><th>Mēnesis</th><th>Darbinieks</th><th>Datums</th><th>Mašīna</th><th>Kopš</th><th>Līdz</th><th>Stundas</th></tr>`;
-        filtered.forEach(e => {
-            html += `<tr><td>${e.month || '-'}</td><td>${e.worker_name}</td><td>${e.date}</td><td>${e.car}</td><td>${e.sākuma_laiks || '-'}</td><td>${e.beigu_laiks || 'Aktīvs'}</td><td>${e.hours || '-'}</td></tr>`;
-        });
-        tableContainer.innerHTML = html + `</table>`;
+
+       if (!filtered.length) { 
+        tableContainer.innerHTML = "<p style='padding:20px;'>Nav ierakstu.</p>"; 
+        return; 
     }
 
+    let html = `<table>
+        <tr>
+            <th>Mēnesis</th>
+            <th>Darbinieks</th>
+            <th>Datums</th>
+            <th>Mašīna</th>
+            <th>Objekts</th>
+            <th>Darbs</th>
+            <th>Kopš</th>
+            <th>Līdz</th>
+            <th>Stundas</th>
+        </tr>`;
+
+    filtered.forEach(e => {
+        html += `<tr>
+            <td>${e.month || '-'}</td>
+            <td>${e.worker_name}</td>
+            <td>${e.date}</td>
+            <td>${e.car}</td>
+            <td>${e.objekts || '-'}</td>
+            <td>${e.darbs || '-'}</td>
+            <td>${e.sākuma_laiks || '-'}</td>
+            <td>${e.beigu_laiks || 'Aktīvs'}</td>
+            <td>${e.hours || '-'}</td>
+        </tr>`;
+    });
+
+    tableContainer.innerHTML = html + `</table>`;
+}
+    
     [filterMonth, filterWorker, filterDate, filterCar, sortBy1, sortBy2].forEach(el => el.addEventListener("change", renderTable));
     document.getElementById("clearFilters").onclick = () => {
         [filterMonth, filterWorker, filterDate, filterCar, sortBy1, sortBy2].forEach(el => el.value = "");
