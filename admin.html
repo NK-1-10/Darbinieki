@@ -33,7 +33,6 @@
 
         /* 3. LABOJUMS: Details un pogas klase */
         details { margin-bottom: 15px; background: #fff; border: 1px solid #ccc; border-radius: 6px; padding: 10px; width: 100%; max-width: 450px; }
-        .pogas { text-align: left; }
         summary { cursor: pointer; font-weight: bold; padding: 4px; }
 
         /* 4. LABOJUMS: Filtru un tabulas novietojums */
@@ -52,35 +51,61 @@
         
         select { padding: 4px 6px; border-radius: 4px; }
         .action-bar { width: 100%; display: flex; justify-content: flex-start; margin: 10px 0; }
+
+        .grid-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Izveido 2 vienādas kolonnas */
+    gap: 15px;                      /* Atstarpe starp blokiem */
+    width: 100%;
+    max-width: 900px;               /* Kopējais maksimālais platums */
+    margin-bottom: 20px;
+}
+
+/* Pielāgojam details blokus, lai tie aizpildītu visu rūtiņu */
+.pogas {
+    width: 100% !important;         /* Pārrakstām iepriekšējo max-width */
+    max-width: none !important;
+    margin-bottom: 0;               /* Atstarpi tagad regulē 'gap' */
+}
+
+/* Mobilajām ierīcēm - lai uz telefona rādās viens zem otra */
+@media (max-width: 600px) {
+    .grid-container {
+        grid-template-columns: 1fr;
+    }
+}
+        
     </style>
 </head>
 <body>
 
 <h2 style="text-align: left;">Pievienot darbiniekus un mašīnas</h2>
 
-<details class="pogas">
-    <summary>👷 Pievienot darbiniekus</summary>
-    <button id="addWorkerBtn">➕ Pievienot darbinieku</button>
-    <ul id="workerList"></ul>
-</details>
+<div class="grid-container">
+    <details class="pogas">
+        <summary>👷 Pievienot darbiniekus</summary>
+        <button id="addWorkerBtn">➕ Pievienot darbinieku</button>
+        <ul id="workerList"></ul>
+    </details>
 
-<details class="pogas">
-    <summary>🚗 Pievienot mašīnas</summary>
-    <button id="addCarBtn">➕ Pievienot mašīnu</button>
-    <ul id="carList"></ul>
-</details>
+    <details class="pogas">
+        <summary>🚗 Pievienot mašīnas</summary>
+        <button id="addCarBtn">➕ Pievienot mašīnu</button>
+        <ul id="carList"></ul>
+    </details>
     
     <details class="pogas">
-    <summary>⚒️​ Pievienot darba veidu</summary>
-    <button id="addWorkBtn">➕ Pievienot darba veidu</button>
-    <ul id="workList"></ul>
-</details>
+        <summary>⚒️​ Pievienot darba veidu</summary>
+        <button id="addWorkBtn">➕ Pievienot darba veidu</button>
+        <ul id="workList"></ul>
+    </details>
 
-<details class="pogas">
-    <summary>​🗺️​ Pievienot objektu</summary>
-    <button id="addObjectBtn">➕ Pievienot objektu</button>
-    <ul id="objectList"></ul>
-</details>
+    <details class="pogas">
+        <summary>​🗺️​ Pievienot objektu</summary>
+        <button id="addObjectBtn">➕ Pievienot objektu</button>
+        <ul id="objectList"></ul>
+    </details>
+</div>
     
 
 <hr style="width: 100%; max-width: 750px; margin: 20px 0; border: 0; border-top: 1px solid #ccc;">
