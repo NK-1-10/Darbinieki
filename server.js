@@ -13,6 +13,7 @@ const pool = new Pool({
     ssl: { rejectUnauthorized: false }
 });
 
+
 // --- PAMATA RESURSI ---
 app.get('/api/cars', async (req, res) => {
     const r = await pool.query("SELECT name FROM cars ORDER BY name ASC");
