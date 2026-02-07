@@ -81,10 +81,14 @@ app.post('/api/darba-stundas', async (req, res) => {
     try {
         await pool.query(
             'INSERT INTO darba_stundas (darbinieks, datums, sāka_darbu, beidza_darbu, month, stundas) VALUES ($1,$2,$3,$4,$5,$6)',
-            [darbinieks, datums, sāka_darbu, beidza_darbu, month, String(stundas)] // Nodrošinam text formātu
+            // Noņemam String(...) un pārliecināmies, ka tas ir vesels skaitlis
+            [darbinieks, datums, sāka_darbu, beidza_darbu, month, parseInt(stundas) || 0]
         );
         res.json({ success: true });
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) { 
+        console.error("DB Kļūda:", err.message);
+        res.status(500).json({ error: err.message }); 
+    }
 });
 
 const PORT = process.env.PORT || 8080;
