@@ -83,11 +83,13 @@
         <div style="display: flex; gap: 10px;">
             <label>Kārtot: <select id="sortBy">
                 <option value="">Nekas</option>
-                <option value="month">Mēnesis</option>
-                <option value="worker_name">Darbinieks</option>
-                <option value="date">Datums</option>
-                <option value="car">Mašīna</option>
-                <option value="hours">Stundas</option>
+    <option value="month">Mēnesis</option>
+    <option value="worker_name">Darbinieks</option>
+    <option value="date">Datums</option>
+    <option value="car">Mašīna</option>
+    <option value="hours">Stundas</option>
+    <option value="pielietā_eļļa">Eļļa</option>      
+    <option value="pielietā_degviela">Degviela</option>
             </select></label>
         </div>
         <div id="totalHoursDisplay">
@@ -190,31 +192,53 @@
         // 3. Kārtošanas loģika
         const sortKey = document.getElementById("sortBy").value;
         filtered.sort((a, b) => {
-            if (!sortKey) return b.id - a.id; // Ja nav kārtošanas, rādām jaunāko pirmo
-            if (sortKey === 'month') return MONTH_ORDER.indexOf(a.month) - MONTH_ORDER.indexOf(b.month);
-            if (sortKey === 'hours') return parseFloat(a.hours) - parseFloat(b.hours);
-            return String(a[sortKey] || "").localeCompare(String(b[sortKey] || ""), 'lv');
-        });
+    if (!sortKey) return b.id - a.id;
+    if (sortKey === 'month') return MONTH_ORDER.indexOf(a.month) - MONTH_ORDER.indexOf(b.month);
+    
+    // PAPILDINĀTS: Skaitliskā kārtošana eļļai, degvielai un stundām
+    if (['hours', 'pielietā_eļļa', 'pielietā_degviela'].includes(sortKey)) {
+        return (parseFloat(a[sortKey]) || 0) - (parseFloat(b[sortKey]) || 0);
+    }
+    
+    return String(a[sortKey] || "").localeCompare(String(b[sortKey] || ""), 'lv');
+});
 
         // 4. Uzģenerējam tabulas HTML
-        if (!filtered.length) { document.getElementById("tableContainer").innerHTML = "<p style='padding:20px;'>Nav ierakstu.</p>"; return; }
-
-        let html = `<table><tr><th>Mēnesis</th><th>Darbinieks</th><th>Datums</th><th>Mašīna</th><th>Objekts</th><th>Darbs</th><th>Kopš</th><th>Līdz</th><th>Stundas</th></tr>`;
-        filtered.forEach(e => {
-            html += `<tr>
-                <td>${e.month || '-'}</td>
-                <td>${e.worker_name}</td>
-                <td>${e.date}</td>
-                <td>${e.car}</td>
-                <td>${e.objekts || '-'}</td>
-                <td>${e.darbs || '-'}</td>
-                <td>${e.sākuma_laiks || '-'}</td>
-                <td>${e.beigu_laiks || 'Aktīvs'}</td>
-                <td><strong>${e.hours || '-'}</strong></td>
-            </tr>`;
-        });
-        document.getElementById("tableContainer").innerHTML = html + `</table>`;
+        if (!filtered.length) { 
+        document.getElementById("tableContainer").innerHTML = "<p style='padding:20px;'>Nav ierakstu.</p>"; 
+        return; 
     }
+       let html = `<table><tr>
+        <th>Mēnesis</th>
+        <th>Darbinieks</th>
+        <th>Datums</th>
+        <th>Mašīna</th>
+        <th>Objekts</th>
+        <th>Darbs</th>
+        <th>Kopš</th>
+        <th>Līdz</th>
+        <th>Stundas</th>
+        <th style="color: #6f42c1;">Eļļa (L)</th>
+        <th style="color: #fd7e14;">Degviela (L)</th>
+    </tr>`;
+
+    filtered.forEach(e => {
+        html += `<tr>
+            <td>${e.month || '-'}</td>
+            <td>${e.worker_name}</td>
+            <td>${e.date}</td>
+            <td>${e.car}</td>
+            <td>${e.objekts || '-'}</td>
+            <td>${e.darbs || '-'}</td>
+            <td>${e.sākuma_laiks || '-'}</td>
+            <td>${e.beigu_laiks || 'Aktīvs'}</td>
+            <td><strong>${e.hours || '-'}</strong></td>
+            <td style="color: #6f42c1; font-weight: bold;">${e.pielietā_eļļa || '-'}</td>
+            <td style="color: #fd7e14; font-weight: bold;">${e.pielietā_degviela || '-'}</td>
+        </tr>`;
+    });
+    document.getElementById("tableContainer").innerHTML = html + `</table>`;
+}
 
     // --- NOTIKUMI (Event Listeners) - Pogas un Filtri ---
 
