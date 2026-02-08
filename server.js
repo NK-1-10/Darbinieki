@@ -18,27 +18,37 @@ app.post('/api/login', async (req, res) => {
     const { username, password } = req.body;
 
     try {
-        // Izmantojam 'name', jo tāds ir tavas kolonnas nosaukums DB
+        // 1. Meklējam pēc 'name', jo tāds ir tavas kolonnas nosaukums
+        // 2. Pārbaudām gan 'password', gan 'temp_password', jo bildē redzams, 
+        // ka daudziem parole ir temp_password kolonnā
         const query = `
             SELECT * FROM users 
-            WHERE name = $1 AND password = $2
+            WHERE name = $1 AND (password = $2 OR temp_password = $2)
         `;
 
         const result = await pool.query(query, [username, password]);
 
         if (result.rows.length > 0) {
-            console.log("✅ Lietotājs atrasts:", result.rows[0]);
-            // Sūtam atpakaļ 'user' objektu, lai frontend ir laimīgs
-            res.json({ success: true, user: result.rows[0] });
+            const userData = result.rows[0];
+            console.log("✅ Ielogošanās veiksmīga:", userData.name);
+            
+            // SŪTI ŠO: Frontend visticamāk sagaida objektu 'user' (vienskaitlī)
+            res.json({ 
+                success: true, 
+                user: {
+                    id: userData.id,
+                    name: userData.name,
+                    role: userData.role
+                } 
+            });
         } else {
-            res.status(401).json({ success: false, error: "Nepareizs vārds vai parole" });
+            res.status(401).json({ success: false, error: "Nepareizs lietotājs vai parole" });
         }
     } catch (err) {
         console.error("DB Kļūda:", err.message);
-        res.status(500).json({ success: false, error: err.message });
+        res.status(500).json({ success: false, error: "Servera kļūda" });
     }
 });
-
 // --- 2. PAMATA DATI ---
 app.get('/api/cars', async (req, res) => {
     try {
