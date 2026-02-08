@@ -152,17 +152,15 @@
     if (isNaN(amount)) return alert("Lūdzu, ievadi derīgu skaitli!");
 
     try {
-        const res = await fetch('/api/add-log', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                worker_name: user.name,
-                car: document.getElementById("car").value,
-                type: 'Degviela',
-                amount: amount,
-                date: new Date().toLocaleDateString('lv-LV')
-            })
-        });
+        const res = await fetch('/api/update-resources', { // <--- Šim jāsakrīt!
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+        worker_name: user.name,
+        type: 'Ella', // vai 'Degviela'
+        amount: amount
+    })
+});
 
         if (res.ok) alert(`Veiksmīgi saglabāts: ${amount}L degvielas.`);
         else alert("Kļūda saglabājot datus.");
