@@ -5,27 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Darbinieks</title>
     <style>
-        /* Šeit ir CSS - vizuālais noformējums (krāsas, rāmji, izvietojums) */
         body { font-family: sans-serif; background-color: #f4f4f9; padding: 20px; color: #333; }
         .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); max-width: 800px; margin: 0 auto; }
         h2 { margin-top: 0; color: #2c3e50; }
         #status { margin-bottom: 10px; font-size: 1.1em; }
         #startTimeDisplay { margin-bottom: 20px; font-size: 0.95em; }
         #workControls { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; padding: 20px; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 10px; margin-bottom: 20px; }
-        select { padding: 10px 15px; border-radius: 8px; border: 1px solid #ced4da; background-color: white; font-size: 14px; outline: none; min-width: 180px; cursor: pointer; transition: border-color 0.2s; }
-        select:focus { border-color: #80bdff; }
+        select { padding: 10px 15px; border-radius: 8px; border: 1px solid #ced4da; background-color: white; font-size: 14px; outline: none; min-width: 180px; cursor: pointer; }
         select:disabled { background-color: #e9ecef; cursor: not-allowed; }
         button { padding: 10px 20px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; transition: all 0.2s ease; }
-        #AtWork { background: #007bff; color: white; }
-        #LeaveWork { background: #dc3545; color: white; display: none; margin-left: auto; }
+        #AtWork { background: #007bff; color: white; width: 100%; }
+        #LeaveWork { background: #dc3545; color: white; display: none; width: 100%; }
         #startBtn { background: #28a745; color: white; }
         #stopBtn { background: #ffc107; color: #212529; }
-        #logoutBtn { background: #6c757d; color: white; margin-top: 10px; }
+        #logoutBtn { background: #6c757d; color: white; margin-top: 20px; }
         table { border-collapse: collapse; margin-top: 25px; width: 100%; background: white; border-radius: 8px; overflow: hidden; }
-        th { background: #f8f9fa; border-bottom: 2px solid #dee2e6; padding: 12px; font-weight: bold; }
+        th { background: #f8f9fa; border-bottom: 2px solid #dee2e6; padding: 12px; }
         td { border-bottom: 1px solid #eee; padding: 12px; text-align: center; }
-        h3 { margin-top: 40px; border-left: 4px solid #007bff; padding-left: 10px; }
-        @media (max-width: 600px) { #workControls { flex-direction: column; align-items: stretch; } select { width: 100%; } }
     </style>
 </head>
 <body>
@@ -34,7 +30,7 @@
         <div id="status">Statuss: Gaidīšana</div>
         <div id="startTimeDisplay" style="color: green; font-weight: bold;"></div>
 
-        <div style="display: flex; width: 100%; margin-bottom: 15px;">
+        <div style="margin-bottom: 15px;">
             <button id="AtWork">ESMU DARBĀ</button>
             <button id="LeaveWork">DODOS PROJĀM</button>
         </div>
@@ -43,110 +39,79 @@
             <select id="car" required><option value="">-- Izvēlies mašīnu --</option></select>
             <select id="object" required><option value="">-- Izvēlies objektu --</option></select>
             <select id="work" required><option value="">-- Izvēlies darba veidu --</option></select>
-
-            <button id="Ella" style="display:none;">Pieleju Eļļu</button>
-            <button id="Degviela" style="display:none;">Pielej Degvielu</button>
             
             <button id="startBtn" style="display:none;">Sākt darbu</button>
             <button id="stopBtn" style="display:none;">Beigt darbu</button>
         </div>
 
-        <button id="logoutBtn">Logout</button>
+        <button id="logoutBtn">Izrakstīties</button>
     </div>
 
     <h3>Tavi pēdējie ieraksti:</h3>
     <div id="tableContainer"></div>
 
 <script>
-    // 1. Paņemam ielogotā lietotāja datus no pārlūka atmiņas (LocalStorage)
     const user = JSON.parse(localStorage.getItem("loggedInUser"));
 
-    // 2. Ja lietotāja datu nav, sūtam viņu atpakaļ uz login lapu
-    if (!user) {
-        window.location.href = "index.html";
-    } 
-    // 3. Ja ielogojies admins, sūtam viņu uz admina lapu
-    else if (user.role === "admin") {
-        window.location.href = "admin.html";
-    }
+    if (!user) { window.location.href = "index.html"; } 
+    else if (user.role === "admin") { window.location.href = "admin.html"; }
 
-    // 4. Ierakstām darbinieka vārdu virsrakstā
     document.getElementById("welcome").textContent = `Darbinieks: ${user.name}`;
 
-    // 5. Nodefinējam mainīgos visiem svarīgajiem elementiem, lai vēlāk tiem piekļūtu
     const carSelect = document.getElementById("car");
     const objectSelect = document.getElementById("object");
     const workSelect = document.getElementById("work");
     const tableContainer = document.getElementById("tableContainer");
 
-    // --- PALĪGFUNKCIJA: Aizpilda izvēlnes (select) ar datiem no servera ---
     function fillSelect(selectEl, data, defaultText) {
-        const currentVal = selectEl.value; // Saglabājam esošo izvēli, ja tāda ir
-        selectEl.innerHTML = `<option value="">${defaultText}</option>`; // Iztīrām un ieliekam pirmo rindu
+        const currentVal = selectEl.value;
+        selectEl.innerHTML = `<option value="">${defaultText}</option>`;
         data.forEach(item => {
-            const opt = document.createElement("option"); // Izveidojam jaunu izvēles punktu
-            opt.value = item; // Uzstādām vērtību
-            opt.textContent = item; // Uzstādām redzamo tekstu
-            selectEl.appendChild(opt); // Pievienojam sarakstam
+            const opt = document.createElement("option");
+            opt.value = item;
+            opt.textContent = item;
+            selectEl.appendChild(opt);
         });
-        selectEl.value = currentVal; // Atjaunojam iepriekšējo izvēli
+        selectEl.value = currentVal;
     }
 
-    // --- GALVENĀ FUNKCIJA: Ielādē visus datus no datubāzes ---
     async function loadWorkerData() {
         try {
-            // Vienlaicīgi palūdzam serverim: mašīnas, objektus, darbus un visus grafika ierakstus
             const [cRes, oRes, wRes, sRes] = await Promise.all([
-                fetch('/api/cars'),
-                fetch('/api/objects'),
-                fetch('/api/work-types'),
-                fetch('/api/schedule')
+                fetch('/api/cars'), fetch('/api/objects'), fetch('/api/work-types'), fetch('/api/schedule')
             ]);
             
-            // Pārvēršam servera atbildes lasāmā formātā (JSON)
             const cars = await cRes.json();
             const objects = await oRes.json();
             const workTypes = await wRes.json();
             const allSchedule = await sRes.json();
 
-            // Aizpildām izvēlnes lodziņus ar saņemtajiem datiem
             fillSelect(carSelect, cars, "-- Izvēlies mašīnu --");
             fillSelect(objectSelect, objects, "-- Izvēlies objektu --");
             fillSelect(workSelect, workTypes, "-- Izvēlies darba veidu --");
 
-            // Meklējam, vai šim darbiniekam šobrīd ir kāds aktīvs (nepabeigts) darbs
             const activeJob = allSchedule.find(e => e.worker_name === user.name && !e.beigu_laiks);
-            // Pārbaudām, vai ir sākta darba diena (maiņa)
             const shiftStartTime = localStorage.getItem(`shift_start_${user.name}`);
 
-            // --- UI STĀVOKĻA VADĪBA (loģika, kuras pogas rādīt) ---
             if (activeJob) {
-                // Ja darbs procesā: rādām "Beigt", slēpjam "Sākt", nobloķējam izvēlnes
                 document.getElementById("startBtn").style.display = "none";
                 document.getElementById("stopBtn").style.display = "block";
-                document.getElementById("pielietā_eļļa").style.display = "block";
-                document.getElementById("pielietā_degviela").style.display = "block";
                 [carSelect, objectSelect, workSelect].forEach(s => s.disabled = true);
                 
-                // Iestatām izvēlnēs to, kas šobrīd tiek darīts
                 carSelect.value = activeJob.car;
                 objectSelect.value = activeJob.objekts || "";
                 workSelect.value = activeJob.darbs || "";
                 
-                // Parādām statusu un sākuma laiku
                 document.getElementById("status").innerHTML = `Strādā: <b>${activeJob.objekts}</b> (${activeJob.car})`;
                 document.getElementById("startTimeDisplay").innerText = `Sāki: ${activeJob.sākuma_laiks}`;
             } else {
-                // Ja darbs nav procesā: atbloķējam izvēlnes
                 [carSelect, objectSelect, workSelect].forEach(s => s.disabled = false);
-                // Ja maiņa sākta, rādām pogu "Sākt darbu"
                 document.getElementById("startBtn").style.display = shiftStartTime ? "block" : "none";
                 document.getElementById("stopBtn").style.display = "none";
                 document.getElementById("status").textContent = shiftStartTime ? "Statuss: Maiņa sākta" : "Statuss: Gaidīšana";
                 document.getElementById("startTimeDisplay").innerText = "";
             }
 
-            // Maiņas pogu loģika: Ja esi darbā, rādi "Dodos projām", ja nē - "Esmu darbā"
             if (shiftStartTime || activeJob) {
                 document.getElementById("AtWork").style.display = "none";
                 document.getElementById("LeaveWork").style.display = "block";
@@ -155,69 +120,48 @@
                 document.getElementById("LeaveWork").style.display = "none";
             }
 
-            // Atjaunojam vēstures tabulu ar ierakstiem, kas pieder šim lietotājam
             renderTable(allSchedule.filter(e => e.worker_name === user.name));
-        } catch (err) {
-            console.error("Datu ielādes kļūda:", err);
-        }
+        } catch (err) { console.error("Kļūda:", err); }
     }
 
-    // --- POGU NOTIKUMI (Klikšķu apstrāde) ---
-
-    // Kad nospiež "ESMU DARBĀ"
     document.getElementById("AtWork").onclick = () => {
-        // Saglabājam maiņas sākuma laiku pārlūka atmiņā
         localStorage.setItem(`shift_start_${user.name}`, new Date().toISOString());
-        loadWorkerData(); // Atjaunojam lapas izskatu
+        loadWorkerData();
     };
 
-    // Kad nospiež "DODOS PROJĀM"
     document.getElementById("LeaveWork").onclick = async () => {
-        if (!confirm("Beigt darba dienu?")) return; // Pajautājam apstiprinājumu
-
-        const tagad = new Date(); // Pašreizējais laiks
-        const shiftStart = localStorage.getItem(`shift_start_${user.name}`); // Dabūjam sākuma laiku
+        if (!confirm("Beigt darba dienu?")) return;
+        const tagad = new Date();
+        const shiftStart = localStorage.getItem(`shift_start_${user.name}`);
         let nostradatasStundas = 0;
         
         if (shiftStart) {
-            const diffMs = tagad - new Date(shiftStart); // Aprēķinām starpību milisekundēs
-            nostradatasStundas = (diffMs / 3600000).toFixed(2); // Pārvēršam stundās (ar 2 cipariem aiz komata)
+            nostradatasStundas = ((tagad - new Date(shiftStart)) / 3600000).toFixed(2);
         }
 
-        // Sagatavojam datus sūtīšanai uz serveri (šis aiziet uz 'darba_stundas' tabulu)
         const data = {
             darbinieks: user.name,
             datums: tagad.toLocaleDateString('lv-LV'),
             sāka_darbu: shiftStart ? new Date(shiftStart).toLocaleTimeString('lv-LV') : "--",
             beidza_darbu: tagad.toLocaleTimeString('lv-LV'),
-            month: new Intl.DateTimeFormat('lv-LV', { month: 'long' }).format(tagad), // Mēneša nosaukums latviski
+            month: new Intl.DateTimeFormat('lv-LV', { month: 'long' }).format(tagad),
             stundas: parseFloat(nostradatasStundas)
         };
 
-        // Sūtām datus uz serveri
-        const res = await fetch('/api/darba-stundas', {
+        await fetch('/api/darba-stundas', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         });
 
-        if (res.ok) {
-            localStorage.removeItem(`shift_start_${user.name}`); // Iztīrām maiņas sākumu no atmiņas
-            location.reload(); // Pārlādējam lapu, lai viss būtu tukšs jaunam rītam
-        }
+        localStorage.removeItem(`shift_start_${user.name}`);
+        location.reload();
     };
 
-    // Kad nospiež "Sākt darbu" (konkrētu uzdevumu ar auto)
     document.getElementById("startBtn").onclick = async () => {
-        // Pārbaudām, vai viss ir izvēlēts
-        if (!carSelect.value || !objectSelect.value || !workSelect.value) {
-            return alert("Aizpildi visus laukus!");
-        }
+        if (!carSelect.value || !objectSelect.value || !workSelect.value) return alert("Aizpildi laukus!");
         const now = new Date();
-        const fullTimestamp = `${now.toLocaleDateString('lv-LV')} ${now.toLocaleTimeString('lv-LV')}`;
-        
-        // Sūtām datus uz serveri, lai ieraksta "schedule" tabulā sākuma laiku
-        const res = await fetch('/api/start-work', {
+        await fetch('/api/start-work', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
@@ -225,54 +169,40 @@
                 car: carSelect.value,
                 objekts: objectSelect.value,
                 darbs: workSelect.value,
-                start_time: fullTimestamp 
+                start_time: `${now.toLocaleDateString('lv-LV')} ${now.toLocaleTimeString('lv-LV')}` 
             })
         });
-        if (res.ok) loadWorkerData(); // Atjaunojam UI
+        loadWorkerData();
     };
 
-    // Kad nospiež "Beigt darbu" (pabeidz uzdevumu ar auto)
     document.getElementById("stopBtn").onclick = async () => {
         if (!confirm("Beigt darbu?")) return;
         const now = new Date();
-        const fullTimestamp = `${now.toLocaleDateString('lv-LV')} ${now.toLocaleTimeString('lv-LV')}`;
-        
-        // Sūtām pieprasījumu serverim ierakstīt beigu laiku pēdējam aktīvajam ierakstam
-        const res = await fetch('/api/stop-work', {
+        await fetch('/api/stop-work', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ worker_name: user.name, end_time: fullTimestamp })
+            body: JSON.stringify({ 
+                worker_name: user.name, 
+                end_time: `${now.toLocaleDateString('lv-LV')} ${now.toLocaleTimeString('lv-LV')}` 
+            })
         });
-        if (res.ok) loadWorkerData(); // Atjaunojam UI
+        loadWorkerData();
     };
 
-    // --- FUNKCIJA: Uzģenerē tabulu no datiem ---
     function renderTable(data) {
         if (!data || !data.length) { tableContainer.innerHTML = "Nav ierakstu."; return; }
-        
         let html = `<table><tr><th>Auto</th><th>Objekts</th><th>Darbs</th><th>Sākums</th><th>Beigas</th><th>Stundas</th></tr>`;
-        
-        // Apgriežam datus otrādi (.reverse()), lai jaunākie ieraksti būtu augšā
         data.slice().reverse().forEach(e => {
-            html += `<tr>
-                <td>${e.car}</td>
-                <td>${e.objekts || '-'}</td>
-                <td>${e.darbs || '-'}</td>
-                <td>${e.sākuma_laiks || '-'}</td>
-                <td>${e.beigu_laiks || 'Aktīvs'}</td>
-                <td>${e.hours ? e.hours + ' h' : '-'}</td>
-            </tr>`;
+            html += `<tr><td>${e.car}</td><td>${e.objekts || '-'}</td><td>${e.darbs || '-'}</td><td>${e.sākuma_laiks || '-'}</td><td>${e.beigu_laiks || 'Aktīvs'}</td><td>${e.hours ? e.hours + ' h' : '-'}</td></tr>`;
         });
         tableContainer.innerHTML = html + "</table>";
     }
 
-    // Kad nospiež "Logout"
     document.getElementById("logoutBtn").onclick = () => {
-        localStorage.removeItem("loggedInUser"); // Iztīrām lietotāju no atmiņas
-        window.location.href = "index.html"; // Aizsūtām uz sākumu
+        localStorage.removeItem("loggedInUser");
+        window.location.href = "index.html";
     };
 
-    // Pašā sākumā, kad lapa atveras, palaižam datu ielādi
     loadWorkerData();
 </script>
 </body>
