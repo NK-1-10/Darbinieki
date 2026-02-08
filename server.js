@@ -15,28 +15,26 @@ const pool = new Pool({
 
 // --- 1. IELOGOŠANĀS (LOGIN) ---
 app.post('/api/login', async (req, res) => {
-    // Pieņemam datus no formas (username/password)
-    const { username, password } = req.body; 
+    const { username, password } = req.body; // Dati no formas
 
     try {
-        // SQL vaicājums izmanto tikai 'vards' vai 'name' (bez 'username')
+        // AIZSTĀJ 'vards' un 'parole' ar reālajiem nosaukumiem no tavas DB
         const query = `
             SELECT * FROM users 
-            WHERE (vards = $1 OR name = $1) 
-            AND (parole = $2 OR password = $2)
+            WHERE vards = $1 AND parole = $2
         `;
-        
+
         const result = await pool.query(query, [username, password]);
 
         if (result.rows.length > 0) {
             console.log("✅ Lietotājs atrasts:", result.rows[0]);
             res.json({ success: true, user: result.rows[0] });
         } else {
-            res.status(401).json({ success: false, error: "Nepareizs lietotājs vai parole" });
+            res.status(401).json({ success: false, error: "Nepareizs vārds vai parole" });
         }
     } catch (err) {
-        console.error("❌ DB Kļūda:", err.message);
-        res.status(500).json({ error: "Servera kļūda: " + err.message });
+        console.error("DB Kļūda:", err.message);
+        res.status(500).json({ success: false, error: err.message });
     }
 });
 
