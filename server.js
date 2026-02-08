@@ -18,17 +18,17 @@ app.post('/api/login', async (req, res) => {
     const { username, password } = req.body;
 
     try {
-        // Izmantojam "user" pēdiņās, jo tas ir rezervēts vārds
+        // Izmantojam "users" pēdiņās, jo tas ir rezervēts vārds
         const query = `
             SELECT * FROM users 
-            WHERE "user" = $1 AND password = $2
+            WHERE "users" = $1 AND password = $2
         `;
 
         const result = await pool.query(query, [username, password]);
 
         if (result.rows.length > 0) {
             console.log("✅ Lietotājs atrasts:", result.rows[0]);
-            res.json({ success: true, user: result.rows[0] });
+            res.json({ success: true, users: result.rows[0] });
         } else {
             res.status(401).json({ success: false, error: "Nepareizs lietotājs vai parole" });
         }
