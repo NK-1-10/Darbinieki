@@ -13,23 +13,33 @@ const pool = new Pool({
     ssl: { rejectUnauthorized: false }
 });
 
-// --- IELOGOŠANĀS (Šis trūka!) ---
+// --- 1. IZLABOTA IELOGOŠANĀS ---
+// Šis risina "column username does not exist" problēmu
 app.post('/api/login', async (req, res) => {
     const { username, password } = req.body;
     try {
-        const result = await pool.query('SELECT * FROM users WHERE username = $1 AND password = $2', [username, password]);
+        // Mēs meklējam gan pēc 'username', gan 'vards', gan 'name' 
+        // gadījumam, ja datubāzē kolonna saucas citādi.
+        const query = `
+            SELECT * FROM users 
+            WHERE (username = $1 OR vards = $1 OR name = $1) 
+            AND (password = $2 OR parole = $2)
+        `;
+        const result = await pool.query(query, [username, password]);
+
         if (result.rows.length > 0) {
+            console.log("✅ Ieiet izdevās:", result.rows[0]);
             res.json({ success: true, user: result.rows[0] });
         } else {
-            res.status(401).json({ success: false, error: "Nepareizs vārds vai parole" });
+            res.status(401).json({ success: false, error: "Nepareizs lietotājs vai parole" });
         }
     } catch (err) {
-        console.error("Login Error:", err.message);
-        res.status(500).json({ error: "Servera kļūda ielogojoties" });
+        console.error("❌ Login kļūda:", err.message);
+        res.status(500).json({ error: "Servera kļūda: " + err.message });
     }
 });
 
-// --- PAMATA RESURSI ---
+// --- 2. PAMATA RESURSI ---
 app.get('/api/cars', async (req, res) => {
     try {
         const r = await pool.query("SELECT name FROM cars ORDER BY name ASC");
@@ -51,7 +61,7 @@ app.get('/api/work-types', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// --- SCHEDULE ---
+// --- 3. SCHEDULE (Darba laika uzskaite) ---
 app.get('/api/schedule', async (req, res) => {
     try {
         const r = await pool.query("SELECT * FROM schedule ORDER BY id DESC");
@@ -96,13 +106,13 @@ app.post('/api/stop-work', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// --- DARBA STUNDAS ATSKAITES ---
+// --- 4. DARBA STUNDAS (Atskaites) ---
 app.get('/api/darba-stundas', async (req, res) => {
     try {
+        // Lietojam pēdiņas "DarbaStundas", jo tavā DB (image_b35823.png) ir lielie burti
         const r = await pool.query('SELECT * FROM "DarbaStundas" ORDER BY id DESC');
         res.json(r.rows);
     } catch (err) {
-        console.error("Datu ielādes kļūda:", err.message);
         res.status(500).json({ error: err.message });
     }
 });
@@ -116,7 +126,6 @@ app.post('/api/darba-stundas', async (req, res) => {
         );
         res.json({ success: true });
     } catch (err) {
-        console.error("DB Ierakstīšanas Kļūda:", err.message);
         res.status(500).json({ error: err.message });
     }
 });
