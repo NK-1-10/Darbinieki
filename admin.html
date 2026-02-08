@@ -304,15 +304,13 @@
     }
 
     function renderTable() {
-    let filtered = schedule.filter(e => {
-        // Izvelkam dienu no katra ieraksta datuma (piem. "05")
-        const dayOnly = e.date ? e.date.split('.')[0] : ""; 
-
-        return (!filterMonth.value || e.month === filterMonth.value) &&
-               (!filterWorker.value || e.worker_name === filterWorker.value) &&
-               (!filterDate.value || dayOnly === filterDate.value) && // SALĪDZINĀM TIKAI DIENU
-               (!filterCar.value || e.car === filterCar.value);
-    });
+        let filtered = schedule.filter(e => {
+            const dayOnly = e.date ? e.date.split('.')[0] : ""; 
+            return (!filterMonth.value || e.month === filterMonth.value) &&
+                   (!filterWorker.value || e.worker_name === filterWorker.value) &&
+                   (!filterDate.value || dayOnly === filterDate.value) && 
+                   (!filterCar.value || e.car === filterCar.value);
+        });
 
         const total = filtered.reduce((sum, item) => sum + (parseFloat(item.hours) || 0), 0);
         document.getElementById("totalHoursValue").textContent = total.toFixed(2);
