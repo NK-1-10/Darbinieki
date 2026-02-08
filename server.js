@@ -21,9 +21,9 @@ app.post('/api/login', async (req, res) => {
     try {
         // SQL: Meklējam lietotāju pēc vārda un pārbaudām vai parole sakrīt ar pamata vai pagaidu paroli
         const query = `
-            SELECT * FROM users 
-            WHERE name = $1 AND (password = $2 OR temp_password = $2)
-        `;
+    SELECT * FROM users 
+    WHERE name = $1 AND (password = $2 OR temp_password = $2)
+`;
 
         const result = await pool.query(query, [username, password]);
 
