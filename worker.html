@@ -207,51 +207,37 @@
         loadWorkerData(); // Pārlādējam UI
     };
 
-    document.getElementById("LeaveWork").onclick = async () => {
-    const currentSchedule = await fetch('/api/schedule').then(r => r.json());
-    const activeJob = currentSchedule.find(e => e.worker_name === user.name && !e.beigu_laiks);
-    
-    if (activeJob) {
-        alert("Kļūda: Tev vēl ir aktīvs darbs! Pabeidz to, pirms dodies prom.");
-        return;
-    }
-
-    if (!confirm("Vai tiešām vēlies beigt darba dienu?")) return;
+    // Izlabotā LeaveWork funkcija iekš worker.html
+document.getElementById("LeaveWork").onclick = async () => {
+    if (!confirm("Beigt darba dienu?")) return;
 
     const tagad = new Date();
     const shiftStart = localStorage.getItem(`shift_start_${user.name}`);
-    let nostradatasStundas = 0; // Sākam ar 0 kā skaitli
+    let nostradatasStundas = 0;
     
     if (shiftStart) {
         const diffMs = tagad - new Date(shiftStart);
-        // Aprēķinām stundas un noapaļojam līdz veselam skaitlim (jo DB kolonna ir integer)
-        nostradatasStundas = Math.round(diffMs / 3600000); 
+        nostradatasStundas = (diffMs / 3600000).toFixed(2); // Aprēķina stundas
     }
 
-    try {
-        const response = await fetch('/api/darba-stundas', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                darbinieks: user.name,
-                datums: tagad.toLocaleDateString('lv-LV'),
-                sāka_darbu: shiftStart ? new Date(shiftStart).toLocaleTimeString('lv-LV') : "--",
-                beidza_darbu: tagad.toLocaleTimeString('lv-LV'),
-                month: new Intl.DateTimeFormat('lv-LV', { month: 'long' }).format(tagad),
-                stundas: nostradatasStundas // Sūtam TĪRU skaitli, bez " h"
-            })
-        });
+    const data = {
+        darbinieks: user.name,
+        datums: tagad.toLocaleDateString('lv-LV'),
+        sāka_darbu: shiftStart ? new Date(shiftStart).toLocaleTimeString('lv-LV') : "--",
+        beidza_darbu: tagad.toLocaleTimeString('lv-LV'),
+        month: new Intl.DateTimeFormat('lv-LV', { month: 'long' }).format(tagad),
+        stundas: parseFloat(nostradatasStundas) // SŪTAM TĪRU SKAITLI
+    };
 
-        if (response.ok) {
-            localStorage.removeItem(`shift_start_${user.name}`);
-            alert("Darba diena noslēgta!");
-            location.reload(); 
-        } else {
-            const errorData = await response.json();
-            alert("Kļūda: " + errorData.error);
-        }
-    } catch (err) {
-        alert("Servera kļūda: " + err.message);
+    const res = await fetch('/api/darba-stundas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    });
+
+    if (res.ok) {
+        localStorage.removeItem(`shift_start_${user.name}`);
+        location.reload();
     }
 };
 
