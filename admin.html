@@ -224,17 +224,17 @@
 
     filtered.forEach(e => {
         html += `<tr>
-            <td>${e.month || '-'}</td>
-            <td>${e.worker_name}</td>
             <td>${e.date}</td>
+            <td>${e.month || '-'}</td>
             <td>${e.car}</td>
+            <td>${e.worker_name}</td>
             <td>${e.objekts || '-'}</td>
             <td>${e.darbs || '-'}</td>
+            <td style="color: #6f42c1; font-weight: bold;">${e.pielietā_eļļa || '-'}</td>
+            <td style="color: #fd7e14; font-weight: bold;">${e.pielietā_degviela || '-'}</td>
             <td>${e.sākuma_laiks || '-'}</td>
             <td>${e.beigu_laiks || 'Aktīvs'}</td>
             <td><strong>${e.hours || '-'}</strong></td>
-            <td style="color: #6f42c1; font-weight: bold;">${e.pielietā_eļļa || '-'}</td>
-            <td style="color: #fd7e14; font-weight: bold;">${e.pielietā_degviela || '-'}</td>
         </tr>`;
     });
     document.getElementById("tableContainer").innerHTML = html + `</table>`;
