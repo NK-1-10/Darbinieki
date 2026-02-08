@@ -42,6 +42,9 @@
             
             <button id="startBtn" style="display:none;">Sākt darbu</button>
             <button id="stopBtn" style="display:none;">Beigt darbu</button>
+
+            <button id="Ella" class="oil-btn" style="display:none; background: #6f42c1; color: white;">Pieleju Eļļu</button>
+            <button id="Degviela" class="fuel-btn" style="display:none; background: #fd7e14; color: white;">Pielej Degvielu</button>
         </div>
 
         <button id="logoutBtn">Izrakstīties</button>
@@ -93,24 +96,34 @@
             const activeJob = allSchedule.find(e => e.worker_name === user.name && !e.beigu_laiks);
             const shiftStartTime = localStorage.getItem(`shift_start_${user.name}`);
 
-            if (activeJob) {
-                document.getElementById("startBtn").style.display = "none";
-                document.getElementById("stopBtn").style.display = "block";
-                [carSelect, objectSelect, workSelect].forEach(s => s.disabled = true);
-                
-                carSelect.value = activeJob.car;
-                objectSelect.value = activeJob.objekts || "";
-                workSelect.value = activeJob.darbs || "";
-                
-                document.getElementById("status").innerHTML = `Strādā: <b>${activeJob.objekts}</b> (${activeJob.car})`;
-                document.getElementById("startTimeDisplay").innerText = `Sāki: ${activeJob.sākuma_laiks}`;
-            } else {
-                [carSelect, objectSelect, workSelect].forEach(s => s.disabled = false);
-                document.getElementById("startBtn").style.display = shiftStartTime ? "block" : "none";
-                document.getElementById("stopBtn").style.display = "none";
-                document.getElementById("status").textContent = shiftStartTime ? "Statuss: Maiņa sākta" : "Statuss: Gaidīšana";
-                document.getElementById("startTimeDisplay").innerText = "";
-            }
+           if (activeJob) {
+    document.getElementById("startBtn").style.display = "none";
+    document.getElementById("stopBtn").style.display = "block";
+    
+    // Rādām pogas tikai tad, kad ir aktīvs darbs ar auto
+    document.getElementById("Ella").style.display = "block";
+    document.getElementById("Degviela").style.display = "block";
+
+    [carSelect, objectSelect, workSelect].forEach(s => s.disabled = true);
+    
+    carSelect.value = activeJob.car;
+    objectSelect.value = activeJob.objekts || "";
+    workSelect.value = activeJob.darbs || "";
+    
+    document.getElementById("status").innerHTML = `Strādā: <b>${activeJob.objekts}</b> (${activeJob.car})`;
+    document.getElementById("startTimeDisplay").innerText = `Sāki: ${activeJob.sākuma_laiks}`;
+} else {
+    [carSelect, objectSelect, workSelect].forEach(s => s.disabled = false);
+    document.getElementById("startBtn").style.display = shiftStartTime ? "block" : "none";
+    document.getElementById("stopBtn").style.display = "none";
+
+    // Paslēpjam pogas, ja aktīva darba (uzdevuma) nav
+    document.getElementById("Ella").style.display = "none";
+    document.getElementById("Degviela").style.display = "none";
+
+    document.getElementById("status").textContent = shiftStartTime ? "Statuss: Maiņa sākta" : "Statuss: Gaidīšana";
+    document.getElementById("startTimeDisplay").innerText = "";
+}
 
             if (shiftStartTime || activeJob) {
                 document.getElementById("AtWork").style.display = "none";
@@ -118,6 +131,8 @@
             } else {
                 document.getElementById("AtWork").style.display = "block";
                 document.getElementById("LeaveWork").style.display = "none";
+                document.getElementById("Ella").style.display = "none";
+                document.getElementById("Degviela").style.display = "none";
             }
 
             renderTable(allSchedule.filter(e => e.worker_name === user.name));
