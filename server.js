@@ -16,37 +16,27 @@ const pool = new Pool({
 // --- 1. IELOGOŠANĀS (LOGIN) ---
 app.post('/api/login', async (req, res) => {
     const { username, password } = req.body;
-
     try {
-        // 1. Meklējam pēc 'name', jo tāds ir tavas kolonnas nosaukums
-        // 2. Pārbaudām gan 'password', gan 'temp_password', jo bildē redzams, 
-        // ka daudziem parole ir temp_password kolonnā
         const query = `
             SELECT * FROM users 
             WHERE name = $1 AND (password = $2 OR temp_password = $2)
         `;
-
         const result = await pool.query(query, [username, password]);
 
         if (result.rows.length > 0) {
             const userData = result.rows[0];
-            console.log("✅ Ielogošanās veiksmīga:", userData.name);
-            
-            // SŪTI ŠO: Frontend visticamāk sagaida objektu 'user' (vienskaitlī)
-            res.json({ 
-                success: true, 
-                user: {
-                    id: userData.id,
-                    name: userData.name,
-                    role: userData.role
-                } 
-            });
+            // Svarīgi: ja DB role ir NULL, piešķiram tai "worker" pēc noklusējuma
+            const userResponse = {
+                id: userData.id,
+                name: userData.name,
+                role: userData.role || "worker" 
+            };
+            res.json({ success: true, user: userResponse });
         } else {
-            res.status(401).json({ success: false, error: "Nepareizs lietotājs vai parole" });
+            res.status(401).json({ success: false, error: "Nepareizi dati" });
         }
     } catch (err) {
-        console.error("DB Kļūda:", err.message);
-        res.status(500).json({ success: false, error: "Servera kļūda" });
+        res.status(500).json({ success: false, error: err.message });
     }
 });
 // --- 2. PAMATA DATI ---
