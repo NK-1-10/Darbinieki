@@ -53,75 +53,56 @@
   </form>
 
 <script>
-    document.addEventListener("DOMContentLoaded", () => {
-  const form = document.getElementById("loginForm");
-  const usernameInput = document.getElementById("username");
-  const passwordInput = document.getElementById("password");
+document.addEventListener("DOMContentLoaded", () => {
+    const form = document.getElementById("loginForm");
 
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const username = document.getElementById("username").value.trim();
+        const password = document.getElementById("password").value.trim();
 
-    const username = usernameInput.value.trim();
-    const password = passwordInput.value.trim();
-
-    if (!username || !password) {
-      alert("Please enter both username and password.");
-      return;
-    }
-
-    try {
-      const response = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      });
-
-      if (response.ok) {
-        const user = await response.json();
-
-        // 1. PĀRBAUDE: Vai nepieciešama paroles maiņa?
-        if (user.needsPasswordChange) {
-          const newPass = prompt("Jums ir piešķirta pagaidu parole. Lūdzu, ievadiet savu jauno pastāvīgo paroli:");
-
-          if (newPass && newPass.trim() !== "") {
-            const changeRes = await fetch('/api/change-password', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ 
-                username: user.name, 
-                newPassword: newPass.trim() 
-              })
+        try {
+            const response = await fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
             });
 
-            if (changeRes.ok) {
-              alert("Parole veiksmīgi nomainīta! Lūdzu, ielogojieties vēlreiz ar jauno paroli.");
-              window.location.reload(); // Pārlādējam lapu, lai lietotājs ielogotos no jauna
-              return;
+            if (response.ok) {
+                const user = await response.json();
+
+                // Paroles maiņas loģika
+                if (user.needsPasswordChange) {
+                    const newPass = prompt("Jums jānomaina pagaidu parole:");
+                    if (newPass) {
+                        const changeRes = await fetch('/api/change-password', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ username: user.name, newPassword: newPass.trim() })
+                        });
+                        if (changeRes.ok) {
+                            alert("Parole nomainīta! Ielogojieties vēlreiz.");
+                            window.location.reload();
+                            return;
+                        }
+                    }
+                    alert("Maiņa obligāta!"); return;
+                }
+
+                // SAGLABĀŠANA: Šis ir kritiski svarīgi worker.html lapai
+                localStorage.setItem("loggedInUser", JSON.stringify(user));
+                
+                // Pārvirzīšana
+                window.location.href = user.role === "admin" ? "admin.html" : "worker.html";
+
             } else {
-              alert("Kļūda mainot paroli. Mēģiniet vēlreiz.");
-              return;
+                const err = await response.json();
+                alert(err.error || "Kļūda!");
             }
-          } else {
-            alert("Paroles maiņa ir obligāta, lai turpinātu!");
-            return;
-          }
+        } catch (err) {
+            alert("Servera kļūda.");
         }
-
-        // 2. JA MAIŅA NAV VAJADZĪGA: Saglabājam sesiju un ieejam
-        localStorage.setItem("loggedInUser", JSON.stringify(user));
-        
-        // Pārvirzām atkarībā no lomas
-        window.location.href = user.role === "admin" ? "admin.html" : "worker.html";
-
-      } else {
-        const err = await response.json();
-        alert(err.error || "Incorrect username or password.");
-      }
-    } catch (err) {
-      console.error("Login error:", err);
-      alert("Server error. Please try again later.");
-    }
-  });
+    });
 });
 </script>
 </body>
