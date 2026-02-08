@@ -73,22 +73,27 @@ app.post('/api/stop-work', async (req, res) => {
 
 // --- DARBA STUNDAS (image_934b7d.png) ---
 app.get('/api/darba-stundas', async (req, res) => {
-    const r = await pool.query("SELECT * FROM darba_stundas ORDER BY id DESC");
-    res.json(r.rows);
+    try {
+        // Tabulas nosaukums obligāti dubultpēdiņās, ja tajā ir lielie burti
+        const r = await pool.query('SELECT * FROM "DarbaStundas" ORDER BY id DESC');
+        res.json(r.rows);
+    } catch (err) {
+        console.error("Datu ielādes kļūda:", err.message);
+        res.status(500).json({ error: err.message });
+    }
 });
 
 app.post('/api/darba-stundas', async (req, res) => {
     const { darbinieks, datums, sāka_darbu, beidza_darbu, month, stundas } = req.body;
     try {
         await pool.query(
-            'INSERT INTO darba_stundas (darbinieks, datums, sāka_darbu, beidza_darbu, month, stundas) VALUES ($1,$2,$3,$4,$5,$6)',
-            // Noņemam String(...) un pārliecināmies, ka tas ir vesels skaitlis
+            'INSERT INTO "DarbaStundas" (darbinieks, datums, sāka_darbu, beidza_darbu, month, stundas) VALUES ($1,$2,$3,$4,$5,$6)',
             [darbinieks, datums, sāka_darbu, beidza_darbu, month, parseInt(stundas) || 0]
         );
         res.json({ success: true });
-    } catch (err) { 
-        console.error("DB Kļūda:", err.message);
-        res.status(500).json({ error: err.message }); 
+    } catch (err) {
+        console.error("DB Ierakstīšanas Kļūda:", err.message);
+        res.status(500).json({ error: err.message });
     }
 });
 
