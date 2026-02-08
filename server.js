@@ -192,29 +192,25 @@ app.delete('/api/schedule', async (req, res) => {
 app.post('/api/update-resources', async (req, res) => {
     const { worker_name, type, amount } = req.body;
     
-    // Noteiksim, kuru kolonnu atjaunināt, balstoties uz tipu no Front-end
-    // Pārliecinies, ka kolonnu nosaukumi precīzi sakrīt ar DB (pielietā_eļļa, pielietā_degviela)
+    // Svarīgi: Kolonnu nosaukumiem jāsakrīt ar tavu DB bildē redzamajiem (ar apakšsvītrām)
     const column = type === 'Ella' ? 'pielietā_eļļa' : 'pielietā_degviela';
     
     try {
-        // SQL meklē ierakstu tam pašam darbiniekam, kurš vēl nav pabeidzis darbu (beigu_laiks IS NULL)
         const query = `
             UPDATE schedule 
             SET ${column} = $1 
             WHERE worker_name = $2 AND beigu_laiks IS NULL
         `;
-        
         const result = await pool.query(query, [parseFloat(amount), worker_name]);
 
         if (result.rowCount > 0) {
             res.json({ success: true });
         } else {
-            // Ja rinda netika atrasta (darbinieks nav nospiedis "Sākt darbu")
-            res.status(404).json({ error: "Nav aktīva darba, kurā ierakstīt datus!" });
+            res.status(404).json({ error: "Nav aktīva darba" });
         }
     } catch (err) {
-        console.error("Kļūda serverī:", err.message);
-        res.status(500).json({ error: "Servera kļūda datu saglabāšanā" });
+        console.error(err);
+        res.status(500).json({ error: "DB kļūda" });
     }
 });
 
