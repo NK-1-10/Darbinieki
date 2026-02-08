@@ -43,6 +43,9 @@
             <select id="car" required><option value="">-- Izvēlies mašīnu --</option></select>
             <select id="object" required><option value="">-- Izvēlies objektu --</option></select>
             <select id="work" required><option value="">-- Izvēlies darba veidu --</option></select>
+
+            <button id="Ella" style="display:none;">Pieleju Eļļu</button>
+            <button id="Degviela" style="display:none;">Pielej Degvielu</button>
             
             <button id="startBtn" style="display:none;">Sākt darbu</button>
             <button id="stopBtn" style="display:none;">Beigt darbu</button>
@@ -121,6 +124,8 @@
                 // Ja darbs procesā: rādām "Beigt", slēpjam "Sākt", nobloķējam izvēlnes
                 document.getElementById("startBtn").style.display = "none";
                 document.getElementById("stopBtn").style.display = "block";
+                document.getElementById("pielietā_eļļa").style.display = "block";
+                document.getElementById("pielietā_degviela").style.display = "block";
                 [carSelect, objectSelect, workSelect].forEach(s => s.disabled = true);
                 
                 // Iestatām izvēlnēs to, kas šobrīd tiek darīts
