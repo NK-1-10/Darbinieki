@@ -188,6 +188,36 @@ app.delete('/api/schedule', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// --- 4.5 RESURSU ATJAUNINĀŠANA (Eļļa/Degviela) ---
+app.post('/api/update-resources', async (req, res) => {
+    const { worker_name, type, amount } = req.body;
+    
+    // Noteiksim, kuru kolonnu atjaunināt, balstoties uz tipu no Front-end
+    // Pārliecinies, ka kolonnu nosaukumi precīzi sakrīt ar DB (pielietā_eļļa, pielietā_degviela)
+    const column = type === 'Ella' ? 'pielietā_eļļa' : 'pielietā_degviela';
+    
+    try {
+        // SQL meklē ierakstu tam pašam darbiniekam, kurš vēl nav pabeidzis darbu (beigu_laiks IS NULL)
+        const query = `
+            UPDATE schedule 
+            SET ${column} = $1 
+            WHERE worker_name = $2 AND beigu_laiks IS NULL
+        `;
+        
+        const result = await pool.query(query, [parseFloat(amount), worker_name]);
+
+        if (result.rowCount > 0) {
+            res.json({ success: true });
+        } else {
+            // Ja rinda netika atrasta (darbinieks nav nospiedis "Sākt darbu")
+            res.status(404).json({ error: "Nav aktīva darba, kurā ierakstīt datus!" });
+        }
+    } catch (err) {
+        console.error("Kļūda serverī:", err.message);
+        res.status(500).json({ error: "Servera kļūda datu saglabāšanā" });
+    }
+});
+
 // --- 5. ATSKAITES ---
 app.post('/api/darba-stundas', async (req, res) => {
     const { darbinieks, datums, sāka_darbu, beidza_darbu, month, stundas } = req.body;
