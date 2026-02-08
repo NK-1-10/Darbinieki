@@ -14,31 +14,58 @@ const pool = new Pool({
 });
 
 // --- 1. IELOGOŠANĀS (LOGIN) ---
+// --- 1. IELOGOŠANĀS (LOGIN) ---
 app.post('/api/login', async (req, res) => {
     const { username, password } = req.body;
+
     try {
+        // Meklējam pēc 'name' un pārbaudām abas paroles kolonnas
         const query = `
             SELECT * FROM users 
             WHERE name = $1 AND (password = $2 OR temp_password = $2)
         `;
+
         const result = await pool.query(query, [username, password]);
 
         if (result.rows.length > 0) {
             const userData = result.rows[0];
-            // Svarīgi: ja DB role ir NULL, piešķiram tai "worker" pēc noklusējuma
+            
+            // Pārbaudām, vai ielogojās ar pagaidu paroli
+            const needsPasswordChange = (userData.temp_password === password);
+
+            // Sagatavojam atbildi. Ja loma DB ir NULL, uzliekam "worker"
             const userResponse = {
                 id: userData.id,
                 name: userData.name,
-                role: userData.role || "worker" 
+                role: userData.role || "worker",
+                needsPasswordChange: needsPasswordChange
             };
-            res.json({ success: true, user: userResponse });
+
+            console.log("✅ Ielogošanās veiksmīga:", userResponse.name);
+            res.json(userResponse); 
         } else {
-            res.status(401).json({ success: false, error: "Nepareizi dati" });
+            res.status(401).json({ success: false, error: "Nepareizs vārds vai parole" });
         }
     } catch (err) {
-        res.status(500).json({ success: false, error: err.message });
+        console.error("DB Kļūda:", err.message);
+        res.status(500).json({ success: false, error: "Servera kļūda" });
     }
 });
+
+// --- JAUNS: Paroles maiņa ---
+app.post('/api/change-password', async (req, res) => {
+    const { username, newPassword } = req.body;
+    try {
+        await pool.query(
+            'UPDATE users SET password = $1, temp_password = NULL WHERE name = $2',
+            [newPassword, username]
+        );
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // --- 2. PAMATA DATI ---
 app.get('/api/cars', async (req, res) => {
     try {
