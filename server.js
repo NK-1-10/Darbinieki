@@ -18,19 +18,20 @@ app.post('/api/login', async (req, res) => {
     const { username, password } = req.body;
 
     try {
-        // Izmantojam "users" pēdiņās, jo tas ir rezervēts vārds
+        // Izmantojam 'name', jo tāds ir tavas kolonnas nosaukums DB
         const query = `
             SELECT * FROM users 
-            WHERE "users" = $1 AND password = $2
+            WHERE name = $1 AND password = $2
         `;
 
         const result = await pool.query(query, [username, password]);
 
         if (result.rows.length > 0) {
             console.log("✅ Lietotājs atrasts:", result.rows[0]);
-            res.json({ success: true, users: result.rows[0] });
+            // Sūtam atpakaļ 'user' objektu, lai frontend ir laimīgs
+            res.json({ success: true, user: result.rows[0] });
         } else {
-            res.status(401).json({ success: false, error: "Nepareizs lietotājs vai parole" });
+            res.status(401).json({ success: false, error: "Nepareizs vārds vai parole" });
         }
     } catch (err) {
         console.error("DB Kļūda:", err.message);
