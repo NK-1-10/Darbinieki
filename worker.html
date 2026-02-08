@@ -121,12 +121,22 @@
     <div id="tableContainer"></div>
 
 <script>
+    <script>
+    // 1. Mēģinām dabūt lietotāju no localStorage
     const user = JSON.parse(localStorage.getItem("loggedInUser"));
-    if (!user || user.role !== "worker") {
+
+    // 2. Pārbaude: vai lietotājs ir ielogojies?
+    // Ja lietotāja nav VAI viņš ir admins (adminam jādodas uz admin.html), sūtām prom
+    if (!user) {
         window.location.href = "index.html";
+    } else if (user.role === "admin") {
+        window.location.href = "admin.html";
     }
+
+    // Ja viss ok, turpinām un ierakstām vārdu
     document.getElementById("welcome").textContent = `Darbinieks: ${user.name}`;
 
+    // ... tālāk seko tavi selecti un pārējais kods ...
     const carSelect = document.getElementById("car");
     const objectSelect = document.getElementById("object");
     const workSelect = document.getElementById("work");
