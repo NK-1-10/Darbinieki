@@ -13,28 +13,32 @@ const pool = new Pool({
     ssl: { rejectUnauthorized: false }
 });
 
-// --- 1. IZLABOTA IELOGOŠANĀS ---
-// Šis risina "column username does not exist" problēmu
 app.post('/api/login', async (req, res) => {
-    const { username, password } = req.body;
+    // 1. Paņemam datus no formas. 
+    // Pat ja frontend sūta lauku ar nosaukumu 'username', mēs to saglabājam mainīgajā 'ievaditais_vards'
+    const ievaditais_vards = req.body.username; 
+    const ievadita_parole = req.body.password;
+
     try {
-        // Mēs meklējam gan pēc 'username', gan 'vards', gan 'name' 
-        // gadījumam, ja datubāzē kolonna saucas citādi.
+        // 2. VAICĀJUMS BEZ "username" KOLONNAS
+        // Šeit mēs pārbaudām TIKAI 'vards' un 'name' kolonnas.
         const query = `
             SELECT * FROM users 
-            WHERE (username = $1 OR vards = $1 OR name = $1) 
-            AND (password = $2 OR parole = $2)
+            WHERE (vards = $1 OR name = $1) 
+            AND (parole = $2 OR password = $2)
         `;
-        const result = await pool.query(query, [username, password]);
+        
+        const result = await pool.query(query, [ievaditais_vards, ievadita_parole]);
 
         if (result.rows.length > 0) {
-            console.log("✅ Ieiet izdevās:", result.rows[0]);
+            console.log("✅ Atrasts lietotājs:", result.rows[0]);
             res.json({ success: true, user: result.rows[0] });
         } else {
             res.status(401).json({ success: false, error: "Nepareizs lietotājs vai parole" });
         }
     } catch (err) {
-        console.error("❌ Login kļūda:", err.message);
+        console.error("❌ DB Kļūda:", err.message);
+        // Tagad kļūda rādīs tieši, kurš no jaunajiem nosaukumiem nepatīk
         res.status(500).json({ error: "Servera kļūda: " + err.message });
     }
 });
