@@ -13,37 +13,34 @@ const pool = new Pool({
     ssl: { rejectUnauthorized: false }
 });
 
+// --- 1. IELOGOŠANĀS (LOGIN) ---
 app.post('/api/login', async (req, res) => {
-    // 1. Paņemam datus no formas. 
-    // Pat ja frontend sūta lauku ar nosaukumu 'username', mēs to saglabājam mainīgajā 'ievaditais_vards'
-    const ievaditais_vards = req.body.username; 
-    const ievadita_parole = req.body.password;
+    // Pieņemam datus no formas (username/password)
+    const { username, password } = req.body; 
 
     try {
-        // 2. VAICĀJUMS BEZ "username" KOLONNAS
-        // Šeit mēs pārbaudām TIKAI 'vards' un 'name' kolonnas.
+        // SQL vaicājums izmanto tikai 'vards' vai 'name' (bez 'username')
         const query = `
             SELECT * FROM users 
             WHERE (vards = $1 OR name = $1) 
             AND (parole = $2 OR password = $2)
         `;
         
-        const result = await pool.query(query, [ievaditais_vards, ievadita_parole]);
+        const result = await pool.query(query, [username, password]);
 
         if (result.rows.length > 0) {
-            console.log("✅ Atrasts lietotājs:", result.rows[0]);
+            console.log("✅ Lietotājs atrasts:", result.rows[0]);
             res.json({ success: true, user: result.rows[0] });
         } else {
             res.status(401).json({ success: false, error: "Nepareizs lietotājs vai parole" });
         }
     } catch (err) {
         console.error("❌ DB Kļūda:", err.message);
-        // Tagad kļūda rādīs tieši, kurš no jaunajiem nosaukumiem nepatīk
         res.status(500).json({ error: "Servera kļūda: " + err.message });
     }
 });
 
-// --- 2. PAMATA RESURSI ---
+// --- 2. PAMATA DATI ---
 app.get('/api/cars', async (req, res) => {
     try {
         const r = await pool.query("SELECT name FROM cars ORDER BY name ASC");
@@ -65,7 +62,7 @@ app.get('/api/work-types', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// --- 3. SCHEDULE (Darba laika uzskaite) ---
+// --- 3. DARBA GAITA (SCHEDULE) ---
 app.get('/api/schedule', async (req, res) => {
     try {
         const r = await pool.query("SELECT * FROM schedule ORDER BY id DESC");
@@ -110,29 +107,21 @@ app.post('/api/stop-work', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// --- 4. DARBA STUNDAS (Atskaites) ---
-app.get('/api/darba-stundas', async (req, res) => {
-    try {
-        // Lietojam pēdiņas "DarbaStundas", jo tavā DB (image_b35823.png) ir lielie burti
-        const r = await pool.query('SELECT * FROM "DarbaStundas" ORDER BY id DESC');
-        res.json(r.rows);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
+// --- 4. ATSKAITES (DarbaStundas) ---
 app.post('/api/darba-stundas', async (req, res) => {
     const { darbinieks, datums, sāka_darbu, beidza_darbu, month, stundas } = req.body;
     try {
+        // Izmantojam pēdiņas "DarbaStundas", jo DB nosaukums ir ar lielajiem burtiem
         await pool.query(
             'INSERT INTO "DarbaStundas" (darbinieks, datums, sāka_darbu, beidza_darbu, month, stundas) VALUES ($1,$2,$3,$4,$5,$6)',
             [darbinieks, datums, sāka_darbu, beidza_darbu, month, parseFloat(stundas) || 0]
         );
         res.json({ success: true });
     } catch (err) {
+        console.error("Atskaites kļūda:", err.message);
         res.status(500).json({ error: err.message });
     }
 });
 
 const PORT = process.env.PORT || 8080;
-app.listen(PORT, () => console.log(`🚀 Server on ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Server running on ${PORT}`));
