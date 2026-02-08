@@ -144,6 +144,45 @@
         loadWorkerData();
     };
 
+    document.getElementById("Ella").onclick = async () => {
+    // 1. Pajautājam lietotājam daudzumu
+    let ella = prompt("Ievadi, cik daudz eļļas ielēji (litros):", "");
+
+    // 2. Pārbaudām, vai nav nospiests "Cancel" vai ievadīts tukšums
+    if (ella === null || ella === "") return;
+
+    // 3. Pārveidojam par skaitli un pārbaudām, vai tas ir derīgs
+    const amount = parseFloat(ella.replace(',', '.')); // Atļaujam gan punktu, gan komatu
+    if (isNaN(amount)) {
+        alert("Lūdzu, ievadi derīgu skaitli!");
+        return;
+    }
+
+    try {
+        // 4. Sūtām datus uz serveri
+        const res = await fetch('/api/add-log', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                worker_name: user.name,
+                car: document.getElementById("car").value,
+                type: 'Ella',
+                amount: amount,
+                date: new Date().toLocaleDateString('lv-LV')
+            })
+        });
+
+        if (res.ok) {
+            alert(`Veiksmīgi saglabāts: ${amount}L eļļas.`);
+        } else {
+            alert("Kļūda saglabājot datus.");
+        }
+    } catch (err) {
+        console.error("Kļūda:", err);
+        alert("Neizdevās sazināties ar serveri.");
+    }
+};
+
     document.getElementById("LeaveWork").onclick = async () => {
         if (!confirm("Beigt darba dienu?")) return;
         const tagad = new Date();
