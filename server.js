@@ -13,25 +13,50 @@ const pool = new Pool({
     ssl: { rejectUnauthorized: false }
 });
 
+// --- IELOGOŠANĀS (Šis trūka!) ---
+app.post('/api/login', async (req, res) => {
+    const { username, password } = req.body;
+    try {
+        const result = await pool.query('SELECT * FROM users WHERE username = $1 AND password = $2', [username, password]);
+        if (result.rows.length > 0) {
+            res.json({ success: true, user: result.rows[0] });
+        } else {
+            res.status(401).json({ success: false, error: "Nepareizs vārds vai parole" });
+        }
+    } catch (err) {
+        console.error("Login Error:", err.message);
+        res.status(500).json({ error: "Servera kļūda ielogojoties" });
+    }
+});
 
 // --- PAMATA RESURSI ---
 app.get('/api/cars', async (req, res) => {
-    const r = await pool.query("SELECT name FROM cars ORDER BY name ASC");
-    res.json(r.rows.map(row => row.name));
-});
-app.get('/api/objects', async (req, res) => {
-    const r = await pool.query("SELECT name FROM objects ORDER BY name ASC");
-    res.json(r.rows.map(row => row.name));
-});
-app.get('/api/work-types', async (req, res) => {
-    const r = await pool.query("SELECT name FROM work_types ORDER BY name ASC");
-    res.json(r.rows.map(row => row.name));
+    try {
+        const r = await pool.query("SELECT name FROM cars ORDER BY name ASC");
+        res.json(r.rows.map(row => row.name));
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// --- SCHEDULE (image_92f4c6.png) ---
+app.get('/api/objects', async (req, res) => {
+    try {
+        const r = await pool.query("SELECT name FROM objects ORDER BY name ASC");
+        res.json(r.rows.map(row => row.name));
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.get('/api/work-types', async (req, res) => {
+    try {
+        const r = await pool.query("SELECT name FROM work_types ORDER BY name ASC");
+        res.json(r.rows.map(row => row.name));
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// --- SCHEDULE ---
 app.get('/api/schedule', async (req, res) => {
-    const r = await pool.query("SELECT * FROM schedule ORDER BY id DESC");
-    res.json(r.rows);
+    try {
+        const r = await pool.query("SELECT * FROM schedule ORDER BY id DESC");
+        res.json(r.rows);
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.post('/api/start-work', async (req, res) => {
@@ -60,7 +85,7 @@ app.post('/api/stop-work', async (req, res) => {
             const [eh, em, es] = timeOnly.split(':').map(Number);
             let diff = (eh * 3600 + em * 60 + es) - (sh * 3600 + sm * 60 + ss);
             if (diff < 0) diff += 86400;
-            const hoursStr = (diff / 3600).toFixed(2); // Saglabā kā tekstu
+            const hoursStr = (diff / 3600).toFixed(2);
 
             await pool.query(
                 'UPDATE schedule SET beigu_laiks=$1, hours=$2 WHERE worker_name=$3 AND beigu_laiks IS NULL',
@@ -71,10 +96,9 @@ app.post('/api/stop-work', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// --- DARBA STUNDAS (image_934b7d.png) ---
+// --- DARBA STUNDAS ATSKAITES ---
 app.get('/api/darba-stundas', async (req, res) => {
     try {
-        // Tabulas nosaukums obligāti dubultpēdiņās, ja tajā ir lielie burti
         const r = await pool.query('SELECT * FROM "DarbaStundas" ORDER BY id DESC');
         res.json(r.rows);
     } catch (err) {
@@ -88,7 +112,7 @@ app.post('/api/darba-stundas', async (req, res) => {
     try {
         await pool.query(
             'INSERT INTO "DarbaStundas" (darbinieks, datums, sāka_darbu, beidza_darbu, month, stundas) VALUES ($1,$2,$3,$4,$5,$6)',
-            [darbinieks, datums, sāka_darbu, beidza_darbu, month, parseInt(stundas) || 0]
+            [darbinieks, datums, sāka_darbu, beidza_darbu, month, parseFloat(stundas) || 0]
         );
         res.json({ success: true });
     } catch (err) {
