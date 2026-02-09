@@ -5,310 +5,252 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Admin Panelis</title>
     <style>
-        /* CSS sadaļa - nosaka kā izskatās pogas, tabula un izkārtojums */
-        body { font-family: system-ui, -apple-system, sans-serif; margin: 0; background: #f4f6f1; color: #0f1a14; padding: 20px; display: flex; flex-direction: column; align-items: flex-start; }
+        body { font-family: system-ui, -apple-system, sans-serif; margin: 0; background: #f4f6f1; color: #0f1a14; padding: 20px; }
         h2, h3 { margin-top: 30px; text-align: left; color: #2c3e50; }
+        
         .grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; max-width: 900px; margin-bottom: 30px; }
-        details.pogas { background: #ffffff; border: 1px solid #ccc; border-radius: 8px; width: 100% !important; overflow: hidden; transition: box-shadow 0.3s; }
+        details.pogas { background: #ffffff; border: 1px solid #ccc; border-radius: 8px; width: 100%; overflow: hidden; transition: box-shadow 0.3s; }
         details.pogas:hover { box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         summary { cursor: pointer; font-weight: bold; padding: 15px; background: #f8f9fa; list-style: none; }
         details[open] summary { border-bottom: 1px solid #eee; background: #eef2eb; }
         .content { padding: 15px; }
+        
         button { padding: 8px 15px; border-radius: 6px; border: 1px solid #ccc; background: #fff; cursor: pointer; font-size: 14px; transition: background 0.2s; }
         button:hover { background: #f0f0f0; }
+        
         ul { list-style: none; padding: 0; margin-top: 10px; }
         li { background: #fdfdfd; margin-bottom: 5px; padding: 8px 12px; border-radius: 5px; border: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
         li button { padding: 4px 8px; font-size: 12px; background: #fee; border-color: #fcc; color: #c33; }
-        #filters { background: #fff; border: 1px solid #ccc; padding: 20px; border-radius: 10px; width: 100%; max-width: 890px; display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end; }
+
+        #filters { background: #fff; border: 1px solid #ccc; padding: 20px; border-radius: 10px; display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end; margin-bottom: 20px; }
         #filters label { display: flex; flex-direction: column; font-size: 13px; font-weight: bold; color: #555; }
         select { padding: 8px; border-radius: 6px; border: 1px solid #ccc; background: #fff; margin-top: 5px; min-width: 140px; }
-        #table-wrapper { background: #fff; border: 1px solid #ccc; border-radius: 10px; overflow: hidden; width: 100%; max-width: 1400px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .table-controls { background: #f8f9fa; padding: 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
-        #totalHoursDisplay { background: #eef2eb; padding: 10px 15px; border-radius: 8px; border: 1px solid #c3d9c3; font-weight: bold; color: #2c5d2c; }
-        table { border-collapse: collapse; width: 100%; font-size: 14px; }
-        th { background: #f1f3f5; padding: 12px; border-bottom: 2px solid #dee2e6; color: #495057; }
-        td { padding: 10px; border-bottom: 1px solid #eee; text-align: center; }
+
+        /* Horizontālais tabulu izkārtojums */
+        .main-layout { display: flex; gap: 20px; align-items: flex-start; width: 100%; margin-top: 20px; }
+        .table-section { background: #fff; border: 1px solid #ccc; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        
+        .darbu-saraksts { flex: 2; } /* Platāka tabula */
+        .mainu-kopsavilkums { flex: 1; } /* Šaurāka tabula */
+
+        .table-controls { background: #f8f9fa; padding: 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        #totalHoursDisplay { background: #eef2eb; padding: 8px 12px; border-radius: 8px; border: 1px solid #c3d9c3; font-weight: bold; color: #2c5d2c; }
+
+        table { border-collapse: collapse; width: 100%; font-size: 13px; }
+        th { background: #f1f3f5; padding: 10px; border-bottom: 2px solid #dee2e6; color: #495057; text-align: center; }
+        td { padding: 8px; border-bottom: 1px solid #eee; text-align: center; }
+        tr:hover { background-color: #fcfcfc; }
     </style>
 </head>
 <body>
 
 <h2>Iestatījumi</h2>
-
 <div class="grid-container">
     <details class="pogas">
         <summary>👷 Darbinieki</summary>
-        <div class="content">
-            <button id="addWorkerBtn">➕ Pievienot darbinieku</button>
-            <ul id="workerList"></ul> </div>
+        <div class="content"><button id="addWorkerBtn">➕ Pievienot</button><ul id="workerList"></ul></div>
     </details>
-
     <details class="pogas">
         <summary>🚗 Mašīnas</summary>
-        <div class="content">
-            <button id="addCarBtn">➕ Pievienot mašīnu</button>
-            <ul id="carList"></ul> </div>
+        <div class="content"><button id="addCarBtn">➕ Pievienot</button><ul id="carList"></ul></div>
     </details>
-    
     <details class="pogas">
         <summary>⚒️ Darba veidi</summary>
-        <div class="content">
-            <button id="addWorkBtn">➕ Pievienot veidu</button>
-            <ul id="workList"></ul> </div>
+        <div class="content"><button id="addWorkBtn">➕ Pievienot</button><ul id="workList"></ul></div>
     </details>
-
     <details class="pogas">
         <summary>📍 Objekti</summary>
-        <div class="content">
-            <button id="addObjectBtn">➕ Pievienot objektu</button>
-            <ul id="objectList"></ul> </div>
+        <div class="content"><button id="addObjectBtn">➕ Pievienot</button><ul id="objectList"></ul></div>
     </details>
 </div>
 
 <h3>Meklēšanas filtri</h3>
-
-<div id="filters" style="display: flex; gap: 30px; margin-bottom: 20px;">
+<div id="filters">
     <label>Mēnesis: <select id="filterMonth"><option value="">Visi</option></select></label>
     <label>Darbinieks: <select id="filterWorker"><option value="">Visi</option></select></label>
-    <label>Datums (diena): <select id="filterDate"><option value="">Visi</option></select></label>
+    <label>Datums: <select id="filterDate"><option value="">Visi</option></select></label>
     <label>Mašīna: <select id="filterCar"><option value="">Visi</option></select></label>
-    <button id="clearFilters" style="background: #eee;">Notīrīt filtrus</button>
+    <button id="clearFilters" style="background: #eee;">Notīrīt</button>
+    <button id="clearTableBtn" style="background:#ff6666; color:white; border:none;">Iztīrīt vēsturi</button>
 </div>
 
-<div class="action-bar" style="display: flex; gap: 30px; margin-bottom: 20px;">
-    <button id="clearTableBtn" style="background:#ff6666; color:white; border:none; padding: 10px 20px;">Iztīrīt visu tabulu</button>
-</div>
-
-<div id="table-wrapper" style="display: flex; gap: 30px; margin-bottom: 20px;">
-    <div class="table-controls">
-        <div style="display: flex; gap: 10px;">
-            <label>Kārtot: <select id="sortBy">
-                <option value="">Nekas</option>
-    <option value="month">Mēnesis</option>
-    <option value="worker_name">Darbinieks</option>
-    <option value="date">Datums</option>
-    <option value="car">Mašīna</option>
-    <option value="hours">Stundas</option>
-    <option value="pielietā_eļļa">Eļļa</option>      
-    <option value="pielietā_degviela">Degviela</option>
-            </select></label>
-        </div>
-        <div id="totalHoursDisplay">
-            Kopā: <span id="totalHoursValue">0.00</span> h
+<div class="main-layout">
+    <div class="darbu-saraksts">
+        <h3>Darbu saraksts</h3>
+        <div class="table-section">
+            <div class="table-controls">
+                <label>Kārtot: 
+                    <select id="sortBy">
+                        <option value="">ID (Jaunākie)</option>
+                        <option value="month">Mēnesis</option>
+                        <option value="worker_name">Darbinieks</option>
+                        <option value="date">Datums</option>
+                        <option value="hours">Stundas</option>
+                    </select>
+                </label>
+                <div id="totalHoursDisplay">Kopā: <span id="totalHoursValue">0.00</span> h</div>
+            </div>
+            <div id="tableContainer"></div>
         </div>
     </div>
-    <div id="tableContainer"></div> </div>
+
+    <div class="mainu-kopsavilkums">
+        <h3>Maiņu kopsavilkums</h3>
+        <div class="table-section">
+            <div id="shiftTableContainer"></div>
+        </div>
+    </div>
+</div>
 
 <script>
-    // 1. Nodefinējam mēnešu kārtību, lai kārtojot tie būtu pareizā secībā (nevis pēc alfabēta)
     const MONTH_ORDER = ["Janvāris","Februāris","Marts","Aprīlis","Maijs","Jūnijs","Jūlijs","Augusts","Septembris","Oktobris","Novembris","Decembris"];
-    
-    // 2. Mainīgie, kas glabās datus no servera
-    let workers = [], cars = [], schedule = [], works_types = [], objects = [];
+    let workers = [], cars = [], schedule = [], works_types = [], objects = [], shiftRecords = [];
 
-    // --- FUNKCIJA: Ielādē datus no servera (API) ---
     async function loadData() {
         try {
-            // Vienlaicīgi palūdzam visus datus
-            const [wRes, cRes, sRes, wtRes, oRes] = await Promise.all([
+            const [wRes, cRes, sRes, wtRes, oRes, shiftRes] = await Promise.all([
                 fetch('/api/workers'), fetch('/api/cars'), fetch('/api/schedule'),
-                fetch('/api/work-types'), fetch('/api/objects')
+                fetch('/api/work-types'), fetch('/api/objects'), fetch('/api/darba-stundas-all')
             ]);
             
-            // Pārvēršam datus no JSON formāta
             workers = await wRes.json();
             cars = await cRes.json();
             schedule = await sRes.json();
             works_types = await wtRes.json();
             objects = await oRes.json();
+            shiftRecords = await shiftRes.json();
             
-            // Palaižam sarakstu un tabulas zīmēšanu
-            renderWorkers();
-            renderCars();
-            renderWork();
-            renderObject();
+            renderSettings();
             
-            // Aizpildām filtru izvēlnes ar unikālām vērtībām
             fillFilter(document.getElementById("filterMonth"), schedule.map(e => e.month));
             fillFilter(document.getElementById("filterWorker"), workers.map(w => w.name));
             fillFilter(document.getElementById("filterCar"), cars);
-
-            // Speciāla loģika datuma filtram (dabūjam dienas skaitli)
             const days = schedule.map(e => e.date ? e.date.split('.')[0] : null).filter(Boolean);
             fillFilter(document.getElementById("filterDate"), [...new Set(days)].sort((a, b) => a - b));
 
-            renderTable(); // Uzģenerējam galveno tabulu
-        } catch (err) { console.error("Kļūda ielādējot datus:", err); }
+            renderAllTables();
+        } catch (err) { console.error(err); }
     }
 
-    // --- FUNKCIJAS: Sarakstu renderēšana (Darbinieki, Auto utt.) ---
-    function renderWorkers() {
-        workers.sort((a,b) => a.name.localeCompare(b.name, 'lv')); // Sakārtojam pēc vārda
-        // Izveidojam sarakstu ar "Dzēst" pogu katram
-        document.getElementById("workerList").innerHTML = workers.map(w => `
-            <li>
-                <span><strong>${w.name}</strong> ${w.temp_password ? `<small>(${w.temp_password})</small>` : ''}</span>
-                <button onclick="deleteWorker('${w.name}')">Dzēst</button>
-            </li>`).join("");
+    function renderSettings() {
+        document.getElementById("workerList").innerHTML = workers.map(w => `<li>${w.name} <button onclick="deleteWorker('${w.name}')">X</button></li>`).join("");
+        document.getElementById("carList").innerHTML = cars.map(c => `<li>${c} <button onclick="deleteCar('${c}')">X</button></li>`).join("");
+        document.getElementById("workList").innerHTML = works_types.map(w => `<li>${w} <button onclick="deleteWorkType('${w}')">X</button></li>`).join("");
+        document.getElementById("objectList").innerHTML = objects.map(o => `<li>${o} <button onclick="deleteObject('${o}')">X</button></li>`).join("");
     }
 
-    function renderCars() {
-        cars.sort((a,b) => a.localeCompare(b, 'lv'));
-        document.getElementById("carList").innerHTML = cars.map(c => `<li><strong>${c}</strong><button onclick="deleteCar('${c}')">Dzēst</button></li>`).join("");
+    function renderAllTables() {
+        renderWorkTable();
+        renderShiftTable();
     }
 
-    function renderWork() {
-        works_types.sort((a,b) => a.localeCompare(b, 'lv'));
-        document.getElementById("workList").innerHTML = works_types.map(w => `<li><strong>${w}</strong><button onclick="deleteWorkType('${w}')">Dzēst</button></li>`).join("");
-    }
+    // --- FILTRĒTĀ DARBU TABULA ---
+    function renderWorkTable() {
+        let fWorker = document.getElementById("filterWorker").value;
+        let fMonth = document.getElementById("filterMonth").value;
+        let fDate = document.getElementById("filterDate").value;
+        let fCar = document.getElementById("filterCar").value;
 
-    function renderObject() {
-        objects.sort((a,b) => a.localeCompare(b, 'lv'));
-        document.getElementById("objectList").innerHTML = objects.map(o => `<li><strong>${o}</strong><button onclick="deleteObject('${o}')">Dzēst</button></li>`).join("");
-    }
-
-    // --- PALĪGFUNKCIJA: Ievieto unikālas vērtības filtru selectos ---
-    function fillFilter(select, list) {
-        const current = select.value;
-        const uniqueValues = [...new Set(list)].filter(Boolean); // Noņemam dublikātus un tukšumus
-        select.innerHTML = `<option value="">Visi</option>` + uniqueValues.map(v => `<option value="${v}">${v}</option>`).join("");
-        select.value = current; // Saglabājam izvēli, ja tāda bija
-    }
-
-    // --- GALVENĀ FUNKCIJA: Tabulas ģenerēšana un filtrēšana ---
-    function renderTable() {
-        // 1. Filtrējam ierakstus balstoties uz izvēlētajiem filtriem
         let filtered = schedule.filter(e => {
-            const dayOnly = e.date ? e.date.split('.')[0] : ""; 
-            return (!document.getElementById("filterMonth").value || e.month === document.getElementById("filterMonth").value) &&
-                   (!document.getElementById("filterWorker").value || e.worker_name === document.getElementById("filterWorker").value) &&
-                   (!document.getElementById("filterDate").value || dayOnly === document.getElementById("filterDate").value) && 
-                   (!document.getElementById("filterCar").value || e.car === document.getElementById("filterCar").value);
+            const dayOnly = e.date ? e.date.split('.')[0] : "";
+            return (!fMonth || e.month === fMonth) &&
+                   (!fWorker || e.worker_name === fWorker) &&
+                   (!fDate || dayOnly === fDate) &&
+                   (!fCar || e.car === fCar);
         });
 
-        // 2. Saskaitām kopējās stundas filtrētajiem datiem
         const total = filtered.reduce((sum, item) => sum + (parseFloat(item.hours) || 0), 0);
         document.getElementById("totalHoursValue").textContent = total.toFixed(2);
 
-        // 3. Kārtošanas loģika
         const sortKey = document.getElementById("sortBy").value;
         filtered.sort((a, b) => {
-    if (!sortKey) return b.id - a.id;
-    if (sortKey === 'month') return MONTH_ORDER.indexOf(a.month) - MONTH_ORDER.indexOf(b.month);
-    
-    // PAPILDINĀTS: Skaitliskā kārtošana eļļai, degvielai un stundām
-    if (['hours', 'pielietā_eļļa', 'pielietā_degviela'].includes(sortKey)) {
-        return (parseFloat(a[sortKey]) || 0) - (parseFloat(b[sortKey]) || 0);
+            if (!sortKey) return b.id - a.id;
+            if (sortKey === 'month') return MONTH_ORDER.indexOf(a.month) - MONTH_ORDER.indexOf(b.month);
+            return String(a[sortKey] || "").localeCompare(String(b[sortKey] || ""), 'lv');
+        });
+
+        let html = `<table><tr><th>Datums</th><th>Mašīna</th><th>Darbinieks</th><th>Objekts</th><th>Eļļa</th><th>Degv.</th><th>Stundas</th></tr>`;
+        filtered.forEach(e => {
+            html += `<tr><td>${e.date}</td><td>${e.car}</td><td>${e.worker_name}</td><td>${e.objekts || '-'}</td><td>${e.pielietā_eļļa || '-'}</td><td>${e.pielietā_degviela || '-'}</td><td><b>${e.hours || '0'}</b></td></tr>`;
+        });
+        document.getElementById("tableContainer").innerHTML = html + `</table>`;
     }
-    
-    return String(a[sortKey] || "").localeCompare(String(b[sortKey] || ""), 'lv');
-});
 
-        // 4. Uzģenerējam tabulas HTML
-        if (!filtered.length) { 
-        document.getElementById("tableContainer").innerHTML = "<p style='padding:20px;'>Nav ierakstu.</p>"; 
-        return; 
+    // --- FILTRĒTĀ MAIŅU TABULA ---
+    function renderShiftTable() {
+        let fWorker = document.getElementById("filterWorker").value;
+        let fMonth = document.getElementById("filterMonth").value;
+
+        // Filtrējam maiņas pēc tiem pašiem kritērijiem
+        let filteredShifts = shiftRecords.filter(s => {
+            return (!fMonth || s.month === fMonth) && (!fWorker || s.darbinieks === fWorker);
+        });
+
+        // Kārtojam pēc ID dilstošā secībā (jaunākie augšā)
+        filteredShifts.sort((a, b) => b.id - a.id);
+
+        if (!filteredShifts.length) {
+            document.getElementById("shiftTableContainer").innerHTML = "<p style='padding:15px;'>Nav ierakstu.</p>";
+            return;
+        }
+
+        let html = `<table><tr><th>Darbinieks</th><th>Datums</th><th>Sāka</th><th>Beidza</th><th>Kopā</th></tr>`;
+        filteredShifts.forEach(s => {
+            html += `<tr>
+                <td>${s.darbinieks}</td>
+                <td>${s.datums}</td>
+                <td>${s.sāka_darbu}</td>
+                <td>${s.beidza_darbu}</td>
+                <td style="background:#f0f7f0; font-weight:bold;">${s.stundas} h</td>
+            </tr>`;
+        });
+        document.getElementById("shiftTableContainer").innerHTML = html + "</table>";
     }
-       let html = `<table><tr>
-        <th>Datums</th>
-        <th>Mēnesis</th>
-        <th>Mašīna</th>
-        <th>Darbinieks</th>
-        <th>Objekts</th>
-        <th>Darbs</th>
-        <th style="color: #6f42c1;">Eļļa (L)</th>
-        <th style="color: #fd7e14;">Degviela (L)</th>
-        <th>Kopš</th>
-        <th>Līdz</th>
-        <th>Stundas</th>
-    </tr>`;
 
-    filtered.forEach(e => {
-        html += `<tr>
-            <td>${e.date}</td>
-            <td>${e.month || '-'}</td>
-            <td>${e.car}</td>
-            <td>${e.worker_name}</td>
-            <td>${e.objekts || '-'}</td>
-            <td>${e.darbs || '-'}</td>
-            <td style="color: #6f42c1; font-weight: bold;">${e.pielietā_eļļa || '-'}</td>
-            <td style="color: #fd7e14; font-weight: bold;">${e.pielietā_degviela || '-'}</td>
-            <td>${e.sākuma_laiks || '-'}</td>
-            <td>${e.beigu_laiks || 'Aktīvs'}</td>
-            <td><strong>${e.hours || '-'}</strong></td>
-        </tr>`;
-    });
-    document.getElementById("tableContainer").innerHTML = html + `</table>`;
-}
+    function fillFilter(select, list) {
+        const current = select.value;
+        const uniqueValues = [...new Set(list)].filter(Boolean);
+        select.innerHTML = `<option value="">Visi</option>` + uniqueValues.map(v => `<option value="${v}">${v}</option>`).join("");
+        select.value = current;
+    }
 
-    // --- NOTIKUMI (Event Listeners) - Pogas un Filtri ---
-
-    // Pievienojam klausītājus visiem filtriem - ja maina vērtību, tabula pārzīmējas
+    // Event Listeners
     ["filterMonth", "filterWorker", "filterDate", "filterCar", "sortBy"].forEach(id => {
-        document.getElementById(id).addEventListener("change", renderTable);
+        document.getElementById(id).addEventListener("change", renderAllTables);
     });
 
-    // Filtru notīrīšana
     document.getElementById("clearFilters").onclick = () => {
         ["filterMonth", "filterWorker", "filterDate", "filterCar", "sortBy"].forEach(id => document.getElementById(id).value = "");
-        renderTable();
+        renderAllTables();
     };
 
-    // DARBINIEKA PIEVIENOŠANA
+    // CRUD Operācijas (Pievienošana/Dzēšana)
     document.getElementById("addWorkerBtn").onclick = async () => {
-        const name = prompt("Darbinieka vārds un uzvārds:");
-        const pass = prompt("Pagaidu parole:");
-        if(name && pass) {
-            await fetch('/api/workers', { 
-                method: 'POST', 
-                headers: {'Content-Type': 'application/json'}, 
-                body: JSON.stringify({ name: name.trim(), temp_password: pass.trim() }) 
-            });
-            loadData(); // Atjaunojam sarakstus
-        }
+        const n = prompt("Vārds:"), p = prompt("Parole:");
+        if(n && p) { await fetch('/api/workers', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ name: n, temp_password: p }) }); loadData(); }
     };
-
-    // MAŠĪNAS PIEVIENOŠANA
     document.getElementById("addCarBtn").onclick = async () => {
-        const name = prompt("Mašīnas nosaukums vai numurs:");
-        if(name) {
-            await fetch('/api/cars', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ name: name.trim() }) });
-            loadData();
-        }
+        const n = prompt("Mašīna:");
+        if(n) { await fetch('/api/cars', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ name: n }) }); loadData(); }
     };
-
-    // DARBA VEIDA PIEVIENOŠANA
     document.getElementById("addWorkBtn").onclick = async () => {
-        const name = prompt("Jauns darba veids (piem. Rakšana):");
-        if(name) {
-            await fetch('/api/work-types', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ name: name.trim() }) });
-            loadData();
-        }
+        const n = prompt("Darba veids:");
+        if(n) { await fetch('/api/work-types', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ name: n }) }); loadData(); }
     };
-
-    // OBJEKTA PIEVIENOŠANA
     document.getElementById("addObjectBtn").onclick = async () => {
-        const name = prompt("Objekta nosaukums vai adrese:");
-        if(name) {
-            await fetch('/api/objects', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ name: name.trim() }) });
-            loadData();
-        }
+        const n = prompt("Objekts:");
+        if(n) { await fetch('/api/objects', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ name: n }) }); loadData(); }
     };
 
-    // --- DZĒŠANAS FUNKCIJAS ---
-    async function deleteWorker(name) { if(confirm(`Dzēst darbinieku ${name}?`)) { await fetch(`/api/workers/${encodeURIComponent(name)}`, { method: 'DELETE' }); loadData(); } }
-    async function deleteCar(name) { if(confirm(`Dzēst mašīnu ${name}?`)) { await fetch(`/api/cars/${encodeURIComponent(name)}`, { method: 'DELETE' }); loadData(); } }
-    async function deleteWorkType(name) { if(confirm(`Dzēst darba veidu ${name}?`)) { await fetch(`/api/work-types/${encodeURIComponent(name)}`, { method: 'DELETE' }); loadData(); } }
-    async function deleteObject(name) { if(confirm(`Dzēst objektu ${name}?`)) { await fetch(`/api/objects/${encodeURIComponent(name)}`, { method: 'DELETE' }); loadData(); } }
+    async function deleteWorker(n) { if(confirm("Dzēst?")) { await fetch(`/api/workers/${encodeURIComponent(n)}`, { method: 'DELETE' }); loadData(); } }
+    async function deleteCar(n) { if(confirm("Dzēst?")) { await fetch(`/api/cars/${encodeURIComponent(n)}`, { method: 'DELETE' }); loadData(); } }
+    async function deleteWorkType(n) { if(confirm("Dzēst?")) { await fetch(`/api/work-types/${encodeURIComponent(n)}`, { method: 'DELETE' }); loadData(); } }
+    async function deleteObject(n) { if(confirm("Dzēst?")) { await fetch(`/api/objects/${encodeURIComponent(n)}`, { method: 'DELETE' }); loadData(); } }
 
-    // TABULAS IZTĪRĪŠANA (Vēstures dzēšana)
     document.getElementById("clearTableBtn").onclick = async () => {
-        if (confirm("VAI TIEŠĀM DZĒST VISU DARBA VĒSTURI? Šo nevar atcelt.")) {
-            await fetch('/api/schedule', { method: 'DELETE' });
-            loadData();
-        }
+        if (confirm("Dzēst visu vēsturi?")) { await fetch('/api/schedule', { method: 'DELETE' }); loadData(); }
     };
 
-    // Sākam datu ielādi, kad lapa ir atvērta
     loadData();
 </script>
 </body>
