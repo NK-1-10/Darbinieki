@@ -30,9 +30,23 @@
         #tables-layout { display: flex; gap: 10px; align-items: flex-start; width: 100%; }
         .table-box { background: #fff; border: 1px solid #ccc; border-radius: 20px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); width: 100%; }
         
-        table { border-collapse: collapse; width: 100%; font-size: 14px; }
-        th { background: #f8f9fa; padding: 12px; border-bottom: 2px solid #dee2e6; text-align: left; color: #495057; }
-        td { padding: 10px; border-bottom: 1px solid #eee; text-align: left; }
+        table { 
+    border-collapse: collapse; 
+    width: 100%; 
+    font-size: 13px; /* Mazāks fonts arī palīdzēs kompaktumam */
+    line-height: 1.2; /* Ciešākas teksta rindas */
+}
+th { 
+    background: #f8f9fa; 
+    padding: 6px 10px; /* Pirmais skaitlis ir augšā/apakšā, otrais sānos */
+    border-bottom: 2px solid #dee2e6; 
+    text-align: left; 
+    color: #495057; 
+}        td { 
+    padding: 4px 10px; /* Samazināta vertikālā atstarpe */
+    border-bottom: 1px solid #eee; 
+    text-align: left; 
+}
         tr:hover { background-color: #f1f3f5; }
         
         /* Stundu kolonna treknrakstā */
