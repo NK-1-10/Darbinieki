@@ -88,8 +88,6 @@
     <option value="date">Datums</option>
     <option value="car">Mašīna</option>
     <option value="hours">Stundas</option>
-    <option value="pielietā_eļļa">Eļļa</option>      
-    <option value="pielietā_degviela">Degviela</option>
             </select></label>
         </div>
         <div id="totalHoursDisplay">
@@ -215,8 +213,6 @@
         <th>Darbinieks</th>
         <th>Objekts</th>
         <th>Darbs</th>
-        <th style="color: #6f42c1;">Eļļa (L)</th>
-        <th style="color: #fd7e14;">Degviela (L)</th>
         <th>Kopš</th>
         <th>Līdz</th>
         <th>Stundas</th>
@@ -230,8 +226,6 @@
             <td>${e.worker_name}</td>
             <td>${e.objekts || '-'}</td>
             <td>${e.darbs || '-'}</td>
-            <td style="color: #6f42c1; font-weight: bold;">${e.pielietā_eļļa || '-'}</td>
-            <td style="color: #fd7e14; font-weight: bold;">${e.pielietā_degviela || '-'}</td>
             <td>${e.sākuma_laiks || '-'}</td>
             <td>${e.beigu_laiks || 'Aktīvs'}</td>
             <td><strong>${e.hours || '-'}</strong></td>
