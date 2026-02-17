@@ -154,11 +154,16 @@ app.post('/api/start-work', async (req, res) => {
     
     try {
         await pool.query(
-            `INSERT INTO schedule (worker_name, car, date, sākuma_laiks, month, objekts, darbs) VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+            // PIEVIENOTS: pielietā_eļļa un pielietā_degviela ar sākuma vērtību 0
+            `INSERT INTO schedule (worker_name, car, date, sākuma_laiks, month, objekts, darbs, pielietā_eļļa, pielietā_degviela) 
+             VALUES ($1,$2,$3,$4,$5,$6,$7, 0, 0)`,
             [worker_name, car, date, time, monthStr, objekts, darbs]
         );
         res.json({ success: true });
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) { 
+        console.error(err);
+        res.status(500).json({ error: err.message }); 
+    }
 });
 
 app.post('/api/stop-work', async (req, res) => {
