@@ -6,8 +6,8 @@
     <title>Admin Panelis</title>
    <style>
     /* Pamata lapa */
-    body { font-family: system-ui, -apple-system, sans-serif; margin: 0; background: #f4f6f1; color: #0f1a14; padding: 15px; font-size: 13px; }
-    h2, h3 { color: #2c3e50; margin: 10px 0; font-size: 1.2em; }
+body { font-family: system-ui, -apple-system, sans-serif; margin: 0; background: #f4f6f1; color: #0f1a14; padding: 15px; font-size: 13px; }
+       h2, h3 { color: #2c3e50; margin: 10px 0; font-size: 1.2em; }
 
     /* Iestatījumu bloki */
     .grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; max-width: 900px; margin-bottom: 15px; }
@@ -20,25 +20,10 @@
     
     /* MAKSIMĀLI TIEVA TABULA */
     #tables-layout { display: flex; gap: 15px; align-items: flex-start; width: 100%; }
-    .table-box { background: #fff; border: 1px solid #ccc; border-radius: 8px; overflow: hidden; width: 100%; }
-    
-    table { border-collapse: collapse; width: 100%; font-size: 12px; line-height: 1; } /* Samazināts fonta izmērs un rindu augstums */
-    
-    th { 
-        background: #f1f3f5; 
-        padding: 4px 8px; /* Ļoti mazas atstarpes */
-        border-bottom: 1px solid #dee2e6; 
-        text-align: left; 
-        color: #495057;
-        white-space: nowrap; 
-    }
-    
-    td { 
-        padding: 2px 8px; /* Vertikālā atstarpe tikai 2px */
-        border-bottom: 1px solid #f0f0f0; 
-        text-align: left;
-        white-space: nowrap; /* Neļauj tekstam lēkt jaunā rindā, saglabājot rindu tievu */
-    }
+    table { border-collapse: collapse; width: 100%; font-size: 12px; line-height: 1; margin-bottom: 10px; }
+    th { background: #f1f3f5; padding: 4px 8px; border-bottom: 1px solid #dee2e6; text-align: left; }
+    td { padding: 2px 8px; border-bottom: 1px solid #f0f0f0; white-space: nowrap; }
+    .table-box { background: #fff; border: 1px solid #ccc; border-radius: 8px; overflow: hidden; margin-bottom: 20px; }
     
     tr:hover { background-color: #f8f9fa; }
     
@@ -122,7 +107,7 @@
 
 <script>
     const MONTH_ORDER = ["Janvāris","Februāris","Marts","Aprīlis","Maijs","Jūnijs","Jūlijs","Augusts","Septembris","Oktobris","Novembris","Decembris"];
-    let workers = [], cars = [], schedule = [], works_types = [], objects = [];
+    let workers = [], cars = [], schedule = [], works_types = [], objects = [], daySummary = [];
 
     async function loadData() {
         try {
