@@ -217,16 +217,29 @@ body { font-family: system-ui, -apple-system, sans-serif; margin: 0; background:
         document.getElementById("tableContainer").innerHTML = workHtml + "</table>";
 
         // --- RESURSU TABULA ---
-        let oilHtml = `<table><tr><th>Datums</th><th>Eļļa (L)</th><th>Degviela (L)</th></tr>`;
-        const resursi = filtered.filter(e => (parseFloat(e.pielietā_eļļa) > 0 || parseFloat(e.pielietā_degviela) > 0));
-        
-        oilHtml += resursi.map(e => `<tr>
-            <td>${e.date || '-'}</td>
-            <td style="color:#d63384; font-weight:bold;">${e.pielietā_eļļa || '0'}</td>
-            <td style="color:#fd7e14; font-weight:bold;">${e.pielietā_degviela || '0'}</td>
-        </tr>`).join("");
+       // --- RESURSU TABULA (Atjaunināta) ---
+let oilHtml = `<table><tr><th>Datums</th><th>Mašīna</th><th>Eļļa (L)</th><th>Degviela (L)</th></tr>`;
 
-        document.getElementById("oilContainer").innerHTML = resursi.length ? oilHtml + "</table>" : "<p style='padding:15px;'>Nav resursu datu.</p>";
+// Filtrējam ierakstus, kur ir jebkāda eļļa vai degviela (pārbaudām visus iespējamos lauku nosaukumus)
+const resursi = filtered.filter(e => 
+    (parseFloat(e.ella) > 0 || parseFloat(e.degviela) > 0 || 
+     parseFloat(e.pielietā_eļļa) > 0 || parseFloat(e.pielietā_degviela) > 0)
+);
+
+oilHtml += resursi.map(e => {
+    // Izmantojam jaunās vērtības, bet ja to nav - ņemam vecās (fallback)
+    const ellaValue = e.ella || e.pielietā_eļļa || '0';
+    const degvielaValue = e.degviela || e.pielietā_degviela || '0';
+    
+    return `<tr>
+        <td>${e.date || '-'}</td>
+        <td>${e.car || '-'}</td>
+        <td style="color:#d63384; font-weight:bold;">${ellaValue}</td>
+        <td style="color:#fd7e14; font-weight:bold;">${degvielaValue}</td>
+    </tr>`;
+}).join("");
+
+document.getElementById("oilContainer").innerHTML = resursi.length ? oilHtml + "</table>" : "<p style='padding:15px;'>Nav resursu datu.</p>";
    
       // --- DARBA LAIKA UZSKAITES TABULA (Jaunā) ---
         // --- DARBA LAIKA UZSKAITES TABULA (Jaunā) ---
