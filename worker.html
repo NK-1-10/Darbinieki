@@ -190,14 +190,12 @@
 
    // --- DEGVIELAS POGA ---
 document.getElementById("Degviela").onclick = async () => {
-    const izveletaMasina = document.getElementById("car").value;
+    // 1. Pajautājam mašīnu
+    let auto = prompt("Kurai mašīnai ielēji degvielu? (Ievadi numuru vai nosaukumu):");
+    if (!auto) return;
 
-    if (!izveletaMasina) {
-        alert("Lūdzu, vispirms izvēlies mašīnu sarakstā!");
-        return;
-    }
-
-    let deg = prompt(`Cik litrus degvielas ielēji mašīnai ${izveletaMasina}?`);
+    // 2. Pajautājam litrus
+    let deg = prompt(`Cik litrus degvielas ielēji mašīnai ${auto}?`);
     if (!deg) return;
 
     try {
@@ -206,30 +204,31 @@ document.getElementById("Degviela").onclick = async () => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
                 worker_name: user.name, 
-                car: izveletaMasina, 
+                car: auto, 
                 type: 'Degviela', 
                 amount: deg.replace(',', '.') 
             })
         });
 
-        if (res.ok) alert(`Saglabāts: ${izveletaMasina} ielieti ${deg} l degvielas.`);
+        if (res.ok) {
+            alert(`Saglabāts: ${auto} ielieti ${deg} l degvielas.`);
+        } else {
+            alert("Kļūda: Serveris nevarēja saglabāt datus.");
+        }
     } catch (err) {
         console.error("Kļūda:", err);
+        alert("Neizdevās sazināties ar serveri.");
     }
 };
 
     document.getElementById("Ella").onclick = async () => {
-    // 1. Paņemam mašīnu no saraksta, kas jau ir izvēlēta lapā
-    const izveletaMasina = document.getElementById("car").value;
-
-    if (!izveletaMasina) {
-        alert("Lūdzu, vispirms izvēlies mašīnu sarakstā!");
-        return;
-    }
+    // 1. Pajautājam mašīnas numuru vai nosaukumu
+    let auto = prompt("Kurai mašīnai pieleji eļļu? (Ievadi numuru vai nosaukumu):");
+    if (!auto) return; // Ja nospiež Cancel, pārtraucam
 
     // 2. Pajautājam litrus
-    let ell = prompt(`Cik litrus eļļas ielēji mašīnai ${izveletaMasina}?`);
-    if (!ell) return;
+    let ell = prompt(`Cik litrus eļļas ielēji mašīnai ${auto}?`);
+    if (!ell) return; // Ja nospiež Cancel, pārtraucam
 
     try {
         const res = await fetch('/api/update-resources', {
@@ -237,15 +236,20 @@ document.getElementById("Degviela").onclick = async () => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
                 worker_name: user.name, 
-                car: izveletaMasina, 
+                car: auto, // Izmantojam tikko ievadīto mašīnu
                 type: 'Ella', 
                 amount: ell.replace(',', '.') 
             })
         });
 
-        if (res.ok) alert(`Saglabāts: ${izveletaMasina} ielieti ${ell} l eļļas.`);
+        if (res.ok) {
+            alert(`Saglabāts: ${auto} ielieti ${ell} l eļļas.`);
+        } else {
+            alert("Kļūda: Neizdevās saglabāt datus serverī.");
+        }
     } catch (err) {
         console.error("Kļūda:", err);
+        alert("Sistēmas kļūda! Pārbaudi interneta savienojumu.");
     }
 };
 
