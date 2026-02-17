@@ -140,45 +140,14 @@
         } catch (err) { console.error("Kļūda:", err); }
     }
 
-    //document.getElementById("AtWork").onclick = () => {
-        //localStorage.setItem(`shift_start_${user.name}`, new Date().toISOString());
-        //loadWorkerData();
-    //};
-
-    document.getElementById("AtWork").onclick = async () => {
-    const tagad = new Date();
-    
-    // Sagatavojam datumu formātā DD.MM.YYYY
-    const datums = tagad.toLocaleDateString('lv-LV').replace(/\//g, '.'); 
-    // Sagatavojam laiku formātā HH:mm:ss
-    const laiks = tagad.toTimeString().split(' ')[0];
-    
-    const startTimeString = `${datums} ${laiks}`; // Rezultāts: "17.02.2026 18:05:00"
-
-    const data = {
-        worker_name: user.name,
-        car: izveletaMasina, // Te jābūt mainīgajam ar mašīnas nosaukumu
-        start_time: startTimeString,
-        objekts: izveletaisObjekts,
-        darbs: izveletaisDarbs
-    };
-
-    try {
-        const response = await fetch('/api/start-work', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-        
-        if (response.ok) {
-            localStorage.setItem(`shift_start_${user.name}`, startTimeString);
-            loadWorkerData();
-        }
-    } catch (err) {
-        console.error("Kļūda uzsākot darbu:", err);
-    }
+   // --- MAIŅAS SĀKŠANA ---
+document.getElementById("AtWork").onclick = () => {
+    const sākumaLaiks = new Date();
+    // Saglabājam pilnu ISO datumu, lai vēlāk precīzi izrēķinātu starpību
+    localStorage.setItem(`shift_start_${user.name}`, sākumaLaiks.toISOString());
+    loadWorkerData();
 };
-
+    
    // --- DEGVIELAS POGA ---
 document.getElementById("Degviela").onclick = async () => {
     let degviela = prompt("Ievadi, cik litrus degvielas ielēji:", "");
@@ -231,24 +200,50 @@ document.getElementById("Ella").onclick = async () => {
     }
 };
 
-    document.getElementById("LeaveWork").onclick = async () => {
-        if (!confirm("Beigt darba dienu?")) return;
-        const tagad = new Date();
-        const shiftStart = localStorage.getItem(`shift_start_${user.name}`);
-        let nostradatasStundas = 0;
-        
-        if (shiftStart) {
-            nostradatasStundas = ((tagad - new Date(shiftStart)) / 3600000).toFixed(2);
-        }
+    // --- MAIŅAS BEIGŠANA (Sūta datus uz "DarbaStundas") ---
+document.getElementById("LeaveWork").onclick = async () => {
+    if (!confirm("Beigt darba dienu?")) return;
+    
+    const tagad = new Date();
+    const shiftStartRaw = localStorage.getItem(`shift_start_${user.name}`);
+    let nostradatasStundas = 0;
+    
+    if (shiftStartRaw) {
+        const sākums = new Date(shiftStartRaw);
+        // Aprēķinām nostrādātās stundas (milisekundes / 3600000)
+        const starpibaMs = tagad - sākums;
+        nostradatasStundas = (starpibaMs / 3600000).toFixed(2);
+    }
 
-        const data = {
-            darbinieks: user.name,
-            datums: tagad.toLocaleDateString('lv-LV'),
-            sāka_darbu: shiftStart ? new Date(shiftStart).toLocaleTimeString('lv-LV') : "--",
-            beidza_darbu: tagad.toLocaleTimeString('lv-LV'),
-            month: new Intl.DateTimeFormat('lv-LV', { month: 'long' }).format(tagad),
-            stundas: parseFloat(nostradatasStundas)
-        };
+    // Sagatavojam datus atbilstoši tavai DB struktūrai
+    const data = {
+        darbinieks: user.name,
+        datums: tagad.toLocaleDateString('lv-LV'), 
+        sāka_darbu: shiftStartRaw ? new Date(shiftStartRaw).toLocaleTimeString('lv-LV') : "--",
+        beidza_darbu: tagad.toLocaleTimeString('lv-LV'),
+        month: new Intl.DateTimeFormat('lv-LV', { month: 'long' }).format(tagad), 
+        stundas: parseFloat(nostradatasStundas) || 0
+    };
+
+    try {
+        const res = await fetch('/api/darba-stundas', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+
+        if (res.ok) {
+            localStorage.removeItem(`shift_start_${user.name}`);
+            alert(`Darba diena pabeigta! Nostrādāts: ${nostradatasStundas} h`);
+            location.reload();
+        } else {
+            alert("Servera kļūda, saglabājot darba stundas.");
+        }
+    } catch (err) {
+        console.error("Kļūda:", err);
+        alert("Neizdevās savienoties ar serveri.");
+    }
+};
 
         await fetch('/api/darba-stundas', {
             method: 'POST',
