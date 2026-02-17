@@ -191,34 +191,28 @@ app.delete('/api/schedule', async (req, res) => {
 
 // --- 4.5 RESURSU ATJAUNINĀŠANA (Eļļa/Degviela) ---
 app.post('/api/update-resources', async (req, res) => {
-    // Pievienojam 'car', ko sūtām no worker.html
     const { worker_name, car, type, amount } = req.body;
-    
     const column = type === 'Ella' ? 'pielietā_eļļa' : 'pielietā_degviela';
     
     try {
-        // Mēs atjauninām rindu, kas atbilst GAN darbiniekam, GAN mašīnai, un ir aktīva
+        // Atjaunina pēdējo AKTĪVO ierakstu šim darbiniekam
         const query = `
             UPDATE schedule 
             SET ${column} = $1 
-            WHERE worker_name = $2 AND car = $3 AND beigu_laiks IS NULL
+            WHERE id = (
+                SELECT id FROM schedule 
+                WHERE worker_name = $2 AND beigu_laiks IS NULL 
+                ORDER BY id DESC LIMIT 1
+            )
         `;
-        const result = await pool.query(query, [parseFloat(amount), worker_name, car]);
+        const result = await pool.query(query, [parseFloat(amount), worker_name]);
 
         if (result.rowCount > 0) {
             res.json({ success: true });
         } else {
-            // Ja neatrod rindu ar šādu mašīnu, mēģinām vismaz pēc vārda
-            const fallbackQuery = `
-                UPDATE schedule 
-                SET ${column} = $1 
-                WHERE worker_name = $2 AND beigu_laiks IS NULL
-            `;
-            await pool.query(fallbackQuery, [parseFloat(amount), worker_name]);
-            res.json({ success: true, note: "Pievienots aktīvajam darbam (mašīna nesakrita)" });
+            res.status(404).json({ error: "Nav aktīva darba procesa! Vispirms nospied 'Sākt darbu'." });
         }
     } catch (err) {
-        console.error(err);
         res.status(500).json({ error: "DB kļūda" });
     }
 });
