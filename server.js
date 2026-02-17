@@ -220,7 +220,7 @@ app.post('/api/darba-stundas', async (req, res) => {
     const { darbinieks, datums, sāka_darbu, beidza_darbu, month, stundas } = req.body;
     try {
         await pool.query(
-            'INSERT INTO "DarbaStundas" (darbinieks, datums, sāka_darbu, beidza_darbu, month, stundas) VALUES ($1, $2, $3, $4, $5, $6)',
+            'INSERT INTO "darbastundas" (darbinieks, datums, sāka_darbu, beidza_darbu, month, stundas) VALUES ($1, $2, $3, $4, $5, $6)',
             [darbinieks, datums, sāka_darbu, beidza_darbu, month, stundas]
         );
         res.status(200).send("OK"); // Obligāti jānosūta atbilde atpakaļ!
@@ -233,7 +233,7 @@ app.post('/api/darba-stundas', async (req, res) => {
 // --- 5.1 ATSKAIŠU IEGŪŠANA (Adminam) ---
 app.get('/api/darba-stundas', async (req, res) => {
     try {
-        const result = await pool.query('SELECT * FROM "DarbaStundas" ORDER BY id DESC');
+        const result = await pool.query('SELECT * FROM "darbastundas" ORDER BY id DESC');
         res.json(result.rows);
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
