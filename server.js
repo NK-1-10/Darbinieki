@@ -191,23 +191,31 @@ app.delete('/api/schedule', async (req, res) => {
 
 // --- 4.5 RESURSU ATJAUNINĀŠANA (Eļļa/Degviela) ---
 app.post('/api/update-resources', async (req, res) => {
-    const { worker_name, type, amount } = req.body;
+    // Pievienojam 'car', ko sūtām no worker.html
+    const { worker_name, car, type, amount } = req.body;
     
-    // Svarīgi: Kolonnu nosaukumiem jāsakrīt ar tavu DB bildē redzamajiem (ar apakšsvītrām)
     const column = type === 'Ella' ? 'pielietā_eļļa' : 'pielietā_degviela';
     
     try {
+        // Mēs atjauninām rindu, kas atbilst GAN darbiniekam, GAN mašīnai, un ir aktīva
         const query = `
             UPDATE schedule 
             SET ${column} = $1 
-            WHERE worker_name = $2 AND beigu_laiks IS NULL
+            WHERE worker_name = $2 AND car = $3 AND beigu_laiks IS NULL
         `;
-        const result = await pool.query(query, [parseFloat(amount), worker_name]);
+        const result = await pool.query(query, [parseFloat(amount), worker_name, car]);
 
         if (result.rowCount > 0) {
             res.json({ success: true });
         } else {
-            res.status(404).json({ error: "Nav aktīva darba" });
+            // Ja neatrod rindu ar šādu mašīnu, mēģinām vismaz pēc vārda
+            const fallbackQuery = `
+                UPDATE schedule 
+                SET ${column} = $1 
+                WHERE worker_name = $2 AND beigu_laiks IS NULL
+            `;
+            await pool.query(fallbackQuery, [parseFloat(amount), worker_name]);
+            res.json({ success: true, note: "Pievienots aktīvajam darbam (mašīna nesakrita)" });
         }
     } catch (err) {
         console.error(err);
