@@ -227,5 +227,20 @@ app.post('/api/darba-stundas', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// --- 5.1 ATSKAIŠU IEGŪŠANA (Adminam) ---
+app.get('/api/darba-stundas', async (req, res) => {
+    try {
+        // Izmantojam pēdiņas "DarbaStundas", jo tavā POST metodē tabula izveidota tieši tā
+        const query = 'SELECT * FROM "DarbaStundas" ORDER BY id DESC';
+        const result = await pool.query(query);
+        
+        // Atriežam datus JSON formātā
+        res.json(result.rows);
+    } catch (err) {
+        console.error("Kļūda ielasot darba stundas:", err.message);
+        res.status(500).json({ error: "Servera kļūda, nevarēja ielādēt atskaites" });
+    }
+});
+
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => console.log(`🚀 Server running on ${PORT}`));
