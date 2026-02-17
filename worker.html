@@ -100,8 +100,6 @@
             if (activeJob) {
                 document.getElementById("startBtn").style.display = "none";
                 document.getElementById("stopBtn").style.display = "block";
-                document.getElementById("Ella").style.display = "block";
-                document.getElementById("Degviela").style.display = "block";
                 [carSelect, objectSelect, workSelect].forEach(s => s.disabled = true);
                 carSelect.value = activeJob.car;
                 objectSelect.value = activeJob.objekts || "";
@@ -112,8 +110,6 @@
                 [carSelect, objectSelect, workSelect].forEach(s => s.disabled = false);
                 document.getElementById("startBtn").style.display = shiftStartTime ? "block" : "none";
                 document.getElementById("stopBtn").style.display = "none";
-                document.getElementById("Ella").style.display = "none";
-                document.getElementById("Degviela").style.display = "none";
                 document.getElementById("status").textContent = shiftStartTime ? "Statuss: Maiņa sākta" : "Statuss: Gaidīšana";
                 document.getElementById("startTimeDisplay").innerText = "";
             }
@@ -121,9 +117,13 @@
             if (shiftStartTime || activeJob) {
                 document.getElementById("AtWork").style.display = "none";
                 document.getElementById("LeaveWork").style.display = "block";
+                document.getElementById("Ella").style.display = "block";
+                document.getElementById("Degviela").style.display = "block";
             } else {
                 document.getElementById("AtWork").style.display = "block";
                 document.getElementById("LeaveWork").style.display = "none";
+                document.getElementById("Ella").style.display = "none";
+                document.getElementById("Degviela").style.display = "none";
             }
 
             renderTable(allSchedule.filter(e => e.worker_name === user.name));
@@ -183,28 +183,66 @@
     }
 };
 
-    // --- DEGVIELAS UN EĻĻAS POGAS ---
-    document.getElementById("Degviela").onclick = async () => {
-        let deg = prompt("Ievadi litrus:");
-        if (!deg) return;
-        await fetch('/api/update-resources', {
+   // --- DEGVIELAS POGA ---
+document.getElementById("Degviela").onclick = async () => {
+    const izveletaMasina = document.getElementById("car").value;
+
+    if (!izveletaMasina) {
+        alert("Lūdzu, vispirms izvēlies mašīnu sarakstā!");
+        return;
+    }
+
+    let deg = prompt(`Cik litrus degvielas ielēji mašīnai ${izveletaMasina}?`);
+    if (!deg) return;
+
+    try {
+        const res = await fetch('/api/update-resources', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ worker_name: user.name, type: 'Degviela', amount: deg.replace(',', '.') })
+            body: JSON.stringify({ 
+                worker_name: user.name, 
+                car: izveletaMasina, 
+                type: 'Degviela', 
+                amount: deg.replace(',', '.') 
+            })
         });
-        alert("Saglabāts!");
-    };
+
+        if (res.ok) alert(`Saglabāts: ${izveletaMasina} ielieti ${deg} l degvielas.`);
+    } catch (err) {
+        console.error("Kļūda:", err);
+    }
+};
 
     document.getElementById("Ella").onclick = async () => {
-        let ell = prompt("Ievadi litrus:");
-        if (!ell) return;
-        await fetch('/api/update-resources', {
+    // 1. Paņemam mašīnu no saraksta, kas jau ir izvēlēta lapā
+    const izveletaMasina = document.getElementById("car").value;
+
+    if (!izveletaMasina) {
+        alert("Lūdzu, vispirms izvēlies mašīnu sarakstā!");
+        return;
+    }
+
+    // 2. Pajautājam litrus
+    let ell = prompt(`Cik litrus eļļas ielēji mašīnai ${izveletaMasina}?`);
+    if (!ell) return;
+
+    try {
+        const res = await fetch('/api/update-resources', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ worker_name: user.name, type: 'Ella', amount: ell.replace(',', '.') })
+            body: JSON.stringify({ 
+                worker_name: user.name, 
+                car: izveletaMasina, 
+                type: 'Ella', 
+                amount: ell.replace(',', '.') 
+            })
         });
-        alert("Saglabāts!");
-    };
+
+        if (res.ok) alert(`Saglabāts: ${izveletaMasina} ielieti ${ell} l eļļas.`);
+    } catch (err) {
+        console.error("Kļūda:", err);
+    }
+};
 
     // --- DARBA SĀKŠANA/BEIGŠANA (UZDEVUMI) ---
     document.getElementById("startBtn").onclick = async () => {
