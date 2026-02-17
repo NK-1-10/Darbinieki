@@ -210,12 +210,11 @@ document.getElementById("LeaveWork").onclick = async () => {
     
     if (shiftStartRaw) {
         const sākums = new Date(shiftStartRaw);
-        // Aprēķinām nostrādātās stundas (milisekundes / 3600000)
         const starpibaMs = tagad - sākums;
         nostradatasStundas = (starpibaMs / 3600000).toFixed(2);
     }
 
-    // Sagatavojam datus atbilstoši tavai DB struktūrai
+    // Dati, ko prasa tava tabula
     const data = {
         darbinieks: user.name,
         datums: tagad.toLocaleDateString('lv-LV'), 
@@ -234,14 +233,11 @@ document.getElementById("LeaveWork").onclick = async () => {
 
         if (res.ok) {
             localStorage.removeItem(`shift_start_${user.name}`);
-            alert(`Darba diena pabeigta! Nostrādāts: ${nostradatasStundas} h`);
+            alert(`Dati saglabāti! Nostrādāts: ${nostradatasStundas} h`);
             location.reload();
-        } else {
-            alert("Servera kļūda, saglabājot darba stundas.");
         }
     } catch (err) {
         console.error("Kļūda:", err);
-        alert("Neizdevās savienoties ar serveri.");
     }
 };
 
