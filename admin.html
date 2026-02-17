@@ -106,8 +106,7 @@ body { font-family: system-ui, -apple-system, sans-serif; margin: 0; background:
 
     <div style="flex: 1;">
     <h3> Darba laika uzskaite </h3>
-    <div id="newTableContainer" class="table-box"></div>
-</div>
+    <div id="newTableContainer" class="table-box"></div> </div>
     
 </div>
 
@@ -229,23 +228,30 @@ body { font-family: system-ui, -apple-system, sans-serif; margin: 0; background:
 
         document.getElementById("oilContainer").innerHTML = resursi.length ? oilHtml + "</table>" : "<p style='padding:15px;'>Nav resursu datu.</p>";
    
-      // --- DIENAS KOPSAVILKUMA TABULA ---
-let summaryHtml = `<table>
-    <tr>
-        <th>Darbinieks</th>
-        <th>Datums</th>
-        <th>Stundas</th>
-    </tr>`;
+      // --- DARBA LAIKA UZSKAITES TABULA (Jaunā) ---
+        let summaryHtml = `<table>
+            <tr>
+                <th>Darbinieks</th>
+                <th>Datums</th>
+                <th>Sākums</th>
+                <th>Beigas</th>
+                <th>Mēnesis</th>
+                <th>Stundas</th>
+            </tr>`;
 
-summaryHtml += daySummary.map(s => `
-    <tr>
-        <td>${s.darbinieks}</td>
-        <td>${s.datums}</td>
-        <td style="font-weight:bold; color:#007bff;">${parseFloat(s.stundas).toFixed(2)} h</td>
-    </tr>`).join("");
+        summaryHtml += daySummary.map(s => `
+            <tr>
+                <td>${s.darbinieks}</td>
+                <td>${s.datums}</td>
+                <td>${s.sāka_darbu || '-'}</td>
+                <td>${s.beidza_darbu || '-'}</td>
+                <td>${s.month || '-'}</td>
+                <td style="font-weight:bold; color:#007bff;">${parseFloat(s.stundas || 0).toFixed(2)} h</td>
+            </tr>`).join("");
 
-document.getElementById("summaryContainer").innerHTML = daySummary.length ? summaryHtml + "</table>" : "<p style='padding:10px;'>Nav kopsavilkumu.</p>";
-    }
+        // IZLABOTS: Izmantojam pareizo ID 'newTableContainer'
+        document.getElementById("newTableContainer").innerHTML = daySummary.length ? summaryHtml + "</table>" : "<p style='padding:10px;'>Nav ierakstu.</p>";
+    } // Funkcijas renderTables beigas
 
     // Event Listeners
     ["filterMonth", "filterWorker", "filterDate", "filterCar", "sortBy"].forEach(id => {
