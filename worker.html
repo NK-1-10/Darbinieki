@@ -97,33 +97,24 @@
             const activeJob = allSchedule.find(e => e.worker_name === user.name && !e.beigu_laiks);
             const shiftStartTime = localStorage.getItem(`shift_start_${user.name}`);
 
-           if (activeJob) {
+if (activeJob) {
     document.getElementById("startBtn").style.display = "none";
     document.getElementById("stopBtn").style.display = "block";
-    
-    // Rādām pogas tikai tad, kad ir aktīvs darbs ar auto
     document.getElementById("Ella").style.display = "block";
     document.getElementById("Degviela").style.display = "block";
-
     [carSelect, objectSelect, workSelect].forEach(s => s.disabled = true);
     
+    // Šis ir svarīgi, lai selekti rādītu to, ko darbinieks šobrīd dara
     carSelect.value = activeJob.car;
-    objectSelect.value = activeJob.objekts || "";
-    workSelect.value = activeJob.darbs || "";
-    
-    document.getElementById("status").innerHTML = `Strādā: <b>${activeJob.objekts}</b> (${activeJob.car})`;
-    document.getElementById("startTimeDisplay").innerText = `Sāki: ${activeJob.sākuma_laiks}`;
+    objectSelect.value = activeJob.objekts;
+    workSelect.value = activeJob.darbs;
 } else {
+    // Ja maiņa ir sākta, bet konkrēts darbs (mašīna) nē
     [carSelect, objectSelect, workSelect].forEach(s => s.disabled = false);
     document.getElementById("startBtn").style.display = shiftStartTime ? "block" : "none";
     document.getElementById("stopBtn").style.display = "none";
-
-    // Paslēpjam pogas, ja aktīva darba (uzdevuma) nav
     document.getElementById("Ella").style.display = "none";
     document.getElementById("Degviela").style.display = "none";
-
-    document.getElementById("status").textContent = shiftStartTime ? "Statuss: Maiņa sākta" : "Statuss: Gaidīšana";
-    document.getElementById("startTimeDisplay").innerText = "";
 }
 
             if (shiftStartTime || activeJob) {
