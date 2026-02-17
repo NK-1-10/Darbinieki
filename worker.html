@@ -48,6 +48,23 @@
             <button id="Degviela" class="fuel-btn" style="display:none; background: #fd7e14; color: white;">Pielej Degvielu</button>
         </div>
 
+        <div id="resourceModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+    <div style="background:white; padding:25px; border-radius:12px; width:90%; max-width:400px; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
+        <h3 id="modalTitle" style="margin-top:0;">Pievienot resursu</h3>
+        
+        <label>Izvēlies mašīnu:</label>
+        <select id="modalCarSelect" style="width:100%; padding:10px; margin: 10px 0 20px 0; border-radius:8px; border:1px solid #ccc;"></select>
+        
+        <label>Ievadi litrus:</label>
+        <input type="number" id="modalAmountInput" step="0.01" placeholder="0.00" style="width:100%; padding:10px; margin: 10px 0 20px 0; border-radius:8px; border:1px solid #ccc; box-sizing: border-box;">
+        
+        <div style="display:flex; gap:10px;">
+            <button id="modalCancel" style="flex:1; background:#6c757d; color:white; padding:12px; border-radius:8px; border:none; cursor:pointer;">Atcelt</button>
+            <button id="modalSave" style="flex:1; background:#28a745; color:white; padding:12px; border-radius:8px; border:none; cursor:pointer; font-weight:bold;">Saglabāt</button>
+        </div>
+    </div>
+</div>
+
         <button id="logoutBtn">Izrakstīties</button>
     </div>
 
@@ -56,7 +73,6 @@
 
 <script>
     const user = JSON.parse(localStorage.getItem("loggedInUser"));
-
     if (!user) { window.location.href = "index.html"; } 
     else if (user.role === "admin") { window.location.href = "admin.html"; }
 
@@ -66,7 +82,65 @@
     const objectSelect = document.getElementById("object");
     const workSelect = document.getElementById("work");
     const tableContainer = document.getElementById("tableContainer");
+    
+    let currentResourceType = ""; 
 
+    // --- MODĀLĀ LOGA FUNKCIJAS ---
+    function openResourceModal(type) {
+        currentResourceType = type;
+        document.getElementById("modalTitle").innerText = type === "Ella" ? "Eļļas pieliešana" : "Degvielas uzpilde";
+        
+        const mainSelect = document.getElementById("car");
+        const modalSelect = document.getElementById("modalCarSelect");
+        
+        // Pārkopējam opcijas no galvenā selekta
+        modalSelect.innerHTML = mainSelect.innerHTML; 
+        modalSelect.value = mainSelect.value;
+
+        document.getElementById("resourceModal").style.display = "flex";
+    }
+
+    document.getElementById("Ella").onclick = () => openResourceModal("Ella");
+    document.getElementById("Degviela").onclick = () => openResourceModal("Degviela");
+
+    document.getElementById("modalCancel").onclick = () => {
+        document.getElementById("resourceModal").style.display = "none";
+        document.getElementById("modalAmountInput").value = "";
+    };
+
+    document.getElementById("modalSave").onclick = async () => {
+        const auto = document.getElementById("modalCarSelect").value;
+        const litri = document.getElementById("modalAmountInput").value;
+
+        if (!auto) return alert("Izvēlies mašīnu!");
+        if (!litri || litri <= 0) return alert("Ievadi derīgu litru daudzumu!");
+
+        try {
+            const res = await fetch('/api/update-resources', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    worker_name: user.name, 
+                    car: auto, 
+                    type: currentResourceType, 
+                    amount: litri.replace(',', '.') 
+                })
+            });
+
+            if (res.ok) {
+                alert(`Veiksmīgi saglabāts: ${auto} ielieti ${litri} l.`);
+                document.getElementById("resourceModal").style.display = "none";
+                document.getElementById("modalAmountInput").value = "";
+            } else {
+                alert("Kļūda saglabājot datus.");
+            }
+        } catch (err) {
+            console.error("Kļūda:", err);
+            alert("Servera savienojuma kļūda.");
+        }
+    };
+
+    // --- PAMATDATU IELĀDE ---
     function fillSelect(selectEl, data, defaultText) {
         const currentVal = selectEl.value;
         selectEl.innerHTML = `<option value="">${defaultText}</option>`;
@@ -97,6 +171,7 @@
             const activeJob = allSchedule.find(e => e.worker_name === user.name && !e.beigu_laiks);
             const shiftStartTime = localStorage.getItem(`shift_start_${user.name}`);
 
+            // UI stāvokļa pārvaldība
             if (activeJob) {
                 document.getElementById("startBtn").style.display = "none";
                 document.getElementById("stopBtn").style.display = "block";
@@ -130,130 +205,56 @@
         } catch (err) { console.error("Kļūda:", err); }
     }
 
-    // --- MAIŅAS SĀKŠANA ---
+    // --- MAIŅAS UN UZDEVUMU VADĪBA ---
     document.getElementById("AtWork").onclick = () => {
         const sākumaLaiks = new Date();
         localStorage.setItem(`shift_start_${user.name}`, sākumaLaiks.toISOString());
         loadWorkerData();
     };
 
-    // --- MAIŅAS BEIGŠANA ---
     document.getElementById("LeaveWork").onclick = async () => {
-    if (!confirm("Beigt darba dienu?")) return;
-    
-    const tagad = new Date();
-    
-    try {
-        // 1. PIEVIENOTS: Automātiski noslēdzam aktīvo uzdevumu, ja tāds ir
-        await fetch('/api/stop-work', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                worker_name: user.name, 
-                end_time: `${tagad.toLocaleDateString('lv-LV')} ${tagad.toLocaleTimeString('lv-LV')}` 
-            })
-        });
+        if (!confirm("Beigt darba dienu?")) return;
+        const tagad = new Date();
+        try {
+            await fetch('/api/stop-work', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    worker_name: user.name, 
+                    end_time: `${tagad.toLocaleDateString('lv-LV')} ${tagad.toLocaleTimeString('lv-LV')}` 
+                })
+            });
 
-        const shiftStartRaw = localStorage.getItem(`shift_start_${user.name}`);
-        let nostradatasStundas = 0;
-        if (shiftStartRaw) {
-            const sākums = new Date(shiftStartRaw);
-            nostradatasStundas = ((tagad - sākums) / 3600000).toFixed(2);
-        }
+            const shiftStartRaw = localStorage.getItem(`shift_start_${user.name}`);
+            let nostradatasStundas = 0;
+            if (shiftStartRaw) {
+                const sākums = new Date(shiftStartRaw);
+                nostradatasStundas = ((tagad - sākums) / 3600000).toFixed(2);
+            }
 
-        const data = {
-            darbinieks: user.name,
-            datums: tagad.toLocaleDateString('lv-LV'), 
-            sāka_darbu: shiftStartRaw ? new Date(shiftStartRaw).toLocaleTimeString('lv-LV') : "--",
-            beidza_darbu: tagad.toLocaleTimeString('lv-LV'),
-            month: new Intl.DateTimeFormat('lv-LV', { month: 'long' }).format(tagad), 
-            stundas: parseFloat(nostradatasStundas) || 0
-        };
+            const data = {
+                darbinieks: user.name,
+                datums: tagad.toLocaleDateString('lv-LV'), 
+                sāka_darbu: shiftStartRaw ? new Date(shiftStartRaw).toLocaleTimeString('lv-LV') : "--",
+                beidza_darbu: tagad.toLocaleTimeString('lv-LV'),
+                month: new Intl.DateTimeFormat('lv-LV', { month: 'long' }).format(tagad), 
+                stundas: parseFloat(nostradatasStundas) || 0
+            };
 
-        const res = await fetch('/api/darba-stundas', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
+            const res = await fetch('/api/darba-stundas', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
 
-        if (res.ok) {
-            // Svarīgi: Notīram sākuma laiku
-            localStorage.removeItem(`shift_start_${user.name}`);
-            alert(`Dati saglabāti! Nostrādāts: ${nostradatasStundas} h`);
-            // Pārlādējam lapu uz tīru stāvokli
-            window.location.reload(); 
-        }
-    } catch (err) {
-        console.error("Kļūda:", err);
-    }
-};
+            if (res.ok) {
+                localStorage.removeItem(`shift_start_${user.name}`);
+                alert(`Dati saglabāti! Nostrādāts: ${nostradatasStundas} h`);
+                window.location.reload(); 
+            }
+        } catch (err) { console.error("Kļūda:", err); }
+    };
 
-   // --- DEGVIELAS POGA ---
-document.getElementById("Degviela").onclick = async () => {
-    // 1. Pajautājam mašīnu
-    let auto = prompt("Kurai mašīnai ielēji degvielu? (Ievadi numuru vai nosaukumu):");
-    if (!auto) return;
-
-    // 2. Pajautājam litrus
-    let deg = prompt(`Cik litrus degvielas ielēji mašīnai ${auto}?`);
-    if (!deg) return;
-
-    try {
-        const res = await fetch('/api/update-resources', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                worker_name: user.name, 
-                car: auto, 
-                type: 'Degviela', 
-                amount: deg.replace(',', '.') 
-            })
-        });
-
-        if (res.ok) {
-            alert(`Saglabāts: ${auto} ielieti ${deg} l degvielas.`);
-        } else {
-            alert("Kļūda: Serveris nevarēja saglabāt datus.");
-        }
-    } catch (err) {
-        console.error("Kļūda:", err);
-        alert("Neizdevās sazināties ar serveri.");
-    }
-};
-
-    document.getElementById("Ella").onclick = async () => {
-    // 1. Pajautājam mašīnas numuru vai nosaukumu
-    let auto = prompt("Kurai mašīnai pieleji eļļu? (Ievadi numuru vai nosaukumu):");
-    if (!auto) return; // Ja nospiež Cancel, pārtraucam
-
-    // 2. Pajautājam litrus
-    let ell = prompt(`Cik litrus eļļas ielēji mašīnai ${auto}?`);
-    if (!ell) return; // Ja nospiež Cancel, pārtraucam
-
-    try {
-        const res = await fetch('/api/update-resources', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                worker_name: user.name, 
-                car: auto, // Izmantojam tikko ievadīto mašīnu
-                type: 'Ella', 
-                amount: ell.replace(',', '.') 
-            })
-        });
-
-        if (res.ok) {
-            alert(`Saglabāts: ${auto} ielieti ${ell} l eļļas.`);
-        } else {
-            alert("Kļūda: Neizdevās saglabāt datus serverī.");
-        }
-    } catch (err) {
-        console.error("Kļūda:", err);
-        alert("Sistēmas kļūda! Pārbaudi interneta savienojumu.");
-    }
-};
-
-    // --- DARBA SĀKŠANA/BEIGŠANA (UZDEVUMI) ---
     document.getElementById("startBtn").onclick = async () => {
         if (!carSelect.value || !objectSelect.value || !workSelect.value) return alert("Aizpildi laukus!");
         const now = new Date();
