@@ -194,28 +194,32 @@ app.delete('/api/schedule', async (req, res) => {
 // --- 4.5 RESURSU ATJAUNINĀŠANA (Eļļa/Degviela) ---
 app.post('/api/update-resources', async (req, res) => {
     const { worker_name, car, type, amount } = req.body;
+    // Izmantojam tieši tos nosaukumus, kas redzami tavā attēlā
     const column = type === 'Ella' ? 'pielietā_eļļa' : 'pielietā_degviela';
-    
-    try {
-        // Atjaunina pēdējo AKTĪVO ierakstu šim darbiniekam
-        const query = `
-            UPDATE schedule 
-            SET ${column} = $1 
-            WHERE id = (
-                SELECT id FROM schedule 
-                WHERE worker_name = $2 AND beigu_laiks IS NULL 
-                ORDER BY id DESC LIMIT 1
-            )
-        `;
-        const result = await pool.query(query, [parseFloat(amount), worker_name]);
+    const litri = parseFloat(amount) || 0;
 
-        if (result.rowCount > 0) {
-            res.json({ success: true });
+    try {
+        // 1. Meklējam pēdējo atvērto darbu šim darbiniekam tabulā 'schedule'
+        const activeJob = await pool.query(
+            'SELECT id FROM schedule WHERE worker_name = $1 AND beigu_laiks IS NULL ORDER BY id DESC LIMIT 1',
+            [worker_name]
+        );
+
+        if (activeJob.rows.length > 0) {
+            // Ja ir aktīvs darbs, atjauninām resursus tajā
+            await pool.query(
+                `UPDATE schedule SET ${column} = COALESCE(${column}, 0) + $1 WHERE id = $2`,
+                [litri, activeJob.rows[0].id]
+            );
+            res.sendStatus(200);
         } else {
-            res.status(404).json({ error: "Nav aktīva darba procesa! Vispirms nospied 'Sākt darbu'." });
+            // Ja nav aktīva darba, nevaram piesaistīt resursus esošai rindai
+            // Tāpēc izmetam kļūdu vai izveidojam jaunu ierakstu
+            res.status(400).send("Nav aktīva darba, kuram piesaistīt resursus.");
         }
     } catch (err) {
-        res.status(500).json({ error: "DB kļūda" });
+        console.error(err);
+        res.status(500).send("Sistēmas kļūda");
     }
 });
 
