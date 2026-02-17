@@ -140,10 +140,44 @@
         } catch (err) { console.error("Kļūda:", err); }
     }
 
-    document.getElementById("AtWork").onclick = () => {
-        localStorage.setItem(`shift_start_${user.name}`, new Date().toISOString());
-        loadWorkerData();
+    //document.getElementById("AtWork").onclick = () => {
+        //localStorage.setItem(`shift_start_${user.name}`, new Date().toISOString());
+        //loadWorkerData();
+    //};
+
+    document.getElementById("AtWork").onclick = async () => {
+    const tagad = new Date();
+    
+    // Sagatavojam datumu formātā DD.MM.YYYY
+    const datums = tagad.toLocaleDateString('lv-LV').replace(/\//g, '.'); 
+    // Sagatavojam laiku formātā HH:mm:ss
+    const laiks = tagad.toTimeString().split(' ')[0];
+    
+    const startTimeString = `${datums} ${laiks}`; // Rezultāts: "17.02.2026 18:05:00"
+
+    const data = {
+        worker_name: user.name,
+        car: izveletaMasina, // Te jābūt mainīgajam ar mašīnas nosaukumu
+        start_time: startTimeString,
+        objekts: izveletaisObjekts,
+        darbs: izveletaisDarbs
     };
+
+    try {
+        const response = await fetch('/api/start-work', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        
+        if (response.ok) {
+            localStorage.setItem(`shift_start_${user.name}`, startTimeString);
+            loadWorkerData();
+        }
+    } catch (err) {
+        console.error("Kļūda uzsākot darbu:", err);
+    }
+};
 
    // --- DEGVIELAS POGA ---
 document.getElementById("Degviela").onclick = async () => {
