@@ -97,34 +97,26 @@
             const activeJob = allSchedule.find(e => e.worker_name === user.name && !e.beigu_laiks);
             const shiftStartTime = localStorage.getItem(`shift_start_${user.name}`);
 
-           if (activeJob) {
-    document.getElementById("startBtn").style.display = "none";
-    document.getElementById("stopBtn").style.display = "block";
-    
-    // Rādām pogas tikai tad, kad ir aktīvs darbs ar auto
-    document.getElementById("Ella").style.display = "block";
-    document.getElementById("Degviela").style.display = "block";
-
-    [carSelect, objectSelect, workSelect].forEach(s => s.disabled = true);
-    
-    carSelect.value = activeJob.car;
-    objectSelect.value = activeJob.objekts || "";
-    workSelect.value = activeJob.darbs || "";
-    
-    document.getElementById("status").innerHTML = `Strādā: <b>${activeJob.objekts}</b> (${activeJob.car})`;
-    document.getElementById("startTimeDisplay").innerText = `Sāki: ${activeJob.sākuma_laiks}`;
-} else {
-    [carSelect, objectSelect, workSelect].forEach(s => s.disabled = false);
-    document.getElementById("startBtn").style.display = shiftStartTime ? "block" : "none";
-    document.getElementById("stopBtn").style.display = "none";
-
-    // Paslēpjam pogas, ja aktīva darba (uzdevuma) nav
-    document.getElementById("Ella").style.display = "none";
-    document.getElementById("Degviela").style.display = "none";
-
-    document.getElementById("status").textContent = shiftStartTime ? "Statuss: Maiņa sākta" : "Statuss: Gaidīšana";
-    document.getElementById("startTimeDisplay").innerText = "";
-}
+            if (activeJob) {
+                document.getElementById("startBtn").style.display = "none";
+                document.getElementById("stopBtn").style.display = "block";
+                document.getElementById("Ella").style.display = "block";
+                document.getElementById("Degviela").style.display = "block";
+                [carSelect, objectSelect, workSelect].forEach(s => s.disabled = true);
+                carSelect.value = activeJob.car;
+                objectSelect.value = activeJob.objekts || "";
+                workSelect.value = activeJob.darbs || "";
+                document.getElementById("status").innerHTML = `Strādā: <b>${activeJob.objekts}</b> (${activeJob.car})`;
+                document.getElementById("startTimeDisplay").innerText = `Sāki: ${activeJob.sākuma_laiks}`;
+            } else {
+                [carSelect, objectSelect, workSelect].forEach(s => s.disabled = false);
+                document.getElementById("startBtn").style.display = shiftStartTime ? "block" : "none";
+                document.getElementById("stopBtn").style.display = "none";
+                document.getElementById("Ella").style.display = "none";
+                document.getElementById("Degviela").style.display = "none";
+                document.getElementById("status").textContent = shiftStartTime ? "Statuss: Maiņa sākta" : "Statuss: Gaidīšana";
+                document.getElementById("startTimeDisplay").innerText = "";
+            }
 
             if (shiftStartTime || activeJob) {
                 document.getElementById("AtWork").style.display = "none";
@@ -132,125 +124,80 @@
             } else {
                 document.getElementById("AtWork").style.display = "block";
                 document.getElementById("LeaveWork").style.display = "none";
-                document.getElementById("Ella").style.display = "none";
-                document.getElementById("Degviela").style.display = "none";
             }
 
             renderTable(allSchedule.filter(e => e.worker_name === user.name));
         } catch (err) { console.error("Kļūda:", err); }
     }
 
-   // --- MAIŅAS SĀKŠANA ---
-document.getElementById("AtWork").onclick = () => {
-    const sākumaLaiks = new Date();
-    // Saglabājam pilnu ISO datumu, lai vēlāk precīzi izrēķinātu starpību
-    localStorage.setItem(`shift_start_${user.name}`, sākumaLaiks.toISOString());
-    loadWorkerData();
-};
-    
-   // --- DEGVIELAS POGA ---
-document.getElementById("Degviela").onclick = async () => {
-    let degviela = prompt("Ievadi, cik litrus degvielas ielēji:", "");
-    if (degviela === null || degviela === "") return;
-
-    const amount = parseFloat(degviela.replace(',', '.'));
-    if (isNaN(amount)) return alert("Lūdzu, ievadi derīgu skaitli!");
-
-    try {
-        const res = await fetch('/api/update-resources', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                worker_name: user.name,
-                type: 'Degviela', // PAREIZS TIPS
-                amount: amount
-            })
-        });
-
-        if (res.ok) alert(`Veiksmīgi saglabāts: ${amount}L degvielas.`);
-        else alert("Kļūda saglabājot datus. Pārliecinies, ka darbs ir sākts!");
-    } catch (err) {
-        console.error("Kļūda:", err);
-    }
-};
-
-// --- EĻĻAS POGA ---
-document.getElementById("Ella").onclick = async () => {
-    let ella = prompt("Ievadi, cik daudz eļļas ielēji (litros):", "");
-    if (ella === null || ella === "") return;
-
-    const amount = parseFloat(ella.replace(',', '.'));
-    if (isNaN(amount)) return alert("Lūdzu, ievadi derīgu skaitli!");
-
-    try {
-        const res = await fetch('/api/update-resources', { // NOMAINĪTS CEĻŠ UZ PAREIZO
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                worker_name: user.name,
-                type: 'Ella', // PAREIZS TIPS
-                amount: amount
-            })
-        });
-
-        if (res.ok) alert(`Veiksmīgi saglabāts: ${amount}L eļļas.`);
-        else alert("Kļūda saglabājot datus. Pārliecinies, ka darbs ir sākts!");
-    } catch (err) {
-        console.error("Kļūda:", err);
-    }
-};
-
-    // --- MAIŅAS BEIGŠANA (Sūta datus uz "DarbaStundas") ---
-document.getElementById("LeaveWork").onclick = async () => {
-    if (!confirm("Beigt darba dienu?")) return;
-    
-    const tagad = new Date();
-    const shiftStartRaw = localStorage.getItem(`shift_start_${user.name}`);
-    let nostradatasStundas = 0;
-    
-    if (shiftStartRaw) {
-        const sākums = new Date(shiftStartRaw);
-        const starpibaMs = tagad - sākums;
-        nostradatasStundas = (starpibaMs / 3600000).toFixed(2);
-    }
-
-    // Dati, ko prasa tava tabula
-    const data = {
-        darbinieks: user.name,
-        datums: tagad.toLocaleDateString('lv-LV'), 
-        sāka_darbu: shiftStartRaw ? new Date(shiftStartRaw).toLocaleTimeString('lv-LV') : "--",
-        beidza_darbu: tagad.toLocaleTimeString('lv-LV'),
-        month: new Intl.DateTimeFormat('lv-LV', { month: 'long' }).format(tagad), 
-        stundas: parseFloat(nostradatasStundas) || 0
+    // --- MAIŅAS SĀKŠANA ---
+    document.getElementById("AtWork").onclick = () => {
+        const sākumaLaiks = new Date();
+        localStorage.setItem(`shift_start_${user.name}`, sākumaLaiks.toISOString());
+        loadWorkerData();
     };
 
-    try {
-        const res = await fetch('/api/darba-stundas', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-
-        if (res.ok) {
-            localStorage.removeItem(`shift_start_${user.name}`);
-            alert(`Dati saglabāti! Nostrādāts: ${nostradatasStundas} h`);
-            location.reload();
+    // --- MAIŅAS BEIGŠANA ---
+    document.getElementById("LeaveWork").onclick = async () => {
+        if (!confirm("Beigt darba dienu?")) return;
+        const tagad = new Date();
+        const shiftStartRaw = localStorage.getItem(`shift_start_${user.name}`);
+        let nostradatasStundas = 0;
+        
+        if (shiftStartRaw) {
+            const sākums = new Date(shiftStartRaw);
+            const starpibaMs = tagad - sākums;
+            nostradatasStundas = (starpibaMs / 3600000).toFixed(2);
         }
-    } catch (err) {
-        console.error("Kļūda:", err);
-    }
-};
 
-        await fetch('/api/darba-stundas', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
+        const data = {
+            darbinieks: user.name,
+            datums: tagad.toLocaleDateString('lv-LV'), 
+            sāka_darbu: shiftStartRaw ? new Date(shiftStartRaw).toLocaleTimeString('lv-LV') : "--",
+            beidza_darbu: tagad.toLocaleTimeString('lv-LV'),
+            month: new Intl.DateTimeFormat('lv-LV', { month: 'long' }).format(tagad), 
+            stundas: parseFloat(nostradatasStundas) || 0
+        };
 
-        localStorage.removeItem(`shift_start_${user.name}`);
-        location.reload();
+        try {
+            const res = await fetch('/api/darba-stundas', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            if (res.ok) {
+                localStorage.removeItem(`shift_start_${user.name}`);
+                alert(`Dati saglabāti! Nostrādāts: ${nostradatasStundas} h`);
+                location.reload();
+            }
+        } catch (err) { console.error("Kļūda:", err); }
     };
 
+    // --- DEGVIELAS UN EĻĻAS POGAS ---
+    document.getElementById("Degviela").onclick = async () => {
+        let deg = prompt("Ievadi litrus:");
+        if (!deg) return;
+        await fetch('/api/update-resources', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ worker_name: user.name, type: 'Degviela', amount: deg.replace(',', '.') })
+        });
+        alert("Saglabāts!");
+    };
+
+    document.getElementById("Ella").onclick = async () => {
+        let ell = prompt("Ievadi litrus:");
+        if (!ell) return;
+        await fetch('/api/update-resources', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ worker_name: user.name, type: 'Ella', amount: ell.replace(',', '.') })
+        });
+        alert("Saglabāts!");
+    };
+
+    // --- DARBA SĀKŠANA/BEIGŠANA (UZDEVUMI) ---
     document.getElementById("startBtn").onclick = async () => {
         if (!carSelect.value || !objectSelect.value || !workSelect.value) return alert("Aizpildi laukus!");
         const now = new Date();
