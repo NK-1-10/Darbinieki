@@ -220,11 +220,14 @@ app.post('/api/darba-stundas', async (req, res) => {
     const { darbinieks, datums, sāka_darbu, beidza_darbu, month, stundas } = req.body;
     try {
         await pool.query(
-            'INSERT INTO "DarbaStundas" (darbinieks, datums, sāka_darbu, beidza_darbu, month, stundas) VALUES ($1,$2,$3,$4,$5,$6)',
-            [darbinieks, datums, sāka_darbu, beidza_darbu, month, parseFloat(stundas) || 0]
+            'INSERT INTO "DarbaStundas" (darbinieks, datums, sāka_darbu, beidza_darbu, month, stundas) VALUES ($1, $2, $3, $4, $5, $6)',
+            [darbinieks, datums, sāka_darbu, beidza_darbu, month, stundas]
         );
-        res.json({ success: true });
-    } catch (err) { res.status(500).json({ error: err.message }); }
+        res.status(200).send("OK"); // Obligāti jānosūta atbilde atpakaļ!
+    } catch (err) {
+        console.error("DB Kļūda:", err);
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // --- 5.1 ATSKAIŠU IEGŪŠANA (Adminam) ---
