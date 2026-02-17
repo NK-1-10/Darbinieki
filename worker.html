@@ -287,13 +287,32 @@
     };
 
     function renderTable(data) {
-        if (!data || !data.length) { tableContainer.innerHTML = "Nav ierakstu."; return; }
-        let html = `<table><tr><th>Auto</th><th>Objekts</th><th>Darbs</th><th>Sākums</th><th>Beigas</th><th>Stundas</th></tr>`;
-        data.slice().reverse().forEach(e => {
-            html += `<tr><td>${e.car}</td><td>${e.objekts || '-'}</td><td>${e.darbs || '-'}</td><td>${e.sākuma_laiks || '-'}</td><td>${e.beigu_laiks || 'Aktīvs'}</td><td>${e.hours ? e.hours + ' h' : '-'}</td></tr>`;
-        });
-        tableContainer.innerHTML = html + "</table>";
+    if (!data || !data.length) { 
+        tableContainer.innerHTML = "Nav ierakstu."; 
+        return; 
     }
+    
+    // Pievienojam galvenei Eļļas un Degvielas kolonnas
+    let html = `<table><tr><th>Auto</th><th>Objekts</th><th>Darbs</th><th>Sākums</th><th>Beigas</th><th>Eļļa</th><th>Degv.</th><th>Stundas</th></tr>`;
+    
+    data.slice().reverse().forEach(e => {
+        // Pārliecināmies, ka nolasa pareizos laukus no 'schedule' tabulas
+        const ella = e.pielietā_eļļa || '0';
+        const degviela = e.pielietā_degviela || '0';
+        
+        html += `<tr>
+            <td>${e.car}</td>
+            <td>${e.objekts || '-'}</td>
+            <td>${e.darbs || '-'}</td>
+            <td>${e.sākuma_laiks || '-'}</td>
+            <td>${e.beigu_laiks || 'Aktīvs'}</td>
+            <td style="color:#6f42c1; font-weight:bold;">${ella} L</td>
+            <td style="color:#fd7e14; font-weight:bold;">${degviela} L</td>
+            <td>${e.hours ? e.hours + ' h' : '-'}</td>
+        </tr>`;
+    });
+    tableContainer.innerHTML = html + "</table>";
+}
 
     document.getElementById("logoutBtn").onclick = () => {
         localStorage.removeItem("loggedInUser");
