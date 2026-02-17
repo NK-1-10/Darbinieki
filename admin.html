@@ -95,17 +95,17 @@ body { font-family: system-ui, -apple-system, sans-serif; margin: 0; background:
 
 <div id="tables-layout">
     <div style="flex: 3;">
-        <h3>Darba Gaitas Atskaite</h3>
+        <h3> Darba Gaitas Atskaite </h3>
         <div id="tableContainer" class="table-box"></div>
     </div>
 
     <div style="flex: 1;">
-        <h3>Eļļa un degvela</h3>
+        <h3> Eļļa un degvela </h3>
         <div id="oilContainer" class="table-box"></div>
     </div>
 
     <div style="flex: 1;">
-    <h3>Darba laika uzskaite/h3>
+    <h3> Darba laika uzskaite </h3>
     <div id="newTableContainer" class="table-box"></div>
 </div>
     
@@ -113,26 +113,28 @@ body { font-family: system-ui, -apple-system, sans-serif; margin: 0; background:
 
 <script>
     const MONTH_ORDER = ["Janvāris","Februāris","Marts","Aprīlis","Maijs","Jūnijs","Jūlijs","Augusts","Septembris","Oktobris","Novembris","Decembris"];
-    let workers = [], cars = [], schedule = [], works_types = [], objects = [], daySummary = [];
+    let workers = [], cars = [], schedule = [], works_types = [], objects = [], daySummary = []; // Pievieno daySummary
 
-    async function loadData() {
-        try {
-            const [wRes, cRes, sRes, wtRes, oRes] = await Promise.all([
-                fetch('/api/workers'), fetch('/api/cars'), fetch('/api/schedule'),
-                fetch('/api/work-types'), fetch('/api/objects')
-            ]);
-            
-            workers = await wRes.json();
-            cars = await cRes.json();
-            schedule = await sRes.json();
-            works_types = await wtRes.json();
-            objects = await oRes.json();
-            
-            renderSettings();
-            fillFilters();
-            renderTables(); 
-        } catch (err) { console.error("Datu ielādes kļūda:", err); }
-    }
+   async function loadData() {
+    try {
+        const [wRes, cRes, sRes, wtRes, oRes, dsRes] = await Promise.all([
+            fetch('/api/workers'), fetch('/api/cars'), fetch('/api/schedule'),
+            fetch('/api/work-types'), fetch('/api/objects'), 
+            fetch('/api/darba-stundas') // PIEPRASĪJUMS JAUNAJAM API
+        ]);
+        
+        workers = await wRes.json();
+        cars = await cRes.json();
+        schedule = await sRes.json();
+        works_types = await wtRes.json();
+        objects = await oRes.json();
+        daySummary = await dsRes.json(); // SAGLABĀJAM DATUS
+        
+        renderSettings();
+        fillFilters();
+        renderTables(); 
+    } catch (err) { console.error("Datu ielādes kļūda:", err); }
+}
 
     function renderSettings() {
         const renderList = (id, data, deleteFn) => {
