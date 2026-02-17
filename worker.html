@@ -139,40 +139,49 @@
 
     // --- MAIŅAS BEIGŠANA ---
     document.getElementById("LeaveWork").onclick = async () => {
-        if (!confirm("Beigt darba dienu?")) return;
-        const tagad = new Date();
-        const shiftStartRaw = localStorage.getItem(`shift_start_${user.name}`);
-        let nostradatasStundas = 0;
-        
-        if (shiftStartRaw) {
-            const sākums = new Date(shiftStartRaw);
-            const starpibaMs = tagad - sākums;
-            nostradatasStundas = (starpibaMs / 3600000).toFixed(2);
-        }
+    if (!confirm("Beigt darba dienu?")) return;
+    
+    const tagad = new Date();
+    const shiftStartRaw = localStorage.getItem(`shift_start_${user.name}`);
+    let nostradatasStundas = 0;
+    
+    if (shiftStartRaw) {
+        const sākums = new Date(shiftStartRaw);
+        const starpibaMs = tagad - sākums;
+        nostradatasStundas = (starpibaMs / 3600000).toFixed(2);
+    }
 
-        const data = {
-            darbinieks: user.name,
-            datums: tagad.toLocaleDateString('lv-LV'), 
-            sāka_darbu: shiftStartRaw ? new Date(shiftStartRaw).toLocaleTimeString('lv-LV') : "--",
-            beidza_darbu: tagad.toLocaleTimeString('lv-LV'),
-            month: new Intl.DateTimeFormat('lv-LV', { month: 'long' }).format(tagad), 
-            stundas: parseFloat(nostradatasStundas) || 0
-        };
-
-        try {
-            const res = await fetch('/api/darba-stundas', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
-
-            if (res.ok) {
-                localStorage.removeItem(`shift_start_${user.name}`);
-                alert(`Dati saglabāti! Nostrādāts: ${nostradatasStundas} h`);
-                location.reload();
-            }
-        } catch (err) { console.error("Kļūda:", err); }
+    const data = {
+        darbinieks: user.name,
+        datums: tagad.toLocaleDateString('lv-LV'), 
+        sāka_darbu: shiftStartRaw ? new Date(shiftStartRaw).toLocaleTimeString('lv-LV') : "--",
+        beidza_darbu: tagad.toLocaleTimeString('lv-LV'),
+        month: new Intl.DateTimeFormat('lv-LV', { month: 'long' }).format(tagad), 
+        stundas: parseFloat(nostradatasStundas) || 0
     };
+
+    try {
+        console.log("Sūtu datus:", data); // Apskaties šo pārlūka F12 konsolē
+        
+        const res = await fetch('/api/darba-stundas', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+
+        if (res.ok) {
+            localStorage.removeItem(`shift_start_${user.name}`);
+            alert(`Dati saglabāti! Nostrādāts: ${nostradatasStundas} h`);
+            location.reload();
+        } else {
+            const errorData = await res.json();
+            alert("Serveris noraidīja datus: " + (errorData.error || "Nezināma kļūda"));
+        }
+    } catch (err) {
+        console.error("Kļūda nosūtot:", err);
+        alert("Neizdevās sazināties ar serveri. Pārbaudi savienojumu!");
+    }
+};
 
     // --- DEGVIELAS UN EĻĻAS POGAS ---
     document.getElementById("Degviela").onclick = async () => {
