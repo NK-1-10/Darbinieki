@@ -140,10 +140,12 @@ app.delete('/api/work-types/:name', async (req, res) => {
 // --- 4. DARBA GAITA (SCHEDULE) ---
 app.get('/api/schedule', async (req, res) => {
     try {
-        // SELECT * paņem visas kolonnas, ieskaitot pielietā_eļļa un pielietā_degviela
-        const r = await pool.query("SELECT * FROM schedule ORDER BY id DESC");
-        res.json(r.rows);
-    } catch (err) { res.status(500).json({ error: err.message }); }
+        // Pārliecinies, ka SELECT daļā ir iepriekš izveidotās kolonnas 'ella' un 'degviela'
+        const result = await pool.query('SELECT *, sākuma_laiks::text as sākuma_laiks FROM darbastundas ORDER BY id DESC');
+        res.json(result.rows);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 app.post('/api/start-work', async (req, res) => {
