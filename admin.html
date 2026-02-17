@@ -228,6 +228,23 @@ body { font-family: system-ui, -apple-system, sans-serif; margin: 0; background:
         </tr>`).join("");
 
         document.getElementById("oilContainer").innerHTML = resursi.length ? oilHtml + "</table>" : "<p style='padding:15px;'>Nav resursu datu.</p>";
+   
+      // --- DIENAS KOPSAVILKUMA TABULA ---
+let summaryHtml = `<table>
+    <tr>
+        <th>Darbinieks</th>
+        <th>Datums</th>
+        <th>Stundas</th>
+    </tr>`;
+
+summaryHtml += daySummary.map(s => `
+    <tr>
+        <td>${s.darbinieks}</td>
+        <td>${s.datums}</td>
+        <td style="font-weight:bold; color:#007bff;">${parseFloat(s.stundas).toFixed(2)} h</td>
+    </tr>`).join("");
+
+document.getElementById("summaryContainer").innerHTML = daySummary.length ? summaryHtml + "</table>" : "<p style='padding:10px;'>Nav kopsavilkumu.</p>";
     }
 
     // Event Listeners
