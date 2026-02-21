@@ -83,21 +83,23 @@
     const tableContainer = document.getElementById("tableContainer");
     let currentResourceType = ""; 
 
-    // --- MODĀLĀ LOGA FUNKCIJAS ---
+    // --- MODAL LOGIC ---
     function openResourceModal(type) {
-    currentResourceType = type;
-    document.getElementById("modalTitle").innerText = type === "Ella" ? "Eļļas pieliešana" : "Degvielas uzpilde";
-    const modalSelect = document.getElementById("modalCarSelect");
-    
-    // Use the car already selected in the main interface
-    modalSelect.innerHTML = carSelect.innerHTML; 
-    modalSelect.value = carSelect.value;
-    
-    // Disable the select if the worker is already 'at work' with a specific car
-    modalSelect.disabled = carSelect.disabled; 
-    
-    document.getElementById("resourceModal").style.display = "flex";
-}
+        currentResourceType = type;
+        document.getElementById("modalTitle").innerText = type === "Ella" ? "Eļļas pieliešana" : "Degvielas uzpilde";
+        const modalSelect = document.getElementById("modalCarSelect");
+        
+        // Copy car options from main select
+        modalSelect.innerHTML = carSelect.innerHTML; 
+        
+        // If worker has already selected a car in the main UI, use it. 
+        // Otherwise, let them pick in the modal.
+        if (carSelect.value) {
+            modalSelect.value = carSelect.value;
+        }
+        
+        document.getElementById("resourceModal").style.display = "flex";
+    }
 
     document.getElementById("Ella").onclick = () => openResourceModal("Ella");
     document.getElementById("Degviela").onclick = () => openResourceModal("Degviela");
@@ -124,11 +126,14 @@
                 document.getElementById("resourceModal").style.display = "none";
                 document.getElementById("modalAmountInput").value = "";
                 loadWorkerData();
-            } else { alert("Kļūda saglabājot datus. Pārliecinies, vai esi sācis darbu!"); }
+            } else { 
+                const errText = await res.text();
+                alert("Kļūda: " + errText); 
+            }
         } catch (err) { alert("Savienojuma kļūda."); }
     };
 
-    // --- DATU IELĀDE UN UI ---
+    // --- DATA LOADING ---
     function fillSelect(selectEl, data, defaultText) {
         const currentVal = selectEl.value;
         selectEl.innerHTML = `<option value="">${defaultText}</option>`;
@@ -174,11 +179,14 @@
                 document.getElementById("startTimeDisplay").innerText = "";
             }
 
-            const isBusy = shiftStartTime || activeJob;
-            document.getElementById("AtWork").style.display = isBusy ? "none" : "block";
-            document.getElementById("LeaveWork").style.display = isBusy ? "block" : "none";
-            document.getElementById("Ella").style.display = hasActiveJob ? "block" : "none";
-            document.getElementById("Degviela").style.display = hasActiveJob ? "block" : "none";
+            // --- BUTTON VISIBILITY LOGIC ---
+            const isShiftStarted = !!shiftStartTime;
+            document.getElementById("AtWork").style.display = isShiftStarted ? "none" : "block";
+            document.getElementById("LeaveWork").style.display = isShiftStarted ? "block" : "none";
+            
+            // Show resource buttons if shift is started (even if no active job)
+            document.getElementById("Ella").style.display = isShiftStarted ? "block" : "none";
+            document.getElementById("Degviela").style.display = isShiftStarted ? "block" : "none";
 
             renderTable(allSchedule.filter(e => e.worker_name === user.name));
         } catch (err) { console.error(err); }
