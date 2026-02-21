@@ -85,13 +85,19 @@
 
     // --- MODĀLĀ LOGA FUNKCIJAS ---
     function openResourceModal(type) {
-        currentResourceType = type;
-        document.getElementById("modalTitle").innerText = type === "Ella" ? "Eļļas pieliešana" : "Degvielas uzpilde";
-        const modalSelect = document.getElementById("modalCarSelect");
-        modalSelect.innerHTML = carSelect.innerHTML; 
-        modalSelect.value = carSelect.value;
-        document.getElementById("resourceModal").style.display = "flex";
-    }
+    currentResourceType = type;
+    document.getElementById("modalTitle").innerText = type === "Ella" ? "Eļļas pieliešana" : "Degvielas uzpilde";
+    const modalSelect = document.getElementById("modalCarSelect");
+    
+    // Use the car already selected in the main interface
+    modalSelect.innerHTML = carSelect.innerHTML; 
+    modalSelect.value = carSelect.value;
+    
+    // Disable the select if the worker is already 'at work' with a specific car
+    modalSelect.disabled = carSelect.disabled; 
+    
+    document.getElementById("resourceModal").style.display = "flex";
+}
 
     document.getElementById("Ella").onclick = () => openResourceModal("Ella");
     document.getElementById("Degviela").onclick = () => openResourceModal("Degviela");
@@ -171,8 +177,10 @@
             const isBusy = shiftStartTime || activeJob;
             document.getElementById("AtWork").style.display = isBusy ? "none" : "block";
             document.getElementById("LeaveWork").style.display = isBusy ? "block" : "none";
-            document.getElementById("Ella").style.display = isBusy ? "block" : "none";
-            document.getElementById("Degviela").style.display = isBusy ? "block" : "none";
+            
+            const hasActiveJob = !!activeJob; // Only true if 'Sākt darbu' was clicked
+            document.getElementById("Ella").style.display = hasActiveJob ? "block" : "none";
+            document.getElementById("Degviela").style.display = hasActiveJob ? "block" : "none";
 
             renderTable(allSchedule.filter(e => e.worker_name === user.name));
         } catch (err) { console.error(err); }
