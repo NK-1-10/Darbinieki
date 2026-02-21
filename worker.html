@@ -5,27 +5,137 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Darbinieks</title>
     <style>
-        body { font-family: sans-serif; background-color: #f4f4f9; padding: 20px; color: #333; }
-        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); max-width: 800px; margin: 0 auto; }
-        h2 { margin-top: 0; color: #2c3e50; }
-        #status { margin-bottom: 10px; font-size: 1.1em; }
-        #startTimeDisplay { margin-bottom: 20px; font-size: 0.95em; }
-        #workControls { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; padding: 20px; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 10px; margin-bottom: 20px; }
-        select { padding: 10px 15px; border-radius: 8px; border: 1px solid #ced4da; background-color: white; font-size: 14px; outline: none; min-width: 180px; cursor: pointer; }
-        select:disabled { background-color: #e9ecef; cursor: not-allowed; }
-        button { padding: 10px 20px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; transition: all 0.2s ease; }
-        #AtWork { background: #007bff; color: white; width: 100%; margin-bottom: 10px; }
-        #LeaveWork { background: #dc3545; color: white; display: none; width: 100%; margin-bottom: 10px; }
-        #startBtn { background: #28a745; color: white; }
-        #stopBtn { background: #ffc107; color: #212529; }
-        #logoutBtn { background: #6c757d; color: white; margin-top: 20px; }
-        table { border-collapse: collapse; margin-top: 25px; width: 100%; background: white; border-radius: 8px; overflow: hidden; }
-        th { background: #f8f9fa; border-bottom: 2px solid #dee2e6; padding: 12px; }
-        td { border-bottom: 1px solid #eee; padding: 12px; text-align: center; }
-        #tableContainer {background: #fff; border: 1px solid #ccc; border-radius: 10px; overflow-x: auto; width: 100%; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .oil-btn { background: #6f42c1 !important; color: white; }
-        .fuel-btn { background: #fd7e14 !important; color: white; }
-    </style>
+    body { 
+        font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+        background-color: #f0f2f5; 
+        padding: 30px; 
+        color: #333; 
+        line-height: 1.5;
+    }
+
+    h2, h3 { color: #1a202c; margin-bottom: 20px; }
+
+    /* Galvenais konteiners */
+    .admin-container { 
+        background: white; 
+        padding: 30px; 
+        border-radius: 15px; 
+        box-shadow: 0 10px 25px rgba(0,0,0,0.05); 
+        margin-bottom: 30px; 
+    }
+
+    /* Filtru sadaļa */
+    .filter-section { 
+        display: flex; 
+        flex-wrap: wrap; 
+        gap: 15px; 
+        align-items: flex-end; 
+        background: #f8fafc; 
+        padding: 20px; 
+        border-radius: 12px; 
+        border: 1px solid #e2e8f0;
+        margin-bottom: 25px;
+    }
+
+    .filter-group { display: flex; flex-direction: column; gap: 5px; }
+    .filter-group label { font-size: 0.85rem; font-weight: 600; color: #64748b; }
+
+    select, input { 
+        padding: 10px 15px; 
+        border-radius: 8px; 
+        border: 1px solid #cbd5e1; 
+        background-color: white; 
+        font-size: 14px; 
+        outline: none; 
+        min-width: 160px; 
+        transition: border-color 0.2s;
+    }
+
+    select:focus, input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+
+    /* Pogas */
+    button { 
+        padding: 10px 20px; 
+        border-radius: 8px; 
+        border: none; 
+        font-weight: 600; 
+        cursor: pointer; 
+        transition: all 0.2s ease; 
+        font-size: 14px;
+    }
+
+    button:active { transform: translateY(1px); }
+
+    .btn-clear { background: #94a3b8; color: white; }
+    .btn-clear:hover { background: #64748b; }
+
+    .btn-logout { background: #ef4444; color: white; float: right; }
+    .btn-logout:hover { background: #dc2626; }
+
+    /* Tabulas dizains */
+    #tableContainer { 
+        background: white; 
+        border-radius: 12px; 
+        overflow: hidden; 
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    table { 
+        border-collapse: collapse; 
+        width: 100%; 
+        background: white; 
+    }
+
+    th { 
+        background: #f8fafc; 
+        color: #475569; 
+        font-weight: 600; 
+        text-transform: uppercase; 
+        font-size: 12px; 
+        letter-spacing: 0.05em; 
+        padding: 16px 20px; 
+        border-bottom: 2px solid #e2e8f0;
+        text-align: center;
+    }
+
+    td { 
+        padding: 14px 20px; 
+        border-bottom: 1px solid #f1f5f9; 
+        text-align: center; 
+        font-size: 14px;
+    }
+
+    /* Zebra stils un Hover */
+    tbody tr:nth-child(even) { background-color: #fdfdfd; }
+    tbody tr:hover { background-color: #f1f5f9; }
+
+    /* Summu rinda tabulas apakšā */
+    tfoot tr { 
+        background: #f8fafc !important; 
+        font-weight: bold; 
+        border-top: 2px solid #e2e8f0; 
+    }
+    
+    tfoot td { color: #1e293b; padding: 18px 20px; }
+
+    /* Resursu krāsas */
+    .oil-text { color: #7c3aed; font-weight: bold; }
+    .fuel-text { color: #ea580c; font-weight: bold; }
+    .hours-text { font-weight: bold; color: #0f172a; }
+
+    /* Summary info bloks virs tabulas */
+    .summary-bar {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 15px;
+        font-size: 15px;
+        background: #ffffff;
+        padding: 15px;
+        border-radius: 10px;
+        border-left: 5px solid #3b82f6;
+    }
+</style>
 </head>
 <body>
     <div class="card">
