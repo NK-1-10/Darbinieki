@@ -165,6 +165,7 @@
             if (activeJob) {
                 document.getElementById("startBtn").style.display = "none";
                 document.getElementById("stopBtn").style.display = "block";
+                document.getElementById("LeaveWork").style.display = isShiftStarted ? "none";
                 [carSelect, objectSelect, workSelect].forEach(s => s.disabled = true);
                 carSelect.value = activeJob.car;
                 objectSelect.value = activeJob.objekts || "";
