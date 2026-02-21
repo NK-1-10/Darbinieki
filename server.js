@@ -140,8 +140,8 @@ app.delete('/api/work-types/:name', async (req, res) => {
 // --- 4. DARBA GAITA (SCHEDULE) ---
 app.get('/api/schedule', async (req, res) => {
     try {
-        // Pārliecinies, ka SELECT daļā ir iepriekš izveidotās kolonnas 'ella' un 'degviela'
-        const result = await pool.query('SELECT *, sākuma_laiks::text as sākuma_laiks FROM darbastundas ORDER BY id DESC');
+        // Izmantojam tabulu 'schedule', jo tajā ir visas vajadzīgās kolonnas (car, objekts, darbs utt.)
+        const result = await pool.query('SELECT * FROM schedule ORDER BY id DESC');
         res.json(result.rows);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -150,17 +150,26 @@ app.get('/api/schedule', async (req, res) => {
 
 app.post('/api/start-work', async (req, res) => {
     const { worker_name, car, start_time, objekts, darbs } = req.body;
-    const [date, time] = start_time.split(' ');
-    const months = ["Janvāris","Februāris","Marts","Aprīlis","Maijs","Jūnijs","Jūlijs","Augusts","Septembris","Oktobris","Novembris","Decembris"];
-    const monthStr = months[parseInt(date.split('.')[1]) - 1];
+    const parts = start_time.split(' '); // Sadalām "8.02.2026. 14:17:56"
+    const date = parts[0];
+    const time = parts[1];
     
+    const months = ["Janvāris","Februāris","Marts","Aprīlis","Maijs","Jūnijs","Jūlijs","Augusts","Septembris","Oktobris","Novembris","Decembris"];
+    // Iegūstam mēnesi no datuma (pieņemot formatējumu D.MM.YYYY.)
+    const monthIndex = parseInt(date.split('.')[1]) - 1;
+    const monthStr = months[monthIndex] || "Februāris";
+
     try {
         await pool.query(
-            `INSERT INTO schedule (worker_name, car, date, sākuma_laiks, month, objekts, darbs) VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+            `INSERT INTO schedule (worker_name, car, date, sākuma_laiks, month, objekts, darbs) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7)`,
             [worker_name, car, date, time, monthStr, objekts, darbs]
         );
         res.json({ success: true });
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) { 
+        console.error(err);
+        res.status(500).json({ error: err.message }); 
+    }
 });
 
 app.post('/api/stop-work', async (req, res) => {
@@ -224,26 +233,28 @@ app.post('/api/update-resources', async (req, res) => {
 });
 
 // --- 5. ATSKAITES ---
+app.get('/api/darba-stundas', async (req, res) => {
+    try {
+        // Lietojam pēdiņas, ja tabulas nosaukums DB ir "Darbastundas"
+        const result = await pool.query('SELECT * FROM "Darbastundas" ORDER BY id DESC');
+        res.json(result.rows);
+    } catch (err) { 
+        res.status(500).json({ error: err.message }); 
+    }
+});
+
 app.post('/api/darba-stundas', async (req, res) => {
     const { darbinieks, datums, sāka_darbu, beidza_darbu, month, stundas } = req.body;
     try {
         await pool.query(
-            'INSERT INTO "darbastundas" (darbinieks, datums, sāka_darbu, beidza_darbu, month, stundas) VALUES ($1, $2, $3, $4, $5, $6)',
+            'INSERT INTO "Darbastundas" (darbinieks, datums, sāka_darbu, beidza_darbu, month, stundas) VALUES ($1, $2, $3, $4, $5, $6)',
             [darbinieks, datums, sāka_darbu, beidza_darbu, month, stundas]
         );
-        res.status(200).send("OK"); // Obligāti jānosūta atbilde atpakaļ!
+        res.status(200).send("OK");
     } catch (err) {
-        console.error("DB Kļūda:", err);
+        console.error(err);
         res.status(500).json({ error: err.message });
     }
-});
-
-// --- 5.1 ATSKAIŠU IEGŪŠANA (Adminam) ---
-app.get('/api/darba-stundas', async (req, res) => {
-    try {
-        const result = await pool.query('SELECT * FROM "darbastundas" ORDER BY id DESC');
-        res.json(result.rows);
-    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 const PORT = process.env.PORT || 8080;
