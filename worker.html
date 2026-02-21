@@ -177,8 +177,6 @@
             const isBusy = shiftStartTime || activeJob;
             document.getElementById("AtWork").style.display = isBusy ? "none" : "block";
             document.getElementById("LeaveWork").style.display = isBusy ? "block" : "none";
-            
-            const hasActiveJob = !!activeJob; // Only true if 'Sākt darbu' was clicked
             document.getElementById("Ella").style.display = hasActiveJob ? "block" : "none";
             document.getElementById("Degviela").style.display = hasActiveJob ? "block" : "none";
 
