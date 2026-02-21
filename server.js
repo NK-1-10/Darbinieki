@@ -203,29 +203,38 @@ app.delete('/api/schedule', async (req, res) => {
 // --- 4.5 RESURSU ATJAUNINĀŠANA (Eļļa/Degviela) ---
 app.post('/api/update-resources', async (req, res) => {
     const { worker_name, car, type, amount } = req.body;
-    // Izmantojam tieši tos nosaukumus, kas redzami tavā attēlā
     const column = type === 'Ella' ? 'pielietā_eļļa' : 'pielietā_degviela';
     const litri = parseFloat(amount) || 0;
 
+    // Sagatavojam datumu un laiku ierakstam
+    const tagad = new Date();
+    const datums = tagad.toLocaleDateString('lv-LV');
+    const laiks = tagad.toLocaleTimeString('lv-LV');
+    const months = ["Janvāris","Februāris","Marts","Aprīlis","Maijs","Jūnijs","Jūlijs","Augusts","Septembris","Oktobris","Novembris","Decembris"];
+    const monthStr = months[tagad.getMonth()];
+
     try {
-        // 1. Meklējam pēdējo atvērto darbu šim darbiniekam tabulā 'schedule'
+        // 1. Mēģinām atrast aktīvu darbu
         const activeJob = await pool.query(
             'SELECT id FROM schedule WHERE worker_name = $1 AND beigu_laiks IS NULL ORDER BY id DESC LIMIT 1',
             [worker_name]
         );
 
         if (activeJob.rows.length > 0) {
-            // Ja ir aktīvs darbs, atjauninām resursus tajā
+            // Ja ir aktīvs darbs, pieskaitām tam
             await pool.query(
                 `UPDATE schedule SET ${column} = COALESCE(${column}, 0) + $1 WHERE id = $2`,
                 [litri, activeJob.rows[0].id]
             );
-            res.sendStatus(200);
         } else {
-            // Ja nav aktīva darba, nevaram piesaistīt resursus esošai rindai
-            // Tāpēc izmetam kļūdu vai izveidojam jaunu ierakstu
-            res.status(400).send("Nav aktīva darba, kuram piesaistīt resursus.");
+            // Ja NAV aktīva darba, izveidojam jaunu rindu tikai šai uzpildei
+            await pool.query(
+                `INSERT INTO schedule (worker_name, car, date, sākuma_laiks, beigu_laiks, month, ${column}, darbs) 
+                 VALUES ($1, $2, $3, $4, $4, $5, $6, $7)`,
+                [worker_name, car, datums, laiks, monthStr, litri, type === 'Ella' ? 'Eļļas papildināšana' : 'Degvielas uzpilde']
+            );
         }
+        res.sendStatus(200);
     } catch (err) {
         console.error(err);
         res.status(500).send("Sistēmas kļūda");
