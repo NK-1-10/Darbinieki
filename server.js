@@ -201,11 +201,8 @@ app.delete('/api/schedule', async (req, res) => {
 });
 
 // --- 4.5 RESURSU ATJAUNINĀŠANA (Eļļa/Degviela) ---
-// --- 4.5 RESURSU ATJAUNINĀŠANA (Eļļa/Degviela) ---
 app.post('/api/update-resources', async (req, res) => {
     const { worker_name, car, type, amount } = req.body;
-    
-    // MATCH THESE EXACTLY TO YOUR DB SCREENSHOT
     const column = type === 'Ella' ? 'pielietā_eļļa' : 'pielietā_degviela';
     const litri = parseFloat(amount) || 0;
 
@@ -222,22 +219,23 @@ app.post('/api/update-resources', async (req, res) => {
         );
 
         if (activeJob.rows.length > 0) {
-            // Use double quotes around the column name to handle special characters safely
+            // THE FIX: We add "::numeric" to force the text column to act like a number
             await pool.query(
-                `UPDATE schedule SET "${column}" = COALESCE("${column}", 0) + $1 WHERE id = $2`,
+                `UPDATE schedule 
+                 SET "${column}" = (COALESCE(NULLIF("${column}", ''), '0')::numeric + $1)::text 
+                 WHERE id = $2`,
                 [litri, activeJob.rows[0].id]
             );
         } else {
-            // If creating a new row, also use double quotes for the dynamic column
             await pool.query(
                 `INSERT INTO schedule (worker_name, car, date, sākuma_laiks, beigu_laiks, month, "${column}", darbs) 
                  VALUES ($1, $2, $3, $4, $4, $5, $6, $7)`,
-                [worker_name, car, datums, laiks, monthStr, litri, type === 'Ella' ? 'Eļļas papildināšana' : 'Degvielas uzpilde']
+                [worker_name, car, datums, laiks, monthStr, litri.toString(), type === 'Ella' ? 'Eļļas papildināšana' : 'Degvielas uzpilde']
             );
         }
         res.sendStatus(200);
     } catch (err) {
-        console.error("DB Error:", err);
+        console.error("Database Error:", err);
         res.status(500).send("Sistēmas kļūda: " + err.message);
     }
 });
