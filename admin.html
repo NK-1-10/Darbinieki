@@ -218,28 +218,30 @@ body { font-family: system-ui, -apple-system, sans-serif; margin: 0; background:
 
         // --- RESURSU TABULA ---
        // --- RESURSU TABULA (Atjaunināta) ---
-let oilHtml = `<table><tr><th>Datums</th><th>Mašīna</th><th>Eļļa (L)</th><th>Degviela (L)</th></tr>`;
+// --- RESURSU TABULA (Atjaunināta) ---
+        let oilHtml = `<table><tr><th>Datums</th><th>Mašīna</th><th>Darbinieks</th><th>Eļļa (L)</th><th>Degviela (L)</th></tr>`;
 
-// Filtrējam ierakstus, kur ir jebkāda eļļa vai degviela (pārbaudām visus iespējamos lauku nosaukumus)
-const resursi = filtered.filter(e => 
-    (parseFloat(e.ella) > 0 || parseFloat(e.degviela) > 0 || 
-     parseFloat(e.pielietā_eļļa) > 0 || parseFloat(e.pielietā_degviela) > 0)
-);
+        // Filtrējam ierakstus, kuros ir jebkāda eļļa vai degviela
+        const resursi = filtered.filter(e => 
+            (parseFloat(e.pielietā_eļļa) > 0 || parseFloat(e.pielietā_degviela) > 0 || 
+             parseFloat(e.ella) > 0 || parseFloat(e.degviela) > 0)
+        );
 
-oilHtml += resursi.map(e => {
-    // Izmantojam jaunās vērtības, bet ja to nav - ņemam vecās (fallback)
-    const ellaValue = e.ella || e.pielietā_eļļa || '0';
-    const degvielaValue = e.degviela || e.pielietā_degviela || '0';
-    
-    return `<tr>
-        <td>${e.date || '-'}</td>
-        <td>${e.car || '-'}</td>
-        <td style="color:#d63384; font-weight:bold;">${ellaValue}</td>
-        <td style="color:#fd7e14; font-weight:bold;">${degvielaValue}</td>
-    </tr>`;
-}).join("");
+        oilHtml += resursi.map(e => {
+            // Savācam datus no visām iespējamām kolonnām (savietojamībai)
+            const e_litri = parseFloat(e.pielietā_eļļa || e.ella || 0);
+            const d_litri = parseFloat(e.pielietā_degviela || e.degviela || 0);
+            
+            return `<tr>
+                <td>${e.date || '-'}</td>
+                <td>${e.car || '-'}</td>
+                <td>${e.worker_name || '-'}</td>
+                <td style="color:#d63384; font-weight:bold;">${e_litri > 0 ? e_litri.toFixed(2) : '-'}</td>
+                <td style="color:#fd7e14; font-weight:bold;">${d_litri > 0 ? d_litri.toFixed(2) : '-'}</td>
+            </tr>`;
+        }).join("");
 
-document.getElementById("oilContainer").innerHTML = resursi.length ? oilHtml + "</table>" : "<p style='padding:15px;'>Nav resursu datu.</p>";
+        document.getElementById("oilContainer").innerHTML = resursi.length ? oilHtml + "</table>" : "<p style='padding:15px;'>Nav resursu datu.</p>";
    
       // --- DARBA LAIKA UZSKAITES TABULA (Jaunā) ---
         // --- DARBA LAIKA UZSKAITES TABULA (Jaunā) ---
