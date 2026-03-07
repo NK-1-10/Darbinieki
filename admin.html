@@ -25,7 +25,7 @@
 
     h3 { color: #1a3025; margin-bottom: 10px; font-size: 1.1em; }
 
-    /* Iestatījumu sekcija (augšējās pogas/izvēlnes) */
+    /* Iestatījumu sekcija */
     .grid-container { 
         display: grid; 
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
@@ -128,23 +128,22 @@
 
     .report-card > summary { 
         padding: 15px 25px; 
-        background: #1a3025; /* Tumši zaļais no tavas bildes */
+        background: #1a3025; 
         color: #fff; 
         font-size: 1.1em;
         text-transform: uppercase;
         letter-spacing: 1px;
     }
 
-    .report-card > summary::after { content: "▼"; color: #c5a059; } /* Zelta bultiņa */
+    .report-card > summary::after { content: "▼"; color: #c5a059; } 
     .report-card[open] > summary::after { content: "▲"; }
 
     .table-wrapper { padding: 0; overflow-x: auto; }
 
-    /* Tabulas dizains - Identisks darbinieka skatam */
     table { border-collapse: collapse; width: 100%; }
     th { 
         background: #1a3025; 
-        color: #c5a059; /* Zelta teksts galvenē */
+        color: #c5a059; 
         padding: 14px 10px; 
         text-align: left; 
         text-transform: uppercase;
@@ -160,13 +159,13 @@
     tr:last-child td { border-bottom: none; }
     tr:hover { background-color: #fcf9f2; }
 
-    /* Krāsu kodi datiem */
+    /* --- ŠEIT IR IZMAINĪTĀS KRĀSAS --- */
     .col-hours { font-weight: bold; text-align: right; color: #1a3025; }
-    .oil-val { color: #6f42c1; font-weight: bold; } /* Violetāks/Tumšāks eļļai */
-    .fuel-val { color: #fd7e14; font-weight: bold; }
-    .summary-hours-val { color: #28a745; font-weight: 800; }
+    .oil-val { color: #2c3e50; font-weight: bold; } /* Tumši zils eļļai */
+    .fuel-val { color: #2d5a27; font-weight: bold; } /* Tumši zaļš degvielai */
+    .summary-hours-val { color: #1e7e34; font-weight: 800; }
+    /* -------------------------------- */
 
-    /* Darbinieku/Auto saraksti logos */
     ul { list-style: none; padding: 0; margin: 0; }
     li { 
         display: flex; 
@@ -178,7 +177,6 @@
     .btn-del { color: #dc3545; border: none; background: none; font-size: 16px; padding: 0 5px; cursor: pointer; }
     .btn-del:hover { color: #a71d2a; }
 
-    /* Scrollbar stils */
     ::-webkit-scrollbar { height: 6px; width: 6px; }
     ::-webkit-scrollbar-track { background: #f1f1f1; }
     ::-webkit-scrollbar-thumb { background: #c5a059; border-radius: 10px; }
@@ -242,7 +240,7 @@
                     <option value="hours">Stundas</option>
                 </select>
             </div>
-            <div>Kopā nostrādāts: <span id="totalHoursValue" style="color:#007bff">0.00</span> h</div>
+            <div>Kopā nostrādāts: <span id="totalHoursValue" style="color:#1a3025">0.00</span> h</div>
         </div>
     </div>
 
@@ -316,7 +314,6 @@
         }
 
         function renderTables() {
-            // 1. Filtrēšana
             let filtered = schedule.filter(e => {
                 const day = e.date ? e.date.split('.')[0] : "";
                 return (!document.getElementById("filterMonth").value || e.month === document.getElementById("filterMonth").value) &&
@@ -325,7 +322,6 @@
                        (!document.getElementById("filterCar").value || e.car === document.getElementById("filterCar").value);
             });
 
-            // 2. Kārtošana
             const sortKey = document.getElementById("sortBy").value;
             if (sortKey) {
                 filtered.sort((a, b) => {
@@ -335,11 +331,10 @@
                 });
             }
 
-            // 3. Kopsumma
             const total = filtered.reduce((sum, item) => sum + (parseFloat(item.hours) || 0), 0);
             document.getElementById("totalHoursValue").textContent = total.toFixed(2);
 
-            // --- DARBA GAITAS ATSKAITE ---
+            // ATSKAITE
             let workHtml = `<table><tr><th>Datums</th><th>Mēnesis</th><th>Auto</th><th>Darbinieks</th><th>Objekts</th><th>Darbs</th><th>Sākums</th><th>Beigas</th><th class="col-hours">Stundas</th></tr>`;
             workHtml += filtered.map(e => `
                 <tr>
@@ -355,7 +350,7 @@
                 </tr>`).join("");
             document.getElementById("tableContainer").innerHTML = workHtml + "</table>";
 
-            // --- RESURSU TABULA ---
+            // RESURSI
             let oilHtml = `<table><tr><th>Datums</th><th>Auto</th><th>Darbinieks</th><th class="oil-val">Eļļa (L)</th><th class="fuel-val">Degviela (L)</th></tr>`;
             const resursi = filtered.filter(e => (parseFloat(e.pielietā_eļļa || e.ella) > 0 || parseFloat(e.pielietā_degviela || e.degviela) > 0));
             oilHtml += resursi.map(e => `
@@ -368,7 +363,7 @@
                 </tr>`).join("");
             document.getElementById("oilContainer").innerHTML = resursi.length ? oilHtml + "</table>" : "<div style='padding:20px'>Nav datu par patēriņu šajā periodā.</div>";
 
-            // --- DARBA LAIKA UZSKAITE ---
+            // KOPSAVILKUMS
             let summaryHtml = `<table><tr><th>Darbinieks</th><th>Datums</th><th>Sākums</th><th>Beigas</th><th>Mēnesis</th><th class="col-hours">Kopā</th></tr>`;
             summaryHtml += daySummary.map(s => `
                 <tr>
@@ -382,7 +377,6 @@
             document.getElementById("newTableContainer").innerHTML = summaryHtml + "</table>";
         }
 
-        // Event Listeners
         ["filterMonth", "filterWorker", "filterDate", "filterCar", "sortBy"].forEach(id => {
             document.getElementById(id).addEventListener("change", renderTables);
         });
@@ -392,7 +386,6 @@
             renderTables();
         };
 
-        // API Funkcijas
         async function addItem(url, data) {
             await fetch(url, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
             loadData();
