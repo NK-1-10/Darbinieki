@@ -3,86 +3,113 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Darbinieks</title>
-   <style>
-  :root {
-    --saulstari-green: #1a3025;
-    --saulstari-yellow: #d4b45d;
-    --bg-light: #f4f6f1;
-    --white: #ffffff;
-    --danger: #e74c3c;
-    --success: #27ae60;
-  }
+    <title>Darbinieka Panelis</title>
+    <style>
+        :root {
+            --saulstari-green: #1a3025;
+            --saulstari-yellow: #d4b45d;
+            --saulstari-gray: #4a5d53;
+            --bg-light: #f4f6f1;
+            --white: #ffffff;
+            --success: #27ae60;
+        }
 
-  body { 
-    font-family: 'Segoe UI', Roboto, sans-serif; 
-    background-color: var(--bg-light); 
-    margin: 0; 
-    padding: 20px; 
-    color: #333; 
-  }
+        body { 
+            font-family: 'Segoe UI', Roboto, sans-serif; 
+            background-color: var(--bg-light); 
+            margin: 0; 
+            padding: 20px; 
+            color: #333; 
+        }
 
-  .card {
-    background: var(--white);
-    padding: 25px;
-    border-radius: 20px;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.08);
-    max-width: 600px;
-    margin: 0 auto 30px;
-    border-top: 5px solid var(--saulstari-yellow);
-    text-align: center;
-  }
+        .card {
+            background: var(--white);
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+            max-width: 600px;
+            margin: 0 auto 30px;
+            border-top: 5px solid var(--saulstari-yellow);
+            text-align: center;
+        }
 
-  h2 { color: var(--saulstari-green); margin-top: 0; text-transform: uppercase; letter-spacing: 1px; }
-  h3 { color: var(--saulstari-green); margin-bottom: 15px; }
+        h2 { color: var(--saulstari-green); margin-top: 0; text-transform: uppercase; letter-spacing: 1px; }
+        h3 { color: var(--saulstari-green); margin-bottom: 15px; }
 
-  #status { 
-    font-size: 1.1rem; 
-    margin-bottom: 10px; 
-    padding: 10px;
-    border-radius: 10px;
-    background: #fdfdfd;
-  }
+        #status { 
+            font-size: 1.1rem; 
+            margin-bottom: 10px; 
+            padding: 10px;
+            border-radius: 10px;
+            background: #fdfdfd;
+        }
 
-  select, input[type="number"] {
-    width: 100%;
-    padding: 12px;
-    margin: 8px 0;
-    border-radius: 10px;
-    border: 1px solid #ddd;
-    font-size: 1rem;
-    box-sizing: border-box;
-  }
+        select, input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
 
-  button {
-    padding: 14px 24px;
-    border-radius: 50px; 
-    border: none;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    text-transform: uppercase;
-    font-size: 0.9rem;
-    margin: 5px;
-  }
+        button {
+            padding: 14px 24px;
+            border-radius: 50px; 
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            margin: 5px;
+        }
 
-  #AtWork { background: var(--success); color: white; width: 100%; }
-  #LeaveWork { background: var(--danger); color: white; width: 100%; }
-  #startBtn { background: var(--saulstari-green); color: white; width: 100%; margin-top: 15px; }
-  #stopBtn { background: var(--saulstari-yellow); color: var(--saulstari-green); width: 100%; margin-top: 15px; }
+        /* MAIŅAS KONTROLE */
+        #AtWork { background: var(--saulstari-green); color: white; width: 100%; }
+        #AtWork:hover { background: #264234; }
 
-  .oil-btn { background: var(--saulstari-yellow); color: var(--saulstari-green); }
-  .fuel-btn { background: var(--saulstari-green); color: white; }
-  
-  #logoutBtn { background: transparent; color: #888; border: 1px solid #ddd; margin-top: 20px; padding: 8px 15px; font-size: 0.8rem; }
+        #LeaveWork { background: var(--saulstari-gray); color: white; width: 100%; }
+        #LeaveWork:hover { background: #3d4d44; }
 
-  #tableContainer { max-width: 1000px; margin: 0 auto; background: var(--white); border-radius: 15px; overflow-x: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-  table { width: 100%; border-collapse: collapse; min-width: 600px; }
-  th { background: var(--saulstari-green); color: white; padding: 15px; font-size: 0.8rem; text-transform: uppercase; }
-  td { padding: 12px 15px; border-bottom: 1px solid #eee; text-align: center; font-size: 0.9rem; }
-  .oil-text { color: var(--saulstari-yellow); font-weight: bold; }
-  .fuel-text { color: var(--saulstari-green); font-weight: bold; }
-</style>
+        /* DARBA KONTROLE */
+        #startBtn { background: var(--success); color: white; width: 100%; margin-top: 15px; }
+        #stopBtn { background: var(--saulstari-yellow); color: var(--saulstari-green); width: 100%; margin-top: 15px; }
+
+        /* RESURSU POGAS */
+        .oil-btn { background: var(--saulstari-yellow); color: var(--saulstari-green); }
+        .fuel-btn { background: var(--saulstari-green); color: white; }
+        
+        #logoutBtn { background: transparent; color: #888; border: 1px solid #ddd; margin-top: 20px; padding: 8px 15px; font-size: 0.8rem; }
+
+        /* TABULA */
+        #tableContainer { max-width: 1000px; margin: 0 auto; background: var(--white); border-radius: 15px; overflow-x: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        th { background: var(--saulstari-green); color: white; padding: 15px; font-size: 0.8rem; text-transform: uppercase; }
+        td { padding: 12px 15px; border-bottom: 1px solid #eee; text-align: center; font-size: 0.9rem; }
+        .oil-text { color: var(--saulstari-yellow); font-weight: bold; }
+        .fuel-text { color: var(--saulstari-green); font-weight: bold; }
+
+        /* MODĀLAIS LOGS */
+        #resourceModal {
+            display: none; 
+            position: fixed; 
+            top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.5); 
+            z-index: 1000; 
+            align-items: center; 
+            justify-content: center;
+        }
+        .modal-content {
+            background: white; 
+            padding: 25px; 
+            border-radius: 12px; 
+            width: 90%; 
+            max-width: 400px; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+    </style>
 </head>
 <body>
     <div class="card">
@@ -107,21 +134,21 @@
             <button id="Degviela" class="fuel-btn" style="display:none;">Pielej Degvielu</button>
         </div>
 
-        <div id="resourceModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
-            <div style="background:white; padding:25px; border-radius:12px; width:90%; max-width:400px; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
-                <h3 id="modalTitle">Pievienot resursu</h3>
-                <label>Izvēlies mašīnu:</label>
-                <select id="modalCarSelect"></select>
-                <label>Ievadi litrus:</label>
-                <input type="number" id="modalAmountInput" step="0.01" placeholder="0.00">
-                <div style="display:flex; gap:10px;">
-                    <button id="modalCancel" style="flex:1; background:#6c757d; color:white;">Atcelt</button>
-                    <button id="modalSave" style="flex:1; background:var(--success); color:white;">Saglabāt</button>
-                </div>
+        <button id="logoutBtn">Izrakstīties</button>
+    </div>
+
+    <div id="resourceModal">
+        <div class="modal-content">
+            <h3 id="modalTitle">Pievienot resursu</h3>
+            <label>Izvēlies mašīnu:</label>
+            <select id="modalCarSelect"></select>
+            <label>Ievadi litrus:</label>
+            <input type="number" id="modalAmountInput" step="0.01" placeholder="0.00">
+            <div style="display:flex; gap:10px;">
+                <button id="modalCancel" style="flex:1; background:#6c757d; color:white;">Atcelt</button>
+                <button id="modalSave" style="flex:1; background:var(--success); color:white;">Saglabāt</button>
             </div>
         </div>
-
-        <button id="logoutBtn">Izrakstīties</button>
     </div>
 
     <h3 style="text-align: center;">Tavi pēdējie ieraksti:</h3>
@@ -158,13 +185,13 @@
             const isShiftStarted = !!shiftStartTime;
 
             if (activeJob) {
-                // JA IR AKTĪVS DARBS
+                // JA STRĀDĀ PIE OBJEKTA
                 document.getElementById("status").innerHTML = `Strādā: <b>${activeJob.objekts}</b> (${activeJob.car})`;
                 document.getElementById("startTimeDisplay").innerText = `Sāki: ${activeJob.sākuma_laiks}`;
                 
                 document.getElementById("startBtn").style.display = "none";
                 document.getElementById("stopBtn").style.display = "block";
-                document.getElementById("LeaveWork").style.display = "none"; // PASLĒPJAM "DODOS PROJĀM"
+                document.getElementById("LeaveWork").style.display = "none"; // Nevar aiziet, kamēr strādā
                 
                 [carSelect, objectSelect, workSelect].forEach(s => s.disabled = true);
                 carSelect.value = activeJob.car;
@@ -178,7 +205,7 @@
                 
                 document.getElementById("startBtn").style.display = isShiftStarted ? "block" : "none";
                 document.getElementById("stopBtn").style.display = "none";
-                document.getElementById("LeaveWork").style.display = isShiftStarted ? "block" : "none"; // PARĀDĀM TIKAI TAD, JA NAV DARBA
+                document.getElementById("LeaveWork").style.display = isShiftStarted ? "block" : "none";
             }
 
             document.getElementById("AtWork").style.display = isShiftStarted ? "none" : "block";
@@ -189,20 +216,15 @@
         } catch (err) { console.error(err); }
     }
 
+    // --- DARBĪBU POGAS ---
     document.getElementById("AtWork").onclick = () => {
         localStorage.setItem(`shift_start_${user.name}`, new Date().toISOString());
         loadWorkerData();
     };
 
     document.getElementById("LeaveWork").onclick = async () => {
-        // Drošības pārbaude
-        const isWorking = document.getElementById("stopBtn").style.display === "block";
-        if (isWorking) {
-            alert("Pirms dodies projām, pabeidz aktīvo darbu!");
-            return;
-        }
-
         if (!confirm("Beigt darba dienu?")) return;
+        
         const tagad = new Date();
         const shiftStartRaw = localStorage.getItem(`shift_start_${user.name}`);
         let stundas = 0;
@@ -251,6 +273,36 @@
         loadWorkerData();
     };
 
+    // --- RESURSU MODĀLS ---
+    function openResourceModal(type) {
+        currentResourceType = type;
+        document.getElementById("modalTitle").innerText = type === "Ella" ? "Eļļas pieliešana" : "Degvielas uzpilde";
+        const modalSelect = document.getElementById("modalCarSelect");
+        modalSelect.innerHTML = carSelect.innerHTML; 
+        if (carSelect.value) modalSelect.value = carSelect.value;
+        document.getElementById("resourceModal").style.display = "flex";
+    }
+
+    document.getElementById("Ella").onclick = () => openResourceModal("Ella");
+    document.getElementById("Degviela").onclick = () => openResourceModal("Degviela");
+    document.getElementById("modalCancel").onclick = () => { document.getElementById("resourceModal").style.display = "none"; };
+
+    document.getElementById("modalSave").onclick = async () => {
+        const auto = document.getElementById("modalCarSelect").value;
+        const litri = document.getElementById("modalAmountInput").value;
+        if (!auto || litri <= 0) return alert("Pārbaudi datus!");
+        
+        await fetch('/api/update-resources', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ worker_name: user.name, car: auto, type: currentResourceType, amount: litri })
+        });
+        document.getElementById("resourceModal").style.display = "none";
+        document.getElementById("modalAmountInput").value = "";
+        loadWorkerData();
+    };
+
+    // --- PALĪGFUNKCIJAS ---
     function fillSelect(selectEl, data, defaultText) {
         const currentVal = selectEl.value;
         selectEl.innerHTML = `<option value="">${defaultText}</option>`;
@@ -279,31 +331,6 @@
         });
         tableContainer.innerHTML = html + "</table>";
     }
-
-    // Modal Resource functions (openResourceModal, Save, Cancel) paliek tādas pašas kā iepriekšējā kodā...
-    function openResourceModal(type) {
-        currentResourceType = type;
-        document.getElementById("modalTitle").innerText = type === "Ella" ? "Eļļas pieliešana" : "Degvielas uzpilde";
-        const modalSelect = document.getElementById("modalCarSelect");
-        modalSelect.innerHTML = carSelect.innerHTML; 
-        if (carSelect.value) modalSelect.value = carSelect.value;
-        document.getElementById("resourceModal").style.display = "flex";
-    }
-    document.getElementById("Ella").onclick = () => openResourceModal("Ella");
-    document.getElementById("Degviela").onclick = () => openResourceModal("Degviela");
-    document.getElementById("modalCancel").onclick = () => { document.getElementById("resourceModal").style.display = "none"; };
-    document.getElementById("modalSave").onclick = async () => {
-        const auto = document.getElementById("modalCarSelect").value;
-        const litri = document.getElementById("modalAmountInput").value;
-        if (!auto || litri <= 0) return alert("Pārbaudi datus!");
-        await fetch('/api/update-resources', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ worker_name: user.name, car: auto, type: currentResourceType, amount: litri })
-        });
-        document.getElementById("resourceModal").style.display = "none";
-        loadWorkerData();
-    };
 
     document.getElementById("logoutBtn").onclick = () => {
         localStorage.removeItem("loggedInUser");
