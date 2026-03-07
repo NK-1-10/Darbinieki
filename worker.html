@@ -61,7 +61,7 @@
   /* Pogas */
   button {
     padding: 14px 24px;
-    border-radius: 50px; /* Saulstari stila apaļās pogas */
+    border-radius: 50px; 
     border: none;
     font-weight: bold;
     cursor: pointer;
@@ -77,8 +77,9 @@
   #startBtn { background: var(--saulstari-green); color: white; width: 100%; margin-top: 15px; }
   #stopBtn { background: var(--saulstari-yellow); color: var(--saulstari-green); width: 100%; margin-top: 15px; }
 
-  .oil-btn { background: #6f42c1; color: white; }
-  .fuel-btn { background: #fd7e14; color: white; }
+  /* Nomainītas resursu pogu krāsas uz zaļu un dzeltenu */
+  .oil-btn { background: var(--saulstari-yellow); color: var(--saulstari-green); }
+  .fuel-btn { background: var(--saulstari-green); color: white; }
   
   #logoutBtn { 
     background: transparent; 
@@ -119,9 +120,9 @@
 
   tbody tr:hover { background-color: #f9fbf9; }
 
-  /* Resursu teksta izcelšana tabulā */
-  .oil-text { color: #6f42c1; font-weight: bold; }
-  .fuel-text { color: #fd7e14; font-weight: bold; }
+  /* Resursu teksta izcelšana tabulā ar dzelteno un zaļo */
+  .oil-text { color: var(--saulstari-yellow); font-weight: bold; }
+  .fuel-text { color: var(--saulstari-green); font-weight: bold; }
 
   /* Mobilajām ierīcēm */
   @media (max-width: 480px) {
@@ -135,7 +136,7 @@
     <div class="card">
         <h2 id="welcome"></h2>
         <div id="status">Statuss: Gaidīšana</div>
-        <div id="startTimeDisplay" style="color: green; font-weight: bold;"></div>
+        <div id="startTimeDisplay" style="color: var(--success); font-weight: bold;"></div>
 
         <div>
             <button id="AtWork">ESMU DARBĀ</button>
@@ -163,7 +164,7 @@
                 <input type="number" id="modalAmountInput" step="0.01" placeholder="0.00" style="width:100%; padding:10px; margin: 10px 0 20px 0; border-radius:8px; border:1px solid #ccc; box-sizing: border-box;">
                 <div style="display:flex; gap:10px;">
                     <button id="modalCancel" style="flex:1; background:#6c757d; color:white;">Atcelt</button>
-                    <button id="modalSave" style="flex:1; background:#28a745; color:white;">Saglabāt</button>
+                    <button id="modalSave" style="flex:1; background:var(--success); color:white;">Saglabāt</button>
                 </div>
             </div>
         </div>
@@ -197,7 +198,6 @@
         modalSelect.innerHTML = carSelect.innerHTML; 
         
         // If worker has already selected a car in the main UI, use it. 
-        // Otherwise, let them pick in the modal.
         if (carSelect.value) {
             modalSelect.value = carSelect.value;
         }
@@ -289,7 +289,6 @@
             document.getElementById("AtWork").style.display = isShiftStarted ? "none" : "block";
             document.getElementById("LeaveWork").style.display = isShiftStarted ? "block" : "none";
             
-            // Show resource buttons if shift is started (even if no active job)
             document.getElementById("Ella").style.display = isShiftStarted ? "block" : "none";
             document.getElementById("Degviela").style.display = isShiftStarted ? "block" : "none";
 
@@ -362,8 +361,8 @@
                 <td>${e.darbs || '-'}</td>
                 <td>${e.sākuma_laiks || '-'}</td>
                 <td>${e.beigu_laiks || 'Aktīvs'}</td>
-                <td style="color:#6f42c1; font-weight:bold;">${e.pielietā_eļļa || 0} L</td>
-                <td style="color:#fd7e14; font-weight:bold;">${e.pielietā_degviela || 0} L</td>
+                <td class="oil-text">${e.pielietā_eļļa || 0} L</td>
+                <td class="fuel-text">${e.pielietā_degviela || 0} L</td>
                 <td>${e.hours ? e.hours + ' h' : '-'}</td>
             </tr>`;
         });
