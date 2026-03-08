@@ -4,156 +4,160 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Admin Panelis - Darba Uzskaite</title>
-   <style>
-    body { 
-        font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
-        margin: 20px; 
-        background: #fdfdfd; 
-        color: #333; 
-        padding: 20px; 
-        font-size: 14px; 
-    }
+    <style>
+        body { 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            margin: 20px; 
+            background: #fdfdfd; 
+            color: #333; 
+            padding: 20px; 
+            font-size: 14px; 
+        }
 
-    h2 { 
-        color: #1a3025; 
-        margin: 0 0 20px 0; 
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        text-align: center;
-    }
+        h2 { 
+            color: #1a3025; 
+            margin: 0 0 20px 0; 
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-align: center;
+        }
 
-    h3 { color: #1a3025; margin-bottom: 10px; font-size: 1.1em; }
+        h3 { color: #1a3025; margin-bottom: 10px; font-size: 1.1em; }
 
-    /* Iestatījumu sekcija */
-    .grid-container { 
-        display: grid; 
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
-        gap: 15px; 
-        margin-bottom: 30px; 
-    }
-    
-    details.pogas { 
-        background: #fff; 
-        border: 1px solid #e0e0e0; 
-        border-radius: 12px; 
-        box-shadow: 0 4px 6px rgba(0,0,0,0.02); 
-    }
-    
-    summary { 
-        cursor: pointer; 
-        font-weight: bold; 
-        padding: 12px 15px; 
-        background: #fff; 
-        border-radius: 12px;
-        list-style: none;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        color: #1a3025;
-    }
+        /* Iestatījumu sekcija */
+        .grid-container { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+            gap: 15px; 
+            margin-bottom: 30px; 
+        }
+        
+        details.pogas { 
+            background: #fff; 
+            border: 1px solid #e0e0e0; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02); 
+        }
+        
+        summary { 
+            cursor: pointer; 
+            font-weight: bold; 
+            padding: 12px 15px; 
+            background: #fff; 
+            border-radius: 12px;
+            list-style: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #1a3025;
+        }
 
-    .settings-content { padding: 15px; }
-    
-    /* Filtru sekcija */
-    .filter-section { 
-        background: #fff; 
-        border: 1px solid #e0e0e0; 
-        padding: 20px; 
-        border-radius: 15px; 
-        margin-bottom: 25px; 
-        box-shadow: 0 2px 10px rgba(0,0,0,0.03);
-    }
-    
-    .filter-row { 
-        display: flex; 
-        flex-wrap: wrap; 
-        gap: 15px; 
-        align-items: flex-end; 
-        margin-bottom: 15px; 
-    }
+        .settings-content { padding: 15px; }
+        
+        /* Filtru sekcija */
+        .filter-section { 
+            background: #fff; 
+            border: 1px solid #e0e0e0; 
+            padding: 20px; 
+            border-radius: 15px; 
+            margin-bottom: 25px; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+        }
+        
+        .filter-row { 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 15px; 
+            align-items: flex-end; 
+            margin-bottom: 15px; 
+        }
 
-    .summary-bar { 
-        background: #f8f9fa; 
-        padding: 12px 20px; 
-        border-radius: 10px; 
-        display: flex; 
-        justify-content: space-between; 
-        align-items: center;
-        font-weight: bold;
-        border-left: 5px solid #c5a059;
-    }
+        .summary-bar { 
+            background: #f8f9fa; 
+            padding: 12px 20px; 
+            border-radius: 10px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            font-weight: bold;
+            border-left: 5px solid #c5a059;
+        }
 
-    select, button { 
-        padding: 8px 12px; 
-        border-radius: 8px; 
-        border: 1px solid #ced4da; 
-        background: white; 
-    }
-    
-    .btn-add { 
-        width: 100%; 
-        margin-bottom: 8px; 
-        background: #28a745; 
-        color: white; 
-        border: none; 
-    }
-    
-    /* Atskaišu kartītes */
-    .report-stack { display: flex; flex-direction: column; gap: 25px; }
+        select, button { 
+            padding: 8px 12px; 
+            border-radius: 8px; 
+            border: 1px solid #ced4da; 
+            background: white; 
+        }
+        
+        .btn-add { 
+            width: 100%; 
+            margin-bottom: 8px; 
+            background: #28a745; 
+            color: white; 
+            border: none; 
+        }
+        
+        /* Atskaišu kartītes */
+        .report-stack { display: flex; flex-direction: column; gap: 25px; }
 
-    .report-card { 
-        background: #fff; 
-        border-radius: 15px; 
-        overflow: hidden; 
-        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-    }
+        .report-card { 
+            background: #fff; 
+            border-radius: 15px; 
+            overflow: hidden; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
 
-    .report-card > summary { 
-        padding: 15px 25px; 
-        background: #1a3025; 
-        color: #fff; 
-        font-size: 1.1em;
-        text-transform: uppercase;
-    }
+        .report-card > summary { 
+            padding: 15px 25px; 
+            background: #1a3025; 
+            color: #fff; 
+            font-size: 1.1em;
+            text-transform: uppercase;
+        }
 
-    /* Tabulas stils un CENTRĒŠANA */
-    table { border-collapse: collapse; width: 100%; }
-    th { 
-        background: #1a3025; 
-        color: #c5a059; 
-        padding: 14px 10px; 
-        text-align: center; /* Centra galvenes */
-        font-size: 0.85em;
-    }
-    td { 
-        padding: 12px 10px; 
-        border-bottom: 1px solid #f0f0f0; 
-        text-align: center; /* CENTRĒ VISU SATURU */
-        color: #444;
-    }
-    
-    /* Izņēmums vārdiem/objektiem, ja gribi tos pie kreisās malas (pēc izvēles) */
-    .text-left { text-align: left; padding-left: 20px; }
+        /* Tabulas stils */
+        table { border-collapse: collapse; width: 100%; }
+        th { 
+            background: #1a3025; 
+            color: #c5a059; 
+            padding: 14px 10px; 
+            text-align: center; 
+            font-size: 0.85em;
+        }
+        td { 
+            padding: 12px 10px; 
+            border-bottom: 1px solid #f0f0f0; 
+            text-align: center; 
+            color: #444;
+        }
+        
+        .col-hours { font-weight: bold; color: #1a3025; }
+        .oil-val { color: #d4b45d; font-weight: bold; } 
+        .fuel-val { color: #d4b45d; font-weight: bold; } 
 
-    .col-hours { font-weight: bold; color: #1a3025; }
-    .oil-val { color: #d4b45d; font-weight: bold; } 
-    .fuel-val { color: #d4b45d; font-weight: bold; } 
+        /* VIENĀDS UN CENTRĒTS KOPSAVILKUMS VIRŠ TABULĀM */
+        .sum-bar {
+            padding: 15px 25px;
+            background: #fcf9f2;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: center; /* CENTRĒ SATURU */
+            gap: 50px; /* Atstarpe starp elementiem */
+            font-size: 1.05em;
+            font-weight: bold;
+            color: #333;
+        }
 
-    /* Kopsavilkuma joslas */
-    .sum-bar {
-        padding: 12px 25px;
-        background: #fcf9f2;
-        border-bottom: 1px solid #eee;
-        display: flex;
-        gap: 30px;
-        font-size: 0.95em;
-        font-weight: bold;
-    }
+        .val-highlight {
+            color: #1e7e34;
+            margin-left: 5px;
+        }
 
-    ul { list-style: none; padding: 0; }
-    li { display: flex; justify-content: space-between; padding: 8px 5px; border-bottom: 1px solid #eee; }
-    .btn-del { color: #dc3545; border: none; background: none; cursor: pointer; }
-</style>
+        ul { list-style: none; padding: 0; }
+        li { display: flex; justify-content: space-between; padding: 8px 5px; border-bottom: 1px solid #eee; }
+        .btn-del { color: #dc3545; border: none; background: none; cursor: pointer; }
+    </style>
 </head>
 <body>
 
@@ -201,7 +205,7 @@
         <details class="report-card">
             <summary>⏱️ Darba laika uzskaites kopsavilkums</summary>
             <div class="sum-bar">
-                <span>Kopā nostrādātais laiks: <span id="totalSummaryHours" style="color:#1e7e34">0.00</span> h</span>
+                <span>Kopā nostrādātais laiks: <span id="totalSummaryHours" class="val-highlight">0.00</span> h</span>
             </div>
             <div class="table-wrapper" id="newTableContainer"></div>
         </details>
@@ -251,7 +255,7 @@
             const fDate = document.getElementById("filterDate").value;
             const fCar = document.getElementById("filterCar").value;
 
-            // 1. FILTRĒ GAITAS ATSKAITI
+            // FILTRĒ GAITAS ATSKAITI
             let filtered = schedule.filter(e => {
                 const day = e.date ? e.date.split('.')[0] : "";
                 const year = e.date ? e.date.split('.')[2] : "";
@@ -259,7 +263,7 @@
                        (!fWorker || e.worker_name === fWorker) && (!fDate || day === fDate) && (!fCar || e.car === fCar);
             });
 
-            // 2. FILTRĒ DIENAS KOPSAVILKUMU (Tabula 3)
+            // FILTRĒ DIENAS KOPSAVILKUMU
             let filteredSummary = daySummary.filter(s => {
                 const year = s.datums ? s.datums.split('.')[2] : "";
                 const day = s.datums ? s.datums.split('.')[0] : "";
@@ -267,7 +271,7 @@
                        (!fWorker || s.darbinieks === fWorker) && (!fDate || day === fDate);
             });
 
-            // APRĒĶINI
+            // APRĒĶINI UN DATU IZVADE KOPSAVILKUMA JOSLĀS
             const totalGaitas = filtered.reduce((sum, item) => sum + (parseFloat(item.hours) || 0), 0);
             const totalOil = filtered.reduce((sum, e) => sum + parseFloat(e.pielietā_eļļa || e.ella || 0), 0);
             const totalFuel = filtered.reduce((sum, e) => sum + parseFloat(e.pielietā_degviela || e.degviela || 0), 0);
@@ -278,25 +282,24 @@
             document.getElementById("totalFuelValue").textContent = totalFuel.toFixed(2);
             document.getElementById("totalSummaryHours").textContent = totalSumHours.toFixed(2);
 
-            // RENDERĒŠANA (ar centrētiem datiem)
-            // Tabula 1
+            // TABULA 1: Darba Gaitas Atskaite
             let workHtml = `<table><tr><th>Datums</th><th>Auto</th><th>Darbinieks</th><th>Objekts</th><th>Darbs</th><th>Sākums</th><th>Beigas</th><th>Stundas</th></tr>`;
             workHtml += filtered.map(e => `<tr><td>${e.date||'-'}</td><td>${e.car||'-'}</td><td>${e.worker_name||'-'}</td><td>${e.objekts||'-'}</td><td>${e.darbs||'-'}</td><td>${e.sākuma_laiks||'-'}</td><td>${e.beigu_laiks||'-'}</td><td class="col-hours">${parseFloat(e.hours||0).toFixed(2)}</td></tr>`).join("");
             document.getElementById("tableContainer").innerHTML = workHtml + "</table>";
 
-            // Tabula 2
+            // TABULA 2: Eļļa un Degviela
             const resursi = filtered.filter(e => (parseFloat(e.pielietā_eļļa||e.ella)>0 || parseFloat(e.pielietā_degviela||e.degviela)>0));
             let oilHtml = `<table><tr><th>Datums</th><th>Auto</th><th>Darbinieks</th><th class="oil-val">Eļļa (L)</th><th class="fuel-val">Degviela (L)</th></tr>`;
             oilHtml += resursi.map(e => `<tr><td>${e.date||'-'}</td><td>${e.car||'-'}</td><td>${e.worker_name||'-'}</td><td class="oil-val">${parseFloat(e.pielietā_eļļa||e.ella||0).toFixed(2)}</td><td class="fuel-val">${parseFloat(e.pielietā_degviela||e.degviela||0).toFixed(2)}</td></tr>`).join("");
-            document.getElementById("oilContainer").innerHTML = resursi.length ? oilHtml + "</table>" : "<div style='padding:20px'>Nav datu.</div>";
+            document.getElementById("oilContainer").innerHTML = resursi.length ? oilHtml + "</table>" : "<div style='padding:20px'>Nav datu par patēriņu.</div>";
 
-            // Tabula 3 (Kopsavilkums)
+            // TABULA 3: Darba laika kopsavilkums
             let summaryHtml = `<table><tr><th>Darbinieks</th><th>Datums</th><th>Sākums</th><th>Beigas</th><th>Mēnesis</th><th>Kopā h</th></tr>`;
             summaryHtml += filteredSummary.map(s => `<tr><td>${s.darbinieks}</td><td>${s.datums}</td><td>${s.sāka_darbu||'-'}</td><td>${s.beidza_darbu||'-'}</td><td>${s.month||'-'}</td><td class="col-hours">${parseFloat(s.stundas||0).toFixed(2)}</td></tr>`).join("");
             document.getElementById("newTableContainer").innerHTML = summaryHtml + "</table>";
         }
 
-        // Event listeneri un pārējās funkcijas (nemainītas)
+        // Event listeneri
         ["filterYear", "filterMonth", "filterWorker", "filterDate", "filterCar", "sortBy"].forEach(id => {
             document.getElementById(id).addEventListener("change", renderTables);
         });
