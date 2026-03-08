@@ -65,22 +65,18 @@
     <h2>Admin Vadības Panelis</h2>
 
     <div class="grid-container">
-        <details class="pogas"><summary>👷 Darbinieki</summary><div class="settings-content"><button class="btn-add" id="addWorkerBtn">➕ Pievienot</button><ul id="workerList"></ul></div></details>
-        <details class="pogas"><summary>🚗 Mašīnas</summary><div class="settings-content"><button class="btn-add" id="addCarBtn">➕ Pievienot</button><ul id="carList"></ul></div></details>
-        <details class="pogas"><summary>⚒️ Darba veidi</summary><div class="settings-content"><button class="btn-add" id="addWorkBtn">➕ Pievienot</button><ul id="workList"></ul></div></details>
-        <details class="pogas"><summary>📍 Objekti</summary><div class="settings-content"><button class="btn-add" id="addObjectBtn">➕ Pievienot</button><ul id="objectList"></ul></div></details>
+        <details class="pogas"><summary>👷 Darbinieki</summary><div class="settings-content"><ul id="workerList"></ul></div></details>
+        <details class="pogas"><summary>🚗 Mašīnas</summary><div class="settings-content"><ul id="carList"></ul></div></details>
+        <details class="pogas"><summary>⚒️ Darba veidi</summary><div class="settings-content"><ul id="workList"></ul></div></details>
+        <details class="pogas"><summary>📍 Objekti</summary><div class="settings-content"><ul id="objectList"></ul></div></details>
     </div>
 
     <div class="filter-section">
-        <h3>Galvenie filtri (Lielā atlase)</h3>
+        <h3>Galvenie filtri</h3>
         <div class="filter-row">
             <label>Gads:<br><select id="filterYear"><option value="">Visi</option></select></label>
             <label>Mēnesis:<br><select id="filterMonth"><option value="">Visi</option></select></label>
-            <label>Darbinieks:<br>
-                <select id="filterWorker">
-                    <option value="">Visi</option>
-                </select>
-            </label>
+            <label>Darbinieks:<br><select id="filterWorker"><option value="">Visi</option></select></label>
             <button id="clearFilters">Notīrīt visus filtrus</button>
         </div>
     </div>
@@ -89,180 +85,147 @@
         <details class="report-card" open>
             <summary>📋 Darba Gaitas Atskaite</summary>
             <div class="sum-bar">
-                <span>Kopā nostrādāts (pēc gaitas): <span id="totalHoursValue" class="val-highlight">0.00</span> h</span>
+                <span>Kopā nostrādāts: <span id="totalHoursValue" class="val-highlight">0.00</span> h</span>
             </div>
             <div id="tableContainer"></div>
         </details>
 
         <details class="report-card">
-            <summary>⛽ Eļļas un Degvielas Patēriņš</summary>
+            <summary>⏱️ Darba laika kopsavilkums (no-līdz)</summary>
             <div class="sum-bar">
-                <span>Kopā Eļļa: <span id="totalOilValue" class="oil-val">0.00</span> L</span>
-                <span>Kopā Degviela: <span id="totalFuelValue" class="fuel-val">0.00</span> L</span>
-            </div>
-            <div id="oilContainer"></div>
-        </details>
-
-        <details class="report-card">
-            <summary>⏱️ Darba laika uzskaites kopsavilkums</summary>
-            <div class="sum-bar">
-                <span>Kopā darba laiks (no-līdz): <span id="totalSummaryHours" class="val-highlight">0.00</span> h</span>
+                <span>Kopā darba laiks: <span id="totalSummaryHours" class="val-highlight">0.00</span> h</span>
             </div>
             <div id="newTableContainer"></div>
         </details>
     </div>
 
     <script>
-        let workers = [], cars = [], schedule = [], works_types = [], objects = [], daySummary = [];
-        let tableFilters = { date: "", car: "", worker_name: "", objekts: "", darbs: "" };
+    let workers = [], cars = [], schedule = [], works_types = [], objects = [], daySummary = [];
+    let tableFilters = { date: "", car: "", worker_name: "", objekts: "", darbs: "" };
 
-        async function loadData() {
-            try {
-                const [wRes, cRes, sRes, wtRes, oRes, dsRes] = await Promise.all([
-                    fetch('/api/workers'), fetch('/api/cars'), fetch('/api/schedule'),
-                    fetch('/api/work-types'), fetch('/api/objects'), fetch('/api/darba-stundas')
-                ]);
-                workers = await wRes.json();
-                cars = await cRes.json();
-                schedule = await sRes.json();
-                works_types = await wtRes.json();
-                objects = await oRes.json();
-                daySummary = await dsRes.json();
-                
-                renderSettings();
-                fillFilters();
-                renderTables(); 
-            } catch (err) { console.error("Datu ielādes kļūda:", err); }
-        }
-
-        function fillFilters() {
-            const workerSelect = document.getElementById("filterWorker");
-            const sortedWorkers = [...workers].sort((a, b) => a.name.localeCompare(b.name));
+    async function loadData() {
+        try {
+            const [wRes, cRes, sRes, wtRes, oRes, dsRes] = await Promise.all([
+                fetch('/api/workers'), fetch('/api/cars'), fetch('/api/schedule'),
+                fetch('/api/work-types'), fetch('/api/objects'), fetch('/api/darba-stundas')
+            ]);
+            workers = await wRes.json();
+            cars = await cRes.json();
+            schedule = await sRes.json();
+            works_types = await wtRes.json();
+            objects = await oRes.json();
+            daySummary = await dsRes.json();
             
-            workerSelect.innerHTML = '<option value="">Visi</option>' + sortedWorkers.map(w => {
-                const hasTemp = w.temp_password && w.temp_password !== "NULL";
-                const label = hasTemp ? `${w.name} (Pagaidu parole)` : w.name;
-                return `<option value="${w.name}">${label}</option>`;
-            }).join("");
+            renderSettings();
+            fillFilters();
+            renderTables(); 
+        } catch (err) { console.error("Datu ielādes kļūda:", err); }
+    }
 
-            const fill = (id, list) => {
-                const select = document.getElementById(id);
-                const unique = [...new Set(list)].filter(Boolean).sort();
-                select.innerHTML = '<option value="">Visi</option>' + unique.map(v => `<option value="${v}">${v}</option>`).join("");
-            };
-            fill("filterYear", schedule.map(e => e.date ? e.date.split('.')[2] : null));
-            fill("filterMonth", schedule.map(e => e.month));
-        }
+    function parseDateTime(dateStr, timeStr) {
+        if (!dateStr || !timeStr || timeStr === '-' || timeStr === 'undefined') return 0;
+        const parts = dateStr.split('.');
+        if (parts.length !== 3) return 0;
+        // Izveidojam datumu ISO formātā: YYYY-MM-DDTHH:MM
+        return new Date(`${parts[2]}-${parts[1]}-${parts[0]}T${timeStr}`).getTime();
+    }
 
-        function renderTables() {
-            const fYear = document.getElementById("filterYear").value;
-            const fMonth = document.getElementById("filterMonth").value;
-            const fWorker = document.getElementById("filterWorker").value;
+    function renderTables() {
+        const fYear = document.getElementById("filterYear").value;
+        const fMonth = document.getElementById("filterMonth").value;
+        const fWorker = document.getElementById("filterWorker").value;
 
-            // 1. Filtrēšana "Darba Gaitas Atskaitei" un "Resursiem"
-            let filtered = schedule.filter(e => {
-                const year = e.date ? e.date.split('.')[2] : "";
-                return (!fYear || year === fYear) && 
-                       (!fMonth || e.month === fMonth) &&
-                       (!fWorker || e.worker_name === fWorker) &&
-                       (!tableFilters.date || e.date === tableFilters.date) &&
-                       (!tableFilters.car || e.car === tableFilters.car) &&
-                       (!tableFilters.worker_name || e.worker_name === tableFilters.worker_name) &&
-                       (!tableFilters.objekts || e.objekts === tableFilters.objekts) &&
-                       (!tableFilters.darbs || e.darbs === tableFilters.darbs);
-            });
+        // 1. Darba Gaitas Atskaite - filtrēšana un kārtošana
+        let filtered = schedule.filter(e => {
+            const year = e.date ? e.date.split('.')[2] : "";
+            return (!fYear || year === fYear) && 
+                   (!fMonth || e.month === fMonth) &&
+                   (!fWorker || e.worker_name === fWorker) &&
+                   (!tableFilters.date || e.date === tableFilters.date) &&
+                   (!tableFilters.car || e.car === tableFilters.car) &&
+                   (!tableFilters.worker_name || e.worker_name === tableFilters.worker_name) &&
+                   (!tableFilters.objekts || e.objekts === tableFilters.objekts) &&
+                   (!tableFilters.darbs || e.darbs === tableFilters.darbs);
+        }).sort((a, b) => parseDateTime(b.date, b.sākuma_laiks) - parseDateTime(a.date, a.sākuma_laiks));
 
-            // Aprēķini
-            const totalGaitas = filtered.reduce((sum, item) => sum + (parseFloat(item.hours) || 0), 0);
-            const totalOil = filtered.reduce((sum, e) => sum + parseFloat(e.pielietā_eļļa || e.ella || 0), 0);
-            const totalFuel = filtered.reduce((sum, e) => sum + parseFloat(e.pielietā_degviela || e.degviela || 0), 0);
+        document.getElementById("totalHoursValue").textContent = filtered.reduce((sum, item) => sum + (parseFloat(item.hours) || 0), 0).toFixed(2);
+        
+        let workHtml = `<table><thead><tr>
+            <th style="width: 100px;">Datums<br><select class="header-filter" onchange="updateTableFilter('date', this.value)"><option value="">Visi</option>${[...new Set(schedule.map(e => e.date))].sort().reverse().map(v => `<option value="${v}" ${tableFilters.date===v?'selected':''}>${v}</option>`).join("")}</select></th>
+            <th style="width: 80px;">Auto</th>
+            <th style="width: 120px;">Darbinieks</th>
+            <th>Objekts</th>
+            <th>Darbs</th>
+            <th style="width: 80px;">Sākums</th><th style="width: 80px;">Beigas</th><th style="width: 70px;">h</th>
+        </tr></thead><tbody>`;
+        
+        workHtml += filtered.map(e => `<tr><td>${e.date||'-'}</td><td>${e.car||'-'}</td><td>${e.worker_name||'-'}</td><td>${e.objekts||'-'}</td><td>${e.darbs||'-'}</td><td>${e.sākuma_laiks||'-'}</td><td>${e.beigu_laiks||'-'}</td><td style="font-weight:bold">${parseFloat(e.hours||0).toFixed(2)}</td></tr>`).join("");
+        document.getElementById("tableContainer").innerHTML = workHtml + "</tbody></table>";
 
-            document.getElementById("totalHoursValue").textContent = totalGaitas.toFixed(2);
-            document.getElementById("totalOilValue").textContent = totalOil.toFixed(2);
-            document.getElementById("totalFuelValue").textContent = totalFuel.toFixed(2);
+        // 2. Kopsavilkuma tabula - filtrēšana un kārtošana
+        let filteredSum = daySummary.filter(s => {
+            const year = s.datums ? s.datums.split('.')[2] : "";
+            return (!fYear || year === fYear) && 
+                   (!fMonth || s.month === fMonth) && 
+                   (!fWorker || s.darbinieks === fWorker);
+        }).sort((a, b) => parseDateTime(b.datums, b.sāka_darbu) - parseDateTime(a.datums, a.sāka_darbu));
 
-            const getUnique = (key) => [...new Set(schedule.map(e => e[key]))].filter(Boolean).sort();
+        document.getElementById("totalSummaryHours").textContent = filteredSum.reduce((sum, s) => sum + (parseFloat(s.stundas) || 0), 0).toFixed(2);
 
-            // 1. TABULA: Darba gaita
-            let workHtml = `<table><thead><tr>
-                <th style="width: 100px;">Datums<br><select class="header-filter" onchange="updateTableFilter('date', this.value)"><option value="">Visi</option>${getUnique('date').map(v => `<option value="${v}" ${tableFilters.date===v?'selected':''}>${v}</option>`).join("")}</select></th>
-                <th style="width: 80px;">Auto<br><select class="header-filter" onchange="updateTableFilter('car', this.value)"><option value="">Visi</option>${getUnique('car').map(v => `<option value="${v}" ${tableFilters.car===v?'selected':''}>${v}</option>`).join("")}</select></th>
-                <th style="width: 120px;">Darbinieks<br><select class="header-filter" onchange="updateTableFilter('worker_name', this.value)"><option value="">Visi</option>${getUnique('worker_name').map(v => `<option value="${v}" ${tableFilters.worker_name===v?'selected':''}>${v}</option>`).join("")}</select></th>
-                <th>Objekts<br><select class="header-filter" onchange="updateTableFilter('objekts', this.value)"><option value="">Visi</option>${getUnique('objekts').map(v => `<option value="${v}" ${tableFilters.objekts===v?'selected':''}>${v}</option>`).join("")}</select></th>
-                <th>Darbs<br><select class="header-filter" onchange="updateTableFilter('darbs', this.value)"><option value="">Visi</option>${getUnique('darbs').map(v => `<option value="${v}" ${tableFilters.darbs===v?'selected':''}>${v}</option>`).join("")}</select></th>
-                <th style="width: 80px;">Sākums</th><th style="width: 80px;">Beigas</th><th style="width: 70px;">h</th>
-            </tr></thead><tbody>`;
-            
-            workHtml += filtered.map(e => `<tr><td>${e.date||'-'}</td><td>${e.car||'-'}</td><td>${e.worker_name||'-'}</td><td>${e.objekts||'-'}</td><td>${e.darbs||'-'}</td><td>${e.sākuma_laiks||'-'}</td><td>${e.beigu_laiks||'-'}</td><td style="font-weight:bold">${parseFloat(e.hours||0).toFixed(2)}</td></tr>`).join("");
-            document.getElementById("tableContainer").innerHTML = workHtml + "</tbody></table>";
+        let summaryHtml = `<table><tr><th>Darbinieks</th><th>Datums</th><th>Sākums</th><th>Beigas</th><th>Kopā h</th></tr>`;
+        summaryHtml += filteredSum.map(s => {
+            const h = parseFloat(s.stundas || 0);
+            const errorStyle = (h < 0.08 && h > 0) ? 'style="background-color: #fff0f0; color: #d9534f;"' : ''; 
+            return `<tr ${errorStyle}><td>${s.darbinieks}</td><td>${s.datums}</td><td>${s.sāka_darbu||'-'}</td><td>${s.beidza_darbu||'-'}</td><td style="font-weight:bold">${h.toFixed(2)}</td></tr>`;
+        }).join("");
+        document.getElementById("newTableContainer").innerHTML = summaryHtml + "</table>";
+    }
 
-            // 2. TABULA: Resursi
-            const resursi = filtered.filter(e => (parseFloat(e.pielietā_eļļa||e.ella)>0 || parseFloat(e.pielietā_degviela||e.degviela)>0));
-            let oilHtml = `<table><tr><th>Datums</th><th>Auto</th><th>Darbinieks</th><th class="oil-val">Eļļa (L)</th><th class="fuel-val">Degviela (L)</th></tr>`;
-            oilHtml += resursi.map(e => `<tr><td>${e.date||'-'}</td><td>${e.car||'-'}</td><td>${e.worker_name||'-'}</td><td class="oil-val">${parseFloat(e.pielietā_eļļa||e.ella||0).toFixed(2)}</td><td class="fuel-val">${parseFloat(e.pielietā_degviela||e.degviela||0).toFixed(2)}</td></tr>`).join("");
-            document.getElementById("oilContainer").innerHTML = resursi.length ? oilHtml + "</table>" : "<div style='padding:20px'>Nav datu.</div>";
+    function updateTableFilter(key, value) {
+        tableFilters[key] = value;
+        renderTables();
+    }
 
-            // 3. TABULA: Kopsavilkums (Reaģē uz fYear, fMonth un fWorker)
-            let filteredSum = daySummary.filter(s => {
-                const year = s.datums ? s.datums.split('.')[2] : "";
-                return (!fYear || year === fYear) && 
-                       (!fMonth || s.month === fMonth) && 
-                       (!fWorker || s.darbinieks === fWorker);
-            });
-            document.getElementById("totalSummaryHours").textContent = filteredSum.reduce((sum, s) => sum + (parseFloat(s.stundas) || 0), 0).toFixed(2);
+    function fillFilters() {
+        const workerSelect = document.getElementById("filterWorker");
+        workerSelect.innerHTML = '<option value="">Visi</option>' + [...workers].sort((a,b) => a.name.localeCompare(b.name)).map(w => `<option value="${w.name}">${w.name}</option>`).join("");
+        
+        const years = [...new Set(schedule.map(e => e.date ? e.date.split('.')[2] : null))].filter(Boolean).sort().reverse();
+        document.getElementById("filterYear").innerHTML = '<option value="">Visi</option>' + years.map(v => `<option value="${v}">${v}</option>`).join("");
+        
+        const months = [...new Set(schedule.map(e => e.month))].filter(Boolean).sort().reverse();
+        document.getElementById("filterMonth").innerHTML = '<option value="">Visi</option>' + months.map(v => `<option value="${v}">${v}</option>`).join("");
+    }
 
-            let summaryHtml = `<table><tr><th>Darbinieks</th><th>Datums</th><th>Sākums</th><th>Beigas</th><th>Kopā h</th></tr>`;
-            summaryHtml += filteredSum.map(s => `<tr><td>${s.darbinieks}</td><td>${s.datums}</td><td>${s.sāka_darbu||'-'}</td><td>${s.beidza_darbu||'-'}</td><td style="font-weight:bold">${parseFloat(s.stundas||0).toFixed(2)}</td></tr>`).join("");
-            document.getElementById("newTableContainer").innerHTML = summaryHtml + "</table>";
-        }
-
-        function updateTableFilter(key, value) {
-            tableFilters[key] = value;
-            renderTables();
-        }
-
-        document.getElementById("clearFilters").onclick = () => {
-            document.getElementById("filterYear").value = "";
-            document.getElementById("filterMonth").value = "";
-            document.getElementById("filterWorker").value = "";
-            tableFilters = { date: "", car: "", worker_name: "", objekts: "", darbs: "" };
-            renderTables();
-        };
-
-        ["filterYear", "filterMonth", "filterWorker"].forEach(id => {
+    function renderSettings() {
+        const renderList = (id, data) => {
             const el = document.getElementById(id);
-            if(el) el.addEventListener("change", renderTables);
-        });
-
-        function renderSettings() {
-            const workerListElement = document.getElementById("workerList");
-            workerListElement.innerHTML = workers.map(w => {
-                const name = typeof w === 'object' ? w.name : w;
-                const tempPass = (w.temp_password && w.temp_password !== "NULL") ? w.temp_password : null;
-                const tempText = tempPass ? `<span style="color: #888; font-size: 0.85em; margin-left: 10px; font-style: italic;">(Pagaidu: ${tempPass})</span>` : "";
-                return `<li><span><strong>${name}</strong>${tempText}</span><button class="btn-del" onclick="deleteWorker('${name}')">✖</button></li>`;
-            }).join("");
-
-            const renderGeneralList = (id, data, deleteFn) => {
-                const element = document.getElementById(id);
-                if (!element) return;
-                element.innerHTML = data.map(item => {
-                    const name = typeof item === 'object' ? item.name : item;
-                    return `<li><span>${name}</span><button class="btn-del" onclick="${deleteFn}('${name}')">✖</button></li>`;
-                }).join("");
-            };
-
-            renderGeneralList("carList", cars, "deleteCar");
-            renderGeneralList("workList", works_types, "deleteWorkType");
-            renderGeneralList("objectList", objects, "deleteObject");
-        }
-
-        document.getElementById("logoutBtn").onclick = () => {
-            localStorage.removeItem("loggedInUser");
-            window.location.href = "index.html";
+            if (el) el.innerHTML = data.map(item => `<li><span>${item.name || item}</span></li>`).join("");
         };
+        renderList("workerList", workers);
+        renderList("carList", cars);
+        renderList("workList", works_types);
+        renderList("objectList", objects);
+    }
 
-        loadData();
+    document.getElementById("clearFilters").onclick = () => {
+        document.getElementById("filterYear").value = "";
+        document.getElementById("filterMonth").value = "";
+        document.getElementById("filterWorker").value = "";
+        tableFilters = { date: "", car: "", worker_name: "", objekts: "", darbs: "" };
+        renderTables();
+    };
+
+    document.getElementById("logoutBtn").onclick = () => {
+        localStorage.removeItem("loggedInUser");
+        window.location.href = "index.html";
+    };
+
+    ["filterYear", "filterMonth", "filterWorker"].forEach(id => {
+        document.getElementById(id).addEventListener("change", renderTables);
+    });
+
+    loadData();
     </script>
 </body>
 </html>
