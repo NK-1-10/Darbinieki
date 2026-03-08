@@ -39,9 +39,10 @@
         #status { 
             font-size: 1.1rem; 
             margin-bottom: 10px; 
-            padding: 10px;
+            padding: 15px;
             border-radius: 10px;
             background: #fdfdfd;
+            border: 1px solid #eee;
         }
 
         select, input[type="number"] {
@@ -104,8 +105,8 @@
         <div id="startTimeDisplay" style="color: var(--success); font-weight: bold; margin-bottom: 10px;"></div>
 
         <div>
-            <button id="AtWork">ESMU DARBĀ</button>
-            <button id="LeaveWork" style="display:none;">DODOS PROJĀM</button>
+            <button id="AtWork">ESMU DARBĀ (Sākt maiņu)</button>
+            <button id="LeaveWork" style="display:none;">DODOS PROJĀM (Beigt maiņu)</button>
         </div>
 
         <div id="workControls">
@@ -113,11 +114,13 @@
             <select id="object" required><option value="">-- Izvēlies objektu --</option></select>
             <select id="work" required><option value="">-- Izvēlies darba veidu --</option></select>
             
-            <button id="startBtn" style="display:none;">Sākt darbu</button>
-            <button id="stopBtn" style="display:none;">Beigt darbu</button>
+            <button id="startBtn" style="display:none;">Sākt darbu pie objekta</button>
+            <button id="stopBtn" style="display:none;">Beigt darbu pie objekta</button>
 
-            <button id="Ella" class="oil-btn" style="display:none;">Pieleju Eļļu</button>
-            <button id="Degviela" class="fuel-btn" style="display:none;">Pielej Degvielu</button>
+            <div style="display: flex; justify-content: space-around; margin-top: 10px;">
+                <button id="Ella" class="oil-btn" style="display:none; flex: 1;">Eļļa</button>
+                <button id="Degviela" class="fuel-btn" style="display:none; flex: 1;">Degviela</button>
+            </div>
         </div>
 
         <button id="logoutBtn">Izrakstīties</button>
@@ -126,9 +129,9 @@
     <div id="resourceModal">
         <div class="modal-content">
             <h3 id="modalTitle">Pievienot resursu</h3>
-            <label>Izvēlies mašīnu:</label>
+            <label>Mašīna:</label>
             <select id="modalCarSelect"></select>
-            <label>Ievadi litrus:</label>
+            <label>Litri:</label>
             <input type="number" id="modalAmountInput" step="0.01" placeholder="0.00">
             <div style="display:flex; gap:10px; margin-top: 15px;">
                 <button id="modalCancel" style="flex:1; background:#6c757d; color:white;">Atcelt</button>
@@ -144,7 +147,7 @@
     const user = JSON.parse(localStorage.getItem("loggedInUser"));
     if (!user) { window.location.href = "index.html"; } 
 
-    document.getElementById("welcome").textContent = `Darbinieks: ${user.name}`;
+    document.getElementById("welcome").textContent = `Sveiki, ${user.name}!`;
 
     const carSelect = document.getElementById("car");
     const objectSelect = document.getElementById("object");
@@ -157,6 +160,7 @@
             const [cRes, oRes, wRes, sRes] = await Promise.all([
                 fetch('/api/cars'), fetch('/api/objects'), fetch('/api/work-types'), fetch('/api/schedule')
             ]);
+            
             const cars = await cRes.json();
             const objects = await oRes.json();
             const workTypes = await wRes.json();
@@ -167,34 +171,55 @@
             fillSelect(workSelect, workTypes, "-- Izvēlies darba veidu --");
 
             const workerHistory = allSchedule.filter(e => e.worker_name === user.name);
-            const activeJob = workerHistory.find(e => !e.beigu_laiks);
+            
+            // ATRODAM JAUNĀKO AKTĪVO DARBU
+            const activeJob = workerHistory.slice().reverse().find(e => !e.beigu_laiks);
             
             // Pārbaudām shift statusu no localStorage
-            const isShiftStarted = !!localStorage.getItem(`shift_start_${user.name}`);
+            let isShiftStarted = !!localStorage.getItem(`shift_start_${user.name}`);
+
+            // KRITISKI: Ja DB ir aktīvs darbs, bet localStorage rāda, ka maiņa nav sākta (pēc refresh), 
+            // mēs "atdzīvinām" maiņu automātiski.
+            if (activeJob && !isShiftStarted) {
+                localStorage.setItem(`shift_start_${user.name}`, new Date().toISOString());
+                isShiftStarted = true;
+            }
 
             if (activeJob) {
-                document.getElementById("status").innerHTML = `Strādā: <b>${activeJob.objekts}</b> (${activeJob.car})`;
-                document.getElementById("startTimeDisplay").innerText = `Sāki: ${activeJob.sākuma_laiks.split(' ')[1]}`;
+                // STRĀDĀ PIE OBJEKTA
+                document.getElementById("status").innerHTML = `Status: 🟢 Strādā pie <b>${activeJob.objekts}</b>`;
+                document.getElementById("startTimeDisplay").innerText = `Sāki: ${activeJob.sākuma_laiks}`;
                 
                 document.getElementById("startBtn").style.display = "none";
                 document.getElementById("stopBtn").style.display = "block";
-                document.getElementById("LeaveWork").style.display = "none";
-                
+                document.getElementById("LeaveWork").style.display = "none"; 
+                document.getElementById("AtWork").style.display = "none";
+
                 [carSelect, objectSelect, workSelect].forEach(s => s.disabled = true);
                 carSelect.value = activeJob.car;
                 objectSelect.value = activeJob.objekts || "";
                 workSelect.value = activeJob.darbs || "";
-            } else {
-                [carSelect, objectSelect, workSelect].forEach(s => s.disabled = false);
-                document.getElementById("status").textContent = isShiftStarted ? "Statuss: Maiņa sākta" : "Statuss: Gaidīšana";
+            } else if (isShiftStarted) {
+                // MAIŅA SĀKTA, GAIDA NĀKAMO DARBU
+                document.getElementById("status").textContent = "Status: 🟡 Maiņa sākta (Gaidīšana)";
                 document.getElementById("startTimeDisplay").innerText = "";
-                
-                document.getElementById("startBtn").style.display = isShiftStarted ? "block" : "none";
+                document.getElementById("AtWork").style.display = "none";
+                document.getElementById("LeaveWork").style.display = "block";
+                document.getElementById("startBtn").style.display = "block";
                 document.getElementById("stopBtn").style.display = "none";
-                document.getElementById("LeaveWork").style.display = isShiftStarted ? "block" : "none";
+                [carSelect, objectSelect, workSelect].forEach(s => s.disabled = false);
+            } else {
+                // NAV DARBĀ
+                document.getElementById("status").textContent = "Status: ⚪ Nav sākta maiņa";
+                document.getElementById("startTimeDisplay").innerText = "";
+                document.getElementById("AtWork").style.display = "block";
+                document.getElementById("LeaveWork").style.display = "none";
+                document.getElementById("startBtn").style.display = "none";
+                document.getElementById("stopBtn").style.display = "none";
+                [carSelect, objectSelect, workSelect].forEach(s => s.disabled = false);
             }
 
-            document.getElementById("AtWork").style.display = isShiftStarted ? "none" : "block";
+            // Resursu pogas pieejamas tikai maiņas laikā
             document.getElementById("Ella").style.display = isShiftStarted ? "block" : "none";
             document.getElementById("Degviela").style.display = isShiftStarted ? "block" : "none";
 
@@ -208,6 +233,11 @@
     };
 
     document.getElementById("LeaveWork").onclick = async () => {
+        // Papildus drošība: neļaut beigt dienu, ja vēl nav nospiests "Beigt darbu pie objekta"
+        if (document.getElementById("stopBtn").style.display === "block") {
+            return alert("Vispirms pabeidz aktīvo darbu pie objekta!");
+        }
+
         if (!confirm("Vai tiešām beigt darba dienu?")) return;
         
         try {
@@ -215,21 +245,18 @@
             const allSchedule = await sRes.json();
             const sodien = new Date().toLocaleDateString('lv-LV');
             
-            // Atrodam šīs dienas darbus, lai noteiktu reālo sākuma laiku
             const sodienasDarbi = allSchedule.filter(e => 
                 e.worker_name === user.name && e.sākuma_laiks.startsWith(sodien)
             ).sort((a, b) => a.id - b.id);
 
-            let sakumaLaiksString;
             let startObject;
+            let sakumaLaiksString;
 
             if (sodienasDarbi.length > 0) {
-                // Ja ir darbi, ņemam paša pirmā darba laiku
-                sakumaLaiksString = sodienasDarbi[0].sākuma_laiks.split(' ')[1];
                 const parts = sodienasDarbi[0].sākuma_laiks.split(/[. :]/);
                 startObject = new Date(parts[2], parts[1]-1, parts[0], parts[3], parts[4], parts[5]);
+                sakumaLaiksString = sodienasDarbi[0].sākuma_laiks.split(' ')[1];
             } else {
-                // Ja darbu nav, ņemam no localStorage
                 const lsStart = localStorage.getItem(`shift_start_${user.name}`);
                 startObject = lsStart ? new Date(lsStart) : new Date();
                 sakumaLaiksString = startObject.toLocaleTimeString('lv-LV');
@@ -254,12 +281,12 @@
             });
 
             localStorage.removeItem(`shift_start_${user.name}`);
-            window.location.reload();
-        } catch (err) { alert("Kļūda saglabājot maiņu!"); }
+            loadWorkerData(); // Refreshējam skatu
+        } catch (err) { alert("Kļūda saglabājot maiņas beigas!"); }
     };
 
     document.getElementById("startBtn").onclick = async () => {
-        if (!carSelect.value || !objectSelect.value || !workSelect.value) return alert("Izvēlies visus laukus!");
+        if (!carSelect.value || !objectSelect.value || !workSelect.value) return alert("Aizpildi visus laukus!");
         const now = new Date();
         const startTimeStr = `${now.toLocaleDateString('lv-LV')} ${now.toLocaleTimeString('lv-LV')}`;
         
@@ -275,7 +302,7 @@
     };
 
     document.getElementById("stopBtn").onclick = async () => {
-        if (!confirm("Beigt šo darbu?")) return;
+        if (!confirm("Vai tiešām beigt darbu pie šī objekta?")) return;
         const now = new Date();
         const endTimeStr = `${now.toLocaleDateString('lv-LV')} ${now.toLocaleTimeString('lv-LV')}`;
         
@@ -303,7 +330,7 @@
     document.getElementById("modalSave").onclick = async () => {
         const auto = document.getElementById("modalCarSelect").value;
         const litri = document.getElementById("modalAmountInput").value;
-        if (!auto || litri <= 0) return alert("Ievadi korektus datus!");
+        if (!auto || litri <= 0) return alert("Ievadi mašīnu un daudzumu!");
         
         await fetch('/api/update-resources', {
             method: 'POST',
@@ -328,16 +355,15 @@
 
     function renderTable(data) {
         if (!data || !data.length) { tableContainer.innerHTML = "<p style='padding:15px;'>Nav ierakstu.</p>"; return; }
-        let html = `<table><tr><th>Auto</th><th>Objekts</th><th>Darbs</th><th>Sākums</th><th>Beigas</th><th>Eļļa</th><th>Degv.</th><th>Stundas</th></tr>`;
-        data.slice().reverse().forEach(e => {
+        let html = `<table><tr><th>Auto</th><th>Objekts</th><th>Darbs</th><th>Sākums</th><th>Beigas</th><th>Eļļa/Degv</th><th>Stundas</th></tr>`;
+        data.slice().reverse().slice(0, 10).forEach(e => {
             html += `<tr>
                 <td>${e.car}</td>
                 <td>${e.objekts || '-'}</td>
                 <td>${e.darbs || '-'}</td>
                 <td>${e.sākuma_laiks || '-'}</td>
                 <td>${e.beigu_laiks || '<span style="color:green;font-weight:bold;">Aktīvs</span>'}</td>
-                <td style="color:#d4b45d;font-weight:bold;">${e.pielietā_eļļa || 0} L</td>
-                <td style="color:#1a3025;font-weight:bold;">${e.pielietā_degviela || 0} L</td>
+                <td>${e.pielietā_eļļa || 0}L / ${e.pielietā_degviela || 0}L</td>
                 <td><b>${e.hours ? e.hours + ' h' : '-'}</b></td>
             </tr>`;
         });
@@ -349,6 +375,7 @@
         window.location.href = "index.html";
     };
 
+    // Sākotnējā ielāde
     loadWorkerData();
 </script>
 </body>
