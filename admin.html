@@ -72,12 +72,12 @@
             margin-bottom: 15px; 
         }
 
-        .summary-bar { 
+        /* Augšējā kārtošanas josla */
+        .sort-bar { 
             background: #f8f9fa; 
-            padding: 12px 20px; 
+            padding: 10px 20px; 
             border-radius: 10px; 
             display: flex; 
-            justify-content: space-between; 
             align-items: center;
             font-weight: bold;
             border-left: 5px solid #c5a059;
@@ -142,15 +142,15 @@
             background: #fcf9f2;
             border-bottom: 1px solid #eee;
             display: flex;
-            justify-content: center; /* CENTRĒ SATURU */
-            gap: 50px; /* Atstarpe starp elementiem */
+            justify-content: center; 
+            gap: 50px; 
             font-size: 1.05em;
             font-weight: bold;
             color: #333;
         }
 
         .val-highlight {
-            color: #d4b45d;
+            color: #1e7e34; /* Zaļa krāsa nostrādātajām stundām */
             margin-left: 5px;
         }
 
@@ -181,15 +181,17 @@
             <button id="clearFilters" style="height: 32px;">Notīrīt filtrus</button>
         </div>
         
-        <div class="summary-bar">
+        <div class="sort-bar">
             <div>Kārtot: <select id="sortBy"><option value="">Noklusējuma</option><option value="date">Datums</option><option value="hours">Stundas</option></select></div>
-            <div>Atlasītajā periodā (Gaitas atskaite): <span id="totalHoursValue" style="color:#1e7e34">0.00</span> h</div>
         </div>
     </div>
 
     <div class="report-stack">
         <details class="report-card" open>
             <summary>📋 Darba Gaitas Atskaite</summary>
+            <div class="sum-bar">
+                <span>Kopā nostrādāts (pēc gaitas): <span id="totalHoursValue" class="val-highlight">0.00</span> h</span>
+            </div>
             <div class="table-wrapper" id="tableContainer"></div>
         </details>
 
@@ -205,7 +207,7 @@
         <details class="report-card">
             <summary>⏱️ Darba laika uzskaites kopsavilkums</summary>
             <div class="sum-bar">
-                <span>Kopā nostrādātais laiks: <span id="totalSummaryHours" class="val-highlight">0.00</span> h</span>
+                <span>Kopā darba laiks (no-līdz): <span id="totalSummaryHours" class="val-highlight">0.00</span> h</span>
             </div>
             <div class="table-wrapper" id="newTableContainer"></div>
         </details>
@@ -271,12 +273,13 @@
                        (!fWorker || s.darbinieks === fWorker) && (!fDate || day === fDate);
             });
 
-            // APRĒĶINI UN DATU IZVADE KOPSAVILKUMA JOSLĀS
+            // APRĒĶINI
             const totalGaitas = filtered.reduce((sum, item) => sum + (parseFloat(item.hours) || 0), 0);
             const totalOil = filtered.reduce((sum, e) => sum + parseFloat(e.pielietā_eļļa || e.ella || 0), 0);
             const totalFuel = filtered.reduce((sum, e) => sum + parseFloat(e.pielietā_degviela || e.degviela || 0), 0);
             const totalSumHours = filteredSummary.reduce((sum, s) => sum + (parseFloat(s.stundas) || 0), 0);
 
+            // IZVADE KOPSAVILKUMA JOSLĀS
             document.getElementById("totalHoursValue").textContent = totalGaitas.toFixed(2);
             document.getElementById("totalOilValue").textContent = totalOil.toFixed(2);
             document.getElementById("totalFuelValue").textContent = totalFuel.toFixed(2);
