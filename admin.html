@@ -56,7 +56,6 @@
         .oil-val { color: #d4b45d; font-weight: bold; }
         .fuel-val { color: #b45d5d; font-weight: bold; }
         
-        .btn-del { color: #dc3545; border: none; background: none; cursor: pointer; }
         ul { list-style: none; padding: 0; }
         li { display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid #eee; }
         
@@ -135,7 +134,6 @@
         } catch (err) { console.error("Datu ielādes kļūda:", err); }
     }
 
-    // Funkcija laika pārvēršanai, lai varētu kārtot (Jaunākie augšā)
     function parseDateTime(dateStr, timeStr) {
         if (!dateStr || !timeStr || timeStr === '-' || timeStr === 'undefined') return 0;
         try {
@@ -150,7 +148,7 @@
         const fMonth = document.getElementById("filterMonth").value;
         const fWorker = document.getElementById("filterWorker").value;
 
-        // 1. Filtrējam galveno gaitas sarakstu
+        // 1. Filtrējam datus
         let filtered = schedule.filter(e => {
             const year = e.date ? e.date.split('.')[2] : "";
             return (!fYear || year === fYear) && 
@@ -163,7 +161,7 @@
                    (!tableFilters.darbs || e.darbs === tableFilters.darbs);
         }).sort((a, b) => parseDateTime(b.date, b.sākuma_laiks) - parseDateTime(a.date, a.sākuma_laiks));
 
-        // Aprēķini summām
+        // Summu aprēķini
         const totalGaitas = filtered.reduce((sum, item) => sum + (parseFloat(item.hours) || 0), 0);
         const totalOil = filtered.reduce((sum, e) => sum + parseFloat(e.pielietā_eļļa || e.ella || 0), 0);
         const totalFuel = filtered.reduce((sum, e) => sum + parseFloat(e.pielietā_degviela || e.degviela || 0), 0);
@@ -172,16 +170,43 @@
         document.getElementById("totalOilValue").textContent = totalOil.toFixed(2);
         document.getElementById("totalFuelValue").textContent = totalFuel.toFixed(2);
 
-        // --- Gaita Tabula ---
+        // --- Gaita Tabula ar filtriem galvenē ---
         const uniqueValues = (key) => [...new Set(schedule.map(e => e[key]))].filter(Boolean).sort();
         
         let workHtml = `<table><thead><tr>
-            <th style="width: 100px;">Datums<br><select class="header-filter" onchange="updateTableFilter('date', this.value)"><option value="">Visi</option>${uniqueValues('date').reverse().map(v => `<option value="${v}" ${tableFilters.date===v?'selected':''}>${v}</option>`).join("")}</select></th>
-            <th style="width: 80px;">Auto</th>
-            <th style="width: 120px;">Darbinieks</th>
-            <th>Objekts</th>
-            <th>Darbs</th>
-            <th style="width: 80px;">Sākums</th><th style="width: 80px;">Beigas</th><th style="width: 70px;">h</th>
+            <th style="width: 100px;">Datums<br>
+                <select class="header-filter" onchange="updateTableFilter('date', this.value)">
+                    <option value="">Visi</option>
+                    ${uniqueValues('date').reverse().map(v => `<option value="${v}" ${tableFilters.date===v?'selected':''}>${v}</option>`).join("")}
+                </select>
+            </th>
+            <th style="width: 80px;">Auto<br>
+                <select class="header-filter" onchange="updateTableFilter('car', this.value)">
+                    <option value="">Visi</option>
+                    ${uniqueValues('car').map(v => `<option value="${v}" ${tableFilters.car===v?'selected':''}>${v}</option>`).join("")}
+                </select>
+            </th>
+            <th style="width: 120px;">Darbinieks<br>
+                <select class="header-filter" onchange="updateTableFilter('worker_name', this.value)">
+                    <option value="">Visi</option>
+                    ${uniqueValues('worker_name').map(v => `<option value="${v}" ${tableFilters.worker_name===v?'selected':''}>${v}</option>`).join("")}
+                </select>
+            </th>
+            <th>Objekts<br>
+                <select class="header-filter" onchange="updateTableFilter('objekts', this.value)">
+                    <option value="">Visi</option>
+                    ${uniqueValues('objekts').map(v => `<option value="${v}" ${tableFilters.objekts===v?'selected':''}>${v}</option>`).join("")}
+                </select>
+            </th>
+            <th>Darbs<br>
+                <select class="header-filter" onchange="updateTableFilter('darbs', this.value)">
+                    <option value="">Visi</option>
+                    ${uniqueValues('darbs').map(v => `<option value="${v}" ${tableFilters.darbs===v?'selected':''}>${v}</option>`).join("")}
+                </select>
+            </th>
+            <th style="width: 80px;">Sākums</th>
+            <th style="width: 80px;">Beigas</th>
+            <th style="width: 70px;">h</th>
         </tr></thead><tbody>`;
         
         workHtml += filtered.map(e => `<tr><td>${e.date||'-'}</td><td>${e.car||'-'}</td><td>${e.worker_name||'-'}</td><td>${e.objekts||'-'}</td><td>${e.darbs||'-'}</td><td>${e.sākuma_laiks||'-'}</td><td>${e.beigu_laiks||'-'}</td><td style="font-weight:bold">${parseFloat(e.hours||0).toFixed(2)}</td></tr>`).join("");
@@ -193,7 +218,7 @@
         oilHtml += resursi.map(e => `<tr><td>${e.date||'-'}</td><td>${e.car||'-'}</td><td>${e.worker_name||'-'}</td><td class="oil-val">${parseFloat(e.pielietā_eļļa||e.ella||0).toFixed(2)}</td><td class="fuel-val">${parseFloat(e.pielietā_degviela||e.degviela||0).toFixed(2)}</td></tr>`).join("");
         document.getElementById("oilContainer").innerHTML = resursi.length ? oilHtml + "</table>" : "<div style='padding:20px'>Nav datu.</div>";
 
-        // --- Kopsavilkuma Tabula (ar kļūdu iekrāsošanu) ---
+        // --- Kopsavilkuma Tabula ---
         let filteredSum = daySummary.filter(s => {
             const year = s.datums ? s.datums.split('.')[2] : "";
             return (!fYear || year === fYear) && (!fMonth || s.month === fMonth) && (!fWorker || s.darbinieks === fWorker);
@@ -204,7 +229,6 @@
         let summaryHtml = `<table><tr><th>Darbinieks</th><th>Datums</th><th>Sākums</th><th>Beigas</th><th>Kopā h</th></tr>`;
         summaryHtml += filteredSum.map(s => {
             const h = parseFloat(s.stundas || 0);
-            // Iekrāsojam sarkanu, ja mazāk par 5 minūtēm (0.08h)
             const isError = (h < 0.08 && h > 0);
             return `<tr class="${isError ? 'error-row' : ''}"><td>${s.darbinieks}</td><td>${s.datums}</td><td>${s.sāka_darbu||'-'}</td><td>${s.beidza_darbu||'-'}</td><td style="font-weight:bold">${h.toFixed(2)}</td></tr>`;
         }).join("");
