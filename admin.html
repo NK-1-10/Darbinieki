@@ -72,6 +72,7 @@
         <details class="pogas"><summary>🚗 Mašīnas</summary><div class="settings-content"><ul id="carList"></ul></div></details>
         <details class="pogas"><summary>⚒️ Darba veidi</summary><div class="settings-content"><ul id="workList"></ul></div></details>
         <details class="pogas"><summary>📍 Objekti</summary><div class="settings-content"><ul id="objectList"></ul></div></details>
+        <details class="pogas"><summary>🛢️ Uzpildāmais</summary><div class="settings-content"><ul id="OilList"></ul></div></details>
     </div>
 
     <div class="filter-section">
@@ -251,16 +252,41 @@
         document.getElementById("filterMonth").innerHTML = '<option value="">Visi</option>' + months.map(v => `<option value="${v}">${v}</option>`).join("");
     }
 
-    function renderSettings() {
-        const renderList = (id, data) => {
-            const el = document.getElementById(id);
-            if (el) el.innerHTML = data.map(item => `<li><span>${item.name || item}</span></li>`).join("");
-        };
-        renderList("workerList", workers);
-        renderList("carList", cars);
-        renderList("workList", works_types);
-        renderList("objectList", objects);
+        // Funkcija jauna resursa veida pievienošanai
+async function addResourceType() {
+    const nameInput = document.getElementById("newResourceName");
+    const name = nameInput.value.trim();
+    
+    if (!name) return alert("Ievadiet nosaukumu!");
+
+    try {
+        const response = await fetch('/api/resource-types', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: name })
+        });
+
+        if (response.ok) {
+            nameInput.value = "";
+            loadData(); // Pārlādējam visus datus
+        }
+    } catch (err) {
+        console.error("Kļūda pievienojot resursu:", err);
     }
+}
+
+    function renderSettings() {
+    const renderList = (id, data) => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = data.map(item => `<li><span>${item.name || item}</span></li>`).join("");
+    };
+    renderList("workerList", workers);
+    renderList("carList", cars);
+    renderList("workList", works_types);
+    renderList("objectList", objects);
+    // Pievienojam šo rindu:
+    renderList("OilList", resource_types); 
+}
 
     document.getElementById("clearFilters").onclick = () => {
         document.getElementById("filterYear").value = "";
