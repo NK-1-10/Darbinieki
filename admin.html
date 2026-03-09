@@ -114,26 +114,109 @@
 
     <script>
     let workers = [], cars = [], schedule = [], works_types = [], objects = [], daySummary = [];
+    let resource_types = [], inventory_log = []; // Jaunie mainīgie
     let tableFilters = { date: "", car: "", worker_name: "", objekts: "", darbs: "" };
 
     async function loadData() {
         try {
-            const [wRes, cRes, sRes, wtRes, oRes, dsRes] = await Promise.all([
+            const [wRes, cRes, sRes, wtRes, oRes, dsRes, rtRes, invRes] = await Promise.all([
                 fetch('/api/workers'), fetch('/api/cars'), fetch('/api/schedule'),
-                fetch('/api/work-types'), fetch('/api/objects'), fetch('/api/darba-stundas')
+                fetch('/api/work-types'), fetch('/api/objects'), fetch('/api/darba-stundas'),
+                fetch('/api/resource-types'), fetch('/api/inventory-log')
             ]);
+            
             workers = await wRes.json();
             cars = await cRes.json();
             schedule = await sRes.json();
             works_types = await wtRes.json();
             objects = await oRes.json();
             daySummary = await dsRes.json();
+            resource_types = await rtRes.json();
+            inventory_log = await invRes.json();
             
             renderSettings();
             fillFilters();
             renderTables(); 
         } catch (err) { console.error("Datu ielādes kļūda:", err); }
     }
+
+    // Funkcija krājumu papildināšanai (+/-)
+    async function updateStock(resourceName) {
+        const val = prompt(`Ievadiet daudzumu (L) resursam ${resourceName}:\n(Piemēram: 50 lai pievienotu, vai -10 lai norakstītu)`);
+        const amount = parseFloat(val);
+        if (isNaN(amount)) return;
+
+        try {
+            const response = await fetch('/api/inventory-log', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    resource_name: resourceName,
+                    amount: amount,
+                    date: new Date().toISOString().split('T')[0]
+                })
+            });
+            if (response.ok) loadData();
+        } catch (err) { console.error("Kļūda:", err); }
+    }
+
+    // Funkcija jauna resursa veida izveidei
+    async function addNewResourceType() {
+        const name = prompt("Ievadiet jauna resursa nosaukumu (piem. Benzīns 95):");
+        if (!name) return;
+
+        try {
+            const response = await fetch('/api/resource-types', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name })
+            });
+            if (response.ok) loadData();
+        } catch (err) { console.error("Kļūda:", err); }
+    }
+
+    function renderSettings() {
+        const renderList = (id, data) => {
+            const el = document.getElementById(id);
+            if (el) el.innerHTML = data.map(item => `<li><span>${item.name || item}</span></li>`).join("");
+        };
+
+        renderList("workerList", workers);
+        renderList("carList", cars);
+        renderList("workList", works_types);
+        renderList("objectList", objects);
+
+        // Uzlabots Uzpildāmā saraksts ar aprēķiniem
+        const oilEl = document.getElementById("OilList");
+        if (oilEl) {
+            oilEl.innerHTML = resource_types.map(rt => {
+                // Saskaitām visus Admin ienākumus/izdevumus
+                const stockMovement = inventory_log
+                    .filter(i => i.resource_name === rt.name)
+                    .reduce((sum, i) => sum + (parseFloat(i.amount) || 0), 0);
+                
+                // Saskaitām, cik darbinieki ir iztērējuši (izmantojot 'resource_name' un 'resource_amount' no schedule)
+                const spent = schedule
+                    .filter(s => s.resource_name === rt.name)
+                    .reduce((sum, s) => sum + (parseFloat(s.resource_amount) || 0), 0);
+                
+                const balance = stockMovement - spent;
+
+                return `
+                    <li style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid #eee;">
+                        <div>
+                            <strong style="font-size:1.1em">${rt.name}</strong><br>
+                            <small style="color:${balance < 5 ? '#d9534f' : '#28a745'}; font-weight:bold;">
+                                Atlikums: ${balance.toFixed(2)} L
+                            </small>
+                        </div>
+                        <button onclick="updateStock('${rt.name}')" style="background:#1a3025; color:white; border:none; border-radius:4px; padding:5px 10px; cursor:pointer;">+/-</button>
+                    </li>`;
+            }).join("") + `<li style="padding:10px;"><button onclick="addNewResourceType()" style="width:100%; cursor:pointer; background:#eee; border:1px dashed #999;">+ Pievienot jaunu veidu</button></li>`;
+        }
+    }
+
+    // --- Pārējās funkcijas paliek tādas pašas kā tavā kodā ---
 
     function parseDateTime(dateStr, timeStr) {
         if (!dateStr || !timeStr || timeStr === '-' || timeStr === 'undefined') return 0;
@@ -149,7 +232,6 @@
         const fMonth = document.getElementById("filterMonth").value;
         const fWorker = document.getElementById("filterWorker").value;
 
-        // 1. Filtrējam datus
         let filtered = schedule.filter(e => {
             const year = e.date ? e.date.split('.')[2] : "";
             return (!fYear || year === fYear) && 
@@ -162,7 +244,6 @@
                    (!tableFilters.darbs || e.darbs === tableFilters.darbs);
         }).sort((a, b) => parseDateTime(b.date, b.sākuma_laiks) - parseDateTime(a.date, a.sākuma_laiks));
 
-        // Summu aprēķini
         const totalGaitas = filtered.reduce((sum, item) => sum + (parseFloat(item.hours) || 0), 0);
         const totalOil = filtered.reduce((sum, e) => sum + parseFloat(e.pielietā_eļļa || e.ella || 0), 0);
         const totalFuel = filtered.reduce((sum, e) => sum + parseFloat(e.pielietā_degviela || e.degviela || 0), 0);
@@ -171,7 +252,6 @@
         document.getElementById("totalOilValue").textContent = totalOil.toFixed(2);
         document.getElementById("totalFuelValue").textContent = totalFuel.toFixed(2);
 
-        // --- Gaita Tabula ar filtriem galvenē ---
         const uniqueValues = (key) => [...new Set(schedule.map(e => e[key]))].filter(Boolean).sort();
         
         let workHtml = `<table><thead><tr>
@@ -213,13 +293,11 @@
         workHtml += filtered.map(e => `<tr><td>${e.date||'-'}</td><td>${e.car||'-'}</td><td>${e.worker_name||'-'}</td><td>${e.objekts||'-'}</td><td>${e.darbs||'-'}</td><td>${e.sākuma_laiks||'-'}</td><td>${e.beigu_laiks||'-'}</td><td style="font-weight:bold">${parseFloat(e.hours||0).toFixed(2)}</td></tr>`).join("");
         document.getElementById("tableContainer").innerHTML = workHtml + "</tbody></table>";
 
-        // --- Eļļas Tabula ---
         const resursi = filtered.filter(e => (parseFloat(e.pielietā_eļļa||e.ella)>0 || parseFloat(e.pielietā_degviela||e.degviela)>0));
         let oilHtml = `<table><tr><th>Datums</th><th>Auto</th><th>Darbinieks</th><th class="oil-val">Eļļa (L)</th><th class="fuel-val">Degviela (L)</th></tr>`;
         oilHtml += resursi.map(e => `<tr><td>${e.date||'-'}</td><td>${e.car||'-'}</td><td>${e.worker_name||'-'}</td><td class="oil-val">${parseFloat(e.pielietā_eļļa||e.ella||0).toFixed(2)}</td><td class="fuel-val">${parseFloat(e.pielietā_degviela||e.degviela||0).toFixed(2)}</td></tr>`).join("");
         document.getElementById("oilContainer").innerHTML = resursi.length ? oilHtml + "</table>" : "<div style='padding:20px'>Nav datu.</div>";
 
-        // --- Kopsavilkuma Tabula ---
         let filteredSum = daySummary.filter(s => {
             const year = s.datums ? s.datums.split('.')[2] : "";
             return (!fYear || year === fYear) && (!fMonth || s.month === fMonth) && (!fWorker || s.darbinieks === fWorker);
@@ -251,42 +329,6 @@
         const months = [...new Set(schedule.map(e => e.month))].filter(Boolean).sort().reverse();
         document.getElementById("filterMonth").innerHTML = '<option value="">Visi</option>' + months.map(v => `<option value="${v}">${v}</option>`).join("");
     }
-
-        // Funkcija jauna resursa veida pievienošanai
-async function addResourceType() {
-    const nameInput = document.getElementById("newResourceName");
-    const name = nameInput.value.trim();
-    
-    if (!name) return alert("Ievadiet nosaukumu!");
-
-    try {
-        const response = await fetch('/api/resource-types', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name: name })
-        });
-
-        if (response.ok) {
-            nameInput.value = "";
-            loadData(); // Pārlādējam visus datus
-        }
-    } catch (err) {
-        console.error("Kļūda pievienojot resursu:", err);
-    }
-}
-
-    function renderSettings() {
-    const renderList = (id, data) => {
-        const el = document.getElementById(id);
-        if (el) el.innerHTML = data.map(item => `<li><span>${item.name || item}</span></li>`).join("");
-    };
-    renderList("workerList", workers);
-    renderList("carList", cars);
-    renderList("workList", works_types);
-    renderList("objectList", objects);
-    // Pievienojam šo rindu:
-    renderList("OilList", resource_types); 
-}
 
     document.getElementById("clearFilters").onclick = () => {
         document.getElementById("filterYear").value = "";
