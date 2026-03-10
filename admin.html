@@ -33,7 +33,6 @@
             border-bottom: 1px solid #eee; 
         }
         
-        /* Dzēšanas poga */
         .delete-btn { 
             background: #ff4d4d; 
             color: white; 
@@ -70,16 +69,10 @@
         
         tr:hover td { background-color: #fff9e6; }
 
-        .header-filter {
-            display: block; width: 95%; margin: 5px auto 0 auto; font-size: 0.85em; padding: 3px;
-            border: 1px solid #c5a059; background: #2a4035; color: white; border-radius: 4px; cursor: pointer;
-        }
-
         .sum-bar { padding: 15px; background: #fcf9f2; border-bottom: 1px solid #eee; display: flex; justify-content: center; gap: 40px; font-weight: bold; }
         .val-highlight { color: #1e7e34; }
         .oil-val { color: #d4b45d; font-weight: bold; }
         .fuel-val { color: #b45d5d; font-weight: bold; }
-        .error-row { background-color: #fff0f0 !important; color: #d9534f; }
     </style>
 </head>
 <body>
@@ -92,7 +85,12 @@
         <details class="pogas"><summary>🚗 Mašīnas</summary><div class="settings-content"><ul id="carList"></ul></div></details>
         <details class="pogas"><summary>⚒️ Darba veidi</summary><div class="settings-content"><ul id="workList"></ul></div></details>
         <details class="pogas"><summary>📍 Objekti</summary><div class="settings-content"><ul id="objectList"></ul></div></details>
-        <details class="pogas"><summary> Resursi</summary><div class="settings-content"><ul id="OilList"></ul></div></details>
+        <details class="pogas">
+            <summary>🛢️ Uzpildāmais</summary>
+            <div class="settings-content">
+                <ul id="resourceList"></ul>
+            </div>
+        </details>
     </div>
 
     <div class="filter-section">
@@ -122,21 +120,21 @@
     </div>
 
     <script>
-    let workers = [], cars = [], schedule = [], works_types = [], objects = [], daySummary = [];
-    let tableFilters = { date: "", car: "", worker_name: "", objekts: "", darbs: "" };
+    let workers = [], cars = [], schedule = [], works_types = [], objects = [], resourceTypes = [];
 
     async function loadData() {
         try {
-            const [wRes, cRes, sRes, wtRes, oRes, dsRes] = await Promise.all([
+            const [wRes, cRes, sRes, wtRes, oRes, rRes] = await Promise.all([
                 fetch('/api/workers'), fetch('/api/cars'), fetch('/api/schedule'),
-                fetch('/api/work-types'), fetch('/api/objects'), fetch('/api/darba-stundas')
+                fetch('/api/work-types'), fetch('/api/objects'), fetch('/api/resource-types')
             ]);
+            
             workers = await wRes.json();
             cars = await cRes.json();
             schedule = await sRes.json();
             works_types = await wtRes.json();
             objects = await oRes.json();
-            daySummary = await dsRes.json();
+            resourceTypes = await rRes.json();
             
             renderSettings();
             fillFilters();
@@ -144,7 +142,6 @@
         } catch (err) { console.error("Datu ielādes kļūda:", err); }
     }
 
-    // Universāla dzēšanas funkcija
     async function deleteItem(type, id) {
         if (!confirm("Vai tiešām vēlaties izdzēst šo ierakstu?")) return;
         try {
@@ -154,10 +151,34 @@
         } catch (err) { console.error(err); }
     }
 
+    async function handleTopUp(id) {
+        const input = document.getElementById(`topup_val_${id}`);
+        const addAmount = parseInt(input.value);
+
+        if (isNaN(addAmount) || addAmount <= 0) {
+            alert("Ievadiet derīgu skaitli!");
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/resource-types/topup', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id, amount: addAmount })
+            });
+
+            if (res.ok) {
+                alert("Krājumi papildināti!");
+                loadData();
+            } else {
+                alert("Kļūda saglabājot!");
+            }
+        } catch (err) { console.error(err); }
+    }
+
     function renderSettings() {
-        // Darbinieku saraksts ar Pagaidu Paroli
-        const workerList = document.getElementById("workerList");
-        workerList.innerHTML = workers.map(w => `
+        // 1. Darbinieki
+        document.getElementById("workerList").innerHTML = workers.map(w => `
             <li>
                 <div>
                     <strong>${w.name}</strong>
@@ -167,27 +188,36 @@
             </li>
         `).join("");
 
-        // Citi saraksti
-        const renderGeneric = (id, data, apiPath) => {
-            document.getElementById(id).innerHTML = data.map(item => `
-                <li>
-                    <span>${item.name || item}</span>
-                    <button class="delete-btn" onclick="deleteItem('${apiPath}', ${item.id || `'${item}'`})">🗑️</button>
-                </li>
-            `).join("");
-        };
+        // 2. Uzpildāmie resursi
+        document.getElementById("resourceList").innerHTML = resourceTypes.map(res => `
+            <li style="display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 12px; border-bottom: 1px solid #eee;">
+                <div style="display: flex; justify-content: space-between; width: 100%;">
+                    <strong>${res.name}</strong>
+                    <span class="oil-val">${res.quantity || 0} L</span>
+                </div>
+                <div style="display: flex; gap: 5px; width: 100%;">
+                    <input type="number" id="topup_val_${res.id}" placeholder="Litri" style="width: 70px; padding: 4px;">
+                    <button onclick="handleTopUp(${res.id})" style="background: #1e7e34; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer;">
+                        +
+                    </button>
+                    <button class="delete-btn" onclick="deleteItem('resource-types', ${res.id})">🗑️</button>
+                </div>
+            </li>
+        `).join("");
 
+        // 3. Pārējie (Cars, Work Types, Objects)
         renderGeneric("carList", cars, "cars");
         renderGeneric("workList", works_types, "work-types");
         renderGeneric("objectList", objects, "objects");
     }
 
-    // --- Pārējās tabulu un filtru funkcijas (identiskas iepriekšējām) ---
-
-    function parseDateTime(dateStr, timeStr) {
-        if (!dateStr || !timeStr || timeStr === '-' || timeStr === 'undefined') return 0;
-        const parts = dateStr.split('.');
-        return new Date(`${parts[2]}-${parts[1]}-${parts[0]}T${timeStr}`).getTime();
+    function renderGeneric(elementId, data, apiPath) {
+        document.getElementById(elementId).innerHTML = data.map(item => `
+            <li>
+                <span>${item.name}</span>
+                <button class="delete-btn" onclick="deleteItem('${apiPath}', ${item.id})">🗑️</button>
+            </li>
+        `).join("");
     }
 
     function renderTables() {
@@ -200,27 +230,40 @@
             return (!fYear || year === fYear) && (!fMonth || e.month === fMonth) && (!fWorker || e.worker_name === fWorker);
         });
 
-        // Summas
         document.getElementById("totalHoursValue").textContent = filtered.reduce((sum, item) => sum + (parseFloat(item.hours) || 0), 0).toFixed(2);
-        document.getElementById("totalOilValue").textContent = filtered.reduce((sum, e) => sum + parseFloat(e.pielietā_eļļa || e.ella || 0), 0).toFixed(2);
-        document.getElementById("totalFuelValue").textContent = filtered.reduce((sum, e) => sum + parseFloat(e.pielietā_degviela || e.degviela || 0), 0).toFixed(2);
+        document.getElementById("totalOilValue").textContent = filtered.reduce((sum, e) => sum + parseFloat(e.pielietā_eļļa || 0), 0).toFixed(2);
+        document.getElementById("totalFuelValue").textContent = filtered.reduce((sum, e) => sum + parseFloat(e.pielietā_degviela || 0), 0).toFixed(2);
 
-        // Tabulas ģenerēšana (saīsināta šeit, bet funkcionāla tavā pusē)
         let workHtml = `<table><thead><tr><th>Datums</th><th>Auto</th><th>Darbinieks</th><th>Objekts</th><th>Darbs</th><th>h</th></tr></thead><tbody>`;
         workHtml += filtered.map(e => `<tr><td>${e.date}</td><td>${e.car}</td><td>${e.worker_name}</td><td>${e.objekts}</td><td>${e.darbs}</td><td>${parseFloat(e.hours).toFixed(2)}</td></tr>`).join("");
         document.getElementById("tableContainer").innerHTML = workHtml + "</tbody></table>";
     }
 
     function fillFilters() {
-        const workerSelect = document.getElementById("filterWorker");
-        workerSelect.innerHTML = '<option value="">Visi</option>' + workers.map(w => `<option value="${w.name}">${w.name}</option>`).join("");
-        // ... gada un mēneša filtri ...
+        const years = [...new Set(schedule.map(e => e.date ? e.date.split('.')[2] : null))].filter(Boolean).sort();
+        const months = ["Janvāris", "Februāris", "Marts", "Aprīlis", "Maijs", "Jūnijs", "Jūlijs", "Augusts", "Septembris", "Oktobris", "Novembris", "Decembris"];
+        
+        document.getElementById("filterYear").innerHTML = '<option value="">Visi</option>' + years.map(y => `<option value="${y}">${y}</option>`).join("");
+        document.getElementById("filterMonth").innerHTML = '<option value="">Visi</option>' + months.map(m => `<option value="${m}">${m}</option>`).join("");
+        document.getElementById("filterWorker").innerHTML = '<option value="">Visi</option>' + workers.map(w => `<option value="${w.name}">${w.name}</option>`).join("");
     }
+
+    document.getElementById("clearFilters").onclick = () => {
+        document.getElementById("filterYear").value = "";
+        document.getElementById("filterMonth").value = "";
+        document.getElementById("filterWorker").value = "";
+        renderTables();
+    };
 
     document.getElementById("logoutBtn").onclick = () => {
         localStorage.removeItem("loggedInUser");
         window.location.href = "index.html";
     };
+
+    // Filtru klausītāji
+    ["filterYear", "filterMonth", "filterWorker"].forEach(id => {
+        document.getElementById(id).addEventListener("change", renderTables);
+    });
 
     loadData();
     </script>
