@@ -21,11 +21,11 @@
         h2 { color: #1a3025; text-transform: uppercase; letter-spacing: 1px; text-align: center; margin-bottom: 20px; }
 
         .grid-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 30px; }
-        details.pogas { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; height: fit-content; }
+        details.pogas { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; height: fit-content; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         summary { cursor: pointer; font-weight: bold; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; color: #1a3025; list-style: none; border-radius: 12px; }
         details[open] summary { border-bottom: 1px solid #eee; border-radius: 12px 12px 0 0; }
         
-        .settings-content ul { list-style: none; padding: 0; margin: 0; }
+        .settings-content ul { list-style: none; padding: 0; margin: 0; max-height: 300px; overflow-y: auto; }
         .settings-content li { 
             display: flex; 
             justify-content: space-between; 
@@ -34,29 +34,13 @@
             border-bottom: 1px solid #eee; 
         }
 
-        /* Ievades lauki sarakstos */
-        .add-row { padding: 10px 15px; display: flex; gap: 8px; background: #f8f9fa; }
+        .add-row { padding: 10px 15px; display: flex; gap: 8px; background: #f8f9fa; border-bottom: 1px solid #eee; }
         .add-row input { flex: 1; padding: 5px; border: 1px solid #ddd; border-radius: 4px; }
-        .btn-add { background: #1e7e34; color: white; border: none; padding: 5px 12px; border-radius: 4px; cursor: pointer; }
+        .btn-add { background: #1e7e34; color: white; border: none; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; }
 
-        .delete-btn { 
-            background: #ff4d4d; 
-            color: white; 
-            border: none; 
-            padding: 4px 8px; 
-            border-radius: 4px; 
-            cursor: pointer; 
-            font-size: 12px;
-        }
+        .delete-btn { background: #ff4d4d; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px; }
 
-        .temp-pass { 
-            font-size: 0.85em; 
-            background: #fff3cd; 
-            padding: 2px 6px; 
-            border-radius: 4px; 
-            color: #856404; 
-            border: 1px solid #ffeeba;
-        }
+        .temp-pass { font-size: 0.8em; background: #fff3cd; padding: 2px 6px; border-radius: 4px; color: #856404; border: 1px solid #ffeeba; margin-left: 5px; }
 
         .filter-section { background: #fff; border: 1px solid #e0e0e0; padding: 20px; border-radius: 15px; margin-bottom: 25px; }
         .filter-row { display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end; }
@@ -64,16 +48,19 @@
         select, button { padding: 6px 10px; border-radius: 6px; border: 1px solid #ced4da; background: white; }
         
         .report-card { background: #fff; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 25px; }
-        .report-card > summary { padding: 15px 25px; background: #1a3025; color: #fff; text-transform: uppercase; list-style: none; cursor: pointer; font-weight: bold; }
+        .report-card > summary { padding: 15px 25px; background: #1a3025; color: #fff; text-transform: uppercase; list-style: none; cursor: pointer; font-weight: bold; font-size: 1.1em; }
 
-        table { border-collapse: collapse; width: 100%; table-layout: fixed; }
-        th { background: #1a3025; color: #c5a059; padding: 12px 5px; text-align: center; font-size: 0.8em; }
-        td { padding: 10px 5px; border-bottom: 1px solid #f0f0f0; text-align: center; color: #444; word-wrap: break-word; }
+        .table-wrapper { overflow-x: auto; }
+        table { border-collapse: collapse; width: 100%; min-width: 800px; }
+        th { background: #f8f9fa; color: #1a3025; padding: 12px; text-align: left; font-size: 0.9em; border-bottom: 2px solid #dee2e6; }
+        td { padding: 10px 12px; border-bottom: 1px solid #eee; color: #444; }
+        tr:hover { background-color: #fcf9f2; }
         
-        .sum-bar { padding: 15px; background: #fcf9f2; border-bottom: 1px solid #eee; display: flex; justify-content: center; gap: 40px; font-weight: bold; }
+        .sum-bar { padding: 15px; background: #fcf9f2; border-bottom: 1px solid #eee; display: flex; justify-content: center; gap: 40px; font-weight: bold; font-size: 1.1em; }
         .val-highlight { color: #1e7e34; }
         .oil-val { color: #d4b45d; }
         .fuel-val { color: #b45d5d; }
+        .empty-msg { padding: 20px; text-align: center; color: #999; font-style: italic; }
     </style>
 </head>
 <body>
@@ -82,11 +69,11 @@
     <h2>Admin Vadības Panelis</h2>
 
     <div class="grid-container">
-        <details class="pogas">
+        <details class="pogas" open>
             <summary>👷 Darbinieki</summary>
             <div class="settings-content">
                 <div class="add-row">
-                    <button onclick="window.location.href='register.html'" style="width:100%; background:#007bff; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer;">+ Reģistrēt jaunu</button>
+                    <button onclick="window.location.href='register.html'" style="width:100%; background:#007bff; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer; font-weight:bold;">+ REĢISTRĒT JAUNU</button>
                 </div>
                 <ul id="workerList"></ul>
             </div>
@@ -138,29 +125,28 @@
     </div>
 
     <div class="filter-section">
-        <h3>Galvenie filtri</h3>
         <div class="filter-row">
             <label>Gads:<br><select id="filterYear"><option value="">Visi</option></select></label>
             <label>Mēnesis:<br><select id="filterMonth"><option value="">Visi</option></select></label>
             <label>Darbinieks:<br><select id="filterWorker"><option value="">Visi</option></select></label>
-            <button id="clearFilters">Notīrīt filtrus</button>
+            <button id="clearFilters" style="background:#6c757d; color:white;">Notīrīt filtrus</button>
         </div>
     </div>
 
     <div class="report-stack">
         <details class="report-card" open>
             <summary>📋 Darba Gaitas Atskaite</summary>
-            <div class="sum-bar"><span>Kopā: <span id="totalHoursValue" class="val-highlight">0.00</span> h</span></div>
-            <div id="tableContainer"></div>
+            <div class="sum-bar"><span>Kopā nostrādāts: <span id="totalHoursValue" class="val-highlight">0.00</span> h</span></div>
+            <div id="tableContainer" class="table-wrapper"></div>
         </details>
         
         <details class="report-card" open>
-            <summary>⛽ Patēriņš (Eļļa / Degviela)</summary>
+            <summary>⛽ Patēriņa Atskaite (Eļļa / Degviela)</summary>
             <div class="sum-bar">
-                <span>Eļļa: <span id="totalOilValue" class="oil-val">0.00</span> L</span>
-                <span>Degviela: <span id="totalFuelValue" class="fuel-val">0.00</span> L</span>
+                <span>Kopā Eļļa: <span id="totalOilValue" class="oil-val">0.00</span> L</span>
+                <span>Kopā Degviela: <span id="totalFuelValue" class="fuel-val">0.00</span> L</span>
             </div>
-            <div id="oilContainer"></div>
+            <div id="oilContainer" class="table-wrapper"></div>
         </details>
     </div>
 
@@ -184,10 +170,13 @@
             renderSettings();
             fillFilters();
             renderTables(); 
-        } catch (err) { console.error("Datu ielādes kļūda:", err); }
+        } catch (err) { 
+            console.error("Datu ielādes kļūda:", err);
+            alert("Kļūda ielādējot datus no servera!");
+        }
     }
 
-    // --- PIEVIENOŠANAS FUNKCIJAS ---
+    // --- FUNKCIJAS ---
     async function addItem(apiPath, inputId) {
         const name = document.getElementById(inputId).value.trim();
         if (!name) return;
@@ -232,53 +221,57 @@
                 body: JSON.stringify({ id, amount, resource_name: resourceName })
             });
             if (res.ok) {
-                alert(`Papildināts: ${resourceName} (+${amount}L)`);
+                input.value = '';
                 loadData();
             }
         } catch (err) { console.error(err); }
     }
 
     async function deleteItem(type, id) {
-        if (!confirm("Vai tiešām vēlaties izdzēst?")) return;
+        if (!confirm("Vai tiešām vēlaties izdzēst šo ierakstu?")) return;
         try {
             const res = await fetch(`/api/${type}/${id}`, { method: 'DELETE' });
             if (res.ok) loadData();
         } catch (err) { console.error(err); }
     }
 
-    // --- RENDERING ---
+    // --- RENDERĒŠANA ---
     function renderSettings() {
         // Darbinieki
-        document.getElementById("workerList").innerHTML = workers.map(w => `
+        document.getElementById("workerList").innerHTML = workers.length ? workers.map(w => `
             <li>
-                <div><strong>${w.name}</strong> ${w.temp_password ? `<span class="temp-pass">${w.temp_password}</span>` : ''}</div>
+                <div><strong>${w.name}</strong> ${w.temp_password ? `<span class="temp-pass">Parole: ${w.temp_password}</span>` : ''}</div>
                 <button class="delete-btn" onclick="deleteItem('workers', ${w.id})">🗑️</button>
             </li>
-        `).join("");
+        `).join("") : '<div class="empty-msg">Nav darbinieku</div>';
 
         // Resursi
-        document.getElementById("resourceList").innerHTML = resourceTypes.map(res => `
+        document.getElementById("resourceList").innerHTML = resourceTypes.length ? resourceTypes.map(res => `
             <li style="flex-direction: column; align-items: stretch;">
                 <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
                     <strong>${res.name}</strong>
-                    <span class="oil-val">${res.quantity || 0} L</span>
+                    <span class="oil-val">Krājums: ${res.quantity || 0} L</span>
                 </div>
                 <div style="display:flex; gap:5px;">
-                    <input type="number" id="topup_val_${res.id}" placeholder="+ litri" style="width:100%; padding:2px;">
-                    <button onclick="handleTopUp(${res.id}, '${res.name}')" style="background:#28a745; color:white; border:none; padding:2px 8px; border-radius:4px;">+</button>
+                    <input type="number" id="topup_val_${res.id}" placeholder="+ litri" style="width:100%;">
+                    <button onclick="handleTopUp(${res.id}, '${res.name}')" class="btn-add">+</button>
                     <button class="delete-btn" onclick="deleteItem('resource-types', ${res.id})">🗑️</button>
                 </div>
             </li>
-        `).join("");
+        `).join("") : '<div class="empty-msg">Nav resursu</div>';
 
-        // Generic saraksti
         renderGeneric("carList", cars, "cars");
         renderGeneric("workList", works_types, "work-types");
         renderGeneric("objectList", objects, "objects");
     }
 
     function renderGeneric(elementId, data, apiPath) {
-        document.getElementById(elementId).innerHTML = data.map(item => `
+        const el = document.getElementById(elementId);
+        if (!data.length) {
+            el.innerHTML = '<div class="empty-msg">Saraksts ir tukšs</div>';
+            return;
+        }
+        el.innerHTML = data.map(item => `
             <li>
                 <span>${item.name}</span>
                 <button class="delete-btn" onclick="deleteItem('${apiPath}', ${item.id})">🗑️</button>
@@ -296,15 +289,30 @@
             return (!fYear || year === fYear) && (!fMonth || e.month === fMonth) && (!fWorker || e.worker_name === fWorker);
         });
 
-        // Summas
-        document.getElementById("totalHoursValue").textContent = filtered.reduce((sum, item) => sum + (parseFloat(item.hours) || 0), 0).toFixed(2);
-        document.getElementById("totalOilValue").textContent = filtered.reduce((sum, e) => sum + parseFloat(e.pielietā_eļļa || 0), 0).toFixed(2);
-        document.getElementById("totalFuelValue").textContent = filtered.reduce((sum, e) => sum + parseFloat(e.pielietā_degviela || 0), 0).toFixed(2);
+        // Aprēķini
+        const totalH = filtered.reduce((sum, item) => sum + (parseFloat(item.hours) || 0), 0);
+        const totalOil = filtered.reduce((sum, e) => sum + (parseFloat(e.pielietā_eļļa) || 0), 0);
+        const totalFuel = filtered.reduce((sum, e) => sum + (parseFloat(e.pielietā_degviela) || 0), 0);
+
+        document.getElementById("totalHoursValue").textContent = totalH.toFixed(2);
+        document.getElementById("totalOilValue").textContent = totalOil.toFixed(2);
+        document.getElementById("totalFuelValue").textContent = totalFuel.toFixed(2);
 
         // Galvenā tabula
+        if (filtered.length === 0) {
+            document.getElementById("tableContainer").innerHTML = '<div class="empty-msg">Nav datu šim filtram</div>';
+            document.getElementById("oilContainer").innerHTML = '<div class="empty-msg">Nav datu šim filtram</div>';
+            return;
+        }
+
         let workHtml = `<table><thead><tr><th>Datums</th><th>Auto</th><th>Darbinieks</th><th>Objekts</th><th>Darbs</th><th>h</th></tr></thead><tbody>`;
-        workHtml += filtered.map(e => `<tr><td>${e.date}</td><td>${e.car}</td><td>${e.worker_name}</td><td>${e.objekts}</td><td>${e.darbs}</td><td>${parseFloat(e.hours || 0).toFixed(2)}</td></tr>`).join("");
+        workHtml += filtered.map(e => `<tr><td>${e.date}</td><td>${e.car}</td><td>${e.worker_name}</td><td>${e.objekts}</td><td>${e.darbs}</td><td><b>${parseFloat(e.hours || 0).toFixed(2)}</b></td></tr>`).join("");
         document.getElementById("tableContainer").innerHTML = workHtml + "</tbody></table>";
+
+        // Patēriņa tabula
+        let oilHtml = `<table><thead><tr><th>Datums</th><th>Darbinieks</th><th>Auto</th><th>Eļļa (L)</th><th>Degviela (L)</th></tr></thead><tbody>`;
+        oilHtml += filtered.map(e => `<tr><td>${e.date}</td><td>${e.worker_name}</td><td>${e.car}</td><td class="oil-val">${e.pielietā_eļļa || 0}</td><td class="fuel-val">${e.pielietā_degviela || 0}</td></tr>`).join("");
+        document.getElementById("oilContainer").innerHTML = oilHtml + "</tbody></table>";
     }
 
     function fillFilters() {
