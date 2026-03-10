@@ -13,7 +13,6 @@ const pool = new Pool({
     ssl: { rejectUnauthorized: false }
 });
 
-// --- HELPER: Mēnešu masīvs ---
 const monthsLV = ["Janvāris","Februāris","Marts","Aprīlis","Maijs","Jūnijs","Jūlijs","Augusts","Septembris","Oktobris","Novembris","Decembris"];
 
 // --- 1. AUTORIZĀCIJA ---
@@ -36,10 +35,10 @@ app.post('/api/login', async (req, res) => {
     } catch (err) { res.status(500).json({ error: "Servera kļūda" }); }
 });
 
-// --- 2. RESURSU NOLIKTAVA & ŽURNĀLS ---
+// --- 2. RESURSU NOLIKTAVA ---
 app.get('/api/resource-types', async (req, res) => {
     try {
-        const result = await pool.query("SELECT id, name, quantity FROM resource_types ORDER BY name ASC");
+        const result = await pool.query("SELECT id, name, COALESCE(quantity, 0) as quantity FROM resource_types ORDER BY name ASC");
         res.json(result.rows);
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -62,7 +61,7 @@ app.post('/api/resource-types/topup', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// --- 3. PAMATA DATU IELĀDE (GET) ---
+// --- 3. PAMATA DATU IELĀDE (Admin Panelim) ---
 app.get('/api/workers', async (req, res) => {
     try {
         const r = await pool.query("SELECT id, name, temp_password, role FROM users WHERE role != 'admin' ORDER BY name ASC");
@@ -91,7 +90,7 @@ app.get('/api/work-types', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// --- 4. JAUNU IERAKSTU PIEVIENOŠANA (POST) ---
+// --- 4. JAUNU IERAKSTU PIEVIENOŠANA ---
 app.post('/api/cars', async (req, res) => {
     try {
         await pool.query('INSERT INTO cars (name) VALUES ($1)', [req.body.name]);
@@ -131,10 +130,19 @@ Object.keys(deleteMapping).forEach(type => {
     });
 });
 
-// --- 6. STRĀDNIEKA DARBĪBAS (Update Resources & Schedule) ---
+// --- 6. ATSKAITES (Schedule) ---
 app.get('/api/schedule', async (req, res) => {
     try {
-        const result = await pool.query('SELECT * FROM schedule ORDER BY id DESC');
+        // Izmantojam COALESCE, lai Admin panelī nekas "nepazustu" null vērtību dēļ
+        const result = await pool.query(`
+            SELECT 
+                id, worker_name, car, date, sākuma_laiks, beigu_laiks, month, darbs, objekts,
+                COALESCE(hours, '0') as hours, 
+                COALESCE(pielietā_degviela, '0') as pielietā_degviela, 
+                COALESCE(pielietā_eļļa, '0') as pielietā_eļļa 
+            FROM schedule 
+            ORDER BY id DESC
+        `);
         res.json(result.rows);
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -142,12 +150,14 @@ app.get('/api/schedule', async (req, res) => {
 app.post('/api/update-resources', async (req, res) => {
     const { worker_name, car, type, amount } = req.body; 
     const litri = parseFloat(amount) || 0;
-    const column = type.toLowerCase().includes('degviela') ? 'pielietā_degviela' : 'pielietā_eļļa';
+    const isFuel = type.toLowerCase().includes('degviela');
+    const column = isFuel ? 'pielietā_degviela' : 'pielietā_eļļa';
     const tagad = new Date();
     const monthStr = monthsLV[tagad.getMonth()];
 
     try {
         await pool.query("UPDATE resource_types SET quantity = quantity - $1 WHERE name = $2", [litri, type]);
+        
         const activeJob = await pool.query('SELECT id FROM schedule WHERE worker_name = $1 AND beigu_laiks IS NULL ORDER BY id DESC LIMIT 1', [worker_name]);
 
         if (activeJob.rows.length > 0) {
