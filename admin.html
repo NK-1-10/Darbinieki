@@ -20,9 +20,10 @@
         
         h2 { color: #1a3025; text-transform: uppercase; letter-spacing: 1px; text-align: center; margin-bottom: 20px; }
 
-        .grid-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px; }
-        details.pogas { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; }
-        summary { cursor: pointer; font-weight: bold; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; color: #1a3025; list-style: none; }
+        .grid-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 30px; }
+        details.pogas { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; height: fit-content; }
+        summary { cursor: pointer; font-weight: bold; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; color: #1a3025; list-style: none; border-radius: 12px; }
+        details[open] summary { border-bottom: 1px solid #eee; border-radius: 12px 12px 0 0; }
         
         .settings-content ul { list-style: none; padding: 0; margin: 0; }
         .settings-content li { 
@@ -32,7 +33,12 @@
             padding: 10px 15px; 
             border-bottom: 1px solid #eee; 
         }
-        
+
+        /* Ievades lauki sarakstos */
+        .add-row { padding: 10px 15px; display: flex; gap: 8px; background: #f8f9fa; }
+        .add-row input { flex: 1; padding: 5px; border: 1px solid #ddd; border-radius: 4px; }
+        .btn-add { background: #1e7e34; color: white; border: none; padding: 5px 12px; border-radius: 4px; cursor: pointer; }
+
         .delete-btn { 
             background: #ff4d4d; 
             color: white; 
@@ -41,9 +47,7 @@
             border-radius: 4px; 
             cursor: pointer; 
             font-size: 12px;
-            transition: 0.2s;
         }
-        .delete-btn:hover { background: #cc0000; }
 
         .temp-pass { 
             font-size: 0.85em; 
@@ -51,11 +55,10 @@
             padding: 2px 6px; 
             border-radius: 4px; 
             color: #856404; 
-            margin-left: 10px;
             border: 1px solid #ffeeba;
         }
 
-        .filter-section { background: #fff; border: 1px solid #e0e0e0; padding: 20px; border-radius: 15px; margin-bottom: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); }
+        .filter-section { background: #fff; border: 1px solid #e0e0e0; padding: 20px; border-radius: 15px; margin-bottom: 25px; }
         .filter-row { display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end; }
 
         select, button { padding: 6px 10px; border-radius: 6px; border: 1px solid #ced4da; background: white; }
@@ -64,15 +67,13 @@
         .report-card > summary { padding: 15px 25px; background: #1a3025; color: #fff; text-transform: uppercase; list-style: none; cursor: pointer; font-weight: bold; }
 
         table { border-collapse: collapse; width: 100%; table-layout: fixed; }
-        th { background: #1a3025; color: #c5a059; padding: 12px 5px; text-align: center; font-size: 0.8em; vertical-align: top; }
+        th { background: #1a3025; color: #c5a059; padding: 12px 5px; text-align: center; font-size: 0.8em; }
         td { padding: 10px 5px; border-bottom: 1px solid #f0f0f0; text-align: center; color: #444; word-wrap: break-word; }
         
-        tr:hover td { background-color: #fff9e6; }
-
         .sum-bar { padding: 15px; background: #fcf9f2; border-bottom: 1px solid #eee; display: flex; justify-content: center; gap: 40px; font-weight: bold; }
         .val-highlight { color: #1e7e34; }
-        .oil-val { color: #d4b45d; font-weight: bold; }
-        .fuel-val { color: #b45d5d; font-weight: bold; }
+        .oil-val { color: #d4b45d; }
+        .fuel-val { color: #b45d5d; }
     </style>
 </head>
 <body>
@@ -81,13 +82,56 @@
     <h2>Admin Vadības Panelis</h2>
 
     <div class="grid-container">
-        <details class="pogas"><summary>👷 Darbinieki</summary><div class="settings-content"><ul id="workerList"></ul></div></details>
-        <details class="pogas"><summary>🚗 Mašīnas</summary><div class="settings-content"><ul id="carList"></ul></div></details>
-        <details class="pogas"><summary>⚒️ Darba veidi</summary><div class="settings-content"><ul id="workList"></ul></div></details>
-        <details class="pogas"><summary>📍 Objekti</summary><div class="settings-content"><ul id="objectList"></ul></div></details>
         <details class="pogas">
-            <summary>🛢️ Uzpildāmais</summary>
+            <summary>👷 Darbinieki</summary>
             <div class="settings-content">
+                <div class="add-row">
+                    <button onclick="window.location.href='register.html'" style="width:100%; background:#007bff; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer;">+ Reģistrēt jaunu</button>
+                </div>
+                <ul id="workerList"></ul>
+            </div>
+        </details>
+
+        <details class="pogas">
+            <summary>🚗 Mašīnas</summary>
+            <div class="settings-content">
+                <div class="add-row">
+                    <input type="text" id="newCarName" placeholder="Auto nosaukums...">
+                    <button class="btn-add" onclick="addItem('cars', 'newCarName')">+</button>
+                </div>
+                <ul id="carList"></ul>
+            </div>
+        </details>
+
+        <details class="pogas">
+            <summary>⚒️ Darba veidi</summary>
+            <div class="settings-content">
+                <div class="add-row">
+                    <input type="text" id="newWorkName" placeholder="Darba veids...">
+                    <button class="btn-add" onclick="addItem('work-types', 'newWorkName')">+</button>
+                </div>
+                <ul id="workList"></ul>
+            </div>
+        </details>
+
+        <details class="pogas">
+            <summary>📍 Objekti</summary>
+            <div class="settings-content">
+                <div class="add-row">
+                    <input type="text" id="newObjectName" placeholder="Objekts...">
+                    <button class="btn-add" onclick="addItem('objects', 'newObjectName')">+</button>
+                </div>
+                <ul id="objectList"></ul>
+            </div>
+        </details>
+
+        <details class="pogas">
+            <summary>🛢️ Noliktava (Resursi)</summary>
+            <div class="settings-content">
+                <div class="add-row">
+                    <input type="text" id="newResName" placeholder="Jauns resurss...">
+                    <button class="btn-add" onclick="addResource()">+</button>
+                </div>
                 <ul id="resourceList"></ul>
             </div>
         </details>
@@ -109,8 +153,9 @@
             <div class="sum-bar"><span>Kopā: <span id="totalHoursValue" class="val-highlight">0.00</span> h</span></div>
             <div id="tableContainer"></div>
         </details>
+        
         <details class="report-card" open>
-            <summary>⛽ Eļļas un Degvielas Patēriņš</summary>
+            <summary>⛽ Patēriņš (Eļļa / Degviela)</summary>
             <div class="sum-bar">
                 <span>Eļļa: <span id="totalOilValue" class="oil-val">0.00</span> L</span>
                 <span>Degviela: <span id="totalFuelValue" class="fuel-val">0.00</span> L</span>
@@ -142,70 +187,91 @@
         } catch (err) { console.error("Datu ielādes kļūda:", err); }
     }
 
-    async function deleteItem(type, id) {
-        if (!confirm("Vai tiešām vēlaties izdzēst šo ierakstu?")) return;
+    // --- PIEVIENOŠANAS FUNKCIJAS ---
+    async function addItem(apiPath, inputId) {
+        const name = document.getElementById(inputId).value.trim();
+        if (!name) return;
         try {
-            const res = await fetch(`/api/${type}/${id}`, { method: 'DELETE' });
-            if (res.ok) loadData();
-            else alert("Kļūda dzēšot!");
+            const res = await fetch(`/api/${apiPath}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name })
+            });
+            if (res.ok) {
+                document.getElementById(inputId).value = '';
+                loadData();
+            }
         } catch (err) { console.error(err); }
     }
 
-    async function handleTopUp(id) {
-        const input = document.getElementById(`topup_val_${id}`);
-        const addAmount = parseInt(input.value);
+    async function addResource() {
+        const name = document.getElementById('newResName').value.trim();
+        if (!name) return;
+        try {
+            const res = await fetch('/api/resource-types', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, quantity: 0 })
+            });
+            if (res.ok) {
+                document.getElementById('newResName').value = '';
+                loadData();
+            }
+        } catch (err) { console.error(err); }
+    }
 
-        if (isNaN(addAmount) || addAmount <= 0) {
-            alert("Ievadiet derīgu skaitli!");
-            return;
-        }
+    async function handleTopUp(id, resourceName) {
+        const input = document.getElementById(`topup_val_${id}`);
+        const amount = parseFloat(input.value);
+        if (isNaN(amount) || amount <= 0) return;
 
         try {
             const res = await fetch('/api/resource-types/topup', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id, amount: addAmount })
+                body: JSON.stringify({ id, amount, resource_name: resourceName })
             });
-
             if (res.ok) {
-                alert("Krājumi papildināti!");
+                alert(`Papildināts: ${resourceName} (+${amount}L)`);
                 loadData();
-            } else {
-                alert("Kļūda saglabājot!");
             }
         } catch (err) { console.error(err); }
     }
 
+    async function deleteItem(type, id) {
+        if (!confirm("Vai tiešām vēlaties izdzēst?")) return;
+        try {
+            const res = await fetch(`/api/${type}/${id}`, { method: 'DELETE' });
+            if (res.ok) loadData();
+        } catch (err) { console.error(err); }
+    }
+
+    // --- RENDERING ---
     function renderSettings() {
-        // 1. Darbinieki
+        // Darbinieki
         document.getElementById("workerList").innerHTML = workers.map(w => `
             <li>
-                <div>
-                    <strong>${w.name}</strong>
-                    ${(!w.has_real_password && w.temp_password) ? `<span class="temp-pass">Pagaidu: ${w.temp_password}</span>` : ''}
-                </div>
+                <div><strong>${w.name}</strong> ${w.temp_password ? `<span class="temp-pass">${w.temp_password}</span>` : ''}</div>
                 <button class="delete-btn" onclick="deleteItem('workers', ${w.id})">🗑️</button>
             </li>
         `).join("");
 
-        // 2. Uzpildāmie resursi
+        // Resursi
         document.getElementById("resourceList").innerHTML = resourceTypes.map(res => `
-            <li style="display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 12px; border-bottom: 1px solid #eee;">
-                <div style="display: flex; justify-content: space-between; width: 100%;">
+            <li style="flex-direction: column; align-items: stretch;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
                     <strong>${res.name}</strong>
                     <span class="oil-val">${res.quantity || 0} L</span>
                 </div>
-                <div style="display: flex; gap: 5px; width: 100%;">
-                    <input type="number" id="topup_val_${res.id}" placeholder="Litri" style="width: 70px; padding: 4px;">
-                    <button onclick="handleTopUp(${res.id})" style="background: #1e7e34; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer;">
-                        +
-                    </button>
+                <div style="display:flex; gap:5px;">
+                    <input type="number" id="topup_val_${res.id}" placeholder="+ litri" style="width:100%; padding:2px;">
+                    <button onclick="handleTopUp(${res.id}, '${res.name}')" style="background:#28a745; color:white; border:none; padding:2px 8px; border-radius:4px;">+</button>
                     <button class="delete-btn" onclick="deleteItem('resource-types', ${res.id})">🗑️</button>
                 </div>
             </li>
         `).join("");
 
-        // 3. Pārējie (Cars, Work Types, Objects)
+        // Generic saraksti
         renderGeneric("carList", cars, "cars");
         renderGeneric("workList", works_types, "work-types");
         renderGeneric("objectList", objects, "objects");
@@ -230,12 +296,14 @@
             return (!fYear || year === fYear) && (!fMonth || e.month === fMonth) && (!fWorker || e.worker_name === fWorker);
         });
 
+        // Summas
         document.getElementById("totalHoursValue").textContent = filtered.reduce((sum, item) => sum + (parseFloat(item.hours) || 0), 0).toFixed(2);
         document.getElementById("totalOilValue").textContent = filtered.reduce((sum, e) => sum + parseFloat(e.pielietā_eļļa || 0), 0).toFixed(2);
         document.getElementById("totalFuelValue").textContent = filtered.reduce((sum, e) => sum + parseFloat(e.pielietā_degviela || 0), 0).toFixed(2);
 
+        // Galvenā tabula
         let workHtml = `<table><thead><tr><th>Datums</th><th>Auto</th><th>Darbinieks</th><th>Objekts</th><th>Darbs</th><th>h</th></tr></thead><tbody>`;
-        workHtml += filtered.map(e => `<tr><td>${e.date}</td><td>${e.car}</td><td>${e.worker_name}</td><td>${e.objekts}</td><td>${e.darbs}</td><td>${parseFloat(e.hours).toFixed(2)}</td></tr>`).join("");
+        workHtml += filtered.map(e => `<tr><td>${e.date}</td><td>${e.car}</td><td>${e.worker_name}</td><td>${e.objekts}</td><td>${e.darbs}</td><td>${parseFloat(e.hours || 0).toFixed(2)}</td></tr>`).join("");
         document.getElementById("tableContainer").innerHTML = workHtml + "</tbody></table>";
     }
 
@@ -249,9 +317,7 @@
     }
 
     document.getElementById("clearFilters").onclick = () => {
-        document.getElementById("filterYear").value = "";
-        document.getElementById("filterMonth").value = "";
-        document.getElementById("filterWorker").value = "";
+        document.querySelectorAll("select").forEach(s => s.value = "");
         renderTables();
     };
 
@@ -260,7 +326,6 @@
         window.location.href = "index.html";
     };
 
-    // Filtru klausītāji
     ["filterYear", "filterMonth", "filterWorker"].forEach(id => {
         document.getElementById(id).addEventListener("change", renderTables);
     });
