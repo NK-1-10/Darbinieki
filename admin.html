@@ -39,16 +39,8 @@
         tr:hover td { background-color: #fff9e6; }
 
         .header-filter {
-            display: block;
-            width: 95%;
-            margin: 5px auto 0 auto;
-            font-size: 0.85em;
-            padding: 3px;
-            border: 1px solid #c5a059;
-            background: #2a4035;
-            color: white;
-            border-radius: 4px;
-            cursor: pointer;
+            display: block; width: 95%; margin: 5px auto 0 auto; font-size: 0.85em; padding: 3px;
+            border: 1px solid #c5a059; background: #2a4035; color: white; border-radius: 4px; cursor: pointer;
         }
 
         .sum-bar { padding: 15px; background: #fcf9f2; border-bottom: 1px solid #eee; display: flex; justify-content: center; gap: 40px; font-weight: bold; }
@@ -58,7 +50,6 @@
         
         ul { list-style: none; padding: 0; }
         li { display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid #eee; }
-        
         .error-row { background-color: #fff0f0 !important; color: #d9534f; }
     </style>
 </head>
@@ -72,7 +63,6 @@
         <details class="pogas"><summary>🚗 Mašīnas</summary><div class="settings-content"><ul id="carList"></ul></div></details>
         <details class="pogas"><summary>⚒️ Darba veidi</summary><div class="settings-content"><ul id="workList"></ul></div></details>
         <details class="pogas"><summary>📍 Objekti</summary><div class="settings-content"><ul id="objectList"></ul></div></details>
-        <details class="pogas"><summary>🛢️ Uzpildāmais</summary><div class="settings-content"><ul id="OilList"></ul></div></details>
     </div>
 
     <div class="filter-section">
@@ -94,7 +84,7 @@
             <div id="tableContainer"></div>
         </details>
 
-        <details class="report-card">
+        <details class="report-card" open>
             <summary>⛽ Eļļas un Degvielas Patēriņš</summary>
             <div class="sum-bar">
                 <span>Kopā Eļļa: <span id="totalOilValue" class="oil-val">0.00</span> L</span>
@@ -114,15 +104,13 @@
 
     <script>
     let workers = [], cars = [], schedule = [], works_types = [], objects = [], daySummary = [];
-    let resource_types = [], inventory_log = []; // Jaunie mainīgie
     let tableFilters = { date: "", car: "", worker_name: "", objekts: "", darbs: "" };
 
     async function loadData() {
         try {
-            const [wRes, cRes, sRes, wtRes, oRes, dsRes, rtRes, invRes] = await Promise.all([
+            const [wRes, cRes, sRes, wtRes, oRes, dsRes] = await Promise.all([
                 fetch('/api/workers'), fetch('/api/cars'), fetch('/api/schedule'),
-                fetch('/api/work-types'), fetch('/api/objects'), fetch('/api/darba-stundas'),
-                fetch('/api/resource-types'), fetch('/api/inventory-log')
+                fetch('/api/work-types'), fetch('/api/objects'), fetch('/api/darba-stundas')
             ]);
             
             workers = await wRes.json();
@@ -131,8 +119,6 @@
             works_types = await wtRes.json();
             objects = await oRes.json();
             daySummary = await dsRes.json();
-            resource_types = await rtRes.json();
-            inventory_log = await invRes.json();
             
             renderSettings();
             fillFilters();
@@ -140,89 +126,21 @@
         } catch (err) { console.error("Datu ielādes kļūda:", err); }
     }
 
-    // Funkcija krājumu papildināšanai (+/-)
-    async function updateStock(resourceName) {
-        const val = prompt(`Ievadiet daudzumu (L) resursam ${resourceName}:\n(Piemēram: 50 lai pievienotu, vai -10 lai norakstītu)`);
-        const amount = parseFloat(val);
-        if (isNaN(amount)) return;
-
-        try {
-            const response = await fetch('/api/inventory-log', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    resource_name: resourceName,
-                    amount: amount,
-                    date: new Date().toISOString().split('T')[0]
-                })
-            });
-            if (response.ok) loadData();
-        } catch (err) { console.error("Kļūda:", err); }
-    }
-
-    // Funkcija jauna resursa veida izveidei
-    async function addNewResourceType() {
-        const name = prompt("Ievadiet jauna resursa nosaukumu (piem. Benzīns 95):");
-        if (!name) return;
-
-        try {
-            const response = await fetch('/api/resource-types', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name })
-            });
-            if (response.ok) loadData();
-        } catch (err) { console.error("Kļūda:", err); }
-    }
-
     function renderSettings() {
         const renderList = (id, data) => {
             const el = document.getElementById(id);
             if (el) el.innerHTML = data.map(item => `<li><span>${item.name || item}</span></li>`).join("");
         };
-
         renderList("workerList", workers);
         renderList("carList", cars);
         renderList("workList", works_types);
         renderList("objectList", objects);
-
-        // Uzlabots Uzpildāmā saraksts ar aprēķiniem
-        const oilEl = document.getElementById("OilList");
-        if (oilEl) {
-            oilEl.innerHTML = resource_types.map(rt => {
-                // Saskaitām visus Admin ienākumus/izdevumus
-                const stockMovement = inventory_log
-                    .filter(i => i.resource_name === rt.name)
-                    .reduce((sum, i) => sum + (parseFloat(i.amount) || 0), 0);
-                
-                // Saskaitām, cik darbinieki ir iztērējuši (izmantojot 'resource_name' un 'resource_amount' no schedule)
-                const spent = schedule
-                    .filter(s => s.resource_name === rt.name)
-                    .reduce((sum, s) => sum + (parseFloat(s.resource_amount) || 0), 0);
-                
-                const balance = stockMovement - spent;
-
-                return `
-                    <li style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid #eee;">
-                        <div>
-                            <strong style="font-size:1.1em">${rt.name}</strong><br>
-                            <small style="color:${balance < 5 ? '#d9534f' : '#28a745'}; font-weight:bold;">
-                                Atlikums: ${balance.toFixed(2)} L
-                            </small>
-                        </div>
-                        <button onclick="updateStock('${rt.name}')" style="background:#1a3025; color:white; border:none; border-radius:4px; padding:5px 10px; cursor:pointer;">+/-</button>
-                    </li>`;
-            }).join("") + `<li style="padding:10px;"><button onclick="addNewResourceType()" style="width:100%; cursor:pointer; background:#eee; border:1px dashed #999;">+ Pievienot jaunu veidu</button></li>`;
-        }
     }
-
-    // --- Pārējās funkcijas paliek tādas pašas kā tavā kodā ---
 
     function parseDateTime(dateStr, timeStr) {
         if (!dateStr || !timeStr || timeStr === '-' || timeStr === 'undefined') return 0;
         try {
             const parts = dateStr.split('.');
-            if (parts.length !== 3) return 0;
             return new Date(`${parts[2]}-${parts[1]}-${parts[0]}T${timeStr}`).getTime();
         } catch(e) { return 0; }
     }
@@ -244,6 +162,7 @@
                    (!tableFilters.darbs || e.darbs === tableFilters.darbs);
         }).sort((a, b) => parseDateTime(b.date, b.sākuma_laiks) - parseDateTime(a.date, a.sākuma_laiks));
 
+        // Aprēķini eļļai un degvielai no darba gaitas (vecais veids)
         const totalGaitas = filtered.reduce((sum, item) => sum + (parseFloat(item.hours) || 0), 0);
         const totalOil = filtered.reduce((sum, e) => sum + parseFloat(e.pielietā_eļļa || e.ella || 0), 0);
         const totalFuel = filtered.reduce((sum, e) => sum + parseFloat(e.pielietā_degviela || e.degviela || 0), 0);
@@ -254,50 +173,26 @@
 
         const uniqueValues = (key) => [...new Set(schedule.map(e => e[key]))].filter(Boolean).sort();
         
+        // Darba gaitas tabula
         let workHtml = `<table><thead><tr>
-            <th style="width: 100px;">Datums<br>
-                <select class="header-filter" onchange="updateTableFilter('date', this.value)">
-                    <option value="">Visi</option>
-                    ${uniqueValues('date').reverse().map(v => `<option value="${v}" ${tableFilters.date===v?'selected':''}>${v}</option>`).join("")}
-                </select>
-            </th>
-            <th style="width: 80px;">Auto<br>
-                <select class="header-filter" onchange="updateTableFilter('car', this.value)">
-                    <option value="">Visi</option>
-                    ${uniqueValues('car').map(v => `<option value="${v}" ${tableFilters.car===v?'selected':''}>${v}</option>`).join("")}
-                </select>
-            </th>
-            <th style="width: 120px;">Darbinieks<br>
-                <select class="header-filter" onchange="updateTableFilter('worker_name', this.value)">
-                    <option value="">Visi</option>
-                    ${uniqueValues('worker_name').map(v => `<option value="${v}" ${tableFilters.worker_name===v?'selected':''}>${v}</option>`).join("")}
-                </select>
-            </th>
-            <th>Objekts<br>
-                <select class="header-filter" onchange="updateTableFilter('objekts', this.value)">
-                    <option value="">Visi</option>
-                    ${uniqueValues('objekts').map(v => `<option value="${v}" ${tableFilters.objekts===v?'selected':''}>${v}</option>`).join("")}
-                </select>
-            </th>
-            <th>Darbs<br>
-                <select class="header-filter" onchange="updateTableFilter('darbs', this.value)">
-                    <option value="">Visi</option>
-                    ${uniqueValues('darbs').map(v => `<option value="${v}" ${tableFilters.darbs===v?'selected':''}>${v}</option>`).join("")}
-                </select>
-            </th>
-            <th style="width: 80px;">Sākums</th>
-            <th style="width: 80px;">Beigas</th>
-            <th style="width: 70px;">h</th>
+            <th style="width: 100px;">Datums<br><select class="header-filter" onchange="updateTableFilter('date', this.value)"><option value="">Visi</option>${uniqueValues('date').reverse().map(v => `<option value="${v}" ${tableFilters.date===v?'selected':''}>${v}</option>`).join("")}</select></th>
+            <th style="width: 80px;">Auto<br><select class="header-filter" onchange="updateTableFilter('car', this.value)"><option value="">Visi</option>${uniqueValues('car').map(v => `<option value="${v}" ${tableFilters.car===v?'selected':''}>${v}</option>`).join("")}</select></th>
+            <th style="width: 120px;">Darbinieks<br><select class="header-filter" onchange="updateTableFilter('worker_name', this.value)"><option value="">Visi</option>${uniqueValues('worker_name').map(v => `<option value="${v}" ${tableFilters.worker_name===v?'selected':''}>${v}</option>`).join("")}</select></th>
+            <th>Objekts<br><select class="header-filter" onchange="updateTableFilter('objekts', this.value)"><option value="">Visi</option>${uniqueValues('objekts').map(v => `<option value="${v}" ${tableFilters.objekts===v?'selected':''}>${v}</option>`).join("")}</select></th>
+            <th>Darbs<br><select class="header-filter" onchange="updateTableFilter('darbs', this.value)"><option value="">Visi</option>${uniqueValues('darbs').map(v => `<option value="${v}" ${tableFilters.darbs===v?'selected':''}>${v}</option>`).join("")}</select></th>
+            <th style="width: 80px;">Sākums</th><th style="width: 80px;">Beigas</th><th style="width: 70px;">h</th>
         </tr></thead><tbody>`;
         
         workHtml += filtered.map(e => `<tr><td>${e.date||'-'}</td><td>${e.car||'-'}</td><td>${e.worker_name||'-'}</td><td>${e.objekts||'-'}</td><td>${e.darbs||'-'}</td><td>${e.sākuma_laiks||'-'}</td><td>${e.beigu_laiks||'-'}</td><td style="font-weight:bold">${parseFloat(e.hours||0).toFixed(2)}</td></tr>`).join("");
         document.getElementById("tableContainer").innerHTML = workHtml + "</tbody></table>";
 
+        // Eļļas un degvielas tabula (atjaunota)
         const resursi = filtered.filter(e => (parseFloat(e.pielietā_eļļa||e.ella)>0 || parseFloat(e.pielietā_degviela||e.degviela)>0));
         let oilHtml = `<table><tr><th>Datums</th><th>Auto</th><th>Darbinieks</th><th class="oil-val">Eļļa (L)</th><th class="fuel-val">Degviela (L)</th></tr>`;
         oilHtml += resursi.map(e => `<tr><td>${e.date||'-'}</td><td>${e.car||'-'}</td><td>${e.worker_name||'-'}</td><td class="oil-val">${parseFloat(e.pielietā_eļļa||e.ella||0).toFixed(2)}</td><td class="fuel-val">${parseFloat(e.pielietā_degviela||e.degviela||0).toFixed(2)}</td></tr>`).join("");
-        document.getElementById("oilContainer").innerHTML = resursi.length ? oilHtml + "</table>" : "<div style='padding:20px'>Nav datu.</div>";
+        document.getElementById("oilContainer").innerHTML = resursi.length ? oilHtml + "</table>" : "<div style='padding:20px'>Nav datu par patēriņu šajā periodā.</div>";
 
+        // Darba laika kopsavilkums
         let filteredSum = daySummary.filter(s => {
             const year = s.datums ? s.datums.split('.')[2] : "";
             return (!fYear || year === fYear) && (!fMonth || s.month === fMonth) && (!fWorker || s.darbinieks === fWorker);
@@ -308,8 +203,7 @@
         let summaryHtml = `<table><tr><th>Darbinieks</th><th>Datums</th><th>Sākums</th><th>Beigas</th><th>Kopā h</th></tr>`;
         summaryHtml += filteredSum.map(s => {
             const h = parseFloat(s.stundas || 0);
-            const isError = (h < 0.08 && h > 0);
-            return `<tr class="${isError ? 'error-row' : ''}"><td>${s.darbinieks}</td><td>${s.datums}</td><td>${s.sāka_darbu||'-'}</td><td>${s.beidza_darbu||'-'}</td><td style="font-weight:bold">${h.toFixed(2)}</td></tr>`;
+            return `<tr class="${(h < 0.08 && h > 0) ? 'error-row' : ''}"><td>${s.darbinieks}</td><td>${s.datums}</td><td>${s.sāka_darbu||'-'}</td><td>${s.beidza_darbu||'-'}</td><td style="font-weight:bold">${h.toFixed(2)}</td></tr>`;
         }).join("");
         document.getElementById("newTableContainer").innerHTML = summaryHtml + "</table>";
     }
@@ -321,7 +215,7 @@
 
     function fillFilters() {
         const workerSelect = document.getElementById("filterWorker");
-        workerSelect.innerHTML = '<option value="">Visi</option>' + [...workers].sort((a,b) => a.name.localeCompare(b.name)).map(w => `<option value="${w.name}">${w.name}</option>`).join("");
+        workerSelect.innerHTML = '<option value="">Visi</option>' + [...new Set(workers.map(w => w.name))].sort().map(name => `<option value="${name}">${name}</option>`).join("");
         
         const years = [...new Set(schedule.map(e => e.date ? e.date.split('.')[2] : null))].filter(Boolean).sort().reverse();
         document.getElementById("filterYear").innerHTML = '<option value="">Visi</option>' + years.map(v => `<option value="${v}">${v}</option>`).join("");
