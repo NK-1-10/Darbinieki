@@ -39,10 +39,9 @@
         #status { 
             font-size: 1.1rem; 
             margin-bottom: 10px; 
-            padding: 15px;
+            padding: 10px;
             border-radius: 10px;
             background: #fdfdfd;
-            border: 1px solid #eee;
         }
 
         select, input[type="number"] {
@@ -67,19 +66,32 @@
             margin: 5px;
         }
 
+        /* MAIŅAS KONTROLE */
         #AtWork { background: var(--saulstari-green); color: white; width: 100%; }
-        #LeaveWork { background: #e74c3c; color: white; width: 100%; }
+        #AtWork:hover { background: #264234; }
+
+        #LeaveWork { background: var(--saulstari-gray); color: white; width: 100%; }
+        #LeaveWork:hover { background: #3d4d44; }
+
+        /* DARBA KONTROLE */
         #startBtn { background: var(--success); color: white; width: 100%; margin-top: 15px; }
         #stopBtn { background: var(--saulstari-yellow); color: var(--saulstari-green); width: 100%; margin-top: 15px; }
+
+        /* RESURSU POGAS */
         .oil-btn { background: var(--saulstari-yellow); color: var(--saulstari-green); }
         .fuel-btn { background: var(--saulstari-green); color: white; }
+        
         #logoutBtn { background: transparent; color: #888; border: 1px solid #ddd; margin-top: 20px; padding: 8px 15px; font-size: 0.8rem; }
 
+        /* TABULA */
         #tableContainer { max-width: 1000px; margin: 0 auto; background: var(--white); border-radius: 15px; overflow-x: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         table { width: 100%; border-collapse: collapse; min-width: 600px; }
         th { background: var(--saulstari-green); color: white; padding: 15px; font-size: 0.8rem; text-transform: uppercase; }
         td { padding: 12px 15px; border-bottom: 1px solid #eee; text-align: center; font-size: 0.9rem; }
-        
+        .oil-text { color: var(--saulstari-yellow); font-weight: bold; }
+        .fuel-text { color: var(--saulstari-green); font-weight: bold; }
+
+        /* MODĀLAIS LOGS */
         #resourceModal {
             display: none; 
             position: fixed; 
@@ -94,7 +106,8 @@
             padding: 25px; 
             border-radius: 12px; 
             width: 90%; 
-            max-width: 400px;
+            max-width: 400px; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
         }
     </style>
 </head>
@@ -102,11 +115,11 @@
     <div class="card">
         <h2 id="welcome"></h2>
         <div id="status">Statuss: Gaidīšana</div>
-        <div id="startTimeDisplay" style="color: var(--success); font-weight: bold; margin-bottom: 10px;"></div>
+        <div id="startTimeDisplay" style="color: var(--success); font-weight: bold;"></div>
 
         <div>
-            <button id="AtWork">ESMU DARBĀ (Sākt maiņu)</button>
-            <button id="LeaveWork" style="display:none;">DODOS PROJĀM (Beigt maiņu)</button>
+            <button id="AtWork">ESMU DARBĀ</button>
+            <button id="LeaveWork" style="display:none;">DODOS PROJĀM</button>
         </div>
 
         <div id="workControls">
@@ -114,13 +127,11 @@
             <select id="object" required><option value="">-- Izvēlies objektu --</option></select>
             <select id="work" required><option value="">-- Izvēlies darba veidu --</option></select>
             
-            <button id="startBtn" style="display:none;">Sākt darbu pie objekta</button>
-            <button id="stopBtn" style="display:none;">Beigt darbu pie objekta</button>
+            <button id="startBtn" style="display:none;">Sākt darbu</button>
+            <button id="stopBtn" style="display:none;">Beigt darbu</button>
 
-            <div style="display: flex; justify-content: space-around; margin-top: 10px;">
-                <button id="Ella" class="oil-btn" style="display:none; flex: 1;">Eļļa</button>
-                <button id="Degviela" class="fuel-btn" style="display:none; flex: 1;">Degviela</button>
-            </div>
+            <button id="Ella" class="oil-btn" style="display:none;">Pieleju Eļļu</button>
+            <button id="Degviela" class="fuel-btn" style="display:none;">Pielej Degvielu</button>
         </div>
 
         <button id="logoutBtn">Izrakstīties</button>
@@ -129,11 +140,11 @@
     <div id="resourceModal">
         <div class="modal-content">
             <h3 id="modalTitle">Pievienot resursu</h3>
-            <label>Mašīna:</label>
+            <label>Izvēlies mašīnu:</label>
             <select id="modalCarSelect"></select>
-            <label>Litri:</label>
+            <label>Ievadi litrus:</label>
             <input type="number" id="modalAmountInput" step="0.01" placeholder="0.00">
-            <div style="display:flex; gap:10px; margin-top: 15px;">
+            <div style="display:flex; gap:10px;">
                 <button id="modalCancel" style="flex:1; background:#6c757d; color:white;">Atcelt</button>
                 <button id="modalSave" style="flex:1; background:var(--success); color:white;">Saglabāt</button>
             </div>
@@ -147,7 +158,7 @@
     const user = JSON.parse(localStorage.getItem("loggedInUser"));
     if (!user) { window.location.href = "index.html"; } 
 
-    document.getElementById("welcome").textContent = `Sveiki, ${user.name}!`;
+    document.getElementById("welcome").textContent = `Darbinieks: ${user.name}`;
 
     const carSelect = document.getElementById("car");
     const objectSelect = document.getElementById("object");
@@ -160,7 +171,6 @@
             const [cRes, oRes, wRes, sRes] = await Promise.all([
                 fetch('/api/cars'), fetch('/api/objects'), fetch('/api/work-types'), fetch('/api/schedule')
             ]);
-            
             const cars = await cRes.json();
             const objects = await oRes.json();
             const workTypes = await wRes.json();
@@ -170,150 +180,100 @@
             fillSelect(objectSelect, objects, "-- Izvēlies objektu --");
             fillSelect(workSelect, workTypes, "-- Izvēlies darba veidu --");
 
-            const workerHistory = allSchedule.filter(e => e.worker_name === user.name);
-            
-            // ATRODAM JAUNĀKO AKTĪVO DARBU
-            const activeJob = workerHistory.slice().reverse().find(e => !e.beigu_laiks);
-            
-            // Pārbaudām shift statusu no localStorage
-            let isShiftStarted = !!localStorage.getItem(`shift_start_${user.name}`);
-
-            // KRITISKI: Ja DB ir aktīvs darbs, bet localStorage rāda, ka maiņa nav sākta (pēc refresh), 
-            // mēs "atdzīvinām" maiņu automātiski.
-            if (activeJob && !isShiftStarted) {
-                localStorage.setItem(`shift_start_${user.name}`, new Date().toISOString());
-                isShiftStarted = true;
-            }
+            const activeJob = allSchedule.find(e => e.worker_name === user.name && !e.beigu_laiks);
+            const shiftStartTime = localStorage.getItem(`shift_start_${user.name}`);
+            const isShiftStarted = !!shiftStartTime;
 
             if (activeJob) {
-                // STRĀDĀ PIE OBJEKTA
-                document.getElementById("status").innerHTML = `Status: 🟢 Strādā pie <b>${activeJob.objekts}</b>`;
+                // JA STRĀDĀ PIE OBJEKTA
+                document.getElementById("status").innerHTML = `Strādā: <b>${activeJob.objekts}</b> (${activeJob.car})`;
                 document.getElementById("startTimeDisplay").innerText = `Sāki: ${activeJob.sākuma_laiks}`;
                 
                 document.getElementById("startBtn").style.display = "none";
                 document.getElementById("stopBtn").style.display = "block";
-                document.getElementById("LeaveWork").style.display = "none"; 
-                document.getElementById("AtWork").style.display = "none";
-
+                document.getElementById("LeaveWork").style.display = "none"; // Nevar aiziet, kamēr strādā
+                
                 [carSelect, objectSelect, workSelect].forEach(s => s.disabled = true);
                 carSelect.value = activeJob.car;
                 objectSelect.value = activeJob.objekts || "";
                 workSelect.value = activeJob.darbs || "";
-            } else if (isShiftStarted) {
-                // MAIŅA SĀKTA, GAIDA NĀKAMO DARBU
-                document.getElementById("status").textContent = "Status: 🟡 Maiņa sākta (Gaidīšana)";
-                document.getElementById("startTimeDisplay").innerText = "";
-                document.getElementById("AtWork").style.display = "none";
-                document.getElementById("LeaveWork").style.display = "block";
-                document.getElementById("startBtn").style.display = "block";
-                document.getElementById("stopBtn").style.display = "none";
-                [carSelect, objectSelect, workSelect].forEach(s => s.disabled = false);
             } else {
-                // NAV DARBĀ
-                document.getElementById("status").textContent = "Status: ⚪ Nav sākta maiņa";
-                document.getElementById("startTimeDisplay").innerText = "";
-                document.getElementById("AtWork").style.display = "block";
-                document.getElementById("LeaveWork").style.display = "none";
-                document.getElementById("startBtn").style.display = "none";
-                document.getElementById("stopBtn").style.display = "none";
+                // JA NAV AKTĪVA DARBA
                 [carSelect, objectSelect, workSelect].forEach(s => s.disabled = false);
+                document.getElementById("status").textContent = isShiftStarted ? "Statuss: Maiņa sākta" : "Statuss: Gaidīšana";
+                document.getElementById("startTimeDisplay").innerText = "";
+                
+                document.getElementById("startBtn").style.display = isShiftStarted ? "block" : "none";
+                document.getElementById("stopBtn").style.display = "none";
+                document.getElementById("LeaveWork").style.display = isShiftStarted ? "block" : "none";
             }
 
-            // Resursu pogas pieejamas tikai maiņas laikā
+            document.getElementById("AtWork").style.display = isShiftStarted ? "none" : "block";
             document.getElementById("Ella").style.display = isShiftStarted ? "block" : "none";
             document.getElementById("Degviela").style.display = isShiftStarted ? "block" : "none";
 
-            renderTable(workerHistory);
-        } catch (err) { console.error("Kļūda ielādējot datus:", err); }
+            renderTable(allSchedule.filter(e => e.worker_name === user.name));
+        } catch (err) { console.error(err); }
     }
 
+    // --- DARBĪBU POGAS ---
     document.getElementById("AtWork").onclick = () => {
         localStorage.setItem(`shift_start_${user.name}`, new Date().toISOString());
         loadWorkerData();
     };
 
     document.getElementById("LeaveWork").onclick = async () => {
-        // Papildus drošība: neļaut beigt dienu, ja vēl nav nospiests "Beigt darbu pie objekta"
-        if (document.getElementById("stopBtn").style.display === "block") {
-            return alert("Vispirms pabeidz aktīvo darbu pie objekta!");
-        }
-
-        if (!confirm("Vai tiešām beigt darba dienu?")) return;
+        if (!confirm("Beigt darba dienu?")) return;
         
-        try {
-            const sRes = await fetch('/api/schedule');
-            const allSchedule = await sRes.json();
-            const sodien = new Date().toLocaleDateString('lv-LV');
-            
-            const sodienasDarbi = allSchedule.filter(e => 
-                e.worker_name === user.name && e.sākuma_laiks.startsWith(sodien)
-            ).sort((a, b) => a.id - b.id);
+        const tagad = new Date();
+        const shiftStartRaw = localStorage.getItem(`shift_start_${user.name}`);
+        let stundas = 0;
+        if (shiftStartRaw) { stundas = ((tagad - new Date(shiftStartRaw)) / 3600000).toFixed(2); }
 
-            let startObject;
-            let sakumaLaiksString;
+        const data = {
+            darbinieks: user.name,
+            datums: tagad.toLocaleDateString('lv-LV'),
+            sāka_darbu: shiftStartRaw ? new Date(shiftStartRaw).toLocaleTimeString('lv-LV') : "--",
+            beidza_darbu: tagad.toLocaleTimeString('lv-LV'),
+            month: new Intl.DateTimeFormat('lv-LV', { month: 'long' }).format(tagad),
+            stundas: parseFloat(stundas) || 0
+        };
 
-            if (sodienasDarbi.length > 0) {
-                const parts = sodienasDarbi[0].sākuma_laiks.split(/[. :]/);
-                startObject = new Date(parts[2], parts[1]-1, parts[0], parts[3], parts[4], parts[5]);
-                sakumaLaiksString = sodienasDarbi[0].sākuma_laiks.split(' ')[1];
-            } else {
-                const lsStart = localStorage.getItem(`shift_start_${user.name}`);
-                startObject = lsStart ? new Date(lsStart) : new Date();
-                sakumaLaiksString = startObject.toLocaleTimeString('lv-LV');
-            }
-
-            const beiguObjekt = new Date();
-            const stundas = ((beiguObjekt - startObject) / 3600000).toFixed(2);
-
-            const data = {
-                darbinieks: user.name,
-                datums: sodien,
-                sāka_darbu: sakumaLaiksString,
-                beidza_darbu: beiguObjekt.toLocaleTimeString('lv-LV'),
-                month: new Intl.DateTimeFormat('lv-LV', { month: 'long' }).format(beiguObjekt),
-                stundas: Math.max(0, parseFloat(stundas))
-            };
-
-            await fetch('/api/darba-stundas', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
-
-            localStorage.removeItem(`shift_start_${user.name}`);
-            loadWorkerData(); // Refreshējam skatu
-        } catch (err) { alert("Kļūda saglabājot maiņas beigas!"); }
+        await fetch('/api/darba-stundas', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        localStorage.removeItem(`shift_start_${user.name}`);
+        window.location.reload();
     };
 
     document.getElementById("startBtn").onclick = async () => {
-        if (!carSelect.value || !objectSelect.value || !workSelect.value) return alert("Aizpildi visus laukus!");
+        if (!carSelect.value || !objectSelect.value || !workSelect.value) return alert("Aizpildi laukus!");
         const now = new Date();
-        const startTimeStr = `${now.toLocaleDateString('lv-LV')} ${now.toLocaleTimeString('lv-LV')}`;
-        
         await fetch('/api/start-work', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
                 worker_name: user.name, car: carSelect.value, objekts: objectSelect.value, 
-                darbs: workSelect.value, start_time: startTimeStr 
+                darbs: workSelect.value, start_time: `${now.toLocaleDateString('lv-LV')} ${now.toLocaleTimeString('lv-LV')}` 
             })
         });
         loadWorkerData();
     };
 
     document.getElementById("stopBtn").onclick = async () => {
-        if (!confirm("Vai tiešām beigt darbu pie šī objekta?")) return;
+        if (!confirm("Beigt darbu?")) return;
         const now = new Date();
-        const endTimeStr = `${now.toLocaleDateString('lv-LV')} ${now.toLocaleTimeString('lv-LV')}`;
-        
         await fetch('/api/stop-work', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ worker_name: user.name, end_time: endTimeStr })
+            body: JSON.stringify({ worker_name: user.name, end_time: `${now.toLocaleDateString('lv-LV')} ${now.toLocaleTimeString('lv-LV')}` })
         });
         loadWorkerData();
     };
 
+    // --- RESURSU MODĀLS ---
     function openResourceModal(type) {
         currentResourceType = type;
         document.getElementById("modalTitle").innerText = type === "Ella" ? "Eļļas pieliešana" : "Degvielas uzpilde";
@@ -330,7 +290,7 @@
     document.getElementById("modalSave").onclick = async () => {
         const auto = document.getElementById("modalCarSelect").value;
         const litri = document.getElementById("modalAmountInput").value;
-        if (!auto || litri <= 0) return alert("Ievadi mašīnu un daudzumu!");
+        if (!auto || litri <= 0) return alert("Pārbaudi datus!");
         
         await fetch('/api/update-resources', {
             method: 'POST',
@@ -342,6 +302,7 @@
         loadWorkerData();
     };
 
+    // --- PALĪGFUNKCIJAS ---
     function fillSelect(selectEl, data, defaultText) {
         const currentVal = selectEl.value;
         selectEl.innerHTML = `<option value="">${defaultText}</option>`;
@@ -355,16 +316,17 @@
 
     function renderTable(data) {
         if (!data || !data.length) { tableContainer.innerHTML = "<p style='padding:15px;'>Nav ierakstu.</p>"; return; }
-        let html = `<table><tr><th>Auto</th><th>Objekts</th><th>Darbs</th><th>Sākums</th><th>Beigas</th><th>Eļļa/Degv</th><th>Stundas</th></tr>`;
-        data.slice().reverse().slice(0, 10).forEach(e => {
+        let html = `<table><tr><th>Auto</th><th>Objekts</th><th>Darbs</th><th>Sākums</th><th>Beigas</th><th>Eļļa</th><th>Degv.</th><th>Stundas</th></tr>`;
+        data.slice().reverse().forEach(e => {
             html += `<tr>
                 <td>${e.car}</td>
                 <td>${e.objekts || '-'}</td>
                 <td>${e.darbs || '-'}</td>
                 <td>${e.sākuma_laiks || '-'}</td>
-                <td>${e.beigu_laiks || '<span style="color:green;font-weight:bold;">Aktīvs</span>'}</td>
-                <td>${e.pielietā_eļļa || 0}L / ${e.pielietā_degviela || 0}L</td>
-                <td><b>${e.hours ? e.hours + ' h' : '-'}</b></td>
+                <td>${e.beigu_laiks || 'Aktīvs'}</td>
+                <td class="oil-text">${e.pielietā_eļļa || 0} L</td>
+                <td class="fuel-text">${e.pielietā_degviela || 0} L</td>
+                <td>${e.hours ? e.hours + ' h' : '-'}</td>
             </tr>`;
         });
         tableContainer.innerHTML = html + "</table>";
@@ -375,7 +337,6 @@
         window.location.href = "index.html";
     };
 
-    // Sākotnējā ielāde
     loadWorkerData();
 </script>
 </body>
