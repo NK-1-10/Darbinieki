@@ -53,16 +53,19 @@ app.post('/api/change-password', async (req, res) => {
 
 // --- 2. DARBINIEKU PĀRVALDĪBA (Adminam) ---
 // --- RESURSU TIPI (Eļļas/Degvielas saraksts) ---
+// Iegūt visus resursus ar to daudzumu
 app.get('/api/resource-types', async (req, res) => {
     try {
-        const r = await pool.query("SELECT id, name FROM resource_types ORDER BY name ASC");
-        res.json(r.rows); // Atgriežam objektus ar ID, lai būtu vieglāk dzēst
+        const r = await pool.query("SELECT id, name, quantity FROM resource_types ORDER BY name ASC");
+        res.json(r.rows); 
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// Pievienot jaunu resursu (ar sākuma daudzumu 0)
 app.post('/api/resource-types', async (req, res) => {
     try {
-        await pool.query('INSERT INTO resource_types (name) VALUES ($1)', [req.body.name]);
+        const { name } = req.body;
+        await pool.query('INSERT INTO resource_types (name, quantity) VALUES ($1, 0)', [name]);
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -72,6 +75,18 @@ app.delete('/api/resource-types/:id', async (req, res) => {
         await pool.query('DELETE FROM resource_types WHERE id = $1', [req.params.id]);
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// Atjaunināt resursa daudzumu (Admin panelim +10/-10)
+app.patch('/api/resource-types/:id', async (req, res) => {
+    const { id } = req.params;
+    const { quantity } = req.body;
+    try {
+        await pool.query('UPDATE resource_types SET quantity = $1 WHERE id = $2', [quantity, id]);
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 app.get('/api/workers', async (req, res) => {
@@ -224,6 +239,7 @@ app.delete('/api/schedule', async (req, res) => {
 });
 
 // --- 4.5 RESURSU ATJAUNINĀŠANA (Eļļa/Degviela) ---
+// --- 4.5 RESURSU ATJAUNINĀŠANA (Eļļa/Degviela) ---
 app.post('/api/update-resources', async (req, res) => {
     const { worker_name, car, type, amount } = req.body;
     const column = type === 'Ella' ? 'pielietā_eļļa' : 'pielietā_degviela';
@@ -242,7 +258,6 @@ app.post('/api/update-resources', async (req, res) => {
         );
 
         if (activeJob.rows.length > 0) {
-            // THE FIX: We add "::numeric" to force the text column to act like a number
             await pool.query(
                 `UPDATE schedule 
                  SET "${column}" = (COALESCE(NULLIF("${column}", ''), '0')::numeric + $1)::text 
@@ -256,7 +271,17 @@ app.post('/api/update-resources', async (req, res) => {
                 [worker_name, car, datums, laiks, monthStr, litri.toString(), type === 'Ella' ? 'Eļļas papildināšana' : 'Degvielas uzpilde']
             );
         }
+
+        // AUTOMĀTIKA: Atņemam no noliktavas
+        // SVARĪGI: Pārliecinies, ka Admin panelī resursu nosaukumi ir tieši "Eļļa" un "Degviela"
+        await pool.query(
+            'UPDATE resource_types SET quantity = quantity - $1 WHERE name = $2',
+            [litri, type === 'Ella' ? 'Eļļa' : 'Degviela'] 
+        );
+
+        // Atbildi sūtām tikai pašās beigās!
         res.sendStatus(200);
+        
     } catch (err) {
         console.error("Database Error:", err);
         res.status(500).send("Sistēmas kļūda: " + err.message);
