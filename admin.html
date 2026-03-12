@@ -345,21 +345,26 @@ tr.filter-row-bg {
     }
 
     function fillFilters() {
-        const fill = (id, list) => {
-            const select = document.getElementById(id);
-            const current = select.value;
-            const unique = [...new Set(list)].filter(Boolean).sort();
-            select.innerHTML = '<option value="">Visi</option>' + unique.map(v => `<option value="${v}">${v}</option>`).join("");
-            select.value = current;
-        };
+    const fill = (id, list) => {
+        const select = document.getElementById(id);
+        if (!select) return;
+        const current = select.value;
+        // Izmantojam Set, lai dabūtu unikālas vērtības, un sakārtojam tās
+        const unique = [...new Set(list)].filter(Boolean).sort();
+        select.innerHTML = '<option value="">Visi</option>' + 
+            unique.map(v => `<option value="${v}">${v}</option>`).join("");
+        // Atjaunojam iepriekš izvēlēto vērtību, lai tā nepazustu pie pārlādes
+        select.value = current;
+    };
 
-        const years = schedule.map(e => e.date ? e.date.split('.')[2] : null);
-        fill("filterYear", years);
-        fill("filterMonth", schedule.map(e => e.month));
-        fill("filterWorker", schedule.map(e => e.worker_name));
-        fill("filterCar", schedule.map(e => e.car));
-        fill("filterDate", schedule.map(e => e.date ? e.date.split('.')[0] : null));
-    }
+    // Vienmēr ņemam datus no oriģinālā 'schedule' masīva
+    const years = schedule.map(e => e.date ? e.date.split('.')[2] : null);
+    fill("filterYear", years);
+    fill("filterMonth", schedule.map(e => e.month));
+    fill("filterWorker", schedule.map(e => e.worker_name));
+    fill("filterCar", schedule.map(e => e.car));
+    fill("filterDate", schedule.map(e => e.date ? e.date.split('.')[0] : null));
+}
 
     function renderTables() {
         // Galvenie filtri
@@ -515,10 +520,12 @@ setupColumnListeners();
         if (!select) return;
 
         const currentVal = window[id + "_val"] || "";
-        // Dabūjam unikālas vērtības no dotajiem datiem
-        const uniqueValues = [...new Set(data.map(item => item[ids[id]]))].filter(Boolean).sort();
+        
+        // KRITISKI: Šeit mēs izmantojam 'schedule' (visus datus), nevis 'filtered' (tos, kas padoti funkcijā),
+        // lai filtrā vienmēr būtu redzamas visas iespējamās izvēles.
+        const uniqueValues = [...new Set(schedule.map(item => item[ids[id]]))].filter(Boolean).sort();
 
-        let options = `<option value="">🔍 Visi</option>`;
+        let options = `<option value="">Visi : </option>`;
         uniqueValues.forEach(val => {
             const selected = (val === currentVal) ? 'selected' : '';
             options += `<option value="${val}" ${selected}>${val}</option>`;
