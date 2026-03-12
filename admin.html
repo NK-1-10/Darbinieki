@@ -382,9 +382,9 @@ if (resourceListEl) {
     resourceListEl.innerHTML = resource_types.map(res => `
         <li style="display: flex; flex-direction: column; gap: 10px; padding: 15px; border: 1px solid #eee; border-radius: 10px; background: #fafafa; margin-bottom: 10px;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
-                <strong style="font-size: 1.1em;">${res.name}</strong> 
-                <span class="gold-val" style="font-size: 1.2em;">${res.quantity || 0} L</span>
-            </div>
+            <strong style="font-size: 1.1em; padding-right: 20px;">${res.name}</strong> 
+      <span class="gold-val" style="font-size: 1.2em; white-space: nowrap;">${res.quantity || 0} L</span>
+  </div>
             
             <div style="display: flex; gap: 8px; align-items: center;">
                 <input type="number" id="input-qty-${res.id}" placeholder="Daudzums..." 
