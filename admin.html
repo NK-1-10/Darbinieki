@@ -8,23 +8,19 @@
         body { font-family: 'Segoe UI', sans-serif; margin: 20px; background: #fdfdfd; color: #333; }
         h2 { text-align: center; color: #1a3025; text-transform: uppercase; margin-bottom: 25px; }
 
-        /* Augšējās pogas */
         .grid-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
         .pogas { background: #fff; border: 1px solid #e0e0e0; border-radius: 10px; padding: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .pogas summary { font-weight: bold; list-style: none; text-align: center; cursor: pointer; color: #1a3025; }
         
-        /* Filtru sekcija */
         .filter-section { background: #fff; padding: 20px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #eee; }
         .filter-row { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-end; }
         .filter-group { display: flex; flex-direction: column; gap: 5px; }
         .filter-group label { font-size: 12px; font-weight: bold; color: #666; }
         select { padding: 8px; border-radius: 5px; border: 1px solid #ccc; min-width: 120px; }
 
-        /* Kopsavilkums */
         .summary-info { margin-top: 15px; padding-top: 15px; border-top: 1px dashed #ccc; display: flex; justify-content: space-between; align-items: center; }
         .total-box { font-size: 16px; font-weight: bold; color: #1a3025; }
 
-        /* Tabulu stils */
         .report-header { background: #1a3025; color: white; padding: 15px 20px; border-radius: 10px 10px 0 0; margin-top: 25px; display: flex; justify-content: space-between; align-items: center; }
         .report-title { font-weight: bold; text-transform: uppercase; font-size: 14px; letter-spacing: 0.5px; }
         
@@ -67,10 +63,6 @@
     <div class="filter-section">
         <div class="filter-row">
             <div class="filter-group">
-                <label>Gads:</label>
-                <select id="f_year"><option value="">Visi</option></select>
-            </div>
-            <div class="filter-group">
                 <label>Mēnesis:</label>
                 <select id="f_month"><option value="">Visi</option></select>
             </div>
@@ -92,7 +84,15 @@
         <table>
             <thead>
                 <tr>
-                    <th>Datums</th><th>Mēnesis</th><th>Auto</th><th>Darbinieks</th><th>Sākums</th><th>Beigas</th><th>Stundas</th>
+                    <th>Datums</th>
+                    <th>Mēnesis</th>
+                    <th>Auto</th>
+                    <th>Darbinieks</th>
+                    <th>Objekts</th>
+                    <th>Darbs</th>
+                    <th>Sākums</th>
+                    <th>Beigas</th>
+                    <th>Stundas</th>
                 </tr>
             </thead>
             <tbody id="workTableBody"></tbody>
@@ -106,7 +106,11 @@
         <table>
             <thead>
                 <tr>
-                    <th>Datums</th><th>Auto</th><th>Darbinieks</th><th>Resurss</th><th>Daudzums (L)</th>
+                    <th>Datums</th>
+                    <th>Auto</th>
+                    <th>Darbinieks</th>
+                    <th>Resurss</th>
+                    <th>Daudzums (L)</th>
                 </tr>
             </thead>
             <tbody id="oilTableBody"></tbody>
@@ -120,19 +124,20 @@
         <table>
             <thead>
                 <tr>
-                    <th>Datums</th><th>Darbinieks</th><th>Kopā stundas</th>
+                    <th>Datums</th>
+                    <th>Darbinieks</th>
+                    <th>Kopā stundas</th>
                 </tr>
             </thead>
             <tbody id="daySummaryBody"></tbody>
         </table>
     </div>
 
-   <script>
+    <script>
     let scheduleData = [], workers = [], cars = [], resourceTypes = [];
 
     async function loadAll() {
         try {
-            // Ielādējam datus no API
             const [sRes, wRes, cRes, rRes] = await Promise.all([
                 fetch('/api/schedule'), 
                 fetch('/api/workers'), 
@@ -150,14 +155,12 @@
     }
 
     function renderUI() {
-        // Aizpildām iestatījumu sarakstus
         document.getElementById('workerList').innerHTML = workers.map(w => `<li>${w.name}</li>`).join("");
         document.getElementById('carList').innerHTML = cars.map(c => `<li>${c.name}</li>`).join("");
         document.getElementById('resourceList').innerHTML = resourceTypes.map(r => 
             `<div style="font-size:12px; margin-bottom:5px;">${r.name}: <strong>${r.quantity} L</strong></div>`
         ).join("");
 
-        // Filtru aizpilde (izmanto 'darbinieks' un 'month' no DB)
         const uniqueMonths = [...new Set(scheduleData.map(d => d.month))].filter(Boolean);
         const uniqueWorkers = [...new Set(scheduleData.map(d => d.darbinieks || d.worker_name))].filter(Boolean);
         
@@ -176,37 +179,41 @@
             (!wFilter || (d.darbinieks || d.worker_name) === wFilter)
         );
 
-        // 1. Darba gaitas tabula - LIETOJAM DB NOSAUKUMUS
+        // 1. DARBA GAITA
         document.getElementById('workTableBody').innerHTML = filtered.map(d => `
             <tr>
                 <td>${d.datums || d.date || '-'}</td>
                 <td>${d.month || '-'}</td>
                 <td>${d.car || '-'}</td>
                 <td>${d.darbinieks || d.worker_name || '-'}</td>
+                <td>${d.objekts || '-'}</td>
+                <td>${d.darba_veids || d.darbs || '-'}</td>
                 <td>${d.sāka_darbu || d.from_time || '-'}</td>
                 <td>${d.beidza_darbu || d.to_time || '-'}</td>
                 <td style="font-weight:bold;">${parseFloat(d.stundas || d.hours || 0).toFixed(2)}</td>
             </tr>
         `).join("");
 
-        // 2. Patēriņa tabula - LIETOJAM 'pielietā_eļļa' un 'pielietā_degviela'
+        // 2. PATĒRIŅŠ
         document.getElementById('oilTableBody').innerHTML = filtered
             .filter(d => (parseFloat(d.pielietā_eļļa || 0) > 0 || parseFloat(d.pielietā_degviela || 0) > 0))
-            .map(d => `
+            .map(d => {
+                const isOil = parseFloat(d.pielietā_eļļa || 0) > 0;
+                return `
                 <tr>
                     <td>${d.datums || d.date}</td>
                     <td>${d.car}</td>
                     <td>${d.darbinieks || d.worker_name}</td>
-                    <td>${parseFloat(d.pielietā_eļļa || 0) > 0 ? 'Eļļa' : 'Degviela'}</td>
-                    <td style="font-weight:bold; color: #d4b45d;">${d.pielietā_eļļa || d.pielietā_degviela || 0}</td>
-                </tr>
-            `).join("");
+                    <td>${isOil ? 'Eļļa' : 'Degviela'}</td>
+                    <td style="font-weight:bold; color: #d4b45d;">${isOil ? d.pielietā_eļļa : d.pielietā_degviela}</td>
+                </tr>`;
+            }).join("");
 
-        // Kopā stundas aprēķins
+        // Kopā stundas
         const total = filtered.reduce((sum, d) => sum + parseFloat(d.stundas || d.hours || 0), 0);
         document.getElementById('totalHours').innerText = total.toFixed(2);
 
-        // 3. Kopsavilkums pa dienām
+        // 3. DIENAS KOPSAVILKUMS
         const dayMap = {};
         filtered.forEach(d => {
             const key = `${d.datums || d.date}_${d.darbinieks || d.worker_name}`;
@@ -225,11 +232,10 @@
         filterAndRender();
     }
 
-    // Event listeneri
     document.getElementById('f_month').addEventListener('change', filterAndRender);
     document.getElementById('f_worker').addEventListener('change', filterAndRender);
 
     loadAll();
-</script>
+    </script>
 </body>
 </html>
