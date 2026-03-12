@@ -2,6 +2,7 @@ const express = require('express');
 const { Pool } = require('pg');
 const path = require('path');
 const cors = require('cors');
+let resourceTypes = [];
 
 const app = express();
 app.use(express.json());
@@ -51,6 +52,28 @@ app.post('/api/change-password', async (req, res) => {
 });
 
 // --- 2. DARBINIEKU PĀRVALDĪBA (Adminam) ---
+// --- RESURSU TIPI (Eļļas/Degvielas saraksts) ---
+app.get('/api/resource-types', async (req, res) => {
+    try {
+        const r = await pool.query("SELECT id, name FROM resource_types ORDER BY name ASC");
+        res.json(r.rows); // Atgriežam objektus ar ID, lai būtu vieglāk dzēst
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/resource-types', async (req, res) => {
+    try {
+        await pool.query('INSERT INTO resource_types (name) VALUES ($1)', [req.body.name]);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.delete('/api/resource-types/:id', async (req, res) => {
+    try {
+        await pool.query('DELETE FROM resource_types WHERE id = $1', [req.params.id]);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 app.get('/api/workers', async (req, res) => {
     try {
         const r = await pool.query("SELECT name, temp_password, role FROM users WHERE role != 'admin' OR role IS NULL ORDER BY name ASC");
