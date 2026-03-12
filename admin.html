@@ -424,14 +424,25 @@ const cWork = window.colFilterWork_val || "";
         document.getElementById("totalFuelValue").textContent = totalFuel.toFixed(2);
 
         // 2. Filtrējam kopsavilkuma datus (3. tabula)
-        let filteredSummary = daySummary.filter(s => {
-            const year = s.datums ? s.datums.split('.')[2] : "";
-            const day = s.datums ? s.datums.split('.')[0] : "";
-            return (!fYear || year === fYear) &&
-                   (!fMonth || s.month === fMonth) &&
-                   (!fWorker || s.darbinieks === fWorker) &&
-                   (!fDate || day === fDate);
-        });
+        // 2. Filtrējam kopsavilkuma datus (3. tabula)
+// 2. Filtrējam kopsavilkuma datus (3. tabula)
+let filteredSummary = daySummary.filter(s => {
+    const year = s.datums ? s.datums.split('.')[2] : "";
+    const day = s.datums ? s.datums.split('.')[0] : "";
+    
+    // Pārbauda galvenos (augšējos) filtrus
+    const matchMain = (!fYear || year === fYear) &&
+                      (!fMonth || s.month === fMonth) &&
+                      (!fWorker || s.darbinieks === fWorker) &&
+                      (!fDate || day === fDate);
+
+    // Pārbauda kolonnu (tabulas) filtrus (tikai tos, kas eksistē 3. tabulā)
+    const matchCols = (!cDate || s.datums === cDate) &&
+                      (!cMonth || s.month === cMonth) &&
+                      (!cWorker || s.darbinieks === cWorker);
+
+    return matchMain && matchCols;
+});
 
         const totalSumHours = filteredSummary.reduce((sum, s) => sum + (parseFloat(s.stundas) || 0), 0);
         document.getElementById("totalHoursSummary").textContent = totalSumHours.toFixed(2);
