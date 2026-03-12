@@ -214,7 +214,10 @@ tr.filter-row-bg {
 </head>
 <body>
 
-    <h2>Admin Vadības Panelis</h2>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 2px solid #1a3025; padding-bottom: 10px;">
+    <h2 style="margin: 0; text-align: left;">Admin Vadības Panelis</h2>
+    <button id="logoutBtn" style="background: #dc3545; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold;">Izrakstīties 🚪</button>
+</div>
 
     <div class="grid-container">
         <details class="pogas">
@@ -250,12 +253,12 @@ tr.filter-row-bg {
         </details>
 
         <details class="pogas">
-            <summary> eļļas un degviela</summary>
-            <div class="settings-content">
-                <button class="btn-add" id="addObjectBtn">➕ Pievienot eļļu vai degvielu</button>
-                <ul id="resource_types"></ul>
-            </div>
-        </details>
+    <summary>🛢️ Eļļas un degviela</summary>
+    <div class="settings-content">
+        <button class="btn-add" id="addResourceBtn">➕ Pievienot veidu</button>
+        <ul id="resourceList"></ul>
+    </div>
+</details>
         
     </div>
 
@@ -322,28 +325,31 @@ tr.filter-row-bg {
    <script>
     let workers = [], cars = [], schedule = [], works_types = [], objects = [], daySummary = [];
 
-    async function loadData() {
-        try {
-            const [wRes, cRes, sRes, wtRes, oRes, dsRes] = await Promise.all([
-                fetch('/api/workers'), fetch('/api/cars'), fetch('/api/schedule'),
-                fetch('/api/work-types'), fetch('/api/objects'), fetch('/api/darba-stundas')
-            ]);
-            
-            workers = await wRes.json();
-            cars = await cRes.json();
-            schedule = await sRes.json();
-            works_types = await wtRes.json();
-            objects = await oRes.json();
-            daySummary = await dsRes.json();
-            
-            renderSettings();
-            fillFilters();
-            renderTables(); 
-        } catch (err) { 
-            console.error("Datu ielādes kļūda:", err);
-            // Ja serveris neatbild, tabulas būs tukšas - tas ir normāli testējot bez backend
-        }
+    let resource_types = []; // Pievieno šo pie pārējiem let mainīgajiem augšā
+
+async function loadData() {
+    try {
+        const [wRes, cRes, sRes, wtRes, oRes, dsRes, rRes] = await Promise.all([
+            fetch('/api/workers'), fetch('/api/cars'), fetch('/api/schedule'),
+            fetch('/api/work-types'), fetch('/api/objects'), fetch('/api/darba-stundas'),
+            fetch('/api/resource-types') // JAUNS
+        ]);
+        
+        workers = await wRes.json();
+        cars = await cRes.json();
+        schedule = await sRes.json();
+        works_types = await wtRes.json();
+        objects = await oRes.json();
+        daySummary = await dsRes.json();
+        resource_types = await rRes.json(); // JAUNS
+        
+        renderSettings();
+        fillFilters();
+        renderTables(); 
+    } catch (err) { 
+        console.error("Datu ielādes kļūda:", err);
     }
+}
 
        document.getElementById("logoutBtn").onclick = async () => {
     if (confirm("Vai tiešām vēlaties izrakstīties?")) {
@@ -364,30 +370,54 @@ tr.filter-row-bg {
 };
 
     function renderSettings() {
-    // Apstrādājam darbinieku sarakstu atsevišķi, lai parādītu paroles
-    const workerListEl = document.getElementById("workerList");
-    workerListEl.innerHTML = workers.map(worker => {
-        // Pārbaudām, vai ir pagaidu parole (ņemot vērā gan objektu, gan teksta formātu)
-        const tempPwd = worker.temp_password ? 
-            `<span style="color: #888; font-size: 0.9em; margin-left: 10px;">(Pagaidu parole: ${worker.temp_password})</span>` : '';
-        
-        return `<li>
-            <span><strong>${worker.name}</strong>${tempPwd}</span>
-            <button class="btn-del" onclick="deleteWorker('${worker.name}')">✖</button>
-        </li>`;
-    }).join("");
-
-    // Pārējiem sarakstiem (mašīnas, veidi, objekti) atstājam standarta renderēšanu
+    // 1. Definējam palīgfunkciju vienkāršajiem sarakstiem
     const renderSimpleList = (id, data, deleteFn) => {
-        document.getElementById(id).innerHTML = data.map(item => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.innerHTML = data.map(item => {
             const name = typeof item === 'object' ? item.name : item;
             return `<li><span>${name}</span><button class="btn-del" onclick="${deleteFn}('${name}')">✖</button></li>`;
         }).join("");
     };
 
+    // 2. Renderējam visus sarakstus
+    renderSimpleList("resourceList", resource_types, "deleteResourceType");
     renderSimpleList("carList", cars, "deleteCar");
     renderSimpleList("workList", works_types, "deleteWorkType");
     renderSimpleList("objectList", objects, "deleteObject");
+
+    // 3. Darbinieku saraksts (ar parolēm)
+    const workerListEl = document.getElementById("workerList");
+    if (workerListEl) {
+        workerListEl.innerHTML = workers.map(worker => {
+            const tempPwd = worker.temp_password ? 
+                `<span style="color: #888; font-size: 0.9em; margin-left: 10px;">(Pagaidu parole: ${worker.temp_password})</span>` : '';
+            
+            return `<li>
+                <span><strong>${worker.name}</strong>${tempPwd}</span>
+                <button class="btn-del" onclick="deleteWorker('${worker.name}')">✖</button>
+            </li>`;
+        }).join("");
+    }
+
+    // 4. Pogu loģika (onclick eventi)
+    // Pievieno pie pārējām addItem pogām apakšā
+document.getElementById("addResourceBtn").onclick = () => { 
+    const n = prompt("Eļļas vai degvielas nosaukums:"); 
+    if(n) addItem('/api/resource-types', { name: n }); 
+};
+}
+
+// --- FUNKCIJAS ĀRPUS renderSettings (Globālajā līmenī) ---
+
+async function deleteResourceType(name) {
+    if(confirm(`Dzēst resursu "${name}"?`)) {
+        const item = resource_types.find(r => r.name === name);
+        if(item) {
+            await fetch(`/api/resource-types/${item.id}`, { method: 'DELETE' });
+            loadData();
+        }
+    }
 }
 
     function fillFilters() {
