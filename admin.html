@@ -332,17 +332,31 @@ tr.filter-row-bg {
     }
 
     function renderSettings() {
-        const renderList = (id, data, deleteFn) => {
-            document.getElementById(id).innerHTML = data.map(item => {
-                const name = typeof item === 'object' ? item.name : item;
-                return `<li><span>${name}</span><button class="btn-del" onclick="${deleteFn}('${name}')">✖</button></li>`;
-            }).join("");
-        };
-        renderList("workerList", workers, "deleteWorker");
-        renderList("carList", cars, "deleteCar");
-        renderList("workList", works_types, "deleteWorkType");
-        renderList("objectList", objects, "deleteObject");
-    }
+    // Apstrādājam darbinieku sarakstu atsevišķi, lai parādītu paroles
+    const workerListEl = document.getElementById("workerList");
+    workerListEl.innerHTML = workers.map(worker => {
+        // Pārbaudām, vai ir pagaidu parole (ņemot vērā gan objektu, gan teksta formātu)
+        const tempPwd = worker.temp_password ? 
+            `<span style="color: #888; font-size: 0.9em; margin-left: 10px;">(Pagaidu parole: ${worker.temp_password})</span>` : '';
+        
+        return `<li>
+            <span><strong>${worker.name}</strong>${tempPwd}</span>
+            <button class="btn-del" onclick="deleteWorker('${worker.name}')">✖</button>
+        </li>`;
+    }).join("");
+
+    // Pārējiem sarakstiem (mašīnas, veidi, objekti) atstājam standarta renderēšanu
+    const renderSimpleList = (id, data, deleteFn) => {
+        document.getElementById(id).innerHTML = data.map(item => {
+            const name = typeof item === 'object' ? item.name : item;
+            return `<li><span>${name}</span><button class="btn-del" onclick="${deleteFn}('${name}')">✖</button></li>`;
+        }).join("");
+    };
+
+    renderSimpleList("carList", cars, "deleteCar");
+    renderSimpleList("workList", works_types, "deleteWorkType");
+    renderSimpleList("objectList", objects, "deleteObject");
+}
 
     function fillFilters() {
     const fill = (id, list) => {
