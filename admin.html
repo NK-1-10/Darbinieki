@@ -366,7 +366,7 @@ async function loadData() {
 };
 
     function renderSettings() {
-    // 1. Definējam palīgfunkciju vienkāršajiem sarakstiem
+    // 1. PALĪGFUNKCIJA (tikai mašīnām, darbiem, objektiem)
     const renderSimpleList = (id, data, deleteFn) => {
         const el = document.getElementById(id);
         if (!el) return;
@@ -376,19 +376,35 @@ async function loadData() {
         }).join("");
     };
 
-    // 2. Renderējam visus sarakstus
-    renderSimpleList("resourceList", resource_types, "deleteResourceType");
+    // 2. RESURSU SARAKSTS (Ar daudzumu un pogām)
+    const resourceListEl = document.getElementById("resourceList");
+    if (resourceListEl) {
+        resourceListEl.innerHTML = resource_types.map(res => `
+            <li style="display: flex; justify-content: space-between; align-items: center; padding: 10px 5px;">
+                <div style="flex-grow: 1;">
+                    <strong>${res.name}</strong> 
+                    <span style="margin-left: 10px; color: #d4b45d; font-weight: bold;">${res.quantity || 0} L</span>
+                </div>
+                <div style="display: flex; gap: 5px; align-items: center;">
+                    <button onclick="updateResourceQuantity(${res.id}, 10)" style="padding: 2px 8px; background: #28a745; color: white; border: none; border-radius: 4px; font-size: 11px;">+10</button>
+                    <button onclick="updateResourceQuantity(${res.id}, -10)" style="padding: 2px 8px; background: #dc3545; color: white; border: none; border-radius: 4px; font-size: 11px;">-10</button>
+                    <button class="btn-del" onclick="deleteResourceType('${res.name}')" style="margin-left:10px">✖</button>
+                </div>
+            </li>
+        `).join("");
+    }
+
+    // 3. PĀRĒJIE VIENKĀRŠIE SARAKSTI
     renderSimpleList("carList", cars, "deleteCar");
     renderSimpleList("workList", works_types, "deleteWorkType");
     renderSimpleList("objectList", objects, "deleteObject");
 
-    // 3. Darbinieku saraksts (ar parolēm)
+    // 4. DARBINIEKI
     const workerListEl = document.getElementById("workerList");
     if (workerListEl) {
         workerListEl.innerHTML = workers.map(worker => {
             const tempPwd = worker.temp_password ? 
-                `<span style="color: #888; font-size: 0.9em; margin-left: 10px;">(Pagaidu parole: ${worker.temp_password})</span>` : '';
-            
+                `<span style="color: #888; font-size: 0.9em; margin-left: 10px;">(Pagaidu: ${worker.temp_password})</span>` : '';
             return `<li>
                 <span><strong>${worker.name}</strong>${tempPwd}</span>
                 <button class="btn-del" onclick="deleteWorker('${worker.name}')">✖</button>
@@ -396,12 +412,11 @@ async function loadData() {
         }).join("");
     }
 
-    // 4. Pogu loģika (onclick eventi)
-    // Pievieno pie pārējām addItem pogām apakšā
-document.getElementById("addResourceBtn").onclick = () => { 
-    const n = prompt("Eļļas vai degvielas nosaukums:"); 
-    if(n) addItem('/api/resource-types', { name: n }); 
-};
+    // 5. PIEVIENOŠANAS POGA
+    document.getElementById("addResourceBtn").onclick = () => { 
+        const n = prompt("Eļļas vai degvielas nosaukums:"); 
+        if(n) addItem('/api/resource-types', { name: n, quantity: 0 }); 
+    };
 }
 
 // --- FUNKCIJAS ĀRPUS renderSettings (Globālajā līmenī) ---
@@ -629,6 +644,34 @@ setupColumnListeners();
             };
         }
     });
+}
+
+       async function updateResourceQuantity(id, change) {
+    const resource = resource_types.find(r => r.id === id);
+    if (!resource) return;
+
+    const newQuantity = (parseFloat(resource.quantity) || 0) + change;
+    
+    if (newQuantity < 0) {
+        alert("Daudzums nevar būt mazāks par nulli!");
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/resource-types/${id}`, {
+            method: 'PATCH', // Vai 'PUT', atkarībā no tā, kādu metodi tavs backend atbalsta
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ quantity: newQuantity })
+        });
+
+        if (response.ok) {
+            loadData(); // Pārlādējam datus, lai redzētu jauno skaitli
+        } else {
+            console.error("Neizdevās atjaunināt daudzumu");
+        }
+    } catch (err) {
+        console.error("Kļūda atjauninot resursu:", err);
+    }
 }
 
     // API Funkcijas
