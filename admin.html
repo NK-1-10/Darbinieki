@@ -72,6 +72,21 @@
         margin-bottom: 25px; 
         box-shadow: 0 2px 10px rgba(0,0,0,0.03);
     }
+
+       .table-filter {
+    width: 100%;
+    padding: 4px 6px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.85em;
+    background: #fff;
+    box-sizing: border-box;
+}
+
+/* Padarām filtra rindu nedaudz gaišāku */
+tr.filter-row-bg {
+    background-color: #f9f9f9;
+}
     
     .filter-row { 
         display: flex; 
@@ -345,20 +360,36 @@
 
         function renderTables() {
             const fYear = document.getElementById("filterYear").value;
-            const fMonth = document.getElementById("filterMonth").value;
-            const fWorker = document.getElementById("filterWorker").value;
-            const fDate = document.getElementById("filterDate").value;
-            const fCar = document.getElementById("filterCar").value;
+    const fMonth = document.getElementById("filterMonth").value;
+    const fWorker = document.getElementById("filterWorker").value;
+    const fDate = document.getElementById("filterDate").value;
+    const fCar = document.getElementById("filterCar").value;
+
+    // Kolonnu filtru vērtības (ņemam no globālajiem mainīgajiem)
+    const cDate = (window.colFilterDate_val || "").toLowerCase();
+    const cMonth = (window.colFilterMonth_val || "").toLowerCase();
+    const cCar = (window.colFilterCar_val || "").toLowerCase();
+    const cWorker = (window.colFilterWorker_val || "").toLowerCase();
+    const cObj = (window.colFilterObject_val || "").toLowerCase();
+    const cWork = (window.colFilterWork_val || "").toLowerCase();
 
             let filtered = schedule.filter(e => {
-                const day = e.date ? e.date.split('.')[0] : "";
-                const year = e.date ? e.date.split('.')[2] : "";
-                return (!fYear || year === fYear) &&
-                       (!fMonth || e.month === fMonth) &&
-                       (!fWorker || e.worker_name === fWorker) &&
-                       (!fDate || day === fDate) &&
-                       (!fCar || e.car === fCar);
-            });
+        const day = e.date ? e.date.split('.')[0] : "";
+        const year = e.date ? e.date.split('.')[2] : "";
+        
+        // Apvienojam lielos filtrus ar kolonnu filtriem
+        return (!fYear || year === fYear) &&
+               (!fMonth || e.month === fMonth) &&
+               (!fWorker || e.worker_name === fWorker) &&
+               (!fDate || day === fDate) &&
+               (!fCar || e.car === fCar) &&
+               (!cDate || (e.date || "").toLowerCase().includes(cDate)) &&
+               (!cMonth || (e.month || "").toLowerCase().includes(cMonth)) &&
+               (!cCar || (e.car || "").toLowerCase().includes(cCar)) &&
+               (!cWorker || (e.worker_name || "").toLowerCase().includes(cWorker)) &&
+               (!cObj || (e.objekts || "").toLowerCase().includes(cObj)) &&
+               (!cWork || (e.darbs || "").toLowerCase().includes(cWork));
+    });
 
             const sortKey = document.getElementById("sortBy").value;
             if (sortKey) {
@@ -393,33 +424,39 @@
             document.getElementById("totalHoursSummary").textContent = totalSumHours.toFixed(2);
 
             // 1. tabula
-            let workHtml = `<table><tr><th>Datums</th><th>Mēnesis</th><th>Auto</th><th>Darbinieks</th><th>Objekts</th><th>Darbs</th><th>Sākums</th><th>Beigas</th><th style="text-align:right">Stundas</th></tr>`;
-            workHtml += filtered.map(e => `
-                <tr>
-                    <td>${e.date || '-'}</td>
-                    <td>${e.month || '-'}</td>
-                    <td>${e.car || '-'}</td>
-                    <td>${e.worker_name || '-'}</td>
-                    <td>${e.objekts || '-'}</td>
-                    <td>${e.darbs || '-'}</td>
-                    <td>${e.sākuma_laiks || '-'}</td>
-                    <td>${e.beigu_laiks || '-'}</td>
-                    <td class="gold-val" style="text-align:right">${parseFloat(e.hours || 0).toFixed(2)}</td>
-                </tr>`).join("");
-            document.getElementById("tableContainer").innerHTML = workHtml + "</table>";
+            let workHtml = `
+    <table>
+        <thead>
+            <tr>
+                <th>Datums</th><th>Mēnesis</th><th>Auto</th><th>Darbinieks</th>
+                <th>Objekts</th><th>Darbs</th><th>Sākums</th><th>Beigas</th>
+                <th style="text-align:right">Stundas</th>
+            </tr>
+            <tr class="filter-row-bg">
+                <td><input type="text" id="colFilterDate" class="table-filter" value="${window.colFilterDate_val || ''}" placeholder="🔍"></td>
+                <td><input type="text" id="colFilterMonth" class="table-filter" value="${window.colFilterMonth_val || ''}" placeholder="🔍"></td>
+                <td><input type="text" id="colFilterCar" class="table-filter" value="${window.colFilterCar_val || ''}" placeholder="🔍"></td>
+                <td><input type="text" id="colFilterWorker" class="table-filter" value="${window.colFilterWorker_val || ''}" placeholder="🔍"></td>
+                <td><input type="text" id="colFilterObject" class="table-filter" value="${window.colFilterObject_val || ''}" placeholder="🔍"></td>
+                <td><input type="text" id="colFilterWork" class="table-filter" value="${window.colFilterWork_val || ''}" placeholder="🔍"></td>
+                <td></td><td></td><td></td>
+            </tr>
+        </thead>
+        <tbody>`;
 
-            // 2. tabula
-            let oilHtml = `<table><tr><th>Datums</th><th>Auto</th><th>Darbinieks</th><th class="oil-val">Eļļa (L)</th><th class="fuel-val">Degviela (L)</th></tr>`;
-            oilHtml += resursi.map(e => `
-                <tr>
-                    <td>${e.date || '-'}</td>
-                    <td>${e.car || '-'}</td>
-                    <td>${e.worker_name || '-'}</td>
-                    <td class="oil-val">${parseFloat(e.pielietā_eļļa || e.ella || 0).toFixed(2)}</td>
-                    <td class="fuel-val">${parseFloat(e.pielietā_degviela || e.degviela || 0).toFixed(2)}</td>
-                </tr>`).join("");
-            document.getElementById("oilContainer").innerHTML = resursi.length ? oilHtml + "</table>" : "<div style='padding:20px'>Nav datu.</div>";
+    workHtml += filtered.map(e => `
+        <tr>
+            <td>${e.date || '-'}</td><td>${e.month || '-'}</td><td>${e.car || '-'}</td>
+            <td>${e.worker_name || '-'}</td><td>${e.objekts || '-'}</td><td>${e.darbs || '-'}</td>
+            <td>${e.sākuma_laiks || '-'}</td><td>${e.beigu_laiks || '-'}</td>
+            <td class="gold-val" style="text-align:right">${parseFloat(e.hours || 0).toFixed(2)}</td>
+        </tr>`).join("");
 
+    document.getElementById("tableContainer").innerHTML = workHtml + "</tbody></table>";
+
+    // SVARĪGI: Piesaistām notikumus pēc tam, kad tabula ir ielikta HTML
+    setupColumnListeners();
+}
             // 3. tabula
             let summaryHtml = `<table><tr><th>Darbinieks</th><th>Datums</th><th>Sākums</th><th>Beigas</th><th>Mēnesis</th><th style="text-align:right">Kopā</th></tr>`;
             summaryHtml += filteredSummary.map(s => {
@@ -443,9 +480,18 @@
         });
 
         document.getElementById("clearFilters").onclick = () => {
-            ["filterYear", "filterMonth", "filterWorker", "filterDate", "filterCar", "sortBy"].forEach(id => document.getElementById(id).value = "");
-            renderTables();
-        };
+    // Iztīra lielos filtrus
+    ["filterYear", "filterMonth", "filterWorker", "filterDate", "filterCar", "sortBy"].forEach(id => {
+        document.getElementById(id).value = "";
+    });
+    
+    // Iztīra jaunos kolonnu filtrus (atmiņu)
+    ["colFilterDate", "colFilterMonth", "colFilterCar", "colFilterWorker", "colFilterObject", "colFilterWork"].forEach(id => {
+        window[id + "_val"] = "";
+    });
+    
+    renderTables();
+};
 
         async function addItem(url, data) {
             await fetch(url, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
@@ -461,6 +507,30 @@
         function deleteCar(n) { deleteItem(`/api/cars/${encodeURIComponent(n)}`); }
         function deleteWorkType(n) { deleteItem(`/api/work-types/${encodeURIComponent(n)}`); }
         function deleteObject(n) { deleteItem(`/api/objects/${encodeURIComponent(n)}`); }
+
+        // Šī funkcija nodrošina, ka tabulas filtri sāk darbotos un saglabā fokusu rakstot
+function setupColumnListeners() {
+    const ids = ["colFilterDate", "colFilterMonth", "colFilterCar", "colFilterWorker", "colFilterObject", "colFilterWork"];
+    ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener("input", (e) => {
+                // Saglabājam vērtību globālajā window objektā, lai renderTables to redzētu
+                window[id + "_val"] = e.target.value; 
+                
+                // Pārzīmējam tabulu
+                renderTables(); 
+                
+                // Atgriežam fokusu uz lauku un pārvietojam kursoru uz teksta beigām
+                const input = document.getElementById(id);
+                input.focus();
+                input.setSelectionRange(input.value.length, input.value.length);
+            });
+        }
+    });
+}
+
+        
 
         loadData();
     </script>
