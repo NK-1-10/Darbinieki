@@ -80,7 +80,7 @@ app.delete('/api/resource-types/:id', async (req, res) => {
 // Atjaunināt resursa daudzumu (Admin panelim +10/-10)
 app.patch('/api/resource-types/:id', async (req, res) => {
     const { id } = req.params;
-    const { quantity } = req.body;
+    const { quantity } = req.body; // Šeit saņemsim jauno kopējo skaitli
     try {
         await pool.query('UPDATE resource_types SET quantity = $1 WHERE id = $2', [quantity, id]);
         res.json({ success: true });
