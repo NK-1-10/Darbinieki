@@ -8,7 +8,8 @@
     /* Pamata stils un krāsu palete */
     body { 
         font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
-        margin: 200px; 
+        margin: 40px auto; 
+        max-width: 1200px;
         background: #fdfdfd; 
         color: #333; 
         padding: 20px; 
@@ -112,6 +113,14 @@
     }
     .btn-add:hover { background: #218838; transform: translateY(-1px); }
     
+    .btn-excel {
+        background: #1d6f42;
+        color: white;
+        border: none;
+        margin-left: 10px;
+    }
+    .btn-excel:hover { background: #155231; }
+    
     #clearFilters { background: #fff; color: #666; }
     #clearFilters:hover { background: #f8f9fa; border-color: #333; }
     
@@ -163,14 +172,17 @@
     .oil-val { color: #d4b45d; font-weight: bold; } 
     .fuel-val { color: #d4b45d; font-weight: bold; } 
     .summary-hours-val { color: #1e7e34; font-weight: 800; }
+    
+    /* Virsstundu stils */
+    .overtime { color: #dc3545 !important; font-weight: 900; }
 
-    /* Jaunā kopsavilkuma josla eļļai */
     .oil-sum-bar {
         padding: 12px 25px;
         background: #fcf9f2;
         border-bottom: 1px solid #eee;
         display: flex;
-        gap: 30px;
+        justify-content: space-between;
+        align-items: center;
         font-size: 0.95em;
     }
 
@@ -236,7 +248,7 @@
             <label>Darbinieks:<br><select id="filterWorker"><option value="">Visi</option></select></label>
             <label>Diena:<br><select id="filterDate"><option value="">Visi</option></select></label>
             <label>Mašīna:<br><select id="filterCar"><option value="">Visi</option></select></label>
-            <button id="clearFilters" style="height: 32px;">Notīrīt filtrus</button>
+            <button id="clearFilters" style="height: 34px;">Notīrīt filtrus</button>
         </div>
         
         <div class="summary-bar">
@@ -257,23 +269,33 @@
         
         <details class="report-card" open>
             <summary>📋 Darba Gaitas Atskaite</summary>
+            <div class="oil-sum-bar">
+                <span>Kopā stundas (filtrēts): <strong id="totalHoursReport">0.00</strong> h</span>
+                <button class="btn-excel" onclick="exportToCSV('tableContainer', 'darba_gaita')">📥 Lejupielādēt CSV</button>
+            </div>
             <div class="table-wrapper" id="tableContainer"></div>
         </details>
 
         <details class="report-card">
             <summary>⛽ Eļļas un Degvielas Patēriņš</summary>
             <div class="oil-sum-bar">
-                <span>Kopā Eļļa: <strong id="totalOilValue">0.00</strong> L</span>
-                <span>Kopā Degviela: <strong id="totalFuelValue">0.00</strong> L</span>
+                <div>
+                    <span>Kopā Eļļa: <strong id="totalOilValue">0.00</strong> L</span>
+                    <span style="margin-left:20px">Kopā Degviela: <strong id="totalFuelValue">0.00</strong> L</span>
+                </div>
+                <button class="btn-excel" onclick="exportToCSV('oilContainer', 'degvielas_paterins')">📥 Lejupielādēt CSV</button>
             </div>
             <div class="table-wrapper" id="oilContainer"></div>
         </details>
 
         <details class="report-card">
             <summary>⏱️ Darba laika uzskaites kopsavilkums</summary>
+            <div class="oil-sum-bar">
+                <span>Kopā darba laiks: <strong id="totalHoursSummary">0.00</strong> h</span>
+                <button class="btn-excel" onclick="exportToCSV('newTableContainer', 'laika_kopsavilkums')">📥 Lejupielādēt CSV</button>
+            </div>
             <div class="table-wrapper" id="newTableContainer"></div>
         </details>
-
     </div>
 
     <script>
@@ -321,9 +343,7 @@
                 select.value = current;
             };
 
-            // Iegūstam gadus no datuma (pieņemot DD.MM.YYYY formātu)
             const years = schedule.map(e => e.date ? e.date.split('.')[2] : null);
-            
             fill("filterYear", years);
             fill("filterMonth", schedule.map(e => e.month));
             fill("filterWorker", schedule.map(e => e.worker_name));
@@ -341,7 +361,6 @@
             let filtered = schedule.filter(e => {
                 const day = e.date ? e.date.split('.')[0] : "";
                 const year = e.date ? e.date.split('.')[2] : "";
-                
                 return (!fYear || year === fYear) &&
                        (!fMonth || e.month === fMonth) &&
                        (!fWorker || e.worker_name === fWorker) &&
@@ -358,11 +377,30 @@
                 });
             }
 
-            // KOPĒJĀS STUNDAS
-            const total = filtered.reduce((sum, item) => sum + (parseFloat(item.hours) || 0), 0);
-            document.getElementById("totalHoursValue").textContent = total.toFixed(2);
+            // APRĒĶINI
+            const totalHours = filtered.reduce((sum, item) => sum + (parseFloat(item.hours) || 0), 0);
+            document.getElementById("totalHoursValue").textContent = totalHours.toFixed(2);
+            document.getElementById("totalHoursReport").textContent = totalHours.toFixed(2);
 
-            // ATSKAITE (TABULA 1)
+            const resursi = filtered.filter(e => (parseFloat(e.pielietā_eļļa || e.ella) > 0 || parseFloat(e.pielietā_degviela || e.degviela) > 0));
+            const totalOil = resursi.reduce((sum, e) => sum + parseFloat(e.pielietā_eļļa || e.ella || 0), 0);
+            const totalFuel = resursi.reduce((sum, e) => sum + parseFloat(e.pielietā_degviela || e.degviela || 0), 0);
+            document.getElementById("totalOilValue").textContent = totalOil.toFixed(2);
+            document.getElementById("totalFuelValue").textContent = totalFuel.toFixed(2);
+
+            let filteredSummary = daySummary.filter(s => {
+                const year = s.datums ? s.datums.split('.')[2] : "";
+                const day = s.datums ? s.datums.split('.')[0] : "";
+                return (!fYear || year === fYear) &&
+                       (!fMonth || s.month === fMonth) &&
+                       (!fWorker || s.darbinieks === fWorker) &&
+                       (!fDate || day === fDate);
+            });
+
+            const totalSumHours = filteredSummary.reduce((sum, s) => sum + (parseFloat(s.stundas) || 0), 0);
+            document.getElementById("totalHoursSummary").textContent = totalSumHours.toFixed(2);
+
+            // 1. tabula
             let workHtml = `<table><tr><th>Datums</th><th>Mēnesis</th><th>Auto</th><th>Darbinieks</th><th>Objekts</th><th>Darbs</th><th>Sākums</th><th>Beigas</th><th class="col-hours">Stundas</th></tr>`;
             workHtml += filtered.map(e => `
                 <tr>
@@ -378,15 +416,7 @@
                 </tr>`).join("");
             document.getElementById("tableContainer").innerHTML = workHtml + "</table>";
 
-            // EĻĻA UN DEGVIELA (TABULA 2 UN KOPSAVILKUMS)
-            const resursi = filtered.filter(e => (parseFloat(e.pielietā_eļļa || e.ella) > 0 || parseFloat(e.pielietā_degviela || e.degviela) > 0));
-            
-            const totalOil = resursi.reduce((sum, e) => sum + parseFloat(e.pielietā_eļļa || e.ella || 0), 0);
-            const totalFuel = resursi.reduce((sum, e) => sum + parseFloat(e.pielietā_degviela || e.degviela || 0), 0);
-            
-            document.getElementById("totalOilValue").textContent = totalOil.toFixed(2);
-            document.getElementById("totalFuelValue").textContent = totalFuel.toFixed(2);
-
+            // 2. tabula
             let oilHtml = `<table><tr><th>Datums</th><th>Auto</th><th>Darbinieks</th><th class="oil-val">Eļļa (L)</th><th class="fuel-val">Degviela (L)</th></tr>`;
             oilHtml += resursi.map(e => `
                 <tr>
@@ -396,30 +426,50 @@
                     <td class="oil-val">${parseFloat(e.pielietā_eļļa || e.ella || 0).toFixed(2)}</td>
                     <td class="fuel-val">${parseFloat(e.pielietā_degviela || e.degviela || 0).toFixed(2)}</td>
                 </tr>`).join("");
-            document.getElementById("oilContainer").innerHTML = resursi.length ? oilHtml + "</table>" : "<div style='padding:20px'>Nav datu par patēriņu šajā periodā.</div>";
+            document.getElementById("oilContainer").innerHTML = resursi.length ? oilHtml + "</table>" : "<div style='padding:20px'>Nav datu.</div>";
 
-            // KOPSAVILKUMS (TABULA 3)
-            // Filtrējam arī dienas kopsavilkumu pēc gada/mēneša/darbinieka
-            let filteredSummary = daySummary.filter(s => {
-                const year = s.datums ? s.datums.split('.')[2] : "";
-                const day = s.datums ? s.datums.split('.')[0] : "";
-                return (!fYear || year === fYear) &&
-                       (!fMonth || s.month === fMonth) &&
-                       (!fWorker || s.darbinieks === fWorker) &&
-                       (!fDate || day === fDate);
-            });
-
+            // 3. tabula (ar virsstundu iekrāsošanu)
             let summaryHtml = `<table><tr><th>Darbinieks</th><th>Datums</th><th>Sākums</th><th>Beigas</th><th>Mēnesis</th><th class="col-hours">Kopā</th></tr>`;
-            summaryHtml += filteredSummary.map(s => `
+            summaryHtml += filteredSummary.map(s => {
+                const hrs = parseFloat(s.stundas || 0);
+                const otClass = hrs > 12 ? 'overtime' : '';
+                return `
                 <tr>
                     <td>${s.darbinieks}</td>
                     <td>${s.datums}</td>
                     <td>${s.sāka_darbu || '-'}</td>
                     <td>${s.beidza_darbu || '-'}</td>
                     <td>${s.month || '-'}</td>
-                    <td class="col-hours summary-hours-val">${parseFloat(s.stundas || 0).toFixed(2)} h</td>
-                </tr>`).join("");
+                    <td class="col-hours summary-hours-val ${otClass}">${hrs.toFixed(2)} h</td>
+                </tr>`;
+            }).join("");
             document.getElementById("newTableContainer").innerHTML = summaryHtml + "</table>";
+        }
+
+        // CSV Eksporta funkcija
+        function exportToCSV(containerId, fileName) {
+            const table = document.getElementById(containerId).querySelector("table");
+            if (!table) return alert("Nav datu, ko eksportēt!");
+            
+            let csv = [];
+            const rows = table.querySelectorAll("tr");
+            
+            for (let i = 0; i < rows.length; i++) {
+                const row = [], cols = rows[i].querySelectorAll("td, th");
+                for (let j = 0; j < cols.length; j++) {
+                    let data = cols[j].innerText.replace(/(\r\n|\n|\r)/gm, "").replace(/h/g, "");
+                    row.push('"' + data + '"');
+                }
+                csv.push(row.join(","));
+            }
+            
+            const csvFile = new Blob(["\ufeff" + csv.join("\n")], { type: "text/csv;charset=utf-8;" });
+            const downloadLink = document.createElement("a");
+            downloadLink.download = fileName + "_" + new Date().toISOString().slice(0,10) + ".csv";
+            downloadLink.href = window.URL.createObjectURL(csvFile);
+            downloadLink.style.display = "none";
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
         }
 
         ["filterYear", "filterMonth", "filterWorker", "filterDate", "filterCar", "sortBy"].forEach(id => {
