@@ -369,29 +369,32 @@ tr.filter-row-bg {
         const fDate = document.getElementById("filterDate").value;
         const fCar = document.getElementById("filterCar").value;
 
-        // Kolonnu filtru vērtības (no globālās atmiņas)
-        const cDate = (window.colFilterDate_val || "").toLowerCase();
-        const cMonth = (window.colFilterMonth_val || "").toLowerCase();
-        const cCar = (window.colFilterCar_val || "").toLowerCase();
-        const cWorker = (window.colFilterWorker_val || "").toLowerCase();
-        const cObj = (window.colFilterObject_val || "").toLowerCase();
-        const cWork = (window.colFilterWork_val || "").toLowerCase();
+        // Vienkārši paņemam vērtību, kāda tā ir
+const cDate = window.colFilterDate_val || "";
+const cMonth = window.colFilterMonth_val || "";
+const cCar = window.colFilterCar_val || "";
+const cWorker = window.colFilterWorker_val || "";
+const cObj = window.colFilterObject_val || "";
+const cWork = window.colFilterWork_val || "";
 
         // 1. Filtrējam pamatdatus
+        // 1. Filtrējam pamatdatus (1. TABULA)
         let filtered = schedule.filter(e => {
             const day = e.date ? e.date.split('.')[0] : "";
             const year = e.date ? e.date.split('.')[2] : "";
+            
             return (!fYear || year === fYear) &&
                    (!fMonth || e.month === fMonth) &&
                    (!fWorker || e.worker_name === fWorker) &&
                    (!fDate || day === fDate) &&
                    (!fCar || e.car === fCar) &&
-                   (!cDate || (e.date || "").toLowerCase().includes(cDate)) &&
-                   (!cMonth || (e.month || "").toLowerCase().includes(cMonth)) &&
-                   (!cCar || (e.car || "").toLowerCase().includes(cCar)) &&
-                   (!cWorker || (e.worker_name || "").toLowerCase().includes(cWorker)) &&
-                   (!cObj || (e.objekts || "").toLowerCase().includes(cObj)) &&
-                   (!cWork || (e.darbs || "").toLowerCase().includes(cWork));
+                   // Šeit mēs nomainām .includes() uz === precīzai meklēšanai:
+                   (!cDate || e.date === cDate) &&
+                   (!cMonth || e.month === cMonth) &&
+                   (!cCar || e.car === cCar) &&
+                   (!cWorker || e.worker_name === cWorker) &&
+                   (!cObj || e.objekts === cObj) &&
+                   (!cWork || e.darbs === cWork);
         });
 
         // Kārtošana
@@ -432,26 +435,29 @@ tr.filter-row-bg {
 
         // 1. TABULA: Darba gaitas
         let workHtml = `<table><thead><tr>
-            <th>Datums</th><th>Mēnesis</th><th>Auto</th><th>Darbinieks</th>
-            <th>Objekts</th><th>Darbs</th><th>Sākums</th><th>Beigas</th>
-            <th style="text-align:right">Stundas</th>
-        </tr><tr class="filter-row-bg">
-            <td><input type="text" id="colFilterDate" class="table-filter" value="${window.colFilterDate_val || ''}" placeholder="🔍"></td>
-            <td><input type="text" id="colFilterMonth" class="table-filter" value="${window.colFilterMonth_val || ''}" placeholder="🔍"></td>
-            <td><input type="text" id="colFilterCar" class="table-filter" value="${window.colFilterCar_val || ''}" placeholder="🔍"></td>
-            <td><input type="text" id="colFilterWorker" class="table-filter" value="${window.colFilterWorker_val || ''}" placeholder="🔍"></td>
-            <td><input type="text" id="colFilterObject" class="table-filter" value="${window.colFilterObject_val || ''}" placeholder="🔍"></td>
-            <td><input type="text" id="colFilterWork" class="table-filter" value="${window.colFilterWork_val || ''}" placeholder="🔍"></td>
-            <td></td><td></td><td></td>
-        </tr></thead><tbody>`;
+    <th>Datums</th><th>Mēnesis</th><th>Auto</th><th>Darbinieks</th>
+    <th>Objekts</th><th>Darbs</th><th>Sākums</th><th>Beigas</th>
+    <th style="text-align:right">Stundas</th>
+</tr><tr class="filter-row-bg">
+    <td><select id="colFilterDate" class="table-filter"><option value="">🔍 Visi</option></select></td>
+    <td><select id="colFilterMonth" class="table-filter"><option value="">🔍 Visi</option></select></td>
+    <td><select id="colFilterCar" class="table-filter"><option value="">🔍 Visi</option></select></td>
+    <td><select id="colFilterWorker" class="table-filter"><option value="">🔍 Visi</option></select></td>
+    <td><select id="colFilterObject" class="table-filter"><option value="">🔍 Visi</option></select></td>
+    <td><select id="colFilterWork" class="table-filter"><option value="">🔍 Visi</option></select></td>
+    <td></td><td></td><td></td>
+</tr></thead><tbody>`;
 
         workHtml += filtered.map(e => `<tr>
-            <td>${e.date || '-'}</td><td>${e.month || '-'}</td><td>${e.car || '-'}</td>
-            <td>${e.worker_name || '-'}</td><td>${e.objekts || '-'}</td><td>${e.darbs || '-'}</td>
-            <td>${e.sākuma_laiks || '-'}</td><td>${e.beigu_laiks || '-'}</td>
-            <td class="gold-val" style="text-align:right">${parseFloat(e.hours || 0).toFixed(2)}</td>
-        </tr>`).join("");
-        document.getElementById("tableContainer").innerHTML = workHtml + "</tbody></table>";
+    <td>${e.date || '-'}</td><td>${e.month || '-'}</td><td>${e.car || '-'}</td>
+    <td>${e.worker_name || '-'}</td><td>${e.objekts || '-'}</td><td>${e.darbs || '-'}</td>
+    <td>${e.sākuma_laiks || '-'}</td><td>${e.beigu_laiks || '-'}</td>
+    <td class="gold-val" style="text-align:right">${parseFloat(e.hours || 0).toFixed(2)}</td>
+</tr>`).join("");
+document.getElementById("tableContainer").innerHTML = workHtml + "</tbody></table>";
+
+        fillColumnSelects(filtered); 
+setupColumnListeners();
 
         // 2. TABULA: Eļļa un Degviela (ŠĪ BIJA PAZUDUSI!)
         let oilHtml = `<table><thead><tr><th>Darbinieks</th><th>Datums</th><th>Mašīna</th><th>Eļļa (L)</th><th>Degviela (L)</th></tr></thead><tbody>`;
@@ -494,21 +500,46 @@ tr.filter-row-bg {
         renderTables();
     };
 
-    function setupColumnListeners() {
-        const ids = ["colFilterDate", "colFilterMonth", "colFilterCar", "colFilterWorker", "colFilterObject", "colFilterWork"];
-        ids.forEach(id => {
-            const el = document.getElementById(id);
-            if (el) {
-                el.oninput = (e) => {
-                    window[id + "_val"] = e.target.value; 
-                    renderTables(); 
-                    const input = document.getElementById(id);
-                    input.focus();
-                    input.setSelectionRange(input.value.length, input.value.length);
-                };
-            }
+       function fillColumnSelects(data) {
+    const ids = {
+        colFilterDate: 'date',
+        colFilterMonth: 'month',
+        colFilterCar: 'car',
+        colFilterWorker: 'worker_name',
+        colFilterObject: 'objekts',
+        colFilterWork: 'darbs'
+    };
+
+    Object.keys(ids).forEach(id => {
+        const select = document.getElementById(id);
+        if (!select) return;
+
+        const currentVal = window[id + "_val"] || "";
+        // Dabūjam unikālas vērtības no dotajiem datiem
+        const uniqueValues = [...new Set(data.map(item => item[ids[id]]))].filter(Boolean).sort();
+
+        let options = `<option value="">🔍 Visi</option>`;
+        uniqueValues.forEach(val => {
+            const selected = (val === currentVal) ? 'selected' : '';
+            options += `<option value="${val}" ${selected}>${val}</option>`;
         });
-    }
+        
+        select.innerHTML = options;
+    });
+}
+
+    function setupColumnListeners() {
+    const ids = ["colFilterDate", "colFilterMonth", "colFilterCar", "colFilterWorker", "colFilterObject", "colFilterWork"];
+    ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.onchange = (e) => {
+                window[id + "_val"] = e.target.value; 
+                renderTables(); 
+            };
+        }
+    });
+}
 
     // API Funkcijas
     async function addItem(url, data) {
