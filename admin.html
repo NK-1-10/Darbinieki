@@ -256,9 +256,9 @@ tr.filter-row-bg {
     <summary>🛢️ Eļļas un degviela</summary>
     <div class="settings-content">
         <button class="btn-add" id="addResourceBtn">➕ Pievienot veidu</button>
-        <ul id="resourceList"></ul>
-    </div>
-</details>
+        <ul id="resourceList" style="display: grid; gap: 15px; padding: 10px;"></ul>
+     </div>
+        </details>
         
     </div>
 
@@ -376,31 +376,35 @@ async function loadData() {
         }).join("");
     };
 
-    // 2. RESURSU SARAKSTS (Ar daudzumu un pogām)
-    // 2. RESURSU SARAKSTS (Ar ievades lauku manuālai rakstīšanai)
+    // 2. RESURSU SARAKSTS
 const resourceListEl = document.getElementById("resourceList");
 if (resourceListEl) {
     resourceListEl.innerHTML = resource_types.map(res => `
-        <li style="display: flex; justify-content: space-between; align-items: center; padding: 10px 5px;">
-            <div style="flex-grow: 1;">
-                <strong>${res.name}</strong> 
+        <li style="display: flex; flex-direction: column; gap: 10px; padding: 15px; border: 1px solid #eee; border-radius: 10px; background: #fafafa; margin-bottom: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <strong style="font-size: 1.1em;">${res.name}</strong> 
+                <span class="gold-val" style="font-size: 1.2em;">${res.quantity || 0} L</span>
             </div>
-            <div style="display: flex; gap: 10px; align-items: center;">
-                <input type="number" id="manual-qty-${res.id}" value="${res.quantity || 0}" 
-                       style="width: 70px; padding: 4px; border: 1px solid #c5a059; border-radius: 4px;">
-                <span style="font-weight: bold; color: #888;">L</span>
+            
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <input type="number" id="input-qty-${res.id}" placeholder="Daudzums..." 
+                       style="flex-grow: 1; padding: 10px; border: 1px solid #c5a059; border-radius: 8px; outline: none; -moz-appearance: textfield;">
                 
-                <button onclick="saveManualQuantity(${res.id})" 
-                        style="padding: 4px 10px; background: #c5a059; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                    💾 Saglabāt
+                <button onclick="modifyQuantity(${res.id}, 'add')" 
+                        style="padding: 10px 15px; background: #28a745; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">
+                    +
                 </button>
                 
-                <button class="btn-del" onclick="deleteResourceType('${res.name}')" style="margin-left:10px">✖</button>
+                <button onclick="modifyQuantity(${res.id}, 'sub')" 
+                        style="padding: 10px 15px; background: #dc3545; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">
+                    -
+                </button>
+                
+                <button class="btn-del" onclick="deleteResourceType('${res.name}')" style="margin-left:5px; font-size: 1.2em;">✖</button>
             </div>
         </li>
     `).join("");
 }
-
     // 3. PĀRĒJIE VIENKĀRŠIE SARAKSTI
     renderSimpleList("carList", cars, "deleteCar");
     renderSimpleList("workList", works_types, "deleteWorkType");
@@ -714,6 +718,41 @@ setupColumnListeners();
             loadData(); // Atjaunojam datus visā lapā
         } else {
             alert("Kļūda saglabājot!");
+        }
+    } catch (err) {
+        console.error("Kļūda:", err);
+    }
+}
+       async function modifyQuantity(id, action) {
+    const input = document.getElementById(`input-qty-${id}`);
+    const val = parseFloat(input.value);
+    
+    if (!val || val <= 0) {
+        alert("Lūdzu, ierakstiet skaitli!");
+        return;
+    }
+
+    const resource = resource_types.find(r => r.id === id);
+    let currentQty = parseFloat(resource.quantity || 0);
+    
+    // Aprēķinām jauno kopējo daudzumu
+    const newQuantity = (action === 'add') ? (currentQty + val) : (currentQty - val);
+
+    if (newQuantity < 0) {
+        alert("Daudzums nevar būt mazāks par nulli!");
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/resource-types/${id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ quantity: newQuantity })
+        });
+
+        if (response.ok) {
+            input.value = ""; // Notīrām lauku
+            loadData(); // Atjaunojam datus ekrānā
         }
     } catch (err) {
         console.error("Kļūda:", err);
