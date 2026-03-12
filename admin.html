@@ -250,6 +250,11 @@ tr.filter-row-bg {
         </details>
     </div>
 
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <h2 style="margin: 0;">Admin Vadības Panelis</h2>
+    <button id="logoutBtn" style="background: #dc3545; color: white; border: none; padding: 8px 15px;">Izrakstīties 🚪</button>
+</div>
+
     <div class="filter-section">
         <h3>Meklēšanas filtri</h3>
         <div class="filter-row">
@@ -330,6 +335,24 @@ tr.filter-row-bg {
             // Ja serveris neatbild, tabulas būs tukšas - tas ir normāli testējot bez backend
         }
     }
+
+       document.getElementById("logoutBtn").onclick = async () => {
+    if (confirm("Vai tiešām vēlaties izrakstīties?")) {
+        try {
+            // 1. Izsaucam backend logout, ja tāds ir (lai izdzēstu servera sesiju/cookies)
+            await fetch('/logout', { method: 'POST' });
+        } catch (err) {
+            console.log("Server-side logout error:", err);
+        }
+        
+        // 2. Notīram lokālo krātuvi, ja tur glabājas kādi dati
+        localStorage.clear();
+        sessionStorage.clear();
+        
+        // 3. Pāradresējam uz pieteikšanās lapu
+        window.location.href = "/"; 
+    }
+};
 
     function renderSettings() {
     // Apstrādājam darbinieku sarakstu atsevišķi, lai parādītu paroles
