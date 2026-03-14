@@ -66,24 +66,16 @@
             margin: 5px;
         }
 
-        /* MAIŅAS KONTROLE */
         #AtWork { background: var(--saulstari-green); color: white; width: 100%; }
-        #AtWork:hover { background: #264234; }
-
         #LeaveWork { background: var(--saulstari-gray); color: white; width: 100%; }
-        #LeaveWork:hover { background: #3d4d44; }
-
-        /* DARBA KONTROLE */
         #startBtn { background: var(--success); color: white; width: 100%; margin-top: 15px; }
         #stopBtn { background: var(--saulstari-yellow); color: var(--saulstari-green); width: 100%; margin-top: 15px; }
-
-        /* RESURSU POGAS */
-        .oil-btn { background: var(--saulstari-yellow); color: var(--saulstari-green); }
-        .fuel-btn { background: var(--saulstari-green); color: white; }
         
+        /* Jaunā resursu poga */
+        .res-btn { background: #d4b45d; color: #1a3025; border: 2px solid #1a3025; }
+
         #logoutBtn { background: transparent; color: #888; border: 1px solid #ddd; margin-top: 20px; padding: 8px 15px; font-size: 0.8rem; }
 
-        /* TABULA */
         #tableContainer { max-width: 1000px; margin: 0 auto; background: var(--white); border-radius: 15px; overflow-x: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         table { width: 100%; border-collapse: collapse; min-width: 600px; }
         th { background: var(--saulstari-green); color: white; padding: 15px; font-size: 0.8rem; text-transform: uppercase; }
@@ -91,7 +83,6 @@
         .oil-text { color: var(--saulstari-yellow); font-weight: bold; }
         .fuel-text { color: var(--saulstari-green); font-weight: bold; }
 
-        /* MODĀLAIS LOGS */
         #resourceModal {
             display: none; 
             position: fixed; 
@@ -108,6 +99,7 @@
             width: 90%; 
             max-width: 400px; 
             box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            text-align: left;
         }
     </style>
 </head>
@@ -130,8 +122,7 @@
             <button id="startBtn" style="display:none;">Sākt darbu</button>
             <button id="stopBtn" style="display:none;">Beigt darbu</button>
 
-            <button id="Ella" class="oil-btn" style="display:none;">Pieleju Eļļu</button>
-            <button id="Degviela" class="fuel-btn" style="display:none;">Pielej Degvielu</button>
+            <button id="OpenResourceBtn" class="res-btn" style="display:none; width: 100%; margin-top: 10px;">🛢️ Reģistrēt Degvielu / Eļļu</button>
         </div>
 
         <button id="logoutBtn">Izrakstīties</button>
@@ -139,12 +130,20 @@
 
     <div id="resourceModal">
         <div class="modal-content">
-            <h3 id="modalTitle">Pievienot resursu</h3>
-            <label>Izvēlies mašīnu:</label>
+            <h3 style="margin-top:0;">Pievienot resursu</h3>
+            
+            <label>Ko Tu lej?</label>
+            <select id="modalResourceSelect">
+                <option value="">-- Izvēlies resursu no noliktavas --</option>
+            </select>
+
+            <label>Kurā mašīnā?</label>
             <select id="modalCarSelect"></select>
-            <label>Ievadi litrus:</label>
-            <input type="number" id="modalAmountInput" step="0.01" placeholder="0.00">
-            <div style="display:flex; gap:10px;">
+
+            <label>Daudzums (L):</label>
+            <input type="number" id="modalAmountInput" step="0.1" placeholder="Piemēram, 20">
+
+            <div style="display:flex; gap:10px; margin-top:15px;">
                 <button id="modalCancel" style="flex:1; background:#6c757d; color:white;">Atcelt</button>
                 <button id="modalSave" style="flex:1; background:var(--success); color:white;">Saglabāt</button>
             </div>
@@ -164,59 +163,121 @@
     const objectSelect = document.getElementById("object");
     const workSelect = document.getElementById("work");
     const tableContainer = document.getElementById("tableContainer");
-    let currentResourceType = ""; 
 
     async function loadWorkerData() {
         try {
-            const [cRes, oRes, wRes, sRes] = await Promise.all([
-                fetch('/api/cars'), fetch('/api/objects'), fetch('/api/work-types'), fetch('/api/schedule')
+            // PIELIKTS: ielādējam arī resursus no noliktavas
+            const [cRes, oRes, wRes, sRes, rRes] = await Promise.all([
+                fetch('/api/cars'), fetch('/api/objects'), fetch('/api/work-types'), 
+                fetch('/api/schedule'), fetch('/api/resource-types')
             ]);
+            
             const cars = await cRes.json();
             const objects = await oRes.json();
             const workTypes = await wRes.json();
             const allSchedule = await sRes.json();
+            const resources = await rRes.json();
 
             fillSelect(carSelect, cars, "-- Izvēlies mašīnu --");
             fillSelect(objectSelect, objects, "-- Izvēlies objektu --");
             fillSelect(workSelect, workTypes, "-- Izvēlies darba veidu --");
+
+            // Aizpildām resursu izvēli modālajā logā
+            const resModalSelect = document.getElementById("modalResourceSelect");
+            resModalSelect.innerHTML = '<option value="">-- Ko Tu lej? --</option>' + 
+                resources.map(r => `<option value="${r.id}">${r.name} (Pieejams: ${r.quantity}L)</option>`).join("");
 
             const activeJob = allSchedule.find(e => e.worker_name === user.name && !e.beigu_laiks);
             const shiftStartTime = localStorage.getItem(`shift_start_${user.name}`);
             const isShiftStarted = !!shiftStartTime;
 
             if (activeJob) {
-                // JA STRĀDĀ PIE OBJEKTA
                 document.getElementById("status").innerHTML = `Strādā: <b>${activeJob.objekts}</b> (${activeJob.car})`;
                 document.getElementById("startTimeDisplay").innerText = `Sāki: ${activeJob.sākuma_laiks}`;
-                
                 document.getElementById("startBtn").style.display = "none";
                 document.getElementById("stopBtn").style.display = "block";
-                document.getElementById("LeaveWork").style.display = "none"; // Nevar aiziet, kamēr strādā
-                
+                document.getElementById("LeaveWork").style.display = "none"; 
                 [carSelect, objectSelect, workSelect].forEach(s => s.disabled = true);
                 carSelect.value = activeJob.car;
                 objectSelect.value = activeJob.objekts || "";
                 workSelect.value = activeJob.darbs || "";
             } else {
-                // JA NAV AKTĪVA DARBA
                 [carSelect, objectSelect, workSelect].forEach(s => s.disabled = false);
                 document.getElementById("status").textContent = isShiftStarted ? "Statuss: Maiņa sākta" : "Statuss: Gaidīšana";
                 document.getElementById("startTimeDisplay").innerText = "";
-                
                 document.getElementById("startBtn").style.display = isShiftStarted ? "block" : "none";
                 document.getElementById("stopBtn").style.display = "none";
                 document.getElementById("LeaveWork").style.display = isShiftStarted ? "block" : "none";
             }
 
             document.getElementById("AtWork").style.display = isShiftStarted ? "none" : "block";
-            document.getElementById("Ella").style.display = isShiftStarted ? "block" : "none";
-            document.getElementById("Degviela").style.display = isShiftStarted ? "block" : "none";
+            // Rādām jauno pogu tikai tad, ja maiņa ir sākta
+            document.getElementById("OpenResourceBtn").style.display = isShiftStarted ? "block" : "none";
 
             renderTable(allSchedule.filter(e => e.worker_name === user.name));
         } catch (err) { console.error(err); }
     }
 
-    // --- DARBĪBU POGAS ---
+    // --- MODĀLĀ LOGA VADĪBA ---
+    document.getElementById("OpenResourceBtn").onclick = () => {
+        const modalCar = document.getElementById("modalCarSelect");
+        modalCar.innerHTML = carSelect.innerHTML; // Pārkopējam sarakstu
+        if (carSelect.value) modalCar.value = carSelect.value;
+        document.getElementById("resourceModal").style.display = "flex";
+    };
+
+    document.getElementById("modalCancel").onclick = () => {
+        document.getElementById("resourceModal").style.display = "none";
+    };
+
+    document.getElementById("modalSave").onclick = async () => {
+        const resourceId = document.getElementById("modalResourceSelect").value;
+        const resourceName = document.getElementById("modalResourceSelect").selectedOptions[0].text;
+        const auto = document.getElementById("modalCarSelect").value;
+        const litri = parseFloat(document.getElementById("modalAmountInput").value);
+
+        if (!resourceId || !auto || isNaN(litri) || litri <= 0) {
+            return alert("Lūdzu, aizpildi visus laukus!");
+        }
+
+        try {
+            // 1. ATŅEMAM NO ADMIN NOLIKTAVAS
+            const subRes = await fetch(`/api/resource-types/${resourceId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'sub', amount: litri })
+            });
+
+            if (!subRes.ok) {
+                const errorData = await subRes.json();
+                throw new Error(errorData.error || "Kļūda noliktavā");
+            }
+
+            // 2. PIERAKSTĀM DARBINIEKA DARBA GAITAI
+            const isOil = resourceName.toLowerCase().includes("eļļa");
+            const type = isOil ? "Ella" : "Degviela";
+
+            await fetch('/api/update-resources', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    worker_name: user.name, 
+                    car: auto, 
+                    type: type, 
+                    amount: litri 
+                })
+            });
+
+            document.getElementById("resourceModal").style.display = "none";
+            document.getElementById("modalAmountInput").value = "";
+            loadWorkerData(); // Atsvaidzinām visu
+            alert("Veiksmīgi reģistrēts!");
+        } catch (err) {
+            alert("Kļūda: " + err.message);
+        }
+    };
+
+    // --- PĀRĒJĀS POGAS ---
     document.getElementById("AtWork").onclick = () => {
         localStorage.setItem(`shift_start_${user.name}`, new Date().toISOString());
         loadWorkerData();
@@ -224,7 +285,6 @@
 
     document.getElementById("LeaveWork").onclick = async () => {
         if (!confirm("Beigt darba dienu?")) return;
-        
         const tagad = new Date();
         const shiftStartRaw = localStorage.getItem(`shift_start_${user.name}`);
         let stundas = 0;
@@ -273,36 +333,6 @@
         loadWorkerData();
     };
 
-    // --- RESURSU MODĀLS ---
-    function openResourceModal(type) {
-        currentResourceType = type;
-        document.getElementById("modalTitle").innerText = type === "Ella" ? "Eļļas pieliešana" : "Degvielas uzpilde";
-        const modalSelect = document.getElementById("modalCarSelect");
-        modalSelect.innerHTML = carSelect.innerHTML; 
-        if (carSelect.value) modalSelect.value = carSelect.value;
-        document.getElementById("resourceModal").style.display = "flex";
-    }
-
-    document.getElementById("Ella").onclick = () => openResourceModal("Ella");
-    document.getElementById("Degviela").onclick = () => openResourceModal("Degviela");
-    document.getElementById("modalCancel").onclick = () => { document.getElementById("resourceModal").style.display = "none"; };
-
-    document.getElementById("modalSave").onclick = async () => {
-        const auto = document.getElementById("modalCarSelect").value;
-        const litri = document.getElementById("modalAmountInput").value;
-        if (!auto || litri <= 0) return alert("Pārbaudi datus!");
-        
-        await fetch('/api/update-resources', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ worker_name: user.name, car: auto, type: currentResourceType, amount: litri })
-        });
-        document.getElementById("resourceModal").style.display = "none";
-        document.getElementById("modalAmountInput").value = "";
-        loadWorkerData();
-    };
-
-    // --- PALĪGFUNKCIJAS ---
     function fillSelect(selectEl, data, defaultText) {
         const currentVal = selectEl.value;
         selectEl.innerHTML = `<option value="">${defaultText}</option>`;
