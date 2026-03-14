@@ -52,6 +52,7 @@ app.get('/api/resource-types', async (req, res) => {
 app.post('/api/resource-types', async (req, res) => {
     try {
         const { name } = req.body;
+        // Pievienojam 0 kā skaitli
         await pool.query('INSERT INTO resource_types (name, quantity) VALUES ($1, 0)', [name]);
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: err.message }); }
@@ -71,23 +72,26 @@ app.patch('/api/resource-types/:id', async (req, res) => {
     const litri = parseFloat(amount) || 0;
 
     try {
+        // Izmantojam COALESCE, lai NULL vietā dabūtu 0 jau no datubāzes puses
+        const checkRes = await pool.query('SELECT name, COALESCE(quantity, 0) as quantity FROM resource_types WHERE id = $1', [id]);
+        
+        if (checkRes.rows.length === 0) return res.status(404).json({ error: 'Resurss nav atrasts' });
+        
+        const currentQty = parseFloat(checkRes.rows[0].quantity);
+
         if (action === 'sub') {
-            const checkRes = await pool.query('SELECT name, quantity FROM resource_types WHERE id = $1', [id]);
-            if (checkRes.rows.length === 0) return res.status(404).json({ error: 'Resurss nav atrasts' });
-            
-            const currentQty = parseFloat(checkRes.rows[0].quantity);
             if (currentQty < litri) {
                 return res.status(400).json({ error: `Noliktavā nav tik daudz! Pieejams: ${currentQty}L` });
             }
-
             const result = await pool.query(
-                'UPDATE resource_types SET quantity = quantity - $1 WHERE id = $2 RETURNING *',
+                'UPDATE resource_types SET quantity = COALESCE(quantity, 0) - $1 WHERE id = $2 RETURNING *',
                 [litri, id]
             );
             res.json(result.rows[0]);
         } else {
+            // Pievienojam COALESCE arī šeit
             let query = action === 'add' ? 
-                'UPDATE resource_types SET quantity = quantity + $1 WHERE id = $2 RETURNING *' : 
+                'UPDATE resource_types SET quantity = COALESCE(quantity, 0) + $1 WHERE id = $2 RETURNING *' : 
                 'UPDATE resource_types SET quantity = $1 WHERE id = $2 RETURNING *';
             const result = await pool.query(query, [litri, id]);
             res.json(result.rows[0]);
