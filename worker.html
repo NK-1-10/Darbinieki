@@ -71,7 +71,6 @@
         #startBtn { background: var(--success); color: white; width: 100%; margin-top: 15px; }
         #stopBtn { background: var(--saulstari-yellow); color: var(--saulstari-green); width: 100%; margin-top: 15px; }
         
-        /* Jaunā resursu poga */
         .res-btn { background: #d4b45d; color: #1a3025; border: 2px solid #1a3025; }
 
         #logoutBtn { background: transparent; color: #888; border: 1px solid #ddd; margin-top: 20px; padding: 8px 15px; font-size: 0.8rem; }
@@ -177,7 +176,6 @@
             const allSchedule = await sRes.json();
             const resources = await rRes.json();
 
-            // SVARĪGI: fillSelect tagad pareizi apstrādā datus
             fillSelect(carSelect, cars, "-- Izvēlies mašīnu --");
             fillSelect(objectSelect, objects, "-- Izvēlies objektu --");
             fillSelect(workSelect, workTypes, "-- Izvēlies darba veidu --");
@@ -186,7 +184,6 @@
             resModalSelect.innerHTML = '<option value="">-- Ko Tu lej? --</option>' + 
                 resources.map(r => `<option value="${r.id}">${r.name} (Pieejams: ${r.quantity}L)</option>`).join("");
 
-            // Pārbaudām aktīvo darbu, izmantojot pareizo atslēgu ar garumzīmi
             const activeJob = allSchedule.find(e => e.worker_name === user.name && !e["beigu_laiks"]);
             const shiftStartTime = localStorage.getItem(`shift_start_${user.name}`);
             const isShiftStarted = !!shiftStartTime;
@@ -217,7 +214,6 @@
         } catch (err) { console.error("Datu ielādes kļūda:", err); }
     }
 
-    // MODĀLAIS LOGS UN POGAS (Kā tavā iepriekšējā kodā)
     document.getElementById("OpenResourceBtn").onclick = () => {
         const modalCar = document.getElementById("modalCarSelect");
         modalCar.innerHTML = carSelect.innerHTML;
@@ -229,34 +225,44 @@
         document.getElementById("resourceModal").style.display = "none";
     };
 
+    // LABOTĀ modalSave FUNKCIJA
     document.getElementById("modalSave").onclick = async () => {
         const resourceId = document.getElementById("modalResourceSelect").value;
-        const resourceName = document.getElementById("modalResourceSelect").selectedOptions[0].text;
+        const fullOptionText = document.getElementById("modalResourceSelect").selectedOptions[0].text;
+        
+        // Noņemam "(Pieejams: ...)" daļu no nosaukuma
+        const resourceName = fullOptionText.split(' (')[0]; 
         const auto = document.getElementById("modalCarSelect").value;
         const litri = parseFloat(document.getElementById("modalAmountInput").value);
 
         if (!resourceId || !auto || isNaN(litri) || litri <= 0) return alert("Aizpildi laukus!");
 
         try {
+            // 1. Atņemam no noliktavas krājumiem
             await fetch(`/api/resource-types/${resourceId}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action: 'sub', amount: litri })
             });
 
+            // 2. Reģistrējam resursa patēriņu darba gaitā
             const isOil = resourceName.toLowerCase().includes("eļļa");
             await fetch('/api/update-resources', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
-                    worker_name: user.name, car: auto, 
-                    type: isOil ? "Ella" : "Degviela", amount: litri 
+                    worker_name: user.name, 
+                    car: auto, 
+                    resource_name: resourceName, // Sūta īsto nosaukumu (Eļļa 1, Eļļa 2 utt.)
+                    resource_amount: litri,
+                    type: isOil ? "Ella" : "Degviela", // Savietojamībai ar veco loģiku
+                    amount: litri 
                 })
             });
 
             document.getElementById("resourceModal").style.display = "none";
             loadWorkerData();
-            alert("Veiksmīgi reģistrēts!");
+            alert(`Veiksmīgi reģistrēts: ${resourceName} (${litri} L)`);
         } catch (err) { alert("Kļūda: " + err.message); }
     };
 
@@ -311,13 +317,11 @@
         loadWorkerData();
     };
 
-    // UZLABOTA fillSelect funkcija
     function fillSelect(selectEl, data, defaultText) {
         const currentVal = selectEl.value;
         selectEl.innerHTML = `<option value="">${defaultText}</option>`;
         data.forEach(item => {
             const opt = document.createElement("option");
-            // Pārbaudām, vai item ir objekts (no servera) vai parasts teksts
             const val = typeof item === 'object' ? (item.name || item.id) : item;
             opt.value = val; 
             opt.textContent = val;
@@ -327,54 +331,52 @@
     }
 
     function renderTable(data) {
-    const container = document.getElementById("tableContainer"); // Pārliecināmies, ka konteiners ir definēts
-    if (!data || !data.length) { 
-        container.innerHTML = "<p style='padding:15px;'>Nav ierakstu.</p>"; 
-        return; 
+        const container = document.getElementById("tableContainer");
+        if (!data || !data.length) { 
+            container.innerHTML = "<p style='padding:15px;'>Nav ierakstu.</p>"; 
+            return; 
+        }
+
+        let html = `<table>
+            <thead>
+                <tr>
+                    <th>Auto</th>
+                    <th>Objekts</th>
+                    <th>Darbs</th>
+                    <th>Sākums</th>
+                    <th>Beigas</th>
+                    <th>Eļļa</th>
+                    <th>Degv.</th>
+                    <th>Stundas</th>
+                </tr>
+            </thead>
+            <tbody>`;
+
+        data.slice().reverse().forEach(e => {
+            const car = e.car || '-';
+            const objekts = e.objekts || '-';
+            const darbs = e.darbs || '-';
+            const sakums = e["sākuma_laiks"] || '-';
+            const beigas = e["beigu_laiks"] || 'Aktīvs';
+            const ella = e["pielietā_eļļa"] || 0;
+            const degviela = e["pielietā_degviela"] || 0;
+            const stundas = e.hours ? e.hours + ' h' : '-';
+
+            html += `<tr>
+                <td>${car}</td>
+                <td>${objekts}</td>
+                <td>${darbs}</td>
+                <td>${sakums}</td>
+                <td>${beigas}</td>
+                <td class="oil-text">${ella} L</td>
+                <td class="fuel-text">${degviela} L</td>
+                <td>${stundas}</td>
+            </tr>`;
+        });
+
+        html += `</tbody></table>`;
+        container.innerHTML = html;
     }
-
-    let html = `<table>
-        <thead>
-            <tr>
-                <th>Auto</th>
-                <th>Objekts</th>
-                <th>Darbs</th>
-                <th>Sākums</th>
-                <th>Beigas</th>
-                <th>Eļļa</th>
-                <th>Degv.</th>
-                <th>Stundas</th>
-            </tr>
-        </thead>
-        <tbody>`;
-
-    data.slice().reverse().forEach(e => {
-        // Izmantojam kvadrātiekavas, lai piekļūtu datiem ar speciālajiem simboliem
-        // un COALESCE loģiku (|| 0 vai || '-'), lai nebūtu tukšumu
-        const car = e.car || '-';
-        const objekts = e.objekts || '-';
-        const darbs = e.darbs || '-';
-        const sakums = e["sākuma_laiks"] || '-';
-        const beigas = e["beigu_laiks"] || 'Aktīvs';
-        const ella = e["pielietā_eļļa"] || 0;
-        const degviela = e["pielietā_degviela"] || 0;
-        const stundas = e.hours ? e.hours + ' h' : '-';
-
-        html += `<tr>
-            <td>${car}</td>
-            <td>${objekts}</td>
-            <td>${darbs}</td>
-            <td>${sakums}</td>
-            <td>${beigas}</td>
-            <td class="oil-text">${ella} L</td>
-            <td class="fuel-text">${degviela} L</td>
-            <td>${stundas}</td>
-        </tr>`;
-    });
-
-    html += `</tbody></table>`;
-    container.innerHTML = html;
-}
 
     document.getElementById("logoutBtn").onclick = () => {
         localStorage.removeItem("loggedInUser");
