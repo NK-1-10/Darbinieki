@@ -13,12 +13,12 @@ const pool = new Pool({
     ssl: { rejectUnauthorized: false }
 });
 
-// --- HELPER FUNKCIJA LAIKA APRĒĶINAM ---
+// --- PALĪGFUNKCIJA LAIKA STARPĪBAI ---
 function calculateHours(start, end) {
     const [sh, sm, ss] = start.split(':').map(Number);
     const [eh, em, es] = end.split(':').map(Number);
     let diff = (eh * 3600 + em * 60 + es) - (sh * 3600 + sm * 60 + ss);
-    if (diff < 0) diff += 86400; // Ja darbs beidzas pēc pusnakts
+    if (diff < 0) diff += 86400; // Gadījumam, ja darbs beidzas pēc pusnakts
     return (diff / 3600).toFixed(2);
 }
 
@@ -42,24 +42,21 @@ app.post('/api/login', async (req, res) => {
     } catch (err) { res.status(500).json({ error: "Servera kļūda" }); }
 });
 
-// --- 4. DARBA GAITA (SVARĪGĀKIE LABOJUMI ŠEIT) ---
+// --- 4. DARBA GAITA (LABOJUMI PRET DUBULTAJIEM IERAKSTIEM) ---
 
-// SĀKT DARBU: Pievienota pārbaude, lai nevarētu sākt divus darbus vienlaicīgi
 app.post('/api/start-work', async (req, res) => {
     const { worker_name, car, start_time, objekts, darbs } = req.body;
-    const parts = start_time.split(' '); 
-    const date = parts[0];
-    const time = parts[1];
-    
+    const [date, time] = start_time.split(' ');
+
     try {
-        // 1. PĀRBAUDE: Vai šim darbiniekam jau nav nepabeigts darbs?
+        // DROŠĪBAS PĀRBAUDE: Vai darbiniekam jau nav neaizvērts darbs?
         const activeCheck = await pool.query(
             "SELECT id FROM schedule WHERE worker_name = $1 AND beigu_laiks IS NULL AND darbs NOT IN ('Degvielas uzpilde', 'Eļļas papildināšana')",
             [worker_name]
         );
 
         if (activeCheck.rows.length > 0) {
-            return res.status(400).json({ error: "Jums jau ir aktīvs darbs! Lūdzu, vispirms pabeidziet to." });
+            return res.status(400).json({ error: "Jums jau ir aktīva sesija! Pabeidziet esošo darbu." });
         }
 
         const tagad = new Date();
@@ -75,13 +72,12 @@ app.post('/api/start-work', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// BEIGT DARBU: Precīzāka meklēšana un stundu aprēķins
 app.post('/api/stop-work', async (req, res) => {
     const { worker_name, end_time } = req.body;
     const timeOnly = end_time.split(' ')[1];
 
     try {
-        // Atrodam pēdējo atvērto darba ierakstu
+        // Atrodam jaunāko atvērto ierakstu
         const active = await pool.query(`
             SELECT id, sākuma_laiks 
             FROM schedule 
@@ -93,42 +89,38 @@ app.post('/api/stop-work', async (req, res) => {
 
         if (active.rows.length > 0) {
             const rowId = active.rows[0].id;
-            const startTime = active.rows[0].sākuma_laiks;
-            const hoursStr = calculateHours(startTime, timeOnly);
+            const start = active.rows[0].sākuma_laiks;
+            const hoursStr = calculateHours(start, timeOnly);
 
             await pool.query(
                 'UPDATE schedule SET beigu_laiks=$1, hours=$2 WHERE id=$3',
                 [timeOnly, hoursStr, rowId]
             );
-            res.json({ success: true, hours: hoursStr });
-        } else { 
-            res.status(404).json({ error: "Nav aktīva darba, ko pabeigt." }); 
+            res.json({ success: true });
+        } else {
+            res.status(404).json({ error: "Nav aktīva darba, ko apturēt." });
         }
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// RESURSU PAPILDINĀŠANA: Tagad tie tiek atzīmēti kā 0 stundas, lai nebojātu kopējo laiku
 app.post('/api/update-resources', async (req, res) => {
     const { worker_name, car, resource_name, resource_amount, type } = req.body;
     
     const tagad = new Date();
-    const datums = tagad.toLocaleDateString('lv-LV', { timeZone: 'Europe/Riga' });
-    const laiks = tagad.toLocaleTimeString('lv-LV', { 
-        timeZone: 'Europe/Riga', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false 
-    });
-
-    const monthRaw = tagad.toLocaleDateString('lv-LV', { month: 'long', timeZone: 'Europe/Riga' });
+    const opts = { timeZone: 'Europe/Riga' };
+    const datums = tagad.toLocaleDateString('lv-LV', opts);
+    const laiks = tagad.toLocaleTimeString('lv-LV', { ...opts, hour12: false });
+    const monthRaw = tagad.toLocaleDateString('lv-LV', { ...opts, month: 'long' });
     const monthStr = monthRaw.charAt(0).toUpperCase() + monthRaw.slice(1);
 
     try {
         await pool.query(`
             INSERT INTO schedule 
-            (worker_name, car, date, sākuma_laiks, beigu_laiks, month, resource_name, resource_amount, 
-             pielietā_eļļa, pielietā_degviela, darbs, hours) 
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 0)`, 
+            (worker_name, car, date, sākuma_laiks, beigu_laiks, month, resource_name, resource_amount, pielietā_eļļa, pielietā_degviela, darbs, hours) 
+            VALUES ($1, $2, $3, $4, $4, $5, $6, $7, $8, $9, $10, 0)`,
         [
-            worker_name, car, datums, laiks, laiks, 
-            monthStr, resource_name, resource_amount, 
+            worker_name, car, datums, laiks, monthStr, 
+            resource_name, resource_amount, 
             (type === 'Ella' ? resource_amount : null),
             (type === 'Degviela' ? resource_amount : null),
             (type === 'Ella' ? 'Eļļas papildināšana' : 'Degvielas uzpilde')
@@ -137,7 +129,15 @@ app.post('/api/update-resources', async (req, res) => {
     } catch (err) { res.status(500).json({ error: "Servera kļūda" }); }
 });
 
-// ... Pārējās sadaļas (GET workers, cars, objects) paliek nemainīgas ...
+// --- PĀRĒJIE API PUNKTI (Bez izmaiņām) ---
+app.get('/api/resource-types', async (req, res) => {
+    try {
+        const r = await pool.query("SELECT id, name, quantity FROM resource_types ORDER BY name ASC");
+        res.json(r.rows); 
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ... (Pievieno šeit savus esošos /api/workers, /api/cars utt. no iepriekšējā faila) ...
 
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => console.log(`🚀 Server running on ${PORT}`));
