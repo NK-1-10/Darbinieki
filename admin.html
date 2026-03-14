@@ -190,11 +190,9 @@
         <details class="report-card" open>
             <summary>📋 Darba Gaitas Atskaite</summary>
             <div class="settings-content">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <div class="summary-bar" style="flex-grow: 1; margin-right: 15px; margin-bottom: 0;">
-                        Atlasītais laiks kopā: <span id="totalHoursValue" class="gold-val">0.00</span> h
-                    </div>
-                    <button class="btn-clear" onclick="clearTable('/api/schedule')">🗑️ Iztīrīt gaitas datus</button>
+                <div class="summary-bar">
+                    Atlasītais laiks kopā: <span id="totalHoursValue" class="gold-val">0.00</span> h
+                    <button class="btn-clear" onclick="clearTable('/api/schedule')">🗑️ Iztīrīt datus</button>
                 </div>
                 <div class="table-wrapper" id="tableContainer"></div>
             </div>
@@ -203,8 +201,9 @@
         <details class="report-card">
             <summary>⛽ Patēriņa Kopsavilkums</summary>
             <div class="settings-content">
-                <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
-                    <button class="btn-clear" onclick="clearTable('/api/fuel-logs')">🗑️ Iztīrīt patēriņu</button>
+                <div class="summary-bar" style="border-left-color: #b8860b;">
+                    Atlasītais patēriņš kopā: <span id="totalFuelValue" class="gold-val">0.00</span> L
+                    <button class="btn-clear" onclick="clearTable('/api/fuel-logs')">🗑️ Iztīrīt datus</button>
                 </div>
                 <div class="table-wrapper" id="oilContainer"></div>
             </div>
@@ -213,11 +212,9 @@
         <details class="report-card">
             <summary>⏱️ Dienas Nostrādātais Laiks</summary>
             <div class="settings-content">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <div class="summary-bar" style="flex-grow: 1; margin-right: 15px; border-left-color: #28a745; margin-bottom: 0;">
-                        Kopā nostrādāts: <span id="totalDayHoursValue" class="gold-val">0.00</span> h
-                    </div>
-                    <button class="btn-clear" onclick="clearTable('/api/darba-stundas')">🗑️ Iztīrīt kopsavilkumu</button>
+                <div class="summary-bar" style="border-left-color: #28a745;">
+                    Kopā nostrādāts: <span id="totalDayHoursValue" class="gold-val">0.00</span> h
+                    <button class="btn-clear" onclick="clearTable('/api/darba-stundas')">🗑️ Iztīrīt datus</button>
                 </div>
                 <div class="table-wrapper" id="summaryTableContainer"></div>
             </div>
@@ -227,14 +224,7 @@
 
 <script>
     let workers = [], cars = [], schedule = [], workTypes = [], objects = [], daySummary = [], resourceTypes = [];
-    
-    let activeFilters = {
-        date: "",
-        car: "",
-        worker_name: "",
-        objekts: "",
-        darbs: ""
-    };
+    let activeFilters = { date: "", car: "", worker_name: "", objekts: "", darbs: "" };
 
     async function loadData() {
         try {
@@ -243,9 +233,7 @@
                 fetch('/api/work-types'), fetch('/api/objects'), fetch('/api/darba-stundas'),
                 fetch('/api/resource-types')
             ]);
-            
             [workers, cars, schedule, workTypes, objects, daySummary, resourceTypes] = await Promise.all(res.map(r => r.json()));
-            
             renderSettings();
             fillGlobalFilters();
             renderTables();
@@ -262,22 +250,17 @@
                     <button class="btn-del" onclick="${deleteFn}('${item[nameKey] || item}')">✖</button>
                 </li>`).join("");
         };
-
         renderList("carList", cars, "deleteCar");
         renderList("workList", workTypes, "deleteWorkType");
         renderList("objectList", objects, "deleteObject");
-        
         document.getElementById("workerList").innerHTML = workers.map(w => `
             <li style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eee;">
                 <span><strong>${w.name}</strong> ${w.temp_password ? `<small>(Pagaidu: ${w.temp_password})</small>` : ''}</span>
                 <button class="btn-del" onclick="deleteWorker('${w.name}')">✖</button>
             </li>`).join("");
-
         document.getElementById("resourceList").innerHTML = resourceTypes.map(r => `
             <li style="padding:10px; border:1px solid #eee; border-radius:8px; margin-bottom:10px; background:#fafafa;">
-                <div style="margin-bottom:8px;">
-                    <strong>${r.name}</strong>: <span class="gold-val">${r.quantity || 0} L</span>
-                </div>
+                <div style="margin-bottom:8px;"><strong>${r.name}</strong>: <span class="gold-val">${r.quantity || 0} L</span></div>
                 <div style="display:flex; gap:5px; align-items: center;">
                     <input type="number" id="qty-${r.id}" placeholder="L">
                     <button onclick="modifyQty('${r.id}', 'add')" style="background:#28a745; color:white; padding:5px 12px;">+</button>
@@ -290,120 +273,62 @@
     function renderTables() {
         const fYear = document.getElementById("filterYear").value;
         const fMonth = document.getElementById("filterMonth").value;
+        const exclusionList = ["Degvielas uzpilde", "Eļļas papildināšana", "Eļļas uzpilde"];
 
-        // --- 1. FILTRĒJAM DARBA GAITU ---
+        // 1. Darba Gaita
         let filteredWork = schedule.filter(e => {
             const dateParts = (e.date || "").split('.');
             const year = dateParts.length === 3 ? dateParts[2] : "";
             const eMonth = (e.month || "").trim().toLowerCase();
-            const filterMonth = fMonth.trim().toLowerCase();
-
-            return (!fYear || year === fYear) && 
-                   (!fMonth || eMonth === filterMonth) &&
-                   (!activeFilters.date || e.date === activeFilters.date) &&
-                   (!activeFilters.car || e.car === activeFilters.car) &&
+            const isWorkRecord = !exclusionList.includes(e.darbs) && e.objekts && e.objekts !== "-";
+            return isWorkRecord && (!fYear || year === fYear) && (!fMonth || eMonth === fMonth.toLowerCase()) &&
+                   (!activeFilters.date || e.date === activeFilters.date) && (!activeFilters.car || e.car === activeFilters.car) &&
                    (!activeFilters.worker_name || e.worker_name === activeFilters.worker_name) &&
-                   (!activeFilters.objekts || e.objekts === activeFilters.objekts) &&
-                   (!activeFilters.darbs || e.darbs === activeFilters.darbs);
+                   (!activeFilters.objekts || e.objekts === activeFilters.objekts) && (!activeFilters.darbs || e.darbs === activeFilters.darbs);
         });
-
-        filteredWork.sort((a, b) => (b.date || "").split('.').reverse().join('-').localeCompare((a.date || "").split('.').reverse().join('-')));
         document.getElementById("totalHoursValue").innerText = filteredWork.reduce((s, i) => s + parseFloat(i.hours || 0), 0).toFixed(2);
 
-        // --- 2. TABULA (Darba Gaita) ---
         const getOptions = (key, dataKey, sourceData = schedule) => {
-            const uniqueVals = [...new Set(sourceData.map(item => item[dataKey]))].filter(Boolean).sort();
-            return `<option value="">Visi</option>` + 
-                   uniqueVals.map(v => `<option value="${v}" ${activeFilters[key] === v ? 'selected' : ''}>${v}</option>`).join("");
+            const workOnly = sourceData.filter(e => !exclusionList.includes(e.darbs) && e.objekts !== "-");
+            const uniqueVals = [...new Set(workOnly.map(item => item[dataKey]))].filter(Boolean).sort();
+            return `<option value="">Visi</option>` + uniqueVals.map(v => `<option value="${v}" ${activeFilters[key] === v ? 'selected' : ''}>${v}</option>`).join("");
         };
 
-        let h1 = `<table><thead><tr>
+        document.getElementById("tableContainer").innerHTML = `<table><thead><tr>
             <th>Datums<br><select class="header-filter" onchange="updateTableFilter('date', this.value)">${getOptions('date', 'date')}</select></th>
             <th>Auto<br><select class="header-filter" onchange="updateTableFilter('car', this.value)">${getOptions('car', 'car')}</select></th>
             <th>Darbinieks<br><select class="header-filter" onchange="updateTableFilter('worker_name', this.value)">${getOptions('worker_name', 'worker_name')}</select></th>
             <th>Objekts<br><select class="header-filter" onchange="updateTableFilter('objekts', this.value)">${getOptions('objekts', 'objekts')}</select></th>
             <th>Darbs<br><select class="header-filter" onchange="updateTableFilter('darbs', this.value)">${getOptions('darbs', 'darbs')}</select></th>
             <th style="text-align:right">Stundas</th>
-        </tr></thead><tbody>`;
+        </tr></thead><tbody>` + filteredWork.map(e => `<tr><td>${e.date}</td><td>${e.car}</td><td>${e.worker_name}</td><td>${e.objekts}</td><td>${e.darbs}</td><td align="right"><b>${parseFloat(e.hours).toFixed(2)}</b></td></tr>`).join("") + "</tbody></table>";
 
-        h1 += filteredWork.map(e => `
-            <tr>
-                <td>${e.date || '-'}</td>
-                <td>${e.car || '-'}</td>
-                <td>${e.worker_name || '-'}</td>
-                <td>${e.objekts || '-'}</td>
-                <td>${e.darbs || '-'}</td>
-                <td align="right" style="font-weight:bold">${parseFloat(e.hours || 0).toFixed(2)}</td>
-            </tr>`).join("");
-        document.getElementById("tableContainer").innerHTML = h1 + "</tbody></table>";
+        // 2. Patēriņš
+        const fuelData = schedule.filter(e => {
+            const dateParts = (e.date || "").split('.');
+            const year = dateParts.length === 3 ? dateParts[2] : "";
+            return e.resource_name && e.resource_amount && (!fYear || year === fYear) && (!fMonth || e.month.trim().toLowerCase() === fMonth.toLowerCase());
+        });
+        document.getElementById("totalFuelValue").innerText = fuelData.reduce((s, i) => s + parseFloat(i.resource_amount || 0), 0).toFixed(2);
+        document.getElementById("oilContainer").innerHTML = `<table><thead><tr><th>Datums</th><th>Darbinieks</th><th>Auto</th><th>Resurss</th><th style="text-align:right">Daudzums (L)</th></tr></thead><tbody>` + 
+            (fuelData.length ? fuelData.slice().reverse().map(e => `<tr><td>${e.date}</td><td>${e.worker_name}</td><td>${e.car}</td><td><b>${e.resource_name}</b></td><td class="gold-val" align="right">${parseFloat(e.resource_amount).toFixed(2)} L</td></tr>`).join("") : `<tr><td colspan="5" align="center">Nav ierakstu</td></tr>`) + "</tbody></table>";
 
-        // --- 3. TABULA (Resursu Patēriņš) ---
-        const fuelData = filteredWork.filter(e => e.resource_name || e.resource_amount);
-        let h2 = `<table><thead><tr>
-            <th>Datums</th>
-            <th>Darbinieks</th>
-            <th>Auto</th>
-            <th style="color: #b8860b;">Resurss</th>
-            <th style="color: #b8860b; text-align:right;">Daudzums (L)</th>
-        </tr></thead><tbody>`;
-
-        if (fuelData.length === 0) {
-            h2 += `<tr><td colspan="5" style="text-align:center; padding:20px; color:#999;">Nav resursu ierakstu.</td></tr>`;
-        } else {
-            h2 += fuelData.map(e => `
-                <tr>
-                    <td>${e.date || '-'}</td>
-                    <td>${e.worker_name || '-'}</td>
-                    <td>${e.car || '-'}</td>
-                    <td style="font-weight: bold;">${e.resource_name || 'Nav norādīts'}</td> 
-                    <td class="gold-val" align="right">${e.resource_amount ? parseFloat(e.resource_amount).toFixed(2) : '0.00'} L</td>
-                </tr>`).join("");
-        }
-        document.getElementById("oilContainer").innerHTML = h2 + "</tbody></table>";
-
-        // --- 4. TABULA (Dienas nostrādātais laiks) ---
+        // 3. Dienas stundas
         let filteredSum = daySummary.filter(s => {
             const dateParts = (s.datums || "").split('.');
             const year = dateParts.length === 3 ? dateParts[2] : "";
-            const sMonth = (s.month || "").trim().toLowerCase();
-            return (!fYear || year === fYear) && 
-                   (!fMonth || sMonth === fMonth.toLowerCase()) && 
-                   (!activeFilters.date || s.datums === activeFilters.date) && 
-                   (!activeFilters.worker_name || s.darbinieks === activeFilters.worker_name);
+            return (!fYear || year === fYear) && (!fMonth || s.month.trim().toLowerCase() === fMonth.toLowerCase()) && (!activeFilters.date || s.datums === activeFilters.date) && (!activeFilters.worker_name || s.darbinieks === activeFilters.worker_name);
         });
-
         document.getElementById("totalDayHoursValue").innerText = filteredSum.reduce((s, i) => s + parseFloat(i.stundas || 0), 0).toFixed(2);
-
-        let h3 = `<table><thead><tr>
-            <th>Darbinieks<br><select class="header-filter" onchange="updateTableFilter('worker_name', this.value)">${getOptions('worker_name', 'darbinieks', daySummary)}</select></th>
-            <th>Datums<br><select class="header-filter" onchange="updateTableFilter('date', this.value)">${getOptions('date', 'datums', daySummary)}</select></th>
-            <th>Sākums</th>
-            <th>Beigas</th>
-            <th style="text-align:right">Kopā</th>
-        </tr></thead><tbody>`;
-        
-        h3 += filteredSum.map(s => `
-            <tr class="${parseFloat(s.stundas) > 12 ? 'overtime' : ''}">
-                <td>${s.darbinieks || '-'}</td>
-                <td>${s.datums || '-'}</td>
-                <td>${s.sāka_darbu || '-'}</td>
-                <td>${s.beidza_darbu || '-'}</td>
-                <td align="right"><strong>${parseFloat(s.stundas || 0).toFixed(2)} h</strong></td>
-            </tr>`).join("");
-        document.getElementById("summaryTableContainer").innerHTML = h3 + "</tbody></table>";
+        document.getElementById("summaryTableContainer").innerHTML = `<table><thead><tr><th>Darbinieks</th><th>Datums</th><th>Sākums</th><th>Beigas</th><th style="text-align:right">Kopā</th></tr></thead><tbody>` + 
+            filteredSum.map(s => `<tr class="${parseFloat(s.stundas) > 12 ? 'overtime' : ''}"><td>${s.darbinieks}</td><td>${s.datums}</td><td>${s.sāka_darbu}</td><td>${s.beidza_darbu}</td><td align="right"><b>${parseFloat(s.stundas).toFixed(2)} h</b></td></tr>`).join("") + "</tbody></table>";
     }
 
-    function updateTableFilter(key, val) {
-        activeFilters[key] = val;
-        renderTables();
-    }
-
+    function updateTableFilter(key, val) { activeFilters[key] = val; renderTables(); }
     function fillGlobalFilters() {
         const populate = (id, mapper) => {
-            const select = document.getElementById(id);
             const vals = [...new Set(schedule.map(item => mapper(item)))].filter(Boolean).sort();
-            select.innerHTML = '<option value="">Visi</option>' + 
-                               vals.map(v => `<option value="${v}">${v}</option>`).join("");
+            document.getElementById(id).innerHTML = '<option value="">Visi</option>' + vals.map(v => `<option value="${v}">${v}</option>`).join("");
         };
         populate("filterYear", e => (e.date || "").split('.')[2]);
         populate("filterMonth", e => (e.month || "").trim());
@@ -413,39 +338,18 @@
         const input = document.getElementById(`qty-${id}`);
         const amount = parseFloat(input.value);
         if (isNaN(amount) || amount <= 0) return alert("Ievadiet skaitli!");
-        try {
-            const response = await fetch(`/api/resource-types/${id}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action, amount })
-            });
-            if (response.ok) { input.value = ""; await loadData(); }
-        } catch (err) { console.error(err); }
+        const res = await fetch(`/api/resource-types/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action, amount }) });
+        if (res.ok) { input.value = ""; loadData(); }
     }
 
     async function addNewItem(url, promptMsg, extraData = {}) {
         const val = prompt(`${promptMsg}:`);
-        if (val) {
-            await fetch(url, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ name: val, ...extraData })
-            });
-            loadData();
-        }
+        if (val) { await fetch(url, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ name: val, ...extraData }) }); loadData(); }
     }
 
     async function addNewWorker() {
-        const name = prompt("Darbinieka vārds:");
-        const pass = prompt("Pagaidu parole:");
-        if (name && pass) {
-            await fetch('/api/workers', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ name, temp_password: pass })
-            });
-            loadData();
-        }
+        const name = prompt("Darbinieka vārds:"), pass = prompt("Pagaidu parole:");
+        if (name && pass) { await fetch('/api/workers', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ name, temp_password: pass }) }); loadData(); }
     }
 
     async function deleteItem(url) { if(confirm("Tiešām dzēst?")) { await fetch(url, {method:'DELETE'}); loadData(); } }
@@ -455,39 +359,18 @@
     const deleteObject = (n) => deleteItem(`/api/objects/${encodeURIComponent(n)}`);
     const deleteResourceType = (id) => deleteItem(`/api/resource-types/${id}`);
 
-    document.getElementById("filterYear").addEventListener('change', renderTables);
-    document.getElementById("filterMonth").addEventListener('change', renderTables);
-    
-    document.getElementById("clearFilters").onclick = () => {
-        activeFilters = { date: "", car: "", worker_name: "", objekts: "", darbs: "" };
-        document.getElementById("filterYear").value = "";
-        document.getElementById("filterMonth").value = "";
-        renderTables();
-    };
+    document.getElementById("filterYear").onchange = renderTables;
+    document.getElementById("filterMonth").onchange = renderTables;
+    document.getElementById("clearFilters").onclick = () => { activeFilters = { date: "", car: "", worker_name: "", objekts: "", darbs: "" }; document.getElementById("filterYear").value = ""; document.getElementById("filterMonth").value = ""; renderTables(); };
 
     async function clearTable(apiUrl) {
-        if (confirm("Uzmanību! Vai tiešām vēlaties PALIECOŠI IZDZĒST VISUS datus no šīs tabulas?")) {
-            try {
-                const response = await fetch(apiUrl, { method: 'DELETE' });
-                if (response.ok) {
-                    alert("Tabula veiksmīgi iztīrīta!");
-                    await loadData();
-                } else {
-                    alert("Kļūda dzēšot datus.");
-                }
-            } catch (err) {
-                console.error("Servera kļūda:", err);
-            }
+        if (confirm("Izdzēst visus datus no šīs tabulas?")) {
+            const res = await fetch(apiUrl, { method: 'DELETE' });
+            if (res.ok) { alert("Iztīrīts!"); loadData(); }
         }
     }
     
-    document.getElementById("logoutBtn").onclick = () => { 
-        if(confirm("Izrakstīties?")) {
-            localStorage.removeItem("loggedInUser");
-            window.location.href = "index.html";
-        } 
-    };
-
+    document.getElementById("logoutBtn").onclick = () => { if(confirm("Izrakstīties?")) { localStorage.removeItem("loggedInUser"); window.location.href = "index.html"; } };
     loadData();
 </script>
 
