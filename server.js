@@ -34,8 +34,7 @@ app.post('/api/login', async (req, res) => {
 });
 
 app.get('/logout', (req, res) => {
-    // Ja tu izmanto piem. express-session, te varētu būt req.session.destroy();
-    res.redirect('/index.html'); // Vienkārši pāradresē atpakaļ uz sākumu
+    res.redirect('/index.html');
 });
 
 app.post('/api/change-password', async (req, res) => {
@@ -57,7 +56,6 @@ app.get('/api/resource-types', async (req, res) => {
 app.post('/api/resource-types', async (req, res) => {
     try {
         const { name } = req.body;
-        // Pievienojam 0 kā skaitli
         await pool.query('INSERT INTO resource_types (name, quantity) VALUES ($1, 0)', [name]);
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: err.message }); }
@@ -70,34 +68,21 @@ app.delete('/api/resource-types/:id', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// Atjaunina daudzumu ar drošības pārbaudi (neļauj mazāk par 0)
 app.patch('/api/resource-types/:id', async (req, res) => {
     const { id } = req.params;
     const { action, amount } = req.body;
     const litri = parseFloat(amount) || 0;
-
     try {
-        // Izmantojam COALESCE, lai NULL vietā dabūtu 0 jau no datubāzes puses
         const checkRes = await pool.query('SELECT name, COALESCE(quantity, 0) as quantity FROM resource_types WHERE id = $1', [id]);
-        
         if (checkRes.rows.length === 0) return res.status(404).json({ error: 'Resurss nav atrasts' });
-        
         const currentQty = parseFloat(checkRes.rows[0].quantity);
 
         if (action === 'sub') {
-            if (currentQty < litri) {
-                return res.status(400).json({ error: `Noliktavā nav tik daudz! Pieejams: ${currentQty}L` });
-            }
-            const result = await pool.query(
-                'UPDATE resource_types SET quantity = COALESCE(quantity, 0) - $1 WHERE id = $2 RETURNING *',
-                [litri, id]
-            );
+            if (currentQty < litri) return res.status(400).json({ error: `Noliktavā nav tik daudz! Pieejams: ${currentQty}L` });
+            const result = await pool.query('UPDATE resource_types SET quantity = COALESCE(quantity, 0) - $1 WHERE id = $2 RETURNING *', [litri, id]);
             res.json(result.rows[0]);
         } else {
-            // Pievienojam COALESCE arī šeit
-            let query = action === 'add' ? 
-                'UPDATE resource_types SET quantity = COALESCE(quantity, 0) + $1 WHERE id = $2 RETURNING *' : 
-                'UPDATE resource_types SET quantity = $1 WHERE id = $2 RETURNING *';
+            let query = action === 'add' ? 'UPDATE resource_types SET quantity = COALESCE(quantity, 0) + $1 WHERE id = $2 RETURNING *' : 'UPDATE resource_types SET quantity = $1 WHERE id = $2 RETURNING *';
             const result = await pool.query(query, [litri, id]);
             res.json(result.rows[0]);
         }
@@ -192,16 +177,14 @@ app.delete('/api/work-types/:name', async (req, res) => {
 
 // --- 4. DARBA GAITA UN ŽURNĀLĒŠANA (Schedule) ---
 app.get('/api/schedule', async (req, res) => {
-    const { worker_name } = req.query; // Ja filtrē pēc vārda
+    const { worker_name } = req.query;
     try {
         let query = 'SELECT * FROM schedule';
         let params = [];
-        
         if (worker_name) {
             query += ' WHERE LOWER(worker_name) = LOWER($1)';
             params.push(worker_name);
         }
-        
         query += ' ORDER BY id DESC';
         const result = await pool.query(query, params);
         res.json(result.rows);
@@ -213,8 +196,6 @@ app.post('/api/start-work', async (req, res) => {
     const parts = start_time.split(' '); 
     const date = parts[0];
     const time = parts[1];
-    
-    // Sinhronizējam mēneša formātu
     const tagad = new Date();
     const monthRaw = tagad.toLocaleDateString('lv-LV', { month: 'long' });
     const monthStr = monthRaw.charAt(0).toUpperCase() + monthRaw.slice(1);
@@ -250,20 +231,16 @@ app.post('/api/stop-work', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// --- ATJAUNINĀTS: Reģistrē resursu pieliešanu žurnālā ---
+// --- LABOTS: Reģistrē resursu pieliešanu žurnālā ---
 app.post('/api/update-resources', async (req, res) => {
     const { worker_name, car, resource_name, resource_amount, type } = req.body;
 
-    // Sagatavojam datus datubāzei
     const tagad = new Date();
     const datums = tagad.toLocaleDateString('lv-LV');
     const laiks = tagad.toLocaleTimeString('lv-LV');
-    
-    // Sinhronizējam mēneša nosaukumu (tāpat kā start-work maršrutā)
     const monthRaw = tagad.toLocaleDateString('lv-LV', { month: 'long' });
     const monthStr = monthRaw.charAt(0).toUpperCase() + monthRaw.slice(1);
 
-    // Noteiksim vērtības vecajām kolonnām (pielietā_eļļa / pielietā_degviela), lai Admin panelis joprojām strādātu
     const oilVal = (type === 'Ella') ? resource_amount : null;
     const fuelVal = (type === 'Degviela') ? resource_amount : null;
 
@@ -280,11 +257,11 @@ app.post('/api/update-resources', async (req, res) => {
             datums, 
             laiks, 
             monthStr,
-            resource_name,    // Jaunā kolonna (piem. "Eļļa 5W30")
-            resource_amount,  // Daudzums
-            oilVal,           // Savietojamībai ar veco "Eļļa" kolonnu
-            fuelVal,          // Savietojamībai ar veco "Degviela" kolonnu
-            type === 'Ella' ? 'Eļļas papildināšana' : 'Degvielas uzpilde' // Darba apraksts
+            resource_name,
+            resource_amount,
+            oilVal,
+            fuelVal,
+            type === 'Ella' ? 'Eļļas papildināšana' : 'Degvielas uzpilde'
         ]);
 
         res.json({ success: true });
