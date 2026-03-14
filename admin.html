@@ -315,6 +315,7 @@
         document.getElementById("tableContainer").innerHTML = h1 + "</tbody></table>";
 
         // 2. TABULA (Dinamiskais Resursu Patēriņš)
+        // Šeit tiek rādīti dati no inventory_log (eļļa1, eļļa2 utt.)
         const fuelData = filteredWork.filter(e => 
             (e.resource_name && e.resource_amount) || 
             (e.pielietā_eļļa && parseFloat(e.pielietā_eļļa) > 0) || 
@@ -331,7 +332,8 @@
 
         if (fuelData.length > 0) {
             h2 += fuelData.map(e => {
-                // Atpazīstam resursa nosaukumu un daudzumu no datiem
+                // Prioritāte ir resource_name no datubāzes (piem., "Eļļa1"),
+                // ja tāda nav, izmantojam vispārīgu nosaukumu no vecajiem laukiem
                 const rName = e.resource_name || (parseFloat(e.pielietā_degviela) > 0 ? "Dīzeļdegviela" : "Eļļa");
                 const rAmount = e.resource_amount || e.pielietā_degviela || e.pielietā_eļļa || 0;
 
@@ -450,7 +452,7 @@
     document.getElementById("logoutBtn").onclick = () => { 
         if(confirm("Izrakstīties?")) {
             localStorage.removeItem("loggedInUser");
-            // Labojums: pārvirzām uz index.html failu, nevis /logout ceļu
+            // Labojums: pārvirzām uz index.html failu
             window.location.href = "index.html";
         } 
     };
