@@ -182,19 +182,16 @@
             <label>Mēnesis:<br><select id="filterMonth"><option value="">Visi</option></select></label>
             <button id="clearFilters" style="padding: 8px 15px; background: #eee;">Notīrīt filtrus</button>
         </div>
-        
     </div>
 
     <div class="report-stack">
-    <details class="report-card" open>
-        <summary>📋 Darba Gaitas Atskaite</summary>
-        
-        <div class="summary-bar" style="margin: 10px 20px; border-radius: 8px;">
-            Atlasītais laiks kopā: <span id="totalHoursValue" class="gold-val">0.00</span> h
-        </div>
-
-        <div class="table-wrapper" id="tableContainer"></div>
-    </details>
+        <details class="report-card" open>
+            <summary>📋 Darba Gaitas Atskaite</summary>
+            <div class="summary-bar" style="margin: 10px 20px; border-radius: 8px;">
+                Atlasītais laiks kopā: <span id="totalHoursValue" class="gold-val">0.00</span> h
+            </div>
+            <div class="table-wrapper" id="tableContainer"></div>
+        </details>
 
         <details class="report-card">
             <summary>⛽ Patēriņa Kopsavilkums</summary>
@@ -203,6 +200,9 @@
 
         <details class="report-card">
             <summary>⏱️ Dienas Nostrādātais Laiks</summary>
+            <div class="summary-bar" style="margin: 10px 20px; border-radius: 8px; border-left-color: #28a745;">
+                Dienas nostrādātais laiks kopā: <span id="totalDayHoursValue" class="gold-val">0.00</span> h
+            </div>
             <div class="table-wrapper" id="summaryTableContainer"></div>
         </details>
     </div>
@@ -272,6 +272,7 @@
         const fYear = document.getElementById("filterYear").value;
         const fMonth = document.getElementById("filterMonth").value;
 
+        // 1. FILTRĒJAM DARBA GAITU (Tabula 1)
         let filteredWork = schedule.filter(e => {
             const year = e.date ? e.date.split('.')[2] : "";
             const monthMatches = !fMonth || (e.month && e.month.toLowerCase() === fMonth.toLowerCase());
@@ -286,9 +287,24 @@
         });
 
         filteredWork.sort((a, b) => b.date.split('.').reverse().join('-').localeCompare(a.date.split('.').reverse().join('-')));
-
+        
+        // Summa 1. tabulai
         const total = filteredWork.reduce((s, i) => s + parseFloat(i.hours || 0), 0);
         document.getElementById("totalHoursValue").innerText = total.toFixed(2);
+
+        // 2. FILTRĒJAM DIENAS KOPSAVILKUMU (Tabula 3)
+        let filteredSum = daySummary.filter(s => {
+            const year = s.datums ? s.datums.split('.')[2] : "";
+            const monthMatches = !fMonth || (s.month && s.month.toLowerCase() === fMonth.toLowerCase());
+            return (!fYear || year === fYear) && 
+                   monthMatches && 
+                   (!activeFilters.worker_name || s.darbinieks === activeFilters.worker_name);
+        });
+        filteredSum.sort((a, b) => b.datums.split('.').reverse().join('-').localeCompare(a.datums.split('.').reverse().join('-')));
+
+        // Summa 3. tabulai
+        const totalDayHours = filteredSum.reduce((s, i) => s + parseFloat(i.stundas || 0), 0);
+        document.getElementById("totalDayHoursValue").innerText = totalDayHours.toFixed(2);
 
         const getOptions = (key, dataKey) => {
             const uniqueVals = [...new Set(schedule.map(item => item[dataKey]))].filter(Boolean).sort();
@@ -317,68 +333,34 @@
             </tr>`).join("");
         document.getElementById("tableContainer").innerHTML = h1 + "</tbody></table>";
 
-        // 2. TABULA (Dinamiskais Resursu Patēriņš)
-        // Atrodi vietu, kur tiek definēts h2 (otrā tabula)
-const fuelData = filteredWork.filter(e => 
-    (e.resource_name && e.resource_amount) || 
-    (parseFloat(e.pielietā_degviela) > 0) || 
-    (parseFloat(e.pielietā_eļļa) > 0)
-);
+        // 2. TABULA (Resursu Patēriņš)
+        const fuelData = filteredWork.filter(e => 
+            (e.resource_name && e.resource_amount) || 
+            (parseFloat(e.pielietā_degviela) > 0) || 
+            (parseFloat(e.pielietā_eļļa) > 0)
+        );
 
-let h2 = `<table>
-            <thead>
-                <tr>
-                    <th>Datums</th>
-                    <th>Darbinieks</th>
-                    <th>Auto</th>
-                    <th style="color: #b8860b;">Izmantotais Resurss</th>
-                    <th style="color: #b8860b; text-align:right;">Daudzums (L)</th>
-                </tr>
-            </thead>
-            <tbody>`;
-
-if (fuelData.length > 0) {
-    h2 += fuelData.map(e => {
-        // 1. Prioritāte jaunajai kolonnai (Eļļa1, Eļļa2, Dīzeļdegviela)
-        // 2. Ja tās nav (vecie dati), pārbaudām vecās kolonnas
-        let rName = e.resource_name;
-        if (!rName) {
-            if (parseFloat(e.pielietā_degviela) > 0) rName = "Dīzeļdegviela";
-            else if (parseFloat(e.pielietā_eļļa) > 0) rName = "Eļļa";
-            else rName = "-";
+        let h2 = `<table><thead><tr><th>Datums</th><th>Darbinieks</th><th>Auto</th><th style="color: #b8860b;">Resurss</th><th style="color: #b8860b; text-align:right;">Daudzums (L)</th></tr></thead><tbody>`;
+        if (fuelData.length > 0) {
+            h2 += fuelData.map(e => {
+                let rName = e.resource_name;
+                if (!rName) {
+                    if (parseFloat(e.pielietā_degviela) > 0) rName = "Dīzeļdegviela";
+                    else if (parseFloat(e.pielietā_eļļa) > 0) rName = "Eļļa";
+                    else rName = "-";
+                }
+                const rAmount = e.resource_amount || e.pielietā_degviela || e.pielietā_eļļa || 0;
+                return `<tr><td>${e.date}</td><td>${e.worker_name}</td><td>${e.car}</td><td style="font-weight: bold;">${rName}</td><td class="gold-val" align="right">${parseFloat(rAmount).toFixed(2)} L</td></tr>`;
+            }).join("");
+            h2 += "</tbody></table>";
+        } else {
+            h2 = "<p style='padding:15px;'>Šajā periodā resursu patēriņš nav reģistrēts.</p>";
         }
-
-        // Paņemam daudzumu no jaunās vai vecajām kolonnām
-        const rAmount = e.resource_amount || e.pielietā_degviela || e.pielietā_eļļa || 0;
-
-        return `
-        <tr>
-            <td>${e.date}</td>
-            <td>${e.worker_name}</td>
-            <td>${e.car}</td>
-            <td style="font-weight: bold;">${rName}</td>
-            <td class="gold-val" align="right">${parseFloat(rAmount).toFixed(2)} L</td>
-        </tr>`;
-    }).join("");
-    h2 += "</tbody></table>";
-} else {
-    h2 = "<p style='padding:15px;'>Šajā periodā resursu patēriņš nav reģistrēts.</p>";
-}
-// Šeit tu ieliec ģenerēto HTML savā konteinerā, piemēram:
-document.getElementById("oilContainer").innerHTML = h2;
+        document.getElementById("oilContainer").innerHTML = h2;
 
         // 3. TABULA (Dienas nostrādātais laiks)
-        let filteredSum = daySummary.filter(s => {
-            const year = s.datums ? s.datums.split('.')[2] : "";
-            const monthMatches = !fMonth || (s.month && s.month.toLowerCase() === fMonth.toLowerCase());
-            return (!fYear || year === fYear) && 
-                   monthMatches && 
-                   (!activeFilters.worker_name || s.darbinieks === activeFilters.worker_name);
-        });
-        filteredSum.sort((a, b) => b.datums.split('.').reverse().join('-').localeCompare(a.datums.split('.').reverse().join('-')));
-
         let h3 = `<table><thead><tr><th>Darbinieks</th><th>Datums</th><th>Sākums</th><th>Beigas</th><th style="text-align:right">Kopā</th></tr></thead><tbody>`;
-        h3 += filteredSum.map(s => `<tr class="${s.stundas > 12 ? 'overtime' : ''}"><td>${s.darbinieks}</td><td>${s.datums}</td><td>${s.sāka_darbu || '-'}</td><td>${s.beidza_darbu || '-'}</td><td align="right"><strong>${parseFloat(s.stundas || 0).toFixed(2)} h</strong></td></tr>`).join("");
+        h3 += filteredSum.map(s => `<tr class="${parseFloat(s.stundas) > 12 ? 'overtime' : ''}"><td>${s.darbinieks}</td><td>${s.datums}</td><td>${s.sāka_darbu || '-'}</td><td>${s.beidza_darbu || '-'}</td><td align="right"><strong>${parseFloat(s.stundas || 0).toFixed(2)} h</strong></td></tr>`).join("");
         document.getElementById("summaryTableContainer").innerHTML = h3 + "</tbody></table>";
     }
 
@@ -388,17 +370,15 @@ document.getElementById("oilContainer").innerHTML = h2;
     }
 
     function fillGlobalFilters() {
-    const populate = (id, mapper) => {
-        const select = document.getElementById(id);
-        // Paņemam vērtības, noņemam tukšumus un sakārtojam
-        const vals = [...new Set(schedule.map(item => mapper(item)))].filter(Boolean).sort();
-        
-        select.innerHTML = '<option value="">Visi</option>' + 
-                           vals.map(v => `<option value="${v}">${v}</option>`).join("");
-    };
-    populate("filterYear", e => e.date ? e.date.split('.')[2] : "");
-    populate("filterMonth", e => e.month); // Serveris jau sūta "Marts", nekas nav jāpārveido
-}
+        const populate = (id, mapper) => {
+            const select = document.getElementById(id);
+            const vals = [...new Set(schedule.map(item => mapper(item)))].filter(Boolean).sort();
+            select.innerHTML = '<option value="">Visi</option>' + 
+                               vals.map(v => `<option value="${v}">${v}</option>`).join("");
+        };
+        populate("filterYear", e => e.date ? e.date.split('.')[2] : "");
+        populate("filterMonth", e => e.month);
+    }
 
     async function modifyQty(id, action) {
         const input = document.getElementById(`qty-${id}`);
@@ -463,7 +443,6 @@ document.getElementById("oilContainer").innerHTML = h2;
     document.getElementById("logoutBtn").onclick = () => { 
         if(confirm("Izrakstīties?")) {
             localStorage.removeItem("loggedInUser");
-            // Labojums: pārvirzām uz index.html failu
             window.location.href = "index.html";
         } 
     };
