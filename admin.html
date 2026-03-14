@@ -116,7 +116,6 @@
         td { padding: 12px; border-bottom: 1px solid #f0f0f0; white-space: nowrap; }
         tr:hover { background-color: #fcf9f2; }
 
-        /* Jauns stils kļūdu izcelšanai */
         .error-row { background-color: #fff5f5; color: #d9534f; }
         .error-badge { background: #d9534f; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-left: 5px; }
 
@@ -196,7 +195,7 @@
             <div class="settings-content">
                 <div class="summary-bar">
                     <div>Atlasītais laiks kopā: <span id="totalHoursValue" class="gold-val">0.00</span> h</div>
-                    <button class="btn-clear" onclick="clearTable('/api/schedule')">🗑️ Iztīrīt datus</button>
+                    <button id="clearScheduleBtn" class="btn-clear" onclick="clearTable('/api/schedule')">🗑️ Iztīrīt datus</button>
                 </div>
                 <div class="table-wrapper" id="tableContainer"></div>
             </div>
@@ -230,14 +229,7 @@
     let workers = [], cars = [], schedule = [], workTypes = [], objects = [], daySummary = [], resourceTypes = [];
     
     let activeFilters = { 
-        year: "",
-        month: "",
-        date: "", 
-        car: "", 
-        worker_name: "", 
-        objekts: "", 
-        darbs: "",
-        resource: ""
+        year: "", month: "", date: "", car: "", worker_name: "", objekts: "", darbs: "", resource: ""
     };
 
     const LV_MONTHS = ["Janvāris", "Februāris", "Marts", "Aprīlis", "Maijs", "Jūnijs", "Jūlijs", "Augusts", "Septembris", "Oktobris", "Novembris", "Decembris"];
@@ -257,7 +249,6 @@
         } catch (err) { console.error("Datu ielādes kļūda:", err); }
     }
 
-    // Settings rendering loģika paliek tāda pati
     function renderSettings() {
         const renderList = (id, data, deleteFn, nameKey = 'name') => {
             const el = document.getElementById(id);
@@ -291,20 +282,15 @@
     }
 
     function updateGlobalFilterOptions() {
-        // Iegūstam unikālos gadus no visiem datiem
         const allDates = [...schedule.map(s => s.date), ...daySummary.map(d => d.datums)].filter(Boolean);
         const years = [...new Set(allDates.map(d => d.split('.')[2]))].sort();
-
         const ySelect = document.getElementById("filterYear");
         const mSelect = document.getElementById("filterMonth");
 
         ySelect.innerHTML = '<option value="">Visi gadi</option>' + years.map(v => `<option value="${v}" ${activeFilters.year === v ? 'selected' : ''}>${v}</option>`).join("");
-        
-        // Mēnešu filtrs rāda tikai tos mēnešus, kas ir izvēlētajā gadā
         const relevantData = schedule.filter(s => !activeFilters.year || s.date.endsWith(activeFilters.year));
         const monthsInSchedule = [...new Set(relevantData.map(e => e.month))].filter(Boolean);
         const sortedMonths = LV_MONTHS.filter(m => monthsInSchedule.some(sm => sm.toLowerCase() === m.toLowerCase()));
-
         mSelect.innerHTML = '<option value="">Visi mēneši</option>' + sortedMonths.map(v => `<option value="${v}" ${activeFilters.month === v ? 'selected' : ''}>${v}</option>`).join("");
     }
 
@@ -316,11 +302,16 @@
     function renderTables() {
         const workExclusion = ["Degvielas uzpilde", "Eļļas papildināšana", "Eļļas uzpilde"];
 
+        // PASLĒPJAM POGU, JA IR AKTĪVS DARBS (Stundas ir 0 vai nav aprēķinātas)
+        const hasActiveWork = schedule.some(e => !workExclusion.includes(e.darbs) && (!e.hours || parseFloat(e.hours) <= 0));
+        document.querySelectorAll('.btn-clear').forEach(btn => {
+            btn.style.visibility = hasActiveWork ? "hidden" : "visible";
+        });
+
         // --- 1. TABULA: DARBA GAITA ---
         let filteredWork = schedule.filter(e => {
             const year = (e.date || "").split('.')[2] || "";
             const isWork = !workExclusion.includes(e.darbs) && e.objekts && e.objekts !== "-";
-            
             return isWork &&
                 (!activeFilters.year || year === activeFilters.year) &&
                 (!activeFilters.month || (e.month || "").toLowerCase() === activeFilters.month.toLowerCase()) &&
@@ -332,7 +323,6 @@
         });
 
         document.getElementById("totalHoursValue").innerText = filteredWork.reduce((s, i) => s + parseFloat(i.hours || 0), 0).toFixed(2);
-        
         const workDataForOptions = schedule.filter(x => !workExclusion.includes(x.darbs));
         document.getElementById("tableContainer").innerHTML = `<table><thead><tr>
             <th>Datums<br><select class="header-filter" onchange="syncFilter('date', this.value)">${getOptions('date', 'date', workDataForOptions)}</select></th>
@@ -345,21 +335,15 @@
         (filteredWork.length ? filteredWork.slice().reverse().map(e => {
             const isError = parseFloat(e.hours) <= 0;
             return `<tr class="${isError ? 'error-row' : ''}">
-                <td>${e.date}</td>
-                <td>${e.car}</td>
-                <td>${e.worker_name}</td>
-                <td>${e.objekts}</td>
-                <td>${e.darbs}</td>
-                <td align="right"><b>${parseFloat(e.hours || 0).toFixed(2)}</b>${isError ? '<span class="error-badge">KĻŪDA</span>' : ''}</td>
+                <td>${e.date}</td><td>${e.car}</td><td>${e.worker_name}</td><td>${e.objekts}</td><td>${e.darbs}</td>
+                <td align="right"><b>${parseFloat(e.hours || 0).toFixed(2)}</b>${isError ? '<span class="error-badge">AKTĪVS</span>' : ''}</td>
             </tr>`
         }).join("") : '<tr><td colspan="6" align="center">Nav datu</td></tr>') + "</tbody></table>";
 
         // --- 2. TABULA: PATĒRIŅŠ ---
         let filteredFuel = schedule.filter(e => {
             const year = (e.date || "").split('.')[2] || "";
-            const isFuel = e.resource_name && e.resource_amount;
-
-            return isFuel &&
+            return (e.resource_name && e.resource_amount) &&
                 (!activeFilters.year || year === activeFilters.year) &&
                 (!activeFilters.month || (e.month || "").toLowerCase() === activeFilters.month.toLowerCase()) &&
                 (!activeFilters.date || e.date === activeFilters.date) &&
@@ -367,9 +351,7 @@
                 (!activeFilters.car || e.car === activeFilters.car) &&
                 (!activeFilters.resource || e.resource_name === activeFilters.resource);
         });
-
         document.getElementById("totalFuelValue").innerText = filteredFuel.reduce((s, i) => s + parseFloat(i.resource_amount || 0), 0).toFixed(2);
-
         const fuelDataForOptions = schedule.filter(x => x.resource_name);
         document.getElementById("oilContainer").innerHTML = `<table><thead><tr>
             <th>Datums<br><select class="header-filter" onchange="syncFilter('date', this.value)">${getOptions('date', 'date', fuelDataForOptions)}</select></th>
@@ -388,25 +370,17 @@
                 (!activeFilters.date || s.datums === activeFilters.date) &&
                 (!activeFilters.worker_name || s.darbinieks === activeFilters.worker_name);
         });
-
         document.getElementById("totalDayHoursValue").innerText = filteredSum.reduce((s, i) => s + parseFloat(i.stundas || 0), 0).toFixed(2);
-
         document.getElementById("summaryTableContainer").innerHTML = `<table><thead><tr>
             <th>Darbinieks<br><select class="header-filter" onchange="syncFilter('worker_name', this.value)">${getOptions('worker_name', 'darbinieks', daySummary)}</select></th>
             <th>Datums<br><select class="header-filter" onchange="syncFilter('date', this.value)">${getOptions('date', 'datums', daySummary)}</select></th>
-            <th>Sākums</th>
-            <th>Beigas</th>
-            <th style="text-align:right">Kopā</th>
+            <th>Sākums</th><th>Beigas</th><th style="text-align:right">Kopā</th>
         </tr></thead><tbody>` + 
         (filteredSum.length ? filteredSum.slice().reverse().map(s => {
             const hrs = parseFloat(s.stundas || 0);
             const isError = hrs <= 0;
-            const isOvertime = hrs > 12;
-            return `<tr class="${isOvertime ? 'overtime' : ''} ${isError ? 'error-row' : ''}">
-                <td>${s.darbinieks}</td>
-                <td>${s.datums}</td>
-                <td>${s.sāka_darbu || '-'}</td>
-                <td>${s.beidza_darbu || '-'}</td>
+            return `<tr class="${hrs > 12 ? 'overtime' : ''} ${isError ? 'error-row' : ''}">
+                <td>${s.darbinieks}</td><td>${s.datums}</td><td>${s.sāka_darbu || '-'}</td><td>${s.beidza_darbu || '-'}</td>
                 <td align="right"><b>${hrs.toFixed(2)} h</b>${isError ? '<span class="error-badge">NAV BEIGTS</span>' : ''}</td>
             </tr>`
         }).join("") : '<tr><td colspan="5" align="center">Nav datu</td></tr>') + "</tbody></table>";
@@ -418,15 +392,13 @@
         renderTables();
     }
 
-    // --- API FUNKCIJAS (nemainīgas) ---
     async function modifyQty(id, action) {
         const input = document.getElementById(`qty-${id}`);
         const amount = parseFloat(input.value);
         if (isNaN(amount) || amount <= 0) return alert("Ievadiet derīgu skaitli!");
         try {
             const res = await fetch(`/api/resource-types/${id}`, { 
-                method: 'PATCH', 
-                headers: { 'Content-Type': 'application/json' }, 
+                method: 'PATCH', headers: { 'Content-Type': 'application/json' }, 
                 body: JSON.stringify({ action, amount }) 
             });
             if (res.ok) { input.value = ""; loadData(); }
