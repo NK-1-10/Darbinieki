@@ -22,6 +22,20 @@ function calculateHours(start, end) {
     return (diff / 3600).toFixed(2);
 }
 
+app.delete('/api/work-types/:name', async (req, res) => {
+    try {
+        await pool.query('DELETE FROM work_types WHERE name = $1', [req.params.name]);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.delete('/api/objects/:name', async (req, res) => {
+    try {
+        await pool.query('DELETE FROM objects WHERE name = $1', [req.params.name]);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 // --- 1. AUTENTIFIKĀCIJA ---
 app.post('/api/login', async (req, res) => {
     const { username, password } = req.body;
