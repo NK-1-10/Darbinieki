@@ -87,6 +87,7 @@
             justify-content: space-between; 
             border-left: 5px solid var(--accent-gold);
             font-weight: bold;
+            margin-bottom: 15px;
         }
 
         .report-card { 
@@ -118,6 +119,7 @@
         button { cursor: pointer; border-radius: 8px; border: none; font-weight: 600; transition: 0.2s; }
         .btn-add { background: var(--success-green); color: white; width: 100%; padding: 10px; margin-bottom: 10px; }
         .btn-del { color: var(--danger-red); background: none; font-size: 1.2em; padding: 0 5px; }
+        .btn-clear { background: var(--danger-red); color: white; padding: 8px 12px; font-size: 0.9em; }
         .gold-val { color: #b8860b; font-weight: bold; }
         .overtime { color: var(--danger-red); font-weight: 900; }
 
@@ -187,23 +189,38 @@
     <div class="report-stack">
         <details class="report-card" open>
             <summary>📋 Darba Gaitas Atskaite</summary>
-            <div class="summary-bar" style="margin: 10px 20px; border-radius: 8px;">
-                Atlasītais laiks kopā: <span id="totalHoursValue" class="gold-val">0.00</span> h
+            <div class="settings-content">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <div class="summary-bar" style="flex-grow: 1; margin-right: 15px; margin-bottom: 0;">
+                        Atlasītais laiks kopā: <span id="totalHoursValue" class="gold-val">0.00</span> h
+                    </div>
+                    <button class="btn-clear" onclick="clearTable('/api/schedule')">🗑️ Iztīrīt gaitas datus</button>
+                </div>
+                <div class="table-wrapper" id="tableContainer"></div>
             </div>
-            <div class="table-wrapper" id="tableContainer"></div>
         </details>
 
         <details class="report-card">
             <summary>⛽ Patēriņa Kopsavilkums</summary>
-            <div class="table-wrapper" id="oilContainer"></div>
+            <div class="settings-content">
+                <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
+                    <button class="btn-clear" onclick="clearTable('/api/fuel-logs')">🗑️ Iztīrīt patēriņu</button>
+                </div>
+                <div class="table-wrapper" id="oilContainer"></div>
+            </div>
         </details>
 
         <details class="report-card">
             <summary>⏱️ Dienas Nostrādātais Laiks</summary>
-            <div class="summary-bar" style="margin: 10px 20px; border-radius: 8px; border-left-color: #28a745;">
-                Dienas nostrādātais laiks kopā: <span id="totalDayHoursValue" class="gold-val">0.00</span> h
+            <div class="settings-content">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <div class="summary-bar" style="flex-grow: 1; margin-right: 15px; border-left-color: #28a745; margin-bottom: 0;">
+                        Kopā nostrādāts: <span id="totalDayHoursValue" class="gold-val">0.00</span> h
+                    </div>
+                    <button class="btn-clear" onclick="clearTable('/api/darba-stundas')">🗑️ Iztīrīt kopsavilkumu</button>
+                </div>
+                <div class="table-wrapper" id="summaryTableContainer"></div>
             </div>
-            <div class="table-wrapper" id="summaryTableContainer"></div>
         </details>
     </div>
 </div>
@@ -237,7 +254,9 @@
 
     function renderSettings() {
         const renderList = (id, data, deleteFn, nameKey = 'name') => {
-            document.getElementById(id).innerHTML = data.map(item => `
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.innerHTML = data.map(item => `
                 <li style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eee;">
                     <span>${item[nameKey] || item}</span>
                     <button class="btn-del" onclick="${deleteFn}('${item[nameKey] || item}')">✖</button>
@@ -279,10 +298,8 @@
             const eMonth = (e.month || "").trim().toLowerCase();
             const filterMonth = fMonth.trim().toLowerCase();
 
-            const yearMatches = !fYear || year === fYear;
-            const monthMatches = !fMonth || eMonth === filterMonth;
-            
-            return yearMatches && monthMatches &&
+            return (!fYear || year === fYear) && 
+                   (!fMonth || eMonth === filterMonth) &&
                    (!activeFilters.date || e.date === activeFilters.date) &&
                    (!activeFilters.car || e.car === activeFilters.car) &&
                    (!activeFilters.worker_name || e.worker_name === activeFilters.worker_name) &&
@@ -291,9 +308,7 @@
         });
 
         filteredWork.sort((a, b) => (b.date || "").split('.').reverse().join('-').localeCompare((a.date || "").split('.').reverse().join('-')));
-        
-        const total = filteredWork.reduce((s, i) => s + parseFloat(i.hours || 0), 0);
-        document.getElementById("totalHoursValue").innerText = total.toFixed(2);
+        document.getElementById("totalHoursValue").innerText = filteredWork.reduce((s, i) => s + parseFloat(i.hours || 0), 0).toFixed(2);
 
         // --- 2. TABULA (Darba Gaita) ---
         const getOptions = (key, dataKey, sourceData = schedule) => {
@@ -323,49 +338,41 @@
         document.getElementById("tableContainer").innerHTML = h1 + "</tbody></table>";
 
         // --- 3. TABULA (Resursu Patēriņš) ---
-// --- 3. TABULA (Resursu Patēriņš) ---
-// Atlasām datus no filteredWork, kur ir jaunie resursu lauki
-// --- 3. TABULA (Resursu Patēriņš) ---
-// Atlasām ierakstus, kur ir vismaz resursa nosaukums VAI daudzums
-const fuelData = filteredWork.filter(e => e.resource_name || e.resource_amount);
+        const fuelData = filteredWork.filter(e => e.resource_name || e.resource_amount);
+        let h2 = `<table><thead><tr>
+            <th>Datums</th>
+            <th>Darbinieks</th>
+            <th>Auto</th>
+            <th style="color: #b8860b;">Resurss</th>
+            <th style="color: #b8860b; text-align:right;">Daudzums (L)</th>
+        </tr></thead><tbody>`;
 
-let h2 = `<table><thead><tr>
-    <th>Datums</th>
-    <th>Darbinieks</th>
-    <th>Auto</th>
-    <th style="color: #b8860b;">Resurss</th>
-    <th style="color: #b8860b; text-align:right;">Daudzums (L)</th>
-</tr></thead><tbody>`;
+        if (fuelData.length === 0) {
+            h2 += `<tr><td colspan="5" style="text-align:center; padding:20px; color:#999;">Nav resursu ierakstu.</td></tr>`;
+        } else {
+            h2 += fuelData.map(e => `
+                <tr>
+                    <td>${e.date || '-'}</td>
+                    <td>${e.worker_name || '-'}</td>
+                    <td>${e.car || '-'}</td>
+                    <td style="font-weight: bold;">${e.resource_name || 'Nav norādīts'}</td> 
+                    <td class="gold-val" align="right">${e.resource_amount ? parseFloat(e.resource_amount).toFixed(2) : '0.00'} L</td>
+                </tr>`).join("");
+        }
+        document.getElementById("oilContainer").innerHTML = h2 + "</tbody></table>";
 
-if (fuelData.length === 0) {
-    h2 += `<tr><td colspan="5" style="text-align:center; padding:20px; color:#999;">Nav ierakstu ar jauno resursu sistēmu.</td></tr>`;
-} else {
-    h2 += fuelData.map(e => `
-        <tr>
-            <td>${e.date || '-'}</td>
-            <td>${e.worker_name || '-'}</td>
-            <td>${e.car || '-'}</td>
-            <td style="font-weight: bold;">${e.resource_name || 'Nav norādīts'}</td> 
-            <td class="gold-val" align="right">${e.resource_amount ? parseFloat(e.resource_amount).toFixed(2) : '0.00'} L</td>
-        </tr>`).join("");
-}
-
-document.getElementById("oilContainer").innerHTML = h2 + "</tbody></table>";
         // --- 4. TABULA (Dienas nostrādātais laiks) ---
         let filteredSum = daySummary.filter(s => {
             const dateParts = (s.datums || "").split('.');
             const year = dateParts.length === 3 ? dateParts[2] : "";
             const sMonth = (s.month || "").trim().toLowerCase();
-            const filterMonth = fMonth.trim().toLowerCase();
-
             return (!fYear || year === fYear) && 
-                   (!fMonth || sMonth === filterMonth) && 
+                   (!fMonth || sMonth === fMonth.toLowerCase()) && 
                    (!activeFilters.date || s.datums === activeFilters.date) && 
                    (!activeFilters.worker_name || s.darbinieks === activeFilters.worker_name);
         });
 
-        const totalDayHours = filteredSum.reduce((s, i) => s + parseFloat(i.stundas || 0), 0);
-        document.getElementById("totalDayHoursValue").innerText = totalDayHours.toFixed(2);
+        document.getElementById("totalDayHoursValue").innerText = filteredSum.reduce((s, i) => s + parseFloat(i.stundas || 0), 0).toFixed(2);
 
         let h3 = `<table><thead><tr>
             <th>Darbinieks<br><select class="header-filter" onchange="updateTableFilter('worker_name', this.value)">${getOptions('worker_name', 'darbinieks', daySummary)}</select></th>
@@ -457,6 +464,22 @@ document.getElementById("oilContainer").innerHTML = h2 + "</tbody></table>";
         document.getElementById("filterMonth").value = "";
         renderTables();
     };
+
+    async function clearTable(apiUrl) {
+        if (confirm("Uzmanību! Vai tiešām vēlaties PALIECOŠI IZDZĒST VISUS datus no šīs tabulas?")) {
+            try {
+                const response = await fetch(apiUrl, { method: 'DELETE' });
+                if (response.ok) {
+                    alert("Tabula veiksmīgi iztīrīta!");
+                    await loadData();
+                } else {
+                    alert("Kļūda dzēšot datus.");
+                }
+            } catch (err) {
+                console.error("Servera kļūda:", err);
+            }
+        }
+    }
     
     document.getElementById("logoutBtn").onclick = () => { 
         if(confirm("Izrakstīties?")) {
