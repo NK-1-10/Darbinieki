@@ -188,7 +188,7 @@ app.delete('/api/work-types/:name', async (req, res) => {
 // --- 4. DARBA GAITA UN ŽURNĀLĒŠANA (Schedule) ---
 app.get('/api/schedule', async (req, res) => {
     try {
-        const result = await pool.query('SELECT * FROM schedule ORDER BY id DESC');
+        const result = await pool.query("SELECT * FROM schedule ORDER BY TO_DATE(date, 'DD.MM.YYYY.') DESC, id DESC");
         res.json(result.rows);
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -208,7 +208,9 @@ app.post('/api/start-work', async (req, res) => {
             [worker_name, car, date, time, monthStr, objekts, darbs]
         );
         res.json({ success: true });
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) { 
+        res.status(500).json({ error: err.message }); 
+    }
 });
 
 app.post('/api/stop-work', async (req, res) => {
