@@ -182,6 +182,9 @@
             return; 
         }
 
+        // Definējam darbus, kurus darbinieka tabulā NErādīt
+        const exclusionList = ["Degvielas uzpilde", "Eļļas papildināšana", "Eļļas uzpilde"];
+
         let html = `<table>
             <thead>
                 <tr>
@@ -195,7 +198,18 @@
             </thead>
             <tbody>`;
 
-        data.slice().reverse().forEach(e => {
+        // Filtrējam datus, lai rādītu tikai reālu objektu darbu
+        const filteredData = data.filter(e => {
+            const darbaVeids = e.darbs || "";
+            return !exclusionList.includes(darbaVeids) && e.objekts && e.objekts !== "-";
+        });
+
+        if (filteredData.length === 0) {
+            container.innerHTML = "<p style='padding:15px;'>Nav veikto darbu ierakstu.</p>";
+            return;
+        }
+
+        filteredData.slice().reverse().forEach(e => {
             html += `<tr>
                 <td>${e.car || '-'}</td>
                 <td>${e.objekts || '-'}</td>
