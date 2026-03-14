@@ -231,10 +231,8 @@ app.post('/api/stop-work', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// --- LABOTS: Reģistrē resursu pieliešanu žurnālā ---
 app.post('/api/update-resources', async (req, res) => {
     const { worker_name, car, resource_name, resource_amount, type } = req.body;
-
     const tagad = new Date();
     const datums = tagad.toLocaleDateString('lv-LV');
     const laiks = tagad.toLocaleTimeString('lv-LV');
@@ -250,25 +248,9 @@ app.post('/api/update-resources', async (req, res) => {
             (worker_name, car, date, sākuma_laiks, month, resource_name, resource_amount, pielietā_eļļa, pielietā_degviela, darbs) 
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
         `;
-
-        await pool.query(query, [
-            worker_name, 
-            car, 
-            datums, 
-            laiks, 
-            monthStr,
-            resource_name,
-            resource_amount,
-            oilVal,
-            fuelVal,
-            type === 'Ella' ? 'Eļļas papildināšana' : 'Degvielas uzpilde'
-        ]);
-
+        await pool.query(query, [worker_name, car, datums, laiks, monthStr, resource_name, resource_amount, oilVal, fuelVal, type === 'Ella' ? 'Eļļas papildināšana' : 'Degvielas uzpilde']);
         res.json({ success: true });
-    } catch (err) {
-        console.error("Kļūda saglabājot resursus:", err);
-        res.status(500).json({ error: "Servera kļūda saglabājot resursus" });
-    }
+    } catch (err) { res.status(500).json({ error: "Servera kļūda saglabājot resursus" }); }
 });
 
 // --- 5. ATSKAITES (Darba stundas) ---
@@ -287,6 +269,38 @@ app.post('/api/darba-stundas', async (req, res) => {
             [darbinieks, datums, sāka_darbu, beidza_darbu, month, stundas]
         );
         res.status(200).send("OK");
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// --- 6. ADMIN PANELIS: TABULU IZTĪRĪŠANA (DELETE ALL) ---
+
+// Iztīrīt Darba Gaitas tabulu
+app.delete('/api/schedule', async (req, res) => {
+    try {
+        await pool.query('DELETE FROM schedule');
+        res.json({ success: true, message: "Visi darba gaitas dati izdzēsti." });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// Iztīrīt Patēriņa datus (Tiek dzēsti tikai ieraksti ar resursiem no schedule tabulas)
+app.delete('/api/fuel-logs', async (req, res) => {
+    try {
+        await pool.query(`
+            DELETE FROM schedule 
+            WHERE resource_name IS NOT NULL 
+            OR resource_amount IS NOT NULL 
+            OR pielietā_eļļa IS NOT NULL 
+            OR pielietā_degviela IS NOT NULL
+        `);
+        res.json({ success: true, message: "Visi patēriņa dati izdzēsti." });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// Iztīrīt Dienas Nostrādāto Laiku
+app.delete('/api/darba-stundas', async (req, res) => {
+    try {
+        await pool.query('DELETE FROM "darbastundas"');
+        res.json({ success: true, message: "Visi stundu dati izdzēsti." });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
