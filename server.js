@@ -50,7 +50,9 @@ app.post('/api/change-password', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// --- 2. RESURSU PĀRVALDĪBA ---
+// --- 2. RESURSU PĀRVALDĪBA (ADMIN) ---
+
+// Iegūt visus resursus
 app.get('/api/resource-types', async (req, res) => {
     try {
         const r = await pool.query("SELECT id, name, quantity FROM resource_types ORDER BY name ASC");
@@ -58,26 +60,59 @@ app.get('/api/resource-types', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-app.patch('/api/resource-types/:id', async (req, res) => {
-    const { id } = req.params;
-    const { action, amount } = req.body;
-    const litri = parseFloat(amount) || 0;
+// Pievienot JAUNU resursu veidu (piem. "AdBlue")
+app.post('/api/resource-types', async (req, res) => {
+    const { name, quantity } = req.body;
     try {
-        if (action === 'sub') {
-            await pool.query('UPDATE resource_types SET quantity = COALESCE(quantity, 0) - $1 WHERE id = $2', [litri, id]);
-        } else {
-            let query = action === 'add' ? 'UPDATE resource_types SET quantity = COALESCE(quantity, 0) + $1 WHERE id = $2' : 'UPDATE resource_types SET quantity = $1 WHERE id = $2';
-            await pool.query(query, [litri, id]);
-        }
+        await pool.query('INSERT INTO resource_types (name, quantity) VALUES ($1, $2)', [name, quantity || 0]);
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// --- 3. DARBINIEKI, AUTO, OBJEKTI ---
+// Dzēst resursa veidu
+app.delete('/api/resource-types/:name', async (req, res) => {
+    try {
+        await pool.query('DELETE FROM resource_types WHERE name = $1', [req.params.name]);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ATJAUNOT esošā resursa daudzumu (poga "OK" Admin panelī)
+app.post('/api/resource-stock', async (req, res) => {
+    const { name, change } = req.body;
+    try {
+        await pool.query(
+            'UPDATE resource_types SET quantity = COALESCE(quantity, 0) + $1 WHERE name = $2',
+            [parseFloat(change), name]
+        );
+        res.json({ success: true });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Servera kļūda atjaunojot krājumus" });
+    }
+});
+
+// --- 3. DARBINIEKI, AUTO, OBJEKTI, DARBI ---
+
 app.get('/api/workers', async (req, res) => {
     try {
         const r = await pool.query("SELECT name, temp_password, role FROM users WHERE role != 'admin' OR role IS NULL ORDER BY name ASC");
         res.json(r.rows);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/workers', async (req, res) => {
+    const { name } = req.body;
+    try {
+        await pool.query('INSERT INTO users (name, temp_password, role) VALUES ($1, $2, $3)', [name, '12345', 'worker']);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.delete('/api/workers/:name', async (req, res) => {
+    try {
+        await pool.query('DELETE FROM users WHERE name = $1', [req.params.name]);
+        res.json({ success: true });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -88,6 +123,20 @@ app.get('/api/cars', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+app.post('/api/cars', async (req, res) => {
+    try {
+        await pool.query('INSERT INTO cars (name) VALUES ($1)', [req.body.name]);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.delete('/api/cars/:name', async (req, res) => {
+    try {
+        await pool.query('DELETE FROM cars WHERE name = $1', [req.params.name]);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 app.get('/api/objects', async (req, res) => {
     try {
         const r = await pool.query("SELECT name FROM objects ORDER BY name ASC");
@@ -95,10 +144,38 @@ app.get('/api/objects', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+app.post('/api/objects', async (req, res) => {
+    try {
+        await pool.query('INSERT INTO objects (name) VALUES ($1)', [req.body.name]);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.delete('/api/objects/:name', async (req, res) => {
+    try {
+        await pool.query('DELETE FROM objects WHERE name = $1', [req.params.name]);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 app.get('/api/work-types', async (req, res) => {
     try {
         const r = await pool.query("SELECT name FROM work_types ORDER BY name ASC");
         res.json(r.rows.map(row => row.name));
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/work-types', async (req, res) => {
+    try {
+        await pool.query('INSERT INTO work_types (name) VALUES ($1)', [req.body.name]);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.delete('/api/work-types/:name', async (req, res) => {
+    try {
+        await pool.query('DELETE FROM work_types WHERE name = $1', [req.params.name]);
+        res.json({ success: true });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -195,40 +272,9 @@ app.delete('/api/schedule', async (req, res) => {
     catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// PIEVIENOT JAUNU DARBINIEKU
-app.post('/api/workers', async (req, res) => {
-    const { name } = req.body;
-    try {
-        // Izveidojam lietotāju ar pagaidu paroli '12345'
-        await pool.query('INSERT INTO users (name, temp_password, role) VALUES ($1, $2, $3)', [name, '12345', 'worker']);
-        res.json({ success: true });
-    } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-// PIEVIENOT JAUNU AUTO
-app.post('/api/cars', async (req, res) => {
-    const { name } = req.body;
-    try {
-        await pool.query('INSERT INTO cars (name) VALUES ($1)', [name]);
-        res.json({ success: true });
-    } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-// PIEVIENOT JAUNU OBJEKTU
-app.post('/api/objects', async (req, res) => {
-    const { name } = req.body;
-    try {
-        await pool.query('INSERT INTO objects (name) VALUES ($1)', [name]);
-        res.json({ success: true });
-    } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-// DZĒŠANAS MARŠRUTS (Universāls piemērs darbiniekiem)
-app.delete('/api/workers/:name', async (req, res) => {
-    try {
-        await pool.query('DELETE FROM users WHERE name = $1', [req.params.name]);
-        res.json({ success: true });
-    } catch (err) { res.status(500).json({ error: err.message }); }
+app.delete('/api/darba-stundas', async (req, res) => {
+    try { await pool.query('DELETE FROM "darbastundas"'); res.json({ success: true }); } 
+    catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 const PORT = process.env.PORT || 8080;
