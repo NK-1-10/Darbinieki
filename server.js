@@ -213,8 +213,11 @@ app.post('/api/start-work', async (req, res) => {
     const parts = start_time.split(' '); 
     const date = parts[0];
     const time = parts[1];
-    const months = ["Janvāris","Februāris","Marts","Aprīlis","Maijs","Jūnijs","Jūlijs","Augusts","Septembris","Oktobris","Novembris","Decembris"];
-    const monthStr = new Intl.DateTimeFormat('lv-LV', { month: 'long' }).format(new Date());
+    
+    // Sinhronizējam mēneša formātu
+    const tagad = new Date();
+    const monthRaw = tagad.toLocaleDateString('lv-LV', { month: 'long' });
+    const monthStr = monthRaw.charAt(0).toUpperCase() + monthRaw.slice(1);
 
     try {
         await pool.query(
@@ -248,38 +251,50 @@ app.post('/api/stop-work', async (req, res) => {
 });
 
 // Reģistrē resursu pieliešanu žurnālā
+// --- ATJAUNINĀTS: Reģistrē resursu pieliešanu žurnālā ---
 app.post('/api/update-resources', async (req, res) => {
-    const { worker_name, car, type, amount } = req.body;
-    const column = type === 'Ella' ? 'pielietā_eļļa' : 'pielietā_degviela';
+    const { worker_name, car, type, amount } = req.body; // 'type' tagad būs piem. "Eļļa1"
     const litri = parseFloat(amount) || 0;
     const tagad = new Date();
     const datums = tagad.toLocaleDateString('lv-LV');
     const laiks = tagad.toLocaleTimeString('lv-LV');
-    const months = ["Janvāris","Februāris","Marts","Aprīlis","Maijs","Jūnijs","Jūlijs","Augusts","Septembris","Oktobris","Novembris","Decembris"];
-    const monthStr = months[tagad.getMonth()];
+    
+    // Uzlabots mēneša formāts (Vienmēr pirmais burts lielais)
+    const monthRaw = tagad.toLocaleDateString('lv-LV', { month: 'long' });
+    const monthStr = monthRaw.charAt(0).toUpperCase() + monthRaw.slice(1);
 
     try {
+        // 1. Meklējam aktīvo darbu
         const activeJob = await pool.query(
             'SELECT id FROM schedule WHERE worker_name = $1 AND beigu_laiks IS NULL ORDER BY id DESC LIMIT 1',
             [worker_name]
         );
 
         if (activeJob.rows.length > 0) {
+            // Ja ir aktīvs darbs, papildinām informāciju par resursu
+            // Piezīme: Ja vienā darbā tiek pielieti vairāki resursi, 
+            // šis vienkāršotais modelis pārrakstīs pēdējo. 
+            // Labākai vēsturei mēs saglabājam nosaukumu un daudzumu.
             await pool.query(
                 `UPDATE schedule 
-                 SET "${column}" = (COALESCE(NULLIF("${column}", ''), '0')::numeric + $1)::text 
-                 WHERE id = $2`,
-                [litri, activeJob.rows[0].id]
+                 SET resource_name = $1, 
+                     resource_amount = $2
+                 WHERE id = $3`,
+                [type, litri, activeJob.rows[0].id]
             );
         } else {
+            // Ja nav aktīva darba, izveidojam jaunu ierakstu "Resursu papildināšana"
             await pool.query(
-                `INSERT INTO schedule (worker_name, car, date, sākuma_laiks, beigu_laiks, month, "${column}", darbs) 
-                 VALUES ($1, $2, $3, $4, $4, $5, $6, $7)`,
-                [worker_name, car, datums, laiks, monthStr, litri.toString(), type === 'Ella' ? 'Eļļas papildināšana' : 'Degvielas uzpilde']
+                `INSERT INTO schedule (worker_name, car, date, sākuma_laiks, beigu_laiks, month, resource_name, resource_amount, darbs) 
+                 VALUES ($1, $2, $3, $4, $4, $5, $6, $7, $8)`,
+                [worker_name, car, datums, laiks, monthStr, type, litri, `Papildināts: ${type}`]
             );
         }
         res.sendStatus(200);
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) { 
+        console.error(err);
+        res.status(500).json({ error: err.message }); 
+    }
 });
 
 // --- 5. ATSKAITES (Darba stundas) ---
