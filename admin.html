@@ -315,42 +315,54 @@
         document.getElementById("tableContainer").innerHTML = h1 + "</tbody></table>";
 
         // 2. TABULA (Dinamiskais Resursu Patēriņš)
-        // Šeit tiek rādīti dati no inventory_log (eļļa1, eļļa2 utt.)
-        const fuelData = filteredWork.filter(e => 
-            (e.resource_name && e.resource_amount) || 
-            (e.pielietā_eļļa && parseFloat(e.pielietā_eļļa) > 0) || 
-            (e.pielietā_degviela && parseFloat(e.pielietā_degviela) > 0)
-        );
+        // Atrodi vietu, kur tiek definēts h2 (otrā tabula)
+const fuelData = filteredWork.filter(e => 
+    (e.resource_name && e.resource_amount) || 
+    (parseFloat(e.pielietā_degviela) > 0) || 
+    (parseFloat(e.pielietā_eļļa) > 0)
+);
 
-        let h2 = `<table><thead><tr>
+let h2 = `<table>
+            <thead>
+                <tr>
                     <th>Datums</th>
                     <th>Darbinieks</th>
                     <th>Auto</th>
                     <th style="color: #b8860b;">Izmantotais Resurss</th>
                     <th style="color: #b8860b; text-align:right;">Daudzums (L)</th>
-                </tr></thead><tbody>`;
+                </tr>
+            </thead>
+            <tbody>`;
 
-        if (fuelData.length > 0) {
-            h2 += fuelData.map(e => {
-                // Prioritāte ir resource_name no datubāzes (piem., "Eļļa1"),
-                // ja tāda nav, izmantojam vispārīgu nosaukumu no vecajiem laukiem
-                const rName = e.resource_name || (parseFloat(e.pielietā_degviela) > 0 ? "Dīzeļdegviela" : "Eļļa");
-                const rAmount = e.resource_amount || e.pielietā_degviela || e.pielietā_eļļa || 0;
-
-                return `
-                <tr>
-                    <td>${e.date}</td>
-                    <td>${e.worker_name}</td>
-                    <td>${e.car}</td>
-                    <td style="font-weight: bold;">${rName}</td>
-                    <td class="gold-val" align="right">${rAmount} L</td>
-                </tr>`;
-            }).join("");
-            h2 += "</tbody></table>";
-        } else {
-            h2 = "<p style='padding:15px;'>Šajā periodā resursu patēriņš nav reģistrēts.</p>";
+if (fuelData.length > 0) {
+    h2 += fuelData.map(e => {
+        // 1. Prioritāte jaunajai kolonnai (Eļļa1, Eļļa2, Dīzeļdegviela)
+        // 2. Ja tās nav (vecie dati), pārbaudām vecās kolonnas
+        let rName = e.resource_name;
+        if (!rName) {
+            if (parseFloat(e.pielietā_degviela) > 0) rName = "Dīzeļdegviela";
+            else if (parseFloat(e.pielietā_eļļa) > 0) rName = "Eļļa";
+            else rName = "-";
         }
-        document.getElementById("oilContainer").innerHTML = h2;
+
+        // Paņemam daudzumu no jaunās vai vecajām kolonnām
+        const rAmount = e.resource_amount || e.pielietā_degviela || e.pielietā_eļļa || 0;
+
+        return `
+        <tr>
+            <td>${e.date}</td>
+            <td>${e.worker_name}</td>
+            <td>${e.car}</td>
+            <td style="font-weight: bold;">${rName}</td>
+            <td class="gold-val" align="right">${parseFloat(rAmount).toFixed(2)} L</td>
+        </tr>`;
+    }).join("");
+    h2 += "</tbody></table>";
+} else {
+    h2 = "<p style='padding:15px;'>Šajā periodā resursu patēriņš nav reģistrēts.</p>";
+}
+// Šeit tu ieliec ģenerēto HTML savā konteinerā, piemēram:
+document.getElementById("oilContainer").innerHTML = h2;
 
         // 3. TABULA (Dienas nostrādātais laiks)
         let filteredSum = daySummary.filter(s => {
@@ -373,21 +385,17 @@
     }
 
     function fillGlobalFilters() {
-        const populate = (id, mapper) => {
-            const select = document.getElementById(id);
-            const vals = [...new Set(schedule.map(item => {
-                const val = mapper(item);
-                if (!val) return "";
-                // Normalizējam mēnesi: Pirmais burts LIELAIS
-                return val.charAt(0).toUpperCase() + val.slice(1).toLowerCase();
-            }))].filter(Boolean).sort();
-            
-            select.innerHTML = '<option value="">Visi</option>' + 
-                               vals.map(v => `<option value="${v}">${v}</option>`).join("");
-        };
-        populate("filterYear", e => e.date ? e.date.split('.')[2] : "");
-        populate("filterMonth", e => e.month);
-    }
+    const populate = (id, mapper) => {
+        const select = document.getElementById(id);
+        // Paņemam vērtības, noņemam tukšumus un sakārtojam
+        const vals = [...new Set(schedule.map(item => mapper(item)))].filter(Boolean).sort();
+        
+        select.innerHTML = '<option value="">Visi</option>' + 
+                           vals.map(v => `<option value="${v}">${v}</option>`).join("");
+    };
+    populate("filterYear", e => e.date ? e.date.split('.')[2] : "");
+    populate("filterMonth", e => e.month); // Serveris jau sūta "Marts", nekas nav jāpārveido
+}
 
     async function modifyQty(id, action) {
         const input = document.getElementById(`qty-${id}`);
