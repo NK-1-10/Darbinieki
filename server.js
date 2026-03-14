@@ -33,6 +33,11 @@ app.post('/api/login', async (req, res) => {
     } catch (err) { res.status(500).json({ error: "Servera kļūda" }); }
 });
 
+app.get('/logout', (req, res) => {
+    // Ja tu izmanto piem. express-session, te varētu būt req.session.destroy();
+    res.redirect('/index.html'); // Vienkārši pāradresē atpakaļ uz sākumu
+});
+
 app.post('/api/change-password', async (req, res) => {
     const { username, newPassword } = req.body;
     try {
