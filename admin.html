@@ -236,7 +236,6 @@
         const workExclusion = ["Degvielas uzpilde", "Eļļas papildināšana", "Eļļas uzpilde"];
 
         // 1. MEKLĒJAM AKTĪVOS DARBUS
-        // Pārbaude: vai schedule ir ieraksts, kuram nav norādīts beigu laiks (stundas ir 0 vai nav)
         const hasActiveWork = (schedule && schedule.length > 0) ? schedule.some(e => 
             !workExclusion.includes(e.darbs) && 
             e.objekts && 
@@ -250,12 +249,11 @@
             if (hasActiveWork) {
                 btn.style.setProperty("display", "none", "important");
             } else {
-                // Rādām pogu TIKAI tad, ja nav aktīvu darbu UN dati vispār ir ielādēti
                 btn.style.setProperty("display", "block", "important");
             }
         });
 
-        // --- TABULU RENDERĒŠANA (Standarta) ---
+        // --- FILTRĒŠANA ---
         let filteredWork = schedule.filter(e => {
             const year = (e.date || "").split('.')[2] || "";
             const isWork = !workExclusion.includes(e.darbs) && e.objekts && e.objekts !== "-";
@@ -269,8 +267,17 @@
                 (!activeFilters.darbs || e.darbs === activeFilters.darbs);
         });
 
+        // --- KĀRTOŠANA (Jaunākie datumi augšā) ---
+        filteredWork.sort((a, b) => {
+            const da = a.date.split('.').reverse().join('-');
+            const db = b.date.split('.').reverse().join('-');
+            return db.localeCompare(da);
+        });
+
         document.getElementById("totalHoursValue").innerText = filteredWork.reduce((s, i) => s + parseFloat(i.hours || 0), 0).toFixed(2);
         const workDataForOptions = schedule.filter(x => !workExclusion.includes(x.darbs));
+        
+        // --- TABULAS RENDERĒŠANA ---
         document.getElementById("tableContainer").innerHTML = `<table><thead><tr>
             <th>Datums<br><select class="header-filter" onchange="syncFilter('date', this.value)">${getOptions('date', 'date', workDataForOptions)}</select></th>
             <th>Auto<br><select class="header-filter" onchange="syncFilter('car', this.value)">${getOptions('car', 'car', workDataForOptions)}</select></th>
@@ -279,7 +286,7 @@
             <th>Darbs<br><select class="header-filter" onchange="syncFilter('darbs', this.value)">${getOptions('darbs', 'darbs', workDataForOptions)}</select></th>
             <th style="text-align:right">Stundas</th>
         </tr></thead><tbody>` + 
-        (filteredWork.length ? filteredWork.slice().reverse().map(e => {
+        (filteredWork.length ? filteredWork.map(e => {
             const isError = parseFloat(e.hours) <= 0;
             return `<tr class="${isError ? 'error-row' : ''}">
                 <td>${e.date}</td><td>${e.car}</td><td>${e.worker_name}</td><td>${e.objekts}</td><td>${e.darbs}</td>
@@ -287,7 +294,6 @@
             </tr>`
         }).join("") : '<tr><td colspan="6" align="center">Nav datu</td></tr>') + "</tbody></table>";
 
-        // --- PĀRĒJĀS TABULAS (Fuel & Summary) ---
         renderFuelTable();
         renderSummaryTable();
     }
@@ -339,15 +345,33 @@
         }).join("") : '<tr><td colspan="5" align="center">Nav datu</td></tr>') + "</tbody></table>";
     }
 
+    const deleteResource = (n) => deleteItem('/api/resource-types', n);
     // --- API & SETTINGS (Iepriekšējā loģika) ---
     function renderSettings() {
-        const renderList = (id, data, deleteFn, nameKey = 'name') => {
-            const el = document.getElementById(id); if (!el) return;
-            el.innerHTML = data.map(item => `<li style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eee;"><span>${item[nameKey] || item}</span><button class="btn-del" onclick="${deleteFn}('${item[nameKey] || item}')">✖</button></li>`).join("");
-        };
-        renderList("carList", cars, "deleteCar"); renderList("workList", workTypes, "deleteWorkType"); renderList("objectList", objects, "deleteObject");
-        document.getElementById("workerList").innerHTML = workers.map(w => `<li style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eee;"><span><strong>${w.name}</strong></span><button class="btn-del" onclick="deleteWorker('${w.name}')">✖</button></li>`).join("");
-    }
+    const renderList = (id, data, deleteFn, nameKey = 'name') => {
+        const el = document.getElementById(id); 
+        if (!el) return;
+        // Pievienojam pārbaudi, vai dati vispār ir (masīvs nav tukšs)
+        el.innerHTML = data.map(item => `
+            <li style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eee;">
+                <span>${item[nameKey] || item}</span>
+                <button class="btn-del" onclick="${deleteFn}('${item[nameKey] || item}')">✖</button>
+            </li>`).join("");
+    };
+
+    renderList("carList", cars, "deleteCar"); 
+    renderList("workList", workTypes, "deleteWorkType"); 
+    renderList("objectList", objects, "deleteObject");
+    
+    // ŠĪS RINDAS TRŪKA:
+    renderList("resourceList", resourceTypes, "deleteResource"); 
+
+    document.getElementById("workerList").innerHTML = workers.map(w => `
+        <li style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eee;">
+            <span><strong>${w.name}</strong></span>
+            <button class="btn-del" onclick="deleteWorker('${w.name}')">✖</button>
+        </li>`).join("");
+}
 
     function updateGlobalFilterOptions() {
         const allDates = [...schedule.map(s => s.date), ...daySummary.map(d => d.datums)].filter(Boolean);
@@ -369,6 +393,40 @@
             if (res.ok) { alert("Dati izdzēsti!"); loadData(); }
         }
     }
+
+    async function addNewItem(url, promptMsg, extraData = {}) {
+    const name = prompt(`Ievadiet jaunu vērtību (${promptMsg}):`);
+    if (!name) return;
+    await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, ...extraData })
+    });
+    loadData();
+}
+
+async function addNewWorker() {
+    const name = prompt("Ievadiet darbinieka vārdu un uzvārdu:");
+    if (!name) return;
+    await fetch('/api/workers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name })
+    });
+    loadData();
+}
+
+async function deleteItem(url, name) {
+    if (!confirm(`Vai tiešām dzēst "${name}"?`)) return;
+    await fetch(`${url}/${encodeURIComponent(name)}`, { method: 'DELETE' });
+    loadData();
+}
+
+// Un definē pārējos shortcutus dzēšanai
+const deleteWorker = (n) => deleteItem('/api/workers', n);
+const deleteCar = (n) => deleteItem('/api/cars', n);
+const deleteWorkType = (n) => deleteItem('/api/work-types', n);
+const deleteObject = (n) => deleteItem('/api/objects', n);
 
     loadData();
 </script>
