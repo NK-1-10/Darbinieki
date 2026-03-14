@@ -13,6 +13,13 @@ const pool = new Pool({
     ssl: { rejectUnauthorized: false }
 });
 
+// Palīgfunkcija mēneša noteikšanai
+const getLatvianMonth = (dateStr) => {
+    const months = ["Janvāris","Februāris","Marts","Aprīlis","Maijs","Jūnijs","Jūlijs","Augusts","Septembris","Oktobris","Novembris","Decembris"];
+    const monthPart = parseInt(dateStr.split('.')[1]);
+    return months[monthPart - 1] || "Nezināms";
+};
+
 // --- 1. AUTENTIFIKĀCIJA ---
 app.post('/api/login', async (req, res) => {
     const { username, password } = req.body;
@@ -41,7 +48,7 @@ app.post('/api/change-password', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// --- 2. RESURSU PĀRVALDĪBA (Noliktava) ---
+// --- 2. RESURSU PĀRVALDĪBA ---
 app.get('/api/resource-types', async (req, res) => {
     try {
         const r = await pool.query("SELECT id, name, quantity FROM resource_types ORDER BY name ASC");
@@ -50,9 +57,8 @@ app.get('/api/resource-types', async (req, res) => {
 });
 
 app.post('/api/resource-types', async (req, res) => {
+    const { name } = req.body;
     try {
-        const { name } = req.body;
-        // Pievienojam 0 kā skaitli
         await pool.query('INSERT INTO resource_types (name, quantity) VALUES ($1, 0)', [name]);
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: err.message }); }
@@ -65,31 +71,25 @@ app.delete('/api/resource-types/:id', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// Atjaunina daudzumu ar drošības pārbaudi (neļauj mazāk par 0)
 app.patch('/api/resource-types/:id', async (req, res) => {
     const { id } = req.params;
     const { action, amount } = req.body;
     const litri = parseFloat(amount) || 0;
 
     try {
-        // Izmantojam COALESCE, lai NULL vietā dabūtu 0 jau no datubāzes puses
         const checkRes = await pool.query('SELECT name, COALESCE(quantity, 0) as quantity FROM resource_types WHERE id = $1', [id]);
-        
         if (checkRes.rows.length === 0) return res.status(404).json({ error: 'Resurss nav atrasts' });
         
         const currentQty = parseFloat(checkRes.rows[0].quantity);
 
         if (action === 'sub') {
-            if (currentQty < litri) {
-                return res.status(400).json({ error: `Noliktavā nav tik daudz! Pieejams: ${currentQty}L` });
-            }
+            if (currentQty < litri) return res.status(400).json({ error: `Noliktavā nav tik daudz! Pieejams: ${currentQty}L` });
+            
             const result = await pool.query(
-                'UPDATE resource_types SET quantity = COALESCE(quantity, 0) - $1 WHERE id = $2 RETURNING *',
-                [litri, id]
+                'UPDATE resource_types SET quantity = quantity - $1 WHERE id = $2 RETURNING *', [litri, id]
             );
             res.json(result.rows[0]);
         } else {
-            // Pievienojam COALESCE arī šeit
             let query = action === 'add' ? 
                 'UPDATE resource_types SET quantity = COALESCE(quantity, 0) + $1 WHERE id = $2 RETURNING *' : 
                 'UPDATE resource_types SET quantity = $1 WHERE id = $2 RETURNING *';
@@ -99,7 +99,7 @@ app.patch('/api/resource-types/:id', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// --- 3. DARBINIEKI, AUTO, OBJEKTI ---
+// --- 3. KONFIGURĀCIJA (DARBINIEKI, AUTO, OBJEKTI) ---
 app.get('/api/workers', async (req, res) => {
     try {
         const r = await pool.query("SELECT name, temp_password, role FROM users WHERE role != 'admin' OR role IS NULL ORDER BY name ASC");
@@ -122,72 +122,36 @@ app.delete('/api/workers/:name', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-app.get('/api/cars', async (req, res) => {
-    try {
-        const r = await pool.query("SELECT name FROM cars ORDER BY name ASC");
-        res.json(r.rows.map(row => row.name));
-    } catch (err) { res.status(500).json({ error: err.message }); }
-});
+// Kopējā funkcija vienkāršiem sarakstiem (cars, objects, work-types)
+const setupSimpleListRoutes = (route, table) => {
+    app.get(`/api/${route}`, async (req, res) => {
+        try {
+            const r = await pool.query(`SELECT name FROM ${table} ORDER BY name ASC`);
+            res.json(r.rows.map(row => row.name));
+        } catch (err) { res.status(500).json({ error: err.message }); }
+    });
+    app.post(`/api/${route}`, async (req, res) => {
+        try {
+            await pool.query(`INSERT INTO ${table} (name) VALUES ($1)`, [req.body.name]);
+            res.json({ success: true });
+        } catch (err) { res.status(500).json({ error: err.message }); }
+    });
+    app.delete(`/api/${route}/:name`, async (req, res) => {
+        try {
+            await pool.query(`DELETE FROM ${table} WHERE name = $1`, [req.params.name]);
+            res.json({ success: true });
+        } catch (err) { res.status(500).json({ error: err.message }); }
+    });
+};
 
-app.post('/api/cars', async (req, res) => {
-    try {
-        await pool.query('INSERT INTO cars (name) VALUES ($1)', [req.body.name]);
-        res.json({ success: true });
-    } catch (err) { res.status(500).json({ error: err.message }); }
-});
+setupSimpleListRoutes('cars', 'cars');
+setupSimpleListRoutes('objects', 'objects');
+setupSimpleListRoutes('work-types', 'work_types');
 
-app.delete('/api/cars/:name', async (req, res) => {
-    try {
-        await pool.query('DELETE FROM cars WHERE name = $1', [req.params.name]);
-        res.json({ success: true });
-    } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-app.get('/api/objects', async (req, res) => {
-    try {
-        const r = await pool.query("SELECT name FROM objects ORDER BY name ASC");
-        res.json(r.rows.map(row => row.name));
-    } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-app.post('/api/objects', async (req, res) => {
-    try {
-        await pool.query('INSERT INTO objects (name) VALUES ($1)', [req.body.name]);
-        res.json({ success: true });
-    } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-app.delete('/api/objects/:name', async (req, res) => {
-    try {
-        await pool.query('DELETE FROM objects WHERE name = $1', [req.params.name]);
-        res.json({ success: true });
-    } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-app.get('/api/work-types', async (req, res) => {
-    try {
-        const r = await pool.query("SELECT name FROM work_types ORDER BY name ASC");
-        res.json(r.rows.map(row => row.name));
-    } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-app.post('/api/work-types', async (req, res) => {
-    try {
-        await pool.query('INSERT INTO work_types (name) VALUES ($1)', [req.body.name]);
-        res.json({ success: true });
-    } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-app.delete('/api/work-types/:name', async (req, res) => {
-    try {
-        await pool.query('DELETE FROM work_types WHERE name = $1', [req.params.name]);
-        res.json({ success: true });
-    } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-// --- 4. DARBA GAITA UN ŽURNĀLĒŠANA (Schedule) ---
+// --- 4. DARBA GAITA UN ŽURNĀLĒŠANA ---
 app.get('/api/schedule', async (req, res) => {
     try {
+        // Sakārtojam pēc datuma hronoloģiski, izmantojot TO_DATE drošībai
         const result = await pool.query("SELECT * FROM schedule ORDER BY TO_DATE(date, 'DD.MM.YYYY.') DESC, id DESC");
         res.json(result.rows);
     } catch (err) { res.status(500).json({ error: err.message }); }
@@ -195,22 +159,16 @@ app.get('/api/schedule', async (req, res) => {
 
 app.post('/api/start-work', async (req, res) => {
     const { worker_name, car, start_time, objekts, darbs } = req.body;
-    const parts = start_time.split(' '); 
-    const date = parts[0];
-    const time = parts[1];
-    const months = ["Janvāris","Februāris","Marts","Aprīlis","Maijs","Jūnijs","Jūlijs","Augusts","Septembris","Oktobris","Novembris","Decembris"];
-    const monthStr = months[parseInt(date.split('.')[1]) - 1] || "Februāris";
+    const [date, time] = start_time.split(' '); 
+    const monthStr = getLatvianMonth(date);
 
     try {
         await pool.query(
-            `INSERT INTO schedule (worker_name, car, date, sākuma_laiks, month, objekts, darbs) 
-             VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+            `INSERT INTO schedule (worker_name, car, date, sākuma_laiks, month, objekts, darbs) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
             [worker_name, car, date, time, monthStr, objekts, darbs]
         );
         res.json({ success: true });
-    } catch (err) { 
-        res.status(500).json({ error: err.message }); 
-    }
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.post('/api/stop-work', async (req, res) => {
@@ -223,7 +181,7 @@ app.post('/api/stop-work', async (req, res) => {
             const [sh, sm, ss] = start.split(':').map(Number);
             const [eh, em, es] = timeOnly.split(':').map(Number);
             let diff = (eh * 3600 + em * 60 + es) - (sh * 3600 + sm * 60 + ss);
-            if (diff < 0) diff += 86400;
+            if (diff < 0) diff += 86400; // Gadījumam, ja darbs beidzas pēc pusnakts
             const hoursStr = (diff / 3600).toFixed(2);
             await pool.query(
                 'UPDATE schedule SET beigu_laiks=$1, hours=$2 WHERE worker_name=$3 AND beigu_laiks IS NULL',
@@ -234,34 +192,28 @@ app.post('/api/stop-work', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// Reģistrē resursu pieliešanu žurnālā
 app.post('/api/update-resources', async (req, res) => {
     const { worker_name, car, type, amount } = req.body;
     const column = type === 'Ella' ? 'pielietā_eļļa' : 'pielietā_degviela';
     const litri = parseFloat(amount) || 0;
     const tagad = new Date();
-    const datums = tagad.toLocaleDateString('lv-LV');
+    const datums = tagad.toLocaleDateString('lv-LV').replace(/\//g, '.');
     const laiks = tagad.toLocaleTimeString('lv-LV');
-    const months = ["Janvāris","Februāris","Marts","Aprīlis","Maijs","Jūnijs","Jūlijs","Augusts","Septembris","Oktobris","Novembris","Decembris"];
-    const monthStr = months[tagad.getMonth()];
+    const monthStr = getLatvianMonth(datums);
 
     try {
         const activeJob = await pool.query(
-            'SELECT id FROM schedule WHERE worker_name = $1 AND beigu_laiks IS NULL ORDER BY id DESC LIMIT 1',
-            [worker_name]
+            'SELECT id FROM schedule WHERE worker_name = $1 AND beigu_laiks IS NULL ORDER BY id DESC LIMIT 1', [worker_name]
         );
 
         if (activeJob.rows.length > 0) {
             await pool.query(
-                `UPDATE schedule 
-                 SET "${column}" = (COALESCE(NULLIF("${column}", ''), '0')::numeric + $1)::text 
-                 WHERE id = $2`,
+                `UPDATE schedule SET "${column}" = (COALESCE(NULLIF("${column}", ''), '0')::numeric + $1)::text WHERE id = $2`,
                 [litri, activeJob.rows[0].id]
             );
         } else {
             await pool.query(
-                `INSERT INTO schedule (worker_name, car, date, sākuma_laiks, beigu_laiks, month, "${column}", darbs) 
-                 VALUES ($1, $2, $3, $4, $4, $5, $6, $7)`,
+                `INSERT INTO schedule (worker_name, car, date, sākuma_laiks, beigu_laiks, month, "${column}", darbs) VALUES ($1, $2, $3, $4, $4, $5, $6, $7)`,
                 [worker_name, car, datums, laiks, monthStr, litri.toString(), type === 'Ella' ? 'Eļļas papildināšana' : 'Degvielas uzpilde']
             );
         }
@@ -269,10 +221,10 @@ app.post('/api/update-resources', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// --- 5. ATSKAITES (Darba stundas) ---
+// --- 5. ATSKAITES ---
 app.get('/api/darba-stundas', async (req, res) => {
     try {
-        const result = await pool.query('SELECT * FROM "darbastundas" ORDER BY id DESC');
+        const result = await pool.query('SELECT * FROM "darbastundas" ORDER BY TO_DATE(datums, "DD.MM.YYYY.") DESC');
         res.json(result.rows);
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
