@@ -13,7 +13,7 @@ const pool = new Pool({
     ssl: { rejectUnauthorized: false }
 });
 
-// Palīgfunkcija mēneša noteikšanai
+// Funkcija, kas pārvērš ciparu mēnesi uz Latviešu nosaukumu
 const getLatvianMonth = (dateStr) => {
     const months = ["Janvāris","Februāris","Marts","Aprīlis","Maijs","Jūnijs","Jūlijs","Augusts","Septembris","Oktobris","Novembris","Decembris"];
     const monthPart = parseInt(dateStr.split('.')[1]);
@@ -64,13 +64,6 @@ app.post('/api/resource-types', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-app.delete('/api/resource-types/:id', async (req, res) => {
-    try {
-        await pool.query('DELETE FROM resource_types WHERE id = $1', [req.params.id]);
-        res.json({ success: true });
-    } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
 app.patch('/api/resource-types/:id', async (req, res) => {
     const { id } = req.params;
     const { action, amount } = req.body;
@@ -84,22 +77,25 @@ app.patch('/api/resource-types/:id', async (req, res) => {
 
         if (action === 'sub') {
             if (currentQty < litri) return res.status(400).json({ error: `Noliktavā nav tik daudz! Pieejams: ${currentQty}L` });
-            
-            const result = await pool.query(
-                'UPDATE resource_types SET quantity = quantity - $1 WHERE id = $2 RETURNING *', [litri, id]
-            );
-            res.json(result.rows[0]);
+            await pool.query('UPDATE resource_types SET quantity = quantity - $1 WHERE id = $2', [litri, id]);
         } else {
             let query = action === 'add' ? 
-                'UPDATE resource_types SET quantity = COALESCE(quantity, 0) + $1 WHERE id = $2 RETURNING *' : 
-                'UPDATE resource_types SET quantity = $1 WHERE id = $2 RETURNING *';
-            const result = await pool.query(query, [litri, id]);
-            res.json(result.rows[0]);
+                'UPDATE resource_types SET quantity = COALESCE(quantity, 0) + $1 WHERE id = $2' : 
+                'UPDATE resource_types SET quantity = $1 WHERE id = $2';
+            await pool.query(query, [litri, id]);
         }
+        res.json({ success: true });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// --- 3. KONFIGURĀCIJA (DARBINIEKI, AUTO, OBJEKTI) ---
+app.delete('/api/resource-types/:id', async (req, res) => {
+    try {
+        await pool.query('DELETE FROM resource_types WHERE id = $1', [req.params.id]);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// --- 3. KONFIGURĀCIJA ---
 app.get('/api/workers', async (req, res) => {
     try {
         const r = await pool.query("SELECT name, temp_password, role FROM users WHERE role != 'admin' OR role IS NULL ORDER BY name ASC");
@@ -122,8 +118,8 @@ app.delete('/api/workers/:name', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// Kopējā funkcija vienkāršiem sarakstiem (cars, objects, work-types)
-const setupSimpleListRoutes = (route, table) => {
+// Palīgfunkcija vienkāršajiem sarakstiem
+const setupRoutes = (route, table) => {
     app.get(`/api/${route}`, async (req, res) => {
         try {
             const r = await pool.query(`SELECT name FROM ${table} ORDER BY name ASC`);
@@ -143,15 +139,14 @@ const setupSimpleListRoutes = (route, table) => {
         } catch (err) { res.status(500).json({ error: err.message }); }
     });
 };
-
-setupSimpleListRoutes('cars', 'cars');
-setupSimpleListRoutes('objects', 'objects');
-setupSimpleListRoutes('work-types', 'work_types');
+setupRoutes('cars', 'cars');
+setupRoutes('objects', 'objects');
+setupRoutes('work-types', 'work_types');
 
 // --- 4. DARBA GAITA UN ŽURNĀLĒŠANA ---
 app.get('/api/schedule', async (req, res) => {
     try {
-        // Sakārtojam pēc datuma hronoloģiski, izmantojot TO_DATE drošībai
+        // Šeit ir galvenais labojums kārtošanai:
         const result = await pool.query("SELECT * FROM schedule ORDER BY TO_DATE(date, 'DD.MM.YYYY.') DESC, id DESC");
         res.json(result.rows);
     } catch (err) { res.status(500).json({ error: err.message }); }
@@ -161,10 +156,9 @@ app.post('/api/start-work', async (req, res) => {
     const { worker_name, car, start_time, objekts, darbs } = req.body;
     const [date, time] = start_time.split(' '); 
     const monthStr = getLatvianMonth(date);
-
     try {
         await pool.query(
-            `INSERT INTO schedule (worker_name, car, date, sākuma_laiks, month, objekts, darbs) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+            'INSERT INTO schedule (worker_name, car, date, sākuma_laiks, month, objekts, darbs) VALUES ($1, $2, $3, $4, $5, $6, $7)',
             [worker_name, car, date, time, monthStr, objekts, darbs]
         );
         res.json({ success: true });
@@ -175,17 +169,17 @@ app.post('/api/stop-work', async (req, res) => {
     const { worker_name, end_time } = req.body;
     const timeOnly = end_time.split(' ')[1];
     try {
-        const active = await pool.query('SELECT sākuma_laiks FROM schedule WHERE worker_name=$1 AND beigu_laiks IS NULL', [worker_name]);
+        const active = await pool.query('SELECT id, sākuma_laiks FROM schedule WHERE worker_name=$1 AND beigu_laiks IS NULL ORDER BY id DESC LIMIT 1', [worker_name]);
         if (active.rows.length > 0) {
             const start = active.rows[0].sākuma_laiks;
             const [sh, sm, ss] = start.split(':').map(Number);
             const [eh, em, es] = timeOnly.split(':').map(Number);
             let diff = (eh * 3600 + em * 60 + es) - (sh * 3600 + sm * 60 + ss);
-            if (diff < 0) diff += 86400; // Gadījumam, ja darbs beidzas pēc pusnakts
+            if (diff < 0) diff += 86400;
             const hoursStr = (diff / 3600).toFixed(2);
             await pool.query(
-                'UPDATE schedule SET beigu_laiks=$1, hours=$2 WHERE worker_name=$3 AND beigu_laiks IS NULL',
-                [timeOnly, hoursStr, worker_name]
+                'UPDATE schedule SET beigu_laiks=$1, hours=$2 WHERE id=$3',
+                [timeOnly, hoursStr, active.rows[0].id]
             );
             res.json({ success: true });
         } else { res.status(404).json({ error: "Nav aktīva darba" }); }
@@ -197,7 +191,7 @@ app.post('/api/update-resources', async (req, res) => {
     const column = type === 'Ella' ? 'pielietā_eļļa' : 'pielietā_degviela';
     const litri = parseFloat(amount) || 0;
     const tagad = new Date();
-    const datums = tagad.toLocaleDateString('lv-LV').replace(/\//g, '.');
+    const datums = tagad.toLocaleDateString('lv-LV').replace(/\//g, '.') + (tagad.toLocaleDateString('lv-LV').endsWith('.') ? '' : '.');
     const laiks = tagad.toLocaleTimeString('lv-LV');
     const monthStr = getLatvianMonth(datums);
 
@@ -205,7 +199,6 @@ app.post('/api/update-resources', async (req, res) => {
         const activeJob = await pool.query(
             'SELECT id FROM schedule WHERE worker_name = $1 AND beigu_laiks IS NULL ORDER BY id DESC LIMIT 1', [worker_name]
         );
-
         if (activeJob.rows.length > 0) {
             await pool.query(
                 `UPDATE schedule SET "${column}" = (COALESCE(NULLIF("${column}", ''), '0')::numeric + $1)::text WHERE id = $2`,
@@ -224,19 +217,9 @@ app.post('/api/update-resources', async (req, res) => {
 // --- 5. ATSKAITES ---
 app.get('/api/darba-stundas', async (req, res) => {
     try {
-        const result = await pool.query('SELECT * FROM "darbastundas" ORDER BY TO_DATE(datums, "DD.MM.YYYY.") DESC');
+        // Arī šeit pieliku pareizu kārtošanu pēc datuma
+        const result = await pool.query('SELECT * FROM "darbastundas" ORDER BY TO_DATE(datums, "DD.MM.YYYY.") DESC, id DESC');
         res.json(result.rows);
-    } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-app.post('/api/darba-stundas', async (req, res) => {
-    const { darbinieks, datums, sāka_darbu, beidza_darbu, month, stundas } = req.body;
-    try {
-        await pool.query(
-            'INSERT INTO "darbastundas" (darbinieks, datums, sāka_darbu, beidza_darbu, month, stundas) VALUES ($1, $2, $3, $4, $5, $6)',
-            [darbinieks, datums, sāka_darbu, beidza_darbu, month, stundas]
-        );
-        res.status(200).send("OK");
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
