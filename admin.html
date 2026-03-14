@@ -338,29 +338,39 @@
 
         // 2. TABULA (Resursu Patēriņš)
         const fuelData = filteredWork.filter(e => 
-            (e.resource_name && e.resource_amount) || 
-            (parseFloat(e.pielietā_degviela) > 0) || 
-            (parseFloat(e.pielietā_eļļa) > 0)
-        );
+    (e.resource_name && e.resource_amount) || 
+    (parseFloat(e.pielietā_degviela) > 0) || 
+    (parseFloat(e.pielietā_eļļa) > 0)
+);
 
-        let h2 = `<table><thead><tr><th>Datums</th><th>Darbinieks</th><th>Auto</th><th style="color: #b8860b;">Resurss</th><th style="color: #b8860b; text-align:right;">Daudzums (L)</th></tr></thead><tbody>`;
-        if (fuelData.length > 0) {
-            h2 += fuelData.map(e => {
-                let rName = e.resource_name;
-                if (!rName) {
-                    if (parseFloat(e.pielietā_degviela) > 0) rName = "Dīzeļdegviela";
-                    else if (parseFloat(e.pielietā_eļļa) > 0) rName = "Eļļa";
-                    else rName = "-";
-                }
-                const rAmount = e.resource_amount || e.pielietā_degviela || e.pielietā_eļļa || 0;
-                return `<tr><td>${e.date}</td><td>${e.worker_name}</td><td>${e.car}</td><td style="font-weight: bold;">${rName}</td><td class="gold-val" align="right">${parseFloat(rAmount).toFixed(2)} L</td></tr>`;
-            }).join("");
-            h2 += "</tbody></table>";
-        } else {
-            h2 = "<p style='padding:15px;'>Šajā periodā resursu patēriņš nav reģistrēts.</p>";
+let h2 = `<table><thead><tr><th>Datums</th><th>Darbinieks</th><th>Auto</th><th style="color: #b8860b;">Resurss</th><th style="color: #b8860b; text-align:right;">Daudzums (L)</th></tr></thead><tbody>`;
+
+h2 += fuelData.map(e => {
+    // 1. Prioritāte: Jaunā sistēma (resource_name kolonna)
+    let rName = e.resource_name;
+    let rAmount = e.resource_amount;
+
+    // 2. Rezerves variants: Vecā sistēma (jaunās kolonnas ir tukšas)
+    if (!rName) {
+        if (parseFloat(e.pielietā_degviela) > 0) {
+            rName = "Dīzeļdegviela";
+            rAmount = e.pielietā_degviela;
+        } else if (parseFloat(e.pielietā_eļļa) > 0) {
+            rName = "Eļļa";
+            rAmount = e.pielietā_eļļa;
         }
-        document.getElementById("oilContainer").innerHTML = h2;
+    }
 
+    return `<tr>
+        <td>${e.date}</td>
+        <td>${e.worker_name}</td>
+        <td>${e.car}</td>
+        <td style="font-weight: bold;">${rName || '-'}</td>
+        <td class="gold-val" align="right">${parseFloat(rAmount || 0).toFixed(2)} L</td>
+    </tr>`;
+}).join("");
+
+        
         // 3. TABULA (Dienas nostrādātais laiks) - AR FILTRIEM
         let h3 = `<table><thead><tr>
             <th>Darbinieks<br><select class="header-filter" onchange="updateTableFilter('worker_name', this.value)">${getOptions('worker_name', 'darbinieks', daySummary)}</select></th>
