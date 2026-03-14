@@ -271,8 +271,11 @@
 
         let filteredWork = schedule.filter(e => {
             const year = e.date ? e.date.split('.')[2] : "";
+            // Reģistrjutības ignorēšana mēnešiem
+            const monthMatches = !fMonth || (e.month && e.month.toLowerCase() === fMonth.toLowerCase());
+            
             return (!fYear || year === fYear) &&
-                   (!fMonth || e.month === fMonth) &&
+                   monthMatches &&
                    (!activeFilters.date || e.date === activeFilters.date) &&
                    (!activeFilters.car || e.car === activeFilters.car) &&
                    (!activeFilters.worker_name || e.worker_name === activeFilters.worker_name) &&
@@ -308,7 +311,7 @@
                 <td>${e.worker_name}</td>
                 <td>${e.objekts}</td>
                 <td>${e.darbs}</td>
-                <td align="right" style="font-weight:bold">${parseFloat(e.hours).toFixed(2)}</td>
+                <td align="right" style="font-weight:bold">${parseFloat(e.hours || 0).toFixed(2)}</td>
             </tr>`).join("");
         document.getElementById("tableContainer").innerHTML = h1 + "</tbody></table>";
 
@@ -318,17 +321,18 @@
         h2 += fuelData.map(e => `<tr><td>${e.date}</td><td>${e.worker_name}</td><td>${e.car}</td><td class="gold-val">${e.pielietā_eļļa || 0} L</td><td class="gold-val">${e.pielietā_degviela || 0} L</td></tr>`).join("");
         document.getElementById("oilContainer").innerHTML = fuelData.length ? h2 + "</tbody></table>" : "<p style='padding:15px;'>Nav datu par patēriņu</p>";
 
-        // 3. TABULA
+        // 3. TABULA (Dienas nostrādātais laiks)
         let filteredSum = daySummary.filter(s => {
             const year = s.datums ? s.datums.split('.')[2] : "";
+            const monthMatches = !fMonth || (s.month && s.month.toLowerCase() === fMonth.toLowerCase());
             return (!fYear || year === fYear) && 
-                   (!fMonth || s.month === fMonth) && 
+                   monthMatches && 
                    (!activeFilters.worker_name || s.darbinieks === activeFilters.worker_name);
         });
         filteredSum.sort((a, b) => b.datums.split('.').reverse().join('-').localeCompare(a.datums.split('.').reverse().join('-')));
 
         let h3 = `<table><thead><tr><th>Darbinieks</th><th>Datums</th><th>Sākums</th><th>Beigas</th><th style="text-align:right">Kopā</th></tr></thead><tbody>`;
-        h3 += filteredSum.map(s => `<tr class="${s.stundas > 12 ? 'overtime' : ''}"><td>${s.darbinieks}</td><td>${s.datums}</td><td>${s.sāka_darbu}</td><td>${s.beidza_darbu}</td><td align="right"><strong>${parseFloat(s.stundas).toFixed(2)} h</strong></td></tr>`).join("");
+        h3 += filteredSum.map(s => `<tr class="${s.stundas > 12 ? 'overtime' : ''}"><td>${s.darbinieks}</td><td>${s.datums}</td><td>${s.sāka_darbu || '-'}</td><td>${s.beidza_darbu || '-'}</td><td align="right"><strong>${parseFloat(s.stundas || 0).toFixed(2)} h</strong></td></tr>`).join("");
         document.getElementById("summaryTableContainer").innerHTML = h3 + "</tbody></table>";
     }
 
@@ -340,10 +344,17 @@
     function fillGlobalFilters() {
         const populate = (id, mapper) => {
             const select = document.getElementById(id);
-            const vals = [...new Set(schedule.map(mapper))].filter(Boolean).sort();
-            select.innerHTML = '<option value="">Visi</option>' + vals.map(v => `<option value="${v}">${v}</option>`).join("");
+            // Standartizējam mēnešu rakstību uz "Lielais sākumburts + mazie burti"
+            const vals = [...new Set(schedule.map(item => {
+                const val = mapper(item);
+                if (!val) return "";
+                return val.charAt(0).toUpperCase() + val.slice(1).toLowerCase();
+            }))].filter(Boolean).sort();
+            
+            select.innerHTML = '<option value="">Visi</option>' + 
+                              vals.map(v => `<option value="${v}">${v}</option>`).join("");
         };
-        populate("filterYear", e => e.date.split('.')[2]);
+        populate("filterYear", e => e.date ? e.date.split('.')[2] : "");
         populate("filterMonth", e => e.month);
     }
 
@@ -410,6 +421,7 @@
     document.getElementById("logoutBtn").onclick = () => { 
         if(confirm("Izrakstīties?")) {
             localStorage.removeItem("loggedInUser");
+            // Norādām tiešo ceļu uz sākumlapu
             window.location.href = "index.html";
         } 
     };
