@@ -141,6 +141,12 @@
 
     document.getElementById("welcome").textContent = `Darbinieks: ${user.name}`;
 
+    // --- PALĪGFUNKCIJAS LAIKAM ---
+    function getLatvianMonth() {
+        const months = ["Janvāris", "Februāris", "Marts", "Aprīlis", "Maijs", "Jūnijs", "Jūlijs", "Augusts", "Septembris", "Oktobris", "Novembris", "Decembris"];
+        return months[new Date().getMonth()];
+    }
+
     async function loadWorkerData() {
         try {
             const [cRes, oRes, wRes, sRes, rRes] = await Promise.all([
@@ -162,17 +168,17 @@
             resModalSelect.innerHTML = '<option value="">-- Ko Tu lej? --</option>' + 
                 resources.map(r => `<option value="${r.id}">${r.name} (Pieejams: ${r.quantity}L)</option>`).join("");
 
-            // Atrod ierakstu bez beigu laika, bet IZSLĒDZ degvielas/eļļas ierakstus
-const activeJob = allSchedule.find(e => 
-    e.worker_name === user.name && 
-    !e["beigu_laiks"] && 
-    e.darbs !== "Degvielas uzpilde" && 
-    e.darbs !== "Eļļas papildināšana"
-);
+            // Atrod aktīvo darbu, neņemot vērā degvielu
+            const activeJob = allSchedule.find(e => 
+                e.worker_name === user.name && 
+                !e["beigu_laiks"] && 
+                e.darbs !== "Degvielas uzpilde" && 
+                e.darbs !== "Eļļas papildināšana"
+            );
+
             const shiftStartTime = localStorage.getItem(`shift_start_${user.name}`);
             const isShiftStarted = !!shiftStartTime;
 
-            // 1. RĀDĪT MAIŅAS SĀKUMU (Ieradies darbā)
             const shiftDisplay = document.getElementById("shiftStartTimeDisplay");
             if (isShiftStarted) {
                 const sDate = new Date(shiftStartTime);
@@ -181,7 +187,6 @@ const activeJob = allSchedule.find(e =>
                 shiftDisplay.textContent = "";
             }
 
-            // 2. RĀDĪT KONKRĒTĀ DARBA SĀKUMU
             const workTimeDisplay = document.getElementById("workStartTimeDisplay");
             if (activeJob) {
                 document.getElementById("status").innerHTML = `Strādā: <b>${activeJob.objekts}</b>`;
@@ -250,53 +255,53 @@ const activeJob = allSchedule.find(e =>
         container.innerHTML = html;
     }
 
-    document.getElementById("OpenResourceBtn").onclick = () => {
-        document.getElementById("modalCarSelect").innerHTML = document.getElementById("car").innerHTML;
-        document.getElementById("resourceModal").style.display = "flex";
-    };
-
-    document.getElementById("modalCancel").onclick = () => {
-        document.getElementById("resourceModal").style.display = "none";
-    };
-
-    document.getElementById("modalSave").onclick = async () => {
-        const resourceId = document.getElementById("modalResourceSelect").value;
-        const fullOptionText = document.getElementById("modalResourceSelect").selectedOptions[0].text;
-        const resourceName = fullOptionText.split(' (')[0]; 
-        const auto = document.getElementById("modalCarSelect").value;
-        const litri = parseFloat(document.getElementById("modalAmountInput").value);
-
-        if (!resourceId || !auto || isNaN(litri) || litri <= 0) return alert("Aizpildi laukus!");
-
-        try {
-            await fetch(`/api/resource-types/${resourceId}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'sub', amount: litri })
-            });
-            await fetch('/api/update-resources', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ worker_name: user.name, car: auto, resource_name: resourceName, resource_amount: litri })
-            });
-            document.getElementById("resourceModal").style.display = "none";
-            alert(`Reģistrēts: ${resourceName} (${litri} L)`);
-            loadWorkerData();
-        } catch (err) { alert("Kļūda!"); }
-    };
-
     // POGA: SĀKT DARBA DIENU
     document.getElementById("AtWork").onclick = () => {
         const now = new Date();
         localStorage.setItem(`shift_start_${user.name}`, now.toISOString());
-        loadWorkerData(); // Pārlādējam datus, lai laiks parādās
+        loadWorkerData();
     };
 
-    // POGA: BEIGT DARBA DIENU
+    // --- SVARĪGĀKAIS LABOJUMS: BEIGT DARBA DIENU ---
     document.getElementById("LeaveWork").onclick = async () => {
-        if (!confirm("Beigt darba dienu?")) return;
-        localStorage.removeItem(`shift_start_${user.name}`);
-        window.location.reload();
+        const shiftStartISO = localStorage.getItem(`shift_start_${user.name}`);
+        if (!shiftStartISO) return;
+
+        if (!confirm("Beigt darba dienu un saglabāt stundas?")) return;
+
+        const now = new Date();
+        const start = new Date(shiftStartISO);
+        
+        // Aprēķinām stundas
+        const diffMs = now - start;
+        const totalHours = (diffMs / (1000 * 60 * 60)).toFixed(2);
+
+        try {
+            // Sūtām datus uz kopsavilkuma tabulu (darbastundas)
+            const response = await fetch('/api/darba-stundas', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    darbinieks: user.name,
+                    datums: now.toLocaleDateString('lv-LV'),
+                    sāka_darbu: start.toLocaleTimeString('lv-LV', {hour: '2-digit', minute:'2-digit', second:'2-digit'}),
+                    beidza_darbu: now.toLocaleTimeString('lv-LV', {hour: '2-digit', minute:'2-digit', second:'2-digit'}),
+                    month: getLatvianMonth(),
+                    stundas: totalHours
+                })
+            });
+
+            if (response.ok) {
+                localStorage.removeItem(`shift_start_${user.name}`);
+                alert(`Darba diena beigta. Kopā: ${totalHours} h`);
+                window.location.reload();
+            } else {
+                alert("Kļūda saglabājot stundas!");
+            }
+        } catch (err) {
+            console.error(err);
+            alert("Servera savienojuma kļūda!");
+        }
     };
 
     // POGA: SĀKT KONKRĒTU DARBU
@@ -332,6 +337,48 @@ const activeJob = allSchedule.find(e =>
             })
         });
         loadWorkerData();
+    };
+
+    // --- RESURSU MODĀLIS ---
+    document.getElementById("OpenResourceBtn").onclick = () => {
+        document.getElementById("modalCarSelect").innerHTML = document.getElementById("car").innerHTML;
+        document.getElementById("resourceModal").style.display = "flex";
+    };
+
+    document.getElementById("modalCancel").onclick = () => {
+        document.getElementById("resourceModal").style.display = "none";
+    };
+
+    document.getElementById("modalSave").onclick = async () => {
+        const resourceId = document.getElementById("modalResourceSelect").value;
+        const fullOptionText = document.getElementById("modalResourceSelect").selectedOptions[0].text;
+        const resourceName = fullOptionText.split(' (')[0]; 
+        const auto = document.getElementById("modalCarSelect").value;
+        const litri = parseFloat(document.getElementById("modalAmountInput").value);
+
+        if (!resourceId || !auto || isNaN(litri) || litri <= 0) return alert("Aizpildi laukus!");
+
+        try {
+            await fetch(`/api/resource-types/${resourceId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'sub', amount: litri })
+            });
+            await fetch('/api/update-resources', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    worker_name: user.name, 
+                    car: auto, 
+                    resource_name: resourceName, 
+                    resource_amount: litri,
+                    type: resourceName.includes("Degviela") ? "Degviela" : "Ella"
+                })
+            });
+            document.getElementById("resourceModal").style.display = "none";
+            alert(`Reģistrēts: ${resourceName} (${litri} L)`);
+            loadWorkerData();
+        } catch (err) { alert("Kļūda!"); }
     };
 
     function fillSelect(selectEl, data, defaultText) {
