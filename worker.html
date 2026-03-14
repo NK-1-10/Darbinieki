@@ -327,25 +327,54 @@
     }
 
     function renderTable(data) {
-        if (!data || !data.length) { 
-            tableContainer.innerHTML = "<p style='padding:15px;'>Nav ierakstu.</p>"; 
-            return; 
-        }
-        let html = `<table><tr><th>Auto</th><th>Objekts</th><th>Darbs</th><th>Sākums</th><th>Beigas</th><th>Eļļa</th><th>Degv.</th><th>Stundas</th></tr>`;
-        data.slice().reverse().forEach(e => {
-            html += `<tr>
-                <td>${e.car || '-'}</td>
-                <td>${e.objekts || '-'}</td>
-                <td>${e.darbs || '-'}</td>
-                <td>${e["sākuma_laiks"] || '-'}</td>
-                <td>${e["beigu_laiks"] || 'Aktīvs'}</td>
-                <td class="oil-text">${e["pielietā_eļļa"] || 0} L</td>
-                <td class="fuel-text">${e["pielietā_degviela"] || 0} L</td>
-                <td>${e.hours ? e.hours + ' h' : '-'}</td>
-            </tr>`;
-        });
-        tableContainer.innerHTML = html + "</table>";
+    const container = document.getElementById("tableContainer"); // Pārliecināmies, ka konteiners ir definēts
+    if (!data || !data.length) { 
+        container.innerHTML = "<p style='padding:15px;'>Nav ierakstu.</p>"; 
+        return; 
     }
+
+    let html = `<table>
+        <thead>
+            <tr>
+                <th>Auto</th>
+                <th>Objekts</th>
+                <th>Darbs</th>
+                <th>Sākums</th>
+                <th>Beigas</th>
+                <th>Eļļa</th>
+                <th>Degv.</th>
+                <th>Stundas</th>
+            </tr>
+        </thead>
+        <tbody>`;
+
+    data.slice().reverse().forEach(e => {
+        // Izmantojam kvadrātiekavas, lai piekļūtu datiem ar speciālajiem simboliem
+        // un COALESCE loģiku (|| 0 vai || '-'), lai nebūtu tukšumu
+        const car = e.car || '-';
+        const objekts = e.objekts || '-';
+        const darbs = e.darbs || '-';
+        const sakums = e["sākuma_laiks"] || '-';
+        const beigas = e["beigu_laiks"] || 'Aktīvs';
+        const ella = e["pielietā_eļļa"] || 0;
+        const degviela = e["pielietā_degviela"] || 0;
+        const stundas = e.hours ? e.hours + ' h' : '-';
+
+        html += `<tr>
+            <td>${car}</td>
+            <td>${objekts}</td>
+            <td>${darbs}</td>
+            <td>${sakums}</td>
+            <td>${beigas}</td>
+            <td class="oil-text">${ella} L</td>
+            <td class="fuel-text">${degviela} L</td>
+            <td>${stundas}</td>
+        </tr>`;
+    });
+
+    html += `</tbody></table>`;
+    container.innerHTML = html;
+}
 
     document.getElementById("logoutBtn").onclick = () => {
         localStorage.removeItem("loggedInUser");
