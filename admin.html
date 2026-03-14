@@ -249,14 +249,17 @@
 
         // Resursu noliktava
         document.getElementById("resourceList").innerHTML = resourceTypes.map(r => `
-            <li style="padding:10px; border:1px solid #eee; border-radius:8px; margin-bottom:10px; background:#fafafa;">
-                <div style="margin-bottom:8px;"><strong>${r.name}</strong>: <span class="gold-val">${r.quantity || 0} L</span></div>
-                <div style="display:flex; gap:5px;">
-                    <input type="number" id="qty-${r.id}" placeholder="L">
-                    <button onclick="modifyQty(${r.id}, 'add')" style="background:var(--success-green); color:white; padding:5px 10px;">+</button>
-                    <button onclick="modifyQty(${r.id}, 'sub')" style="background:var(--danger-red); color:white; padding:5px 10px;">-</button>
-                </div>
-            </li>`).join("");
+    <li style="padding:10px; border:1px solid #eee; border-radius:8px; margin-bottom:10px; background:#fafafa; list-style:none;">
+        <div style="margin-bottom:8px;">
+            <strong>${r.name}</strong>: <span class="gold-val" id="display-qty-${r.id}">${r.quantity || 0} L</span>
+        </div>
+        <div style="display:flex; gap:5px; align-items: center;">
+            <input type="number" id="qty-${r.id}" placeholder="L" style="width: 80px; padding: 5px;">
+            <button onclick="modifyQty('${r.id}', 'add')" style="background:#28a745; color:white; padding:5px 12px; border-radius:4px;">+</button>
+            <button onclick="modifyQty(${r.id}, 'sub')" style="background:#dc3545; color:white; padding:5px 12px; border-radius:4px;">-</button>
+            <button class="btn-del" onclick="deleteResourceType(${r.id})" style="margin-left: 10px;">✖</button>
+        </div>
+    </li>`).join("");
     }
 
     // --- TABULU RENDERĒŠANA ---
@@ -331,18 +334,42 @@
     }
 
     async function modifyQty(id, action) {
-        const input = document.getElementById(`qty-${id}`);
-        const amount = parseFloat(input.value);
-        if (!amount || amount <= 0) return alert("Ievadiet daudzumu!");
+    const input = document.getElementById(`qty-${id}`);
+    const amount = parseFloat(input.value);
 
-        const res = await fetch(`/api/resource-types/${id}`, {
-            method: 'PATCH',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ action, amount })
-        });
-        
-        if (res.ok) { loadData(); } else { alert("Kļūda (pārbaudiet atlikumu)"); }
+    if (isNaN(amount) || amount <= 0) {
+        alert("Lūdzu, ievadiet derīgu skaitli!");
+        return;
     }
+
+    console.log(`Mēģina mainīt resursu ${id}, darbība: ${action}, daudzums: ${amount}`);
+
+    try {
+        const response = await fetch(`/api/resource-types/${id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                action: action, 
+                amount: amount 
+            })
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            // Notīrām ievades lauku
+            input.value = "";
+            // Svarīgi: Pārlādējam datus, lai redzētu jauno skaitli visur
+            await loadData(); 
+            console.log("Dati veiksmīgi atjaunināti");
+        } else {
+            alert(result.error || "Servera kļūda: Neizdevās atjaunināt resursu.");
+        }
+    } catch (err) {
+        console.error("Savienojuma kļūda:", err);
+        alert("Neizdevās sazināties ar serveri.");
+    }
+}
 
     function fillFilters() {
         const populate = (id, key, mapper) => {
