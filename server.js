@@ -199,7 +199,7 @@ app.post('/api/start-work', async (req, res) => {
     const date = parts[0];
     const time = parts[1];
     const months = ["Janvāris","Februāris","Marts","Aprīlis","Maijs","Jūnijs","Jūlijs","Augusts","Septembris","Oktobris","Novembris","Decembris"];
-    const monthStr = months[parseInt(date.split('.')[1]) - 1] || "Februāris";
+    const monthStr = new Intl.DateTimeFormat('lv-LV', { month: 'long' }).format(new Date());
 
     try {
         await pool.query(
