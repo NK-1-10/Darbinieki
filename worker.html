@@ -12,6 +12,7 @@
             --bg-light: #f4f6f1;
             --white: #ffffff;
             --success: #27ae60;
+            --error: #e74c3c;
         }
 
         body { 
@@ -90,11 +91,8 @@
 <body>
     <div class="card">
         <h2 id="welcome"></h2>
-        
         <div id="shiftStartTimeDisplay" class="time-label shift-time"></div>
-        
         <div id="status">Statuss: Gaidīšana</div>
-        
         <div id="workStartTimeDisplay" class="time-label work-time"></div>
 
         <div>
@@ -121,10 +119,14 @@
             <h3 style="margin-top:0;">Pievienot resursu</h3>
             <label>Ko Tu lej?</label>
             <select id="modalResourceSelect"></select>
+            
             <label>Kurā mašīnā?</label>
             <select id="modalCarSelect"></select>
+            
+            <label id="availableLabel" style="font-size: 0.85rem; color: var(--saulstari-gray);"></label>
             <label>Daudzums (L):</label>
-            <input type="number" id="modalAmountInput" step="0.1">
+            <input type="number" id="modalAmountInput" step="0.1" min="0.1" placeholder="Ievadi litrus">
+            
             <div style="display:flex; gap:10px; margin-top:15px;">
                 <button id="modalCancel" style="flex:1; background:#6c757d; color:white;">Atcelt</button>
                 <button id="modalSave" style="flex:1; background:var(--success); color:white;">Saglabāt</button>
@@ -141,7 +143,6 @@
 
     document.getElementById("welcome").textContent = `Darbinieks: ${user.name}`;
 
-    // --- PALĪGFUNKCIJAS LAIKAM ---
     function getLatvianMonth() {
         const months = ["Janvāris", "Februāris", "Marts", "Aprīlis", "Maijs", "Jūnijs", "Jūlijs", "Augusts", "Septembris", "Oktobris", "Novembris", "Decembris"];
         return months[new Date().getMonth()];
@@ -164,11 +165,11 @@
             fillSelect(document.getElementById("object"), objects, "-- Izvēlies objektu --");
             fillSelect(document.getElementById("work"), workTypes, "-- Izvēlies darba veidu --");
 
+            // Noliktavas resursu ielāde
             const resModalSelect = document.getElementById("modalResourceSelect");
             resModalSelect.innerHTML = '<option value="">-- Ko Tu lej? --</option>' + 
-                resources.map(r => `<option value="${r.id}">${r.name} (Pieejams: ${r.quantity}L)</option>`).join("");
+                resources.map(r => `<option value="${r.id}" data-qty="${r.quantity}">${r.name} (Pieejams: ${r.quantity}L)</option>`).join("");
 
-            // Atrod aktīvo darbu, neņemot vērā degvielu
             const activeJob = allSchedule.find(e => 
                 e.worker_name === user.name && 
                 !e["beigu_laiks"] && 
@@ -255,29 +256,23 @@
         container.innerHTML = html;
     }
 
-    // POGA: SĀKT DARBA DIENU
     document.getElementById("AtWork").onclick = () => {
         const now = new Date();
         localStorage.setItem(`shift_start_${user.name}`, now.toISOString());
         loadWorkerData();
     };
 
-    // --- SVARĪGĀKAIS LABOJUMS: BEIGT DARBA DIENU ---
     document.getElementById("LeaveWork").onclick = async () => {
         const shiftStartISO = localStorage.getItem(`shift_start_${user.name}`);
         if (!shiftStartISO) return;
-
         if (!confirm("Beigt darba dienu un saglabāt stundas?")) return;
 
         const now = new Date();
         const start = new Date(shiftStartISO);
-        
-        // Aprēķinām stundas
         const diffMs = now - start;
         const totalHours = (diffMs / (1000 * 60 * 60)).toFixed(2);
 
         try {
-            // Sūtām datus uz kopsavilkuma tabulu (darbastundas)
             const response = await fetch('/api/darba-stundas', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -298,19 +293,14 @@
             } else {
                 alert("Kļūda saglabājot stundas!");
             }
-        } catch (err) {
-            console.error(err);
-            alert("Servera savienojuma kļūda!");
-        }
+        } catch (err) { alert("Servera savienojuma kļūda!"); }
     };
 
-    // POGA: SĀKT KONKRĒTU DARBU
     document.getElementById("startBtn").onclick = async () => {
         const now = new Date();
         const auto = document.getElementById("car").value;
         const obj = document.getElementById("object").value;
         const wrk = document.getElementById("work").value;
-
         if (!auto || !obj || !wrk) return alert("Izvēlies visus laukus!");
 
         await fetch('/api/start-work', {
@@ -325,7 +315,6 @@
         loadWorkerData();
     };
 
-    // POGA: BEIGT KONKRĒTU DARBU
     document.getElementById("stopBtn").onclick = async () => {
         const now = new Date();
         await fetch('/api/stop-work', {
@@ -339,10 +328,27 @@
         loadWorkerData();
     };
 
-    // --- RESURSU MODĀLIS ---
+    // --- RESURSU LOĢIKA ---
+
     document.getElementById("OpenResourceBtn").onclick = () => {
         document.getElementById("modalCarSelect").innerHTML = document.getElementById("car").innerHTML;
         document.getElementById("resourceModal").style.display = "flex";
+    };
+
+    // Dinamiska atlikuma pārbaude, kad izvēlas resursu
+    document.getElementById("modalResourceSelect").onchange = function() {
+        const selected = this.options[this.selectedIndex];
+        const qty = selected.getAttribute("data-qty");
+        const amountInput = document.getElementById("modalAmountInput");
+        const label = document.getElementById("availableLabel");
+
+        if (qty) {
+            label.textContent = `Pieejams noliktavā: ${qty} L`;
+            amountInput.max = qty; // Neļauj ievadīt vairāk ar bultiņām
+        } else {
+            label.textContent = "";
+            amountInput.removeAttribute("max");
+        }
     };
 
     document.getElementById("modalCancel").onclick = () => {
@@ -350,20 +356,35 @@
     };
 
     document.getElementById("modalSave").onclick = async () => {
-        const resourceId = document.getElementById("modalResourceSelect").value;
-        const fullOptionText = document.getElementById("modalResourceSelect").selectedOptions[0].text;
-        const resourceName = fullOptionText.split(' (')[0]; 
+        const resourceSelect = document.getElementById("modalResourceSelect");
+        const resourceId = resourceSelect.value;
+        const selectedOption = resourceSelect.options[resourceSelect.selectedIndex];
+        
+        const availableQty = parseFloat(selectedOption.getAttribute("data-qty"));
+        const resourceName = selectedOption.text.split(' (')[0]; 
         const auto = document.getElementById("modalCarSelect").value;
         const litri = parseFloat(document.getElementById("modalAmountInput").value);
 
-        if (!resourceId || !auto || isNaN(litri) || litri <= 0) return alert("Aizpildi laukus!");
+        // Validācijas
+        if (!resourceId || !auto || isNaN(litri) || litri <= 0) {
+            return alert("Lūdzu, aizpildi visus laukus!");
+        }
+
+        if (litri > availableQty) {
+            return alert(`Kļūda! Tu nevari ieliet ${litri}L, jo noliktavā ir tikai ${availableQty}L.`);
+        }
 
         try {
-            await fetch(`/api/resource-types/${resourceId}`, {
+            // 1. Noņemam no noliktavas
+            const patchRes = await fetch(`/api/resource-types/${resourceId}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action: 'sub', amount: litri })
             });
+
+            if (!patchRes.ok) throw new Error("Neizdevās atjaunot noliktavu");
+
+            // 2. Reģistrējam ierakstu žurnālā
             await fetch('/api/update-resources', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -375,10 +396,14 @@
                     type: resourceName.includes("Degviela") ? "Degviela" : "Ella"
                 })
             });
+
             document.getElementById("resourceModal").style.display = "none";
-            alert(`Reģistrēts: ${resourceName} (${litri} L)`);
-            loadWorkerData();
-        } catch (err) { alert("Kļūda!"); }
+            document.getElementById("modalAmountInput").value = "";
+            alert(`Veiksmīgi reģistrēts: ${resourceName} (${litri} L)`);
+            loadWorkerData(); // Atjaunojam tabulu un noliktavas atlikumus selectā
+        } catch (err) { 
+            alert("Kļūda saglabājot datus!"); 
+        }
     };
 
     function fillSelect(selectEl, data, defaultText) {
