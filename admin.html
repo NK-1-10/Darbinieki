@@ -344,17 +344,44 @@
         }).join("") : '<tr><td colspan="5" align="center">Nav datu</td></tr>') + "</tbody></table>";
     }
 
-    function renderSettings() {
-        const renderList = (id, data, deleteFn, nameKey = 'name') => {
-            const el = document.getElementById(id); if (!el) return;
-            el.innerHTML = data.map(item => `<li style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eee;"><span>${item[nameKey] || item}</span><button class="btn-del" onclick="${deleteFn}('${item[nameKey] || item}')">✖</button></li>`).join("");
-        };
-        renderList("carList", cars, "deleteCar"); 
-        renderList("workList", workTypes, "deleteWorkType"); 
-        renderList("objectList", objects, "deleteObject");
-        renderList("resourceList", resourceTypes, "deleteResource", "name");
-        document.getElementById("workerList").innerHTML = workers.map(w => `<li style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eee;"><span><strong>${w.name}</strong></span><button class="btn-del" onclick="deleteWorker('${w.name}')">✖</button></li>`).join("");
+function renderSettings() {
+    // 1. Universālā funkcija pārējiem sarakstiem
+    const renderList = (id, data, deleteFn, nameKey = 'name') => {
+        const el = document.getElementById(id); 
+        if (!el) return;
+        el.innerHTML = data.map(item => `
+            <li style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eee;">
+                <span>${item[nameKey] || item}</span>
+                <button class="btn-del" onclick="${deleteFn}('${item[nameKey] || item}')">✖</button>
+            </li>`).join("");
+    };
+
+    // 2. Izsaucam standarta sarakstiem
+    renderList("carList", cars, "deleteCar"); 
+    renderList("workList", workTypes, "deleteWorkType"); 
+    renderList("objectList", objects, "deleteObject");
+    renderList("resourceList", resourceTypes, "deleteResource", "name");
+
+    // 3. Īpašais renderējums darbiniekiem ar pagaidu paroli
+    const workerEl = document.getElementById("workerList");
+    if (workerEl) {
+        workerEl.innerHTML = workers.map(w => {
+            // Pārbaudām vai ir parole. Ja ir, sagatavojam mazu parakstu
+            const tempPassHtml = w.temp_password 
+                ? `<br><small style="color: #666;">Parole: <b style="color: #c5a059;">${w.temp_password}</b></small>` 
+                : '';
+
+            return `
+                <li style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid #eee;">
+                    <span>
+                        <strong>${w.name}</strong>
+                        ${tempPassHtml}
+                    </span>
+                    <button class="btn-del" onclick="deleteWorker('${w.name}')">✖</button>
+                </li>`;
+        }).join("");
     }
+}
 
     function resetFilters() {
         activeFilters = { year: "", month: "", date: "", car: "", worker_name: "", objekts: "", darbs: "", resource: "" };
