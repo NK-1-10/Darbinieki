@@ -347,6 +347,27 @@
 
     const deleteResource = (n) => deleteItem('/api/resource-types', n);
     // --- API & SETTINGS (Iepriekšējā loģika) ---
+
+async function updateResourceStock(name, change) {
+    if (!confirm(`Vai tiešām mainīt "${name}" daudzumu par ${change} L?`)) return;
+    
+    try {
+        const res = await fetch('/api/resource-stock', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, change })
+        });
+        
+        if (res.ok) {
+            loadData(); // Atsvaidzina datus, lai redzētu jauno skaitli
+        } else {
+            alert("Servera kļūda, mainot krājumus.");
+        }
+    } catch (err) {
+        console.error("Kļūda:", err);
+    }
+}
+    
     function renderSettings() {
     const renderList = (id, data, deleteFn, nameKey = 'name') => {
         const el = document.getElementById(id); 
@@ -363,8 +384,21 @@
     renderList("workList", workTypes, "deleteWorkType"); 
     renderList("objectList", objects, "deleteObject");
     
-    // ŠĪS RINDAS TRŪKA:
-    renderList("resourceList", resourceTypes, "deleteResource"); 
+    const resEl = document.getElementById("resourceList");
+if (resEl) {
+    resEl.innerHTML = resourceTypes.map(item => `
+        <li style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #eee;">
+            <div style="flex: 1;">
+                <strong>${item.name || item}</strong> 
+                <span class="gold-val" style="margin-left:10px;">${item.quantity || 0} L</span>
+            </div>
+            <div style="display:flex; gap: 8px; align-items:center;">
+                <button onclick="updateResourceStock('${item.name || item}', 10)" style="background:var(--success-green); color:white; padding:4px 8px; border-radius:6px; font-size:12px;">+10</button>
+                <button onclick="updateResourceStock('${item.name || item}', -10)" style="background:var(--danger-red); color:white; padding:4px 8px; border-radius:6px; font-size:12px;">-10</button>
+                <button class="btn-del" onclick="deleteResource('${item.name || item}')" style="margin-left:5px;">✖</button>
+            </div>
+        </li>`).join("");
+}
 
     document.getElementById("workerList").innerHTML = workers.map(w => `
         <li style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eee;">
