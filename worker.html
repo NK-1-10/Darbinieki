@@ -45,6 +45,13 @@
             border: 1px solid #ddd;
             font-size: 1rem;
             box-sizing: border-box;
+            transition: background 0.3s;
+        }
+
+        select:disabled {
+            background-color: #f0f0f0;
+            cursor: not-allowed;
+            color: #666;
         }
 
         button {
@@ -161,6 +168,15 @@
             const allSchedule = await sRes.json();
             const resources = await rRes.json();
 
+            // Atrodam aktīvo darbu
+            const activeJob = allSchedule.find(e => 
+                e.worker_name === user.name && 
+                !e["beigu_laiks"] && 
+                e.darbs !== "Degvielas uzpilde" && 
+                e.darbs !== "Eļļas papildināšana"
+            );
+
+            // Aizpildām selectus
             fillSelect(document.getElementById("car"), cars, "-- Izvēlies mašīnu --");
             fillSelect(document.getElementById("object"), objects, "-- Izvēlies objektu --");
             fillSelect(document.getElementById("work"), workTypes, "-- Izvēlies darba veidu --");
@@ -170,17 +186,17 @@
             resModalSelect.innerHTML = '<option value="">-- Ko Tu lej? --</option>' + 
                 resources.map(r => `<option value="${r.id}" data-qty="${r.quantity}">${r.name} (Pieejams: ${r.quantity}L)</option>`).join("");
 
-            const activeJob = allSchedule.find(e => 
-                e.worker_name === user.name && 
-                !e["beigu_laiks"] && 
-                e.darbs !== "Degvielas uzpilde" && 
-                e.darbs !== "Eļļas papildināšana"
-            );
-
             const shiftStartTime = localStorage.getItem(`shift_start_${user.name}`);
             const isShiftStarted = !!shiftStartTime;
 
+            // Elementu kontrole
+            const carEl = document.getElementById("car");
+            const objEl = document.getElementById("object");
+            const wrkEl = document.getElementById("work");
             const shiftDisplay = document.getElementById("shiftStartTimeDisplay");
+            const workTimeDisplay = document.getElementById("workStartTimeDisplay");
+
+            // Darba dienas laika attēlošana
             if (isShiftStarted) {
                 const sDate = new Date(shiftStartTime);
                 shiftDisplay.textContent = `Ieradies darbā: ${sDate.toLocaleTimeString('lv-LV', {hour: '2-digit', minute:'2-digit'})}`;
@@ -188,18 +204,32 @@
                 shiftDisplay.textContent = "";
             }
 
-            const workTimeDisplay = document.getElementById("workStartTimeDisplay");
+            // Aktīvā darba statusa un lauku bloķēšanas loģika
             if (activeJob) {
                 document.getElementById("status").innerHTML = `Strādā: <b>${activeJob.objekts}</b>`;
                 document.getElementById("startBtn").style.display = "none";
                 document.getElementById("stopBtn").style.display = "block";
                 workTimeDisplay.textContent = `Uzsāki šo darbu: ${activeJob.sākuma_laiks.substring(0, 5)}`;
+                
+                // Iestatām vērtības un NOBLOĶĒJAM laukus
+                carEl.value = activeJob.car;
+                objEl.value = activeJob.objekts;
+                wrkEl.value = activeJob.darbs;
+                
+                carEl.disabled = true;
+                objEl.disabled = true;
+                wrkEl.disabled = true;
             } else {
                 document.getElementById("status").textContent = isShiftStarted ? "Statuss: Maiņa sākta" : "Statuss: Gaidīšana";
                 document.getElementById("startBtn").style.display = isShiftStarted ? "block" : "none";
                 document.getElementById("stopBtn").style.display = "none";
                 document.getElementById("LeaveWork").style.display = isShiftStarted ? "block" : "none";
                 workTimeDisplay.textContent = "";
+                
+                // ATBLOĶĒJAM laukus (tikai tad, ja maiņa ir sākta)
+                carEl.disabled = !isShiftStarted;
+                objEl.disabled = !isShiftStarted;
+                wrkEl.disabled = !isShiftStarted;
             }
 
             document.getElementById("AtWork").style.display = isShiftStarted ? "none" : "block";
@@ -325,17 +355,25 @@
                 end_time: `${now.toLocaleDateString('lv-LV')} ${now.toLocaleTimeString('lv-LV', {hour: '2-digit', minute:'2-digit', second:'2-digit'})}` 
             })
         });
+        // Atbloķējam laukus pirms datu pārlādes
+        document.getElementById("car").disabled = false;
+        document.getElementById("object").disabled = false;
+        document.getElementById("work").disabled = false;
         loadWorkerData();
     };
 
     // --- RESURSU LOĢIKA ---
 
     document.getElementById("OpenResourceBtn").onclick = () => {
-        document.getElementById("modalCarSelect").innerHTML = document.getElementById("car").innerHTML;
+        // Aizpildām mašīnu sarakstu modālajā logā no galvenā (pat ja tas ir disabled)
+        const mainCarSelect = document.getElementById("car");
+        const modalCarSelect = document.getElementById("modalCarSelect");
+        modalCarSelect.innerHTML = mainCarSelect.innerHTML;
+        modalCarSelect.value = mainCarSelect.value; // Automātiski iestata pašreizējo mašīnu
+        
         document.getElementById("resourceModal").style.display = "flex";
     };
 
-    // Dinamiska atlikuma pārbaude, kad izvēlas resursu
     document.getElementById("modalResourceSelect").onchange = function() {
         const selected = this.options[this.selectedIndex];
         const qty = selected.getAttribute("data-qty");
@@ -344,7 +382,7 @@
 
         if (qty) {
             label.textContent = `Pieejams noliktavā: ${qty} L`;
-            amountInput.max = qty; // Neļauj ievadīt vairāk ar bultiņām
+            amountInput.max = qty;
         } else {
             label.textContent = "";
             amountInput.removeAttribute("max");
@@ -365,7 +403,6 @@
         const auto = document.getElementById("modalCarSelect").value;
         const litri = parseFloat(document.getElementById("modalAmountInput").value);
 
-        // Validācijas
         if (!resourceId || !auto || isNaN(litri) || litri <= 0) {
             return alert("Lūdzu, aizpildi visus laukus!");
         }
@@ -375,7 +412,6 @@
         }
 
         try {
-            // 1. Noņemam no noliktavas
             const patchRes = await fetch(`/api/resource-types/${resourceId}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
@@ -384,7 +420,6 @@
 
             if (!patchRes.ok) throw new Error("Neizdevās atjaunot noliktavu");
 
-            // 2. Reģistrējam ierakstu žurnālā
             await fetch('/api/update-resources', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -400,7 +435,7 @@
             document.getElementById("resourceModal").style.display = "none";
             document.getElementById("modalAmountInput").value = "";
             alert(`Veiksmīgi reģistrēts: ${resourceName} (${litri} L)`);
-            loadWorkerData(); // Atjaunojam tabulu un noliktavas atlikumus selectā
+            loadWorkerData();
         } catch (err) { 
             alert("Kļūda saglabājot datus!"); 
         }
@@ -408,6 +443,9 @@
 
     function fillSelect(selectEl, data, defaultText) {
         const currentVal = selectEl.value;
+        // Ja lauks ir disabled (notiek darbs), mēs nemainām tā saturu, lai nepazaudētu izvēli
+        if (selectEl.disabled && currentVal !== "") return;
+
         selectEl.innerHTML = `<option value="">${defaultText}</option>`;
         data.forEach(item => {
             const opt = document.createElement("option");
