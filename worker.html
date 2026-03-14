@@ -165,58 +165,82 @@
     const tableContainer = document.getElementById("tableContainer");
 
     async function loadWorkerData() {
-        try {
-            // PIELIKTS: ielādējam arī resursus no noliktavas
-            const [cRes, oRes, wRes, sRes, rRes] = await Promise.all([
-                fetch('/api/cars'), fetch('/api/objects'), fetch('/api/work-types'), 
-                fetch('/api/schedule'), fetch('/api/resource-types')
-            ]);
-            
-            const cars = await cRes.json();
-            const objects = await oRes.json();
-            const workTypes = await wRes.json();
-            const allSchedule = await sRes.json();
-            const resources = await rRes.json();
+    try {
+        console.log("Sāku datu ielādi...");
 
-            fillSelect(carSelect, cars, "-- Izvēlies mašīnu --");
-            fillSelect(objectSelect, objects, "-- Izvēlies objektu --");
-            fillSelect(workSelect, workTypes, "-- Izvēlies darba veidu --");
+        // 1. Ielādējam datus pa vienam ar kļūdu tvērējiem, lai lapa "nenokārtos"
+        const cars = await fetch('/api/cars').then(r => r.ok ? r.json() : []).catch(() => []);
+        const objects = await fetch('/api/objects').then(r => r.ok ? r.json() : []).catch(() => []);
+        const workTypes = await fetch('/api/work-types').then(r => r.ok ? r.json() : []).catch(() => []);
+        const allSchedule = await fetch('/api/schedule').then(r => r.ok ? r.json() : []).catch(() => []);
+        const resources = await fetch('/api/resource-types').then(r => r.ok ? r.json() : []).catch(() => []);
 
-            // Aizpildām resursu izvēli modālajā logā
-            const resModalSelect = document.getElementById("modalResourceSelect");
+        // 2. Aizpildām galvenās izvēlnes
+        // Pārbaudām Array.isArray, jo serveris sūta masīvu, bet kļūdas gadījumā mums vajag tukšu masīvu
+        fillSelect(carSelect, Array.isArray(cars) ? cars : [], "-- Izvēlies mašīnu --");
+        fillSelect(objectSelect, Array.isArray(objects) ? objects : [], "-- Izvēlies objektu --");
+        fillSelect(workSelect, Array.isArray(workTypes) ? workTypes : [], "-- Izvēlies darba veidu --");
+
+        // 3. Aizpildām resursu izvēli modālajā logā
+        const resModalSelect = document.getElementById("modalResourceSelect");
+        if (resModalSelect && Array.isArray(resources)) {
             resModalSelect.innerHTML = '<option value="">-- Ko Tu lej? --</option>' + 
                 resources.map(r => `<option value="${r.id}">${r.name} (Pieejams: ${r.quantity}L)</option>`).join("");
+        }
 
-            const activeJob = allSchedule.find(e => e.worker_name === user.name && !e.beigu_laiks);
-            const shiftStartTime = localStorage.getItem(`shift_start_${user.name}`);
-            const isShiftStarted = !!shiftStartTime;
+        // 4. Meklējam, vai darbiniekam ir aktīvs darbs (nav beigu laika)
+        const activeJob = Array.isArray(allSchedule) ? allSchedule.find(e => e.worker_name === user.name && !e.beigu_laiks) : null;
+        
+        // Pārbaudām lokālo krātuvi, vai darba diena vispār ir sākta
+        const shiftStartTime = localStorage.getItem(`shift_start_${user.name}`);
+        const isShiftStarted = !!shiftStartTime;
 
-            if (activeJob) {
-                document.getElementById("status").innerHTML = `Strādā: <b>${activeJob.objekts}</b> (${activeJob.car})`;
-                document.getElementById("startTimeDisplay").innerText = `Sāki: ${activeJob.sākuma_laiks}`;
-                document.getElementById("startBtn").style.display = "none";
-                document.getElementById("stopBtn").style.display = "block";
-                document.getElementById("LeaveWork").style.display = "none"; 
-                [carSelect, objectSelect, workSelect].forEach(s => s.disabled = true);
-                carSelect.value = activeJob.car;
-                objectSelect.value = activeJob.objekts || "";
-                workSelect.value = activeJob.darbs || "";
-            } else {
-                [carSelect, objectSelect, workSelect].forEach(s => s.disabled = false);
-                document.getElementById("status").textContent = isShiftStarted ? "Statuss: Maiņa sākta" : "Statuss: Gaidīšana";
-                document.getElementById("startTimeDisplay").innerText = "";
-                document.getElementById("startBtn").style.display = isShiftStarted ? "block" : "none";
-                document.getElementById("stopBtn").style.display = "none";
-                document.getElementById("LeaveWork").style.display = isShiftStarted ? "block" : "none";
-            }
+        // 5. UI elementu vadība atkarībā no statusa
+        const statusEl = document.getElementById("status");
+        const startTimeDisplay = document.getElementById("startTimeDisplay");
+        const startBtn = document.getElementById("startBtn");
+        const stopBtn = document.getElementById("stopBtn");
+        const leaveWorkBtn = document.getElementById("LeaveWork");
+        const atWorkBtn = document.getElementById("AtWork");
+        const resBtn = document.getElementById("OpenResourceBtn");
 
-            document.getElementById("AtWork").style.display = isShiftStarted ? "none" : "block";
-            // Rādām jauno pogu tikai tad, ja maiņa ir sākta
-            document.getElementById("OpenResourceBtn").style.display = isShiftStarted ? "block" : "none";
+        if (activeJob) {
+            // Ja strādā pie objekta
+            statusEl.innerHTML = `Strādā: <b>${activeJob.objekts}</b> (${activeJob.car})`;
+            startTimeDisplay.innerText = `Sāki: ${activeJob.sākuma_laiks}`;
+            startBtn.style.display = "none";
+            stopBtn.style.display = "block";
+            leaveWorkBtn.style.display = "none"; 
+            
+            // Nobloķējam izvēlnes, kamēr darbs procesā
+            [carSelect, objectSelect, workSelect].forEach(s => s.disabled = true);
+            carSelect.value = activeJob.car;
+            objectSelect.value = activeJob.objekts || "";
+            workSelect.value = activeJob.darbs || "";
+        } else {
+            // Ja ir starp darbiem vai nav sācis dienu
+            [carSelect, objectSelect, workSelect].forEach(s => s.disabled = false);
+            statusEl.textContent = isShiftStarted ? "Statuss: Maiņa sākta" : "Statuss: Gaidīšana";
+            startTimeDisplay.innerText = "";
+            startBtn.style.display = isShiftStarted ? "block" : "none";
+            stopBtn.style.display = "none";
+            leaveWorkBtn.style.display = isShiftStarted ? "block" : "none";
+        }
 
+        // Galvenās "Sākt dienu" un resursu pogas redzamība
+        atWorkBtn.style.display = isShiftStarted ? "none" : "block";
+        if (resBtn) resBtn.style.display = isShiftStarted ? "block" : "none";
+
+        // 6. Tabulas zīmēšana (tikai šī lietotāja dati)
+        if (Array.isArray(allSchedule)) {
             renderTable(allSchedule.filter(e => e.worker_name === user.name));
-        } catch (err) { console.error(err); }
+        }
+
+    } catch (err) {
+        console.error("Kritiskā kļūda loadWorkerData:", err);
+        document.getElementById("status").textContent = "Kļūda ielādējot datus!";
     }
+}
 
     // --- MODĀLĀ LOGA VADĪBA ---
     document.getElementById("OpenResourceBtn").onclick = () => {
