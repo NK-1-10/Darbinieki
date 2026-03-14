@@ -79,8 +79,7 @@
         table { width: 100%; border-collapse: collapse; min-width: 600px; }
         th { background: var(--saulstari-green); color: white; padding: 15px; font-size: 0.8rem; text-transform: uppercase; }
         td { padding: 12px 15px; border-bottom: 1px solid #eee; text-align: center; font-size: 0.9rem; }
-        .oil-text { color: var(--saulstari-yellow); font-weight: bold; }
-        .fuel-text { color: var(--saulstari-green); font-weight: bold; }
+        .resource-text { color: var(--saulstari-green); font-weight: bold; font-size: 0.85rem; }
 
         #resourceModal {
             display: none; 
@@ -121,7 +120,7 @@
             <button id="startBtn" style="display:none;">Sākt darbu</button>
             <button id="stopBtn" style="display:none;">Beigt darbu</button>
 
-            <button id="OpenResourceBtn" class="res-btn" style="display:none; width: 100%; margin-top: 10px;">🛢️ Reģistrēt Degvielu / Eļļu</button>
+            <button id="OpenResourceBtn" class="res-btn" style="display:none; width: 100%; margin-top: 10px;">🛢️ Reģistrēt resursu</button>
         </div>
 
         <button id="logoutBtn">Izrakstīties</button>
@@ -133,7 +132,7 @@
             
             <label>Ko Tu lej?</label>
             <select id="modalResourceSelect">
-                <option value="">-- Izvēlies resursu no noliktavas --</option>
+                <option value="">-- Izvēlies resursu --</option>
             </select>
 
             <label>Kurā mašīnā?</label>
@@ -161,7 +160,6 @@
     const carSelect = document.getElementById("car");
     const objectSelect = document.getElementById("object");
     const workSelect = document.getElementById("work");
-    const tableContainer = document.getElementById("tableContainer");
 
     async function loadWorkerData() {
         try {
@@ -189,7 +187,7 @@
             const isShiftStarted = !!shiftStartTime;
 
             if (activeJob) {
-                document.getElementById("status").innerHTML = `Strādā: <b>${activeJob.objekts}</b> (${activeJob.car})`;
+                document.getElementById("status").innerHTML = `Strādā: <b>${activeJob.objekts}</b>`;
                 document.getElementById("startTimeDisplay").innerText = `Sāki: ${activeJob["sākuma_laiks"]}`;
                 document.getElementById("startBtn").style.display = "none";
                 document.getElementById("stopBtn").style.display = "block";
@@ -211,7 +209,7 @@
             document.getElementById("OpenResourceBtn").style.display = isShiftStarted ? "block" : "none";
 
             renderTable(allSchedule.filter(e => e.worker_name === user.name));
-        } catch (err) { console.error("Datu ielādes kļūda:", err); }
+        } catch (err) { console.error("Kļūda:", err); }
     }
 
     document.getElementById("OpenResourceBtn").onclick = () => {
@@ -225,12 +223,9 @@
         document.getElementById("resourceModal").style.display = "none";
     };
 
-    // LABOTĀ modalSave FUNKCIJA
     document.getElementById("modalSave").onclick = async () => {
         const resourceId = document.getElementById("modalResourceSelect").value;
         const fullOptionText = document.getElementById("modalResourceSelect").selectedOptions[0].text;
-        
-        // Noņemam "(Pieejams: ...)" daļu no nosaukuma
         const resourceName = fullOptionText.split(' (')[0]; 
         const auto = document.getElementById("modalCarSelect").value;
         const litri = parseFloat(document.getElementById("modalAmountInput").value);
@@ -238,31 +233,26 @@
         if (!resourceId || !auto || isNaN(litri) || litri <= 0) return alert("Aizpildi laukus!");
 
         try {
-            // 1. Atņemam no noliktavas krājumiem
             await fetch(`/api/resource-types/${resourceId}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action: 'sub', amount: litri })
             });
 
-            // 2. Reģistrējam resursa patēriņu darba gaitā
-            const isOil = resourceName.toLowerCase().includes("eļļa");
             await fetch('/api/update-resources', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
                     worker_name: user.name, 
                     car: auto, 
-                    resource_name: resourceName, // Sūta īsto nosaukumu (Eļļa 1, Eļļa 2 utt.)
-                    resource_amount: litri,
-                    type: isOil ? "Ella" : "Degviela", // Savietojamībai ar veco loģiku
-                    amount: litri 
+                    resource_name: resourceName,
+                    resource_amount: litri 
                 })
             });
 
             document.getElementById("resourceModal").style.display = "none";
             loadWorkerData();
-            alert(`Veiksmīgi reģistrēts: ${resourceName} (${litri} L)`);
+            alert(`Reģistrēts: ${resourceName} (${litri} L)`);
         } catch (err) { alert("Kļūda: " + err.message); }
     };
 
@@ -345,32 +335,25 @@
                     <th>Darbs</th>
                     <th>Sākums</th>
                     <th>Beigas</th>
-                    <th>Eļļa</th>
-                    <th>Degv.</th>
+                    <th>Pielietie resursi</th>
                     <th>Stundas</th>
                 </tr>
             </thead>
             <tbody>`;
 
         data.slice().reverse().forEach(e => {
-            const car = e.car || '-';
-            const objekts = e.objekts || '-';
-            const darbs = e.darbs || '-';
-            const sakums = e["sākuma_laiks"] || '-';
-            const beigas = e["beigu_laiks"] || 'Aktīvs';
-            const ella = e["pielietā_eļļa"] || 0;
-            const degviela = e["pielietā_degviela"] || 0;
-            const stundas = e.hours ? e.hours + ' h' : '-';
+            const resursi = e.resources && e.resources.length > 0 
+                ? e.resources.map(r => `<div class="resource-text">${r.name}: ${r.amount}L</div>`).join("")
+                : "-";
 
             html += `<tr>
-                <td>${car}</td>
-                <td>${objekts}</td>
-                <td>${darbs}</td>
-                <td>${sakums}</td>
-                <td>${beigas}</td>
-                <td class="oil-text">${ella} L</td>
-                <td class="fuel-text">${degviela} L</td>
-                <td>${stundas}</td>
+                <td>${e.car || '-'}</td>
+                <td>${e.objekts || '-'}</td>
+                <td>${e.darbs || '-'}</td>
+                <td>${e["sākuma_laiks"] || '-'}</td>
+                <td>${e["beigu_laiks"] || 'Aktīvs'}</td>
+                <td>${resursi}</td>
+                <td>${e.hours ? e.hours + ' h' : '-'}</td>
             </tr>`;
         });
 
