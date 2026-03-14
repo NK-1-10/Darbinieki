@@ -187,8 +187,18 @@ app.delete('/api/work-types/:name', async (req, res) => {
 
 // --- 4. DARBA GAITA UN ŽURNĀLĒŠANA (Schedule) ---
 app.get('/api/schedule', async (req, res) => {
+    const { worker_name } = req.query; // Ja filtrē pēc vārda
     try {
-        const result = await pool.query('SELECT * FROM schedule ORDER BY id DESC');
+        let query = 'SELECT * FROM schedule';
+        let params = [];
+        
+        if (worker_name) {
+            query += ' WHERE LOWER(worker_name) = LOWER($1)';
+            params.push(worker_name);
+        }
+        
+        query += ' ORDER BY id DESC';
+        const result = await pool.query(query, params);
         res.json(result.rows);
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
