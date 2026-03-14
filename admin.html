@@ -182,16 +182,19 @@
             <label>Mēnesis:<br><select id="filterMonth"><option value="">Visi</option></select></label>
             <button id="clearFilters" style="padding: 8px 15px; background: #eee;">Notīrīt filtrus</button>
         </div>
-        <div class="summary-bar">
-            <div>Atlasītais laiks kopā: <span id="totalHoursValue" class="gold-val">0.00</span> h</div>
-        </div>
+        
     </div>
 
     <div class="report-stack">
-        <details class="report-card" open>
-            <summary>📋 Darba Gaitas Atskaite</summary>
-            <div class="table-wrapper" id="tableContainer"></div>
-        </details>
+    <details class="report-card" open>
+        <summary>📋 Darba Gaitas Atskaite</summary>
+        
+        <div class="summary-bar" style="margin: 10px 20px; border-radius: 8px;">
+            Atlasītais laiks kopā: <span id="totalHoursValue" class="gold-val">0.00</span> h
+        </div>
+
+        <div class="table-wrapper" id="tableContainer"></div>
+    </details>
 
         <details class="report-card">
             <summary>⛽ Patēriņa Kopsavilkums</summary>
