@@ -63,6 +63,13 @@
 
         .settings-content { padding: 15px; }
 
+        .settings-content li strong {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100px; /* Vai cits piemērots platums */
+}
+
         .filter-section { 
             background: #fff; 
             border: 1px solid var(--border-color); 
@@ -397,25 +404,28 @@
 const resEl = document.getElementById("resourceList");
 if (resEl) {
     resEl.innerHTML = resourceTypes.map(item => `
-        <li style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid #eee;">
-            <div style="flex: 1;">
-                <strong>${item.name || item}</strong><br>
-                <span class="gold-val">${item.quantity || 0} L</span>
+        <li style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid #eee; gap: 10px;">
+            <div style="min-width: 80px; flex-shrink: 0;">
+                <strong style="display:block; font-size: 13px;">${item.name || item}</strong>
+                <span class="gold-val" style="font-size: 14px;">${item.quantity || 0} L</span>
             </div>
             
-            <div style="display:flex; gap: 8px; align-items:center;">
+            <div style="display:flex; gap: 5px; align-items:center; flex-grow: 1; justify-content: flex-end;">
                 <input type="number" 
                        id="input-${item.name || item}" 
                        placeholder="Litri" 
                        onkeydown="if(event.key==='Enter') updateResourceFromInput('${item.name || item}')"
-                       style="width: 70px; padding: 6px; border: 1px solid var(--accent-gold); border-radius: 6px; font-size: 13px;">
+                       style="width: 60px; padding: 6px; border: 1px solid var(--accent-gold); border-radius: 6px; font-size: 12px; min-width: 0;">
                 
                 <button onclick="updateResourceFromInput('${item.name || item}')" 
-                        style="background: var(--success-green); color: white; padding: 6px 12px; border-radius: 6px; font-size: 12px; height: 31px;">
+                        style="background: var(--success-green); color: white; padding: 6px 10px; border-radius: 6px; font-size: 11px; cursor:pointer; flex-shrink: 0;">
                     OK
                 </button>
                 
-                <button class="btn-del" onclick="deleteResource('${item.name || item}')" style="margin-left:5px;">✖</button>
+                <button class="btn-del" onclick="deleteResource('${item.name || item}')" 
+                        style="color: var(--danger-red); background:none; border:none; font-size: 18px; padding: 0 5px; cursor:pointer; flex-shrink: 0;">
+                    ✖
+                </button>
             </div>
         </li>`).join("");
 }
