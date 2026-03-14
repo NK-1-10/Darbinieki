@@ -365,8 +365,17 @@ async function loadData() {
     }
 };
 
-    function renderSettings() {
-    // 1. PALĪGFUNKCIJA (tikai mašīnām, darbiem, objektiem)
+  function renderSettings() {
+    // 1. SAGLABĀJAM PAŠREIZĒJĀS INPUT VĒRTĪBAS
+    const savedValues = {};
+    resource_types.forEach(res => {
+        const inputEl = document.getElementById(`input-qty-${res.id}`);
+        if (inputEl && inputEl.value !== "") {
+            savedValues[res.id] = inputEl.value;
+        }
+    });
+
+    // 2. PALĪGFUNKCIJA (mašīnām, darbiem, objektiem)
     const renderSimpleList = (id, data, deleteFn) => {
         const el = document.getElementById(id);
         if (!el) return;
@@ -376,41 +385,49 @@ async function loadData() {
         }).join("");
     };
 
-    // 2. RESURSU SARAKSTS
-const resourceListEl = document.getElementById("resourceList");
-if (resourceListEl) {
-    resourceListEl.innerHTML = resource_types.map(res => `
-        <li style="display: flex; flex-direction: column; gap: 10px; padding: 15px; border: 1px solid #eee; border-radius: 10px; background: #fafafa; margin-bottom: 10px;">
-            <div style="display: flex; align-items: baseline; gap: 10px; margin-bottom: 5px;">
-    <strong style="font-size: 1.1em;">${res.name}</strong> 
-    <span class="gold-val" style="font-size: 1.2em; white-space: nowrap;">${res.quantity || 0} L</span>
-</div>
-            
-            <div style="display: flex; gap: 8px; align-items: center;">
-                <input type="number" id="input-qty-${res.id}" placeholder="Daudzums..." 
-                       style="flex-grow: 1; padding: 10px; border: 1px solid #c5a059; border-radius: 8px; outline: none; -moz-appearance: textfield;">
+    // 3. RESURSU SARAKSTS
+    const resourceListEl = document.getElementById("resourceList");
+    if (resourceListEl) {
+        resourceListEl.innerHTML = resource_types.map(res => `
+            <li style="display: flex; flex-direction: column; gap: 10px; padding: 15px; border: 1px solid #eee; border-radius: 10px; background: #fafafa; margin-bottom: 10px;">
+                <div style="display: flex; align-items: baseline; gap: 10px; margin-bottom: 5px;">
+                    <strong style="font-size: 1.1em;">${res.name}</strong> 
+                    <span class="gold-val" style="font-size: 1.2em; white-space: nowrap;">${res.quantity || 0} L</span>
+                </div>
                 
-                <button onclick="modifyQuantity(${res.id}, 'add')" 
-                        style="padding: 10px 15px; background: #28a745; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">
-                    +
-                </button>
-                
-                <button onclick="modifyQuantity(${res.id}, 'sub')" 
-                        style="padding: 10px 15px; background: #dc3545; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">
-                    -
-                </button>
-                
-                <button class="btn-del" onclick="deleteResourceType('${res.name}')" style="margin-left:5px; font-size: 1.2em;">✖</button>
-            </div>
-        </li>
-    `).join("");
-}
-    // 3. PĀRĒJIE VIENKĀRŠIE SARAKSTI
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <input type="number" id="input-qty-${res.id}" placeholder="Daudzums..." 
+                           style="flex-grow: 1; padding: 10px; border: 1px solid #c5a059; border-radius: 8px; outline: none;">
+                    
+                    <button onclick="modifyQuantity(${res.id}, 'add')" 
+                            style="padding: 10px 15px; background: #28a745; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">
+                        +
+                    </button>
+                    
+                    <button onclick="modifyQuantity(${res.id}, 'sub')" 
+                            style="padding: 10px 15px; background: #dc3545; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">
+                        -
+                    </button>
+                    
+                    <button class="btn-del" onclick="deleteResourceType('${res.name}')" style="margin-left:5px; font-size: 1.2em;">✖</button>
+                </div>
+            </li>
+        `).join("");
+
+        // 4. ATLIEKAM ATPAKAĻ SAGLABĀTĀS VĒRTĪBAS
+        resource_types.forEach(res => {
+            if (savedValues[res.id]) {
+                const newInputEl = document.getElementById(`input-qty-${res.id}`);
+                if (newInputEl) newInputEl.value = savedValues[res.id];
+            }
+        });
+    }
+
+    // Pārējie saraksti (tāpat kā iepriekš)
     renderSimpleList("carList", cars, "deleteCar");
     renderSimpleList("workList", works_types, "deleteWorkType");
     renderSimpleList("objectList", objects, "deleteObject");
 
-    // 4. DARBINIEKI
     const workerListEl = document.getElementById("workerList");
     if (workerListEl) {
         workerListEl.innerHTML = workers.map(worker => {
@@ -422,12 +439,6 @@ if (resourceListEl) {
             </li>`;
         }).join("");
     }
-
-    // 5. PIEVIENOŠANAS POGA
-    document.getElementById("addResourceBtn").onclick = () => { 
-        const n = prompt("Eļļas vai degvielas nosaukums:"); 
-        if(n) addItem('/api/resource-types', { name: n, quantity: 0 }); 
-    };
 }
 
 // --- FUNKCIJAS ĀRPUS renderSettings (Globālajā līmenī) ---
@@ -702,44 +713,12 @@ setupColumnListeners();
     function deleteWorkType(n) { deleteItem(`/api/work-types/${encodeURIComponent(n)}`); }
     function deleteObject(n) { deleteItem(`/api/objects/${encodeURIComponent(n)}`); }
 
-       async function saveManualQuantity(id) {
-    // Paņemam vērtību, ko tu tikko ierakstīji lodziņā
-    const newQuantity = document.getElementById(`manual-qty-${id}`).value;
-
-    try {
-        const response = await fetch(`/api/resource-types/${id}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ quantity: parseFloat(newQuantity) })
-        });
-
-        if (response.ok) {
-            alert("Daudzums saglabāts!");
-            loadData(); // Atjaunojam datus visā lapā
-        } else {
-            alert("Kļūda saglabājot!");
-        }
-    } catch (err) {
-        console.error("Kļūda:", err);
-    }
-}
        async function modifyQuantity(id, action) {
     const input = document.getElementById(`input-qty-${id}`);
-    const val = parseFloat(input.value);
+    const amount = parseFloat(input.value);
     
-    if (!val || val <= 0) {
-        alert("Lūdzu, ierakstiet skaitli!");
-        return;
-    }
-
-    const resource = resource_types.find(r => r.id === id);
-    let currentQty = parseFloat(resource.quantity || 0);
-    
-    // Aprēķinām jauno kopējo daudzumu
-    const newQuantity = (action === 'add') ? (currentQty + val) : (currentQty - val);
-
-    if (newQuantity < 0) {
-        alert("Daudzums nevar būt mazāks par nulli!");
+    if (!amount || amount <= 0) {
+        alert("Lūdzu, ierakstiet korektu skaitli!");
         return;
     }
 
@@ -747,15 +726,25 @@ setupColumnListeners();
         const response = await fetch(`/api/resource-types/${id}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ quantity: newQuantity })
+            body: JSON.stringify({ 
+                action: action, // 'add' vai 'sub'
+                amount: amount  // cik litrus mainīt
+            })
         });
 
+        const result = await response.json();
+
         if (response.ok) {
-            input.value = ""; // Notīrām lauku
-            loadData(); // Atjaunojam datus ekrānā
+    input.value = ""; 
+    await loadData(); // Pagaidām, kamēr dati ielādējas
+    document.getElementById(`input-qty-${id}`).focus(); // Atgriežam kursoru atpakaļ
+} else {
+            // Parādīs servera kļūdu (piemēram, "Noliktavā nav tik daudz!")
+            alert(result.error || "Kļūda atjauninot datus");
         }
     } catch (err) {
         console.error("Kļūda:", err);
+        alert("Servera savienojuma kļūda");
     }
 }
 
