@@ -116,6 +116,10 @@
         td { padding: 12px; border-bottom: 1px solid #f0f0f0; white-space: nowrap; }
         tr:hover { background-color: #fcf9f2; }
 
+        /* Jauns stils kļūdu izcelšanai */
+        .error-row { background-color: #fff5f5; color: #d9534f; }
+        .error-badge { background: #d9534f; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-left: 5px; }
+
         button { cursor: pointer; border-radius: 8px; border: none; font-weight: 600; transition: 0.2s; }
         .btn-add { background: var(--success-green); color: white; width: 100%; padding: 10px; margin-bottom: 10px; }
         .btn-del { color: var(--danger-red); background: none; font-size: 1.2em; padding: 0 5px; }
@@ -180,8 +184,8 @@
     <div class="filter-section">
         <h3>Globālie Laika Filtri</h3>
         <div class="filter-row">
-            <label>Gads:<br><select id="filterYear" class="header-filter" onchange="syncFilter('year', this.value)"><option value="">Visi gadi</option></select></label>
-            <label>Mēnesis:<br><select id="filterMonth" class="header-filter" onchange="syncFilter('month', this.value)"><option value="">Visi mēneši</option></select></label>
+            <label>Gads:<br><select id="filterYear" class="header-filter" onchange="syncFilter('year', this.value)"></select></label>
+            <label>Mēnesis:<br><select id="filterMonth" class="header-filter" onchange="syncFilter('month', this.value)"></select></label>
             <button id="clearAllFilters" style="padding: 10px 15px; background: #eee; margin-left: auto;">Notīrīt visus filtrus 🔄</button>
         </div>
     </div>
@@ -253,6 +257,7 @@
         } catch (err) { console.error("Datu ielādes kļūda:", err); }
     }
 
+    // Settings rendering loģika paliek tāda pati
     function renderSettings() {
         const renderList = (id, data, deleteFn, nameKey = 'name') => {
             const el = document.getElementById(id);
@@ -286,16 +291,20 @@
     }
 
     function updateGlobalFilterOptions() {
-        const years = [...new Set(schedule.map(e => (e.date || "").split('.')[2]))].filter(Boolean).sort();
-        const monthsInSchedule = [...new Set(schedule.map(e => (e.month || "").trim()))].filter(Boolean);
-        
-        // Sakārtojam mēnešus kalendārajā secībā
-        const sortedMonths = LV_MONTHS.filter(m => monthsInSchedule.some(sm => sm.toLowerCase() === m.toLowerCase()));
+        // Iegūstam unikālos gadus no visiem datiem
+        const allDates = [...schedule.map(s => s.date), ...daySummary.map(d => d.datums)].filter(Boolean);
+        const years = [...new Set(allDates.map(d => d.split('.')[2]))].sort();
 
         const ySelect = document.getElementById("filterYear");
         const mSelect = document.getElementById("filterMonth");
 
         ySelect.innerHTML = '<option value="">Visi gadi</option>' + years.map(v => `<option value="${v}" ${activeFilters.year === v ? 'selected' : ''}>${v}</option>`).join("");
+        
+        // Mēnešu filtrs rāda tikai tos mēnešus, kas ir izvēlētajā gadā
+        const relevantData = schedule.filter(s => !activeFilters.year || s.date.endsWith(activeFilters.year));
+        const monthsInSchedule = [...new Set(relevantData.map(e => e.month))].filter(Boolean);
+        const sortedMonths = LV_MONTHS.filter(m => monthsInSchedule.some(sm => sm.toLowerCase() === m.toLowerCase()));
+
         mSelect.innerHTML = '<option value="">Visi mēneši</option>' + sortedMonths.map(v => `<option value="${v}" ${activeFilters.month === v ? 'selected' : ''}>${v}</option>`).join("");
     }
 
@@ -309,8 +318,7 @@
 
         // --- 1. TABULA: DARBA GAITA ---
         let filteredWork = schedule.filter(e => {
-            const dateParts = (e.date || "").split('.');
-            const year = dateParts[2] || "";
+            const year = (e.date || "").split('.')[2] || "";
             const isWork = !workExclusion.includes(e.darbs) && e.objekts && e.objekts !== "-";
             
             return isWork &&
@@ -334,12 +342,21 @@
             <th>Darbs<br><select class="header-filter" onchange="syncFilter('darbs', this.value)">${getOptions('darbs', 'darbs', workDataForOptions)}</select></th>
             <th style="text-align:right">Stundas</th>
         </tr></thead><tbody>` + 
-        (filteredWork.length ? filteredWork.slice().reverse().map(e => `<tr><td>${e.date}</td><td>${e.car}</td><td>${e.worker_name}</td><td>${e.objekts}</td><td>${e.darbs}</td><td align="right"><b>${parseFloat(e.hours || 0).toFixed(2)}</b></td></tr>`).join("") : '<tr><td colspan="6" align="center">Nav datu</td></tr>') + "</tbody></table>";
+        (filteredWork.length ? filteredWork.slice().reverse().map(e => {
+            const isError = parseFloat(e.hours) <= 0;
+            return `<tr class="${isError ? 'error-row' : ''}">
+                <td>${e.date}</td>
+                <td>${e.car}</td>
+                <td>${e.worker_name}</td>
+                <td>${e.objekts}</td>
+                <td>${e.darbs}</td>
+                <td align="right"><b>${parseFloat(e.hours || 0).toFixed(2)}</b>${isError ? '<span class="error-badge">KĻŪDA</span>' : ''}</td>
+            </tr>`
+        }).join("") : '<tr><td colspan="6" align="center">Nav datu</td></tr>') + "</tbody></table>";
 
         // --- 2. TABULA: PATĒRIŅŠ ---
         let filteredFuel = schedule.filter(e => {
-            const dateParts = (e.date || "").split('.');
-            const year = dateParts[2] || "";
+            const year = (e.date || "").split('.')[2] || "";
             const isFuel = e.resource_name && e.resource_amount;
 
             return isFuel &&
@@ -365,8 +382,7 @@
 
         // --- 3. TABULA: DIENAS STUNDAS ---
         let filteredSum = daySummary.filter(s => {
-            const dateParts = (s.datums || "").split('.');
-            const year = dateParts[2] || "";
+            const year = (s.datums || "").split('.')[2] || "";
             return (!activeFilters.year || year === activeFilters.year) &&
                 (!activeFilters.month || (s.month || "").toLowerCase() === activeFilters.month.toLowerCase()) &&
                 (!activeFilters.date || s.datums === activeFilters.date) &&
@@ -382,17 +398,27 @@
             <th>Beigas</th>
             <th style="text-align:right">Kopā</th>
         </tr></thead><tbody>` + 
-        (filteredSum.length ? filteredSum.slice().reverse().map(s => `<tr class="${parseFloat(s.stundas) > 12 ? 'overtime' : ''}"><td>${s.darbinieks}</td><td>${s.datums}</td><td>${s.sāka_darbu}</td><td>${s.beidza_darbu}</td><td align="right"><b>${parseFloat(s.stundas || 0).toFixed(2)} h</b></td></tr>`).join("") : '<tr><td colspan="5" align="center">Nav datu</td></tr>') + "</tbody></table>";
+        (filteredSum.length ? filteredSum.slice().reverse().map(s => {
+            const hrs = parseFloat(s.stundas || 0);
+            const isError = hrs <= 0;
+            const isOvertime = hrs > 12;
+            return `<tr class="${isOvertime ? 'overtime' : ''} ${isError ? 'error-row' : ''}">
+                <td>${s.darbinieks}</td>
+                <td>${s.datums}</td>
+                <td>${s.sāka_darbu || '-'}</td>
+                <td>${s.beidza_darbu || '-'}</td>
+                <td align="right"><b>${hrs.toFixed(2)} h</b>${isError ? '<span class="error-badge">NAV BEIGTS</span>' : ''}</td>
+            </tr>`
+        }).join("") : '<tr><td colspan="5" align="center">Nav datu</td></tr>') + "</tbody></table>";
     }
 
     function syncFilter(key, val) {
         activeFilters[key] = val;
-        // Ja maina globālo gadu/mēnesi, vizualizējam to arī selectos
         if(key === 'year' || key === 'month') updateGlobalFilterOptions();
         renderTables();
     }
 
-    // --- API FUNKCIJAS ---
+    // --- API FUNKCIJAS (nemainīgas) ---
     async function modifyQty(id, action) {
         const input = document.getElementById(`qty-${id}`);
         const amount = parseFloat(input.value);
