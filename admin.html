@@ -304,9 +304,30 @@
         document.getElementById("totalHoursValue").innerText = total.toFixed(2);
 
         // Render 1. tabula
-        let h1 = `<table><thead><tr><th>Datums</th><th>Auto</th><th>Darbinieks</th><th>Objekts</th><th>Darbs</th><th style="text-align:right">Stundas</th></tr></thead><tbody>`;
-        h1 += filteredWork.map(e => `<tr><td>${e.date}</td><td>${e.car}</td><td>${e.worker_name}</td><td>${e.objekts}</td><td>${e.darbs}</td><td align="right" class="gold-val">${parseFloat(e.hours).toFixed(2)}</td></tr>`).join("");
-        document.getElementById("tableContainer").innerHTML = h1 + "</tbody></table>";
+        // Render 1. tabula (ar eļļu un degvielu)
+let h1 = `<table><thead><tr>
+    <th>Datums</th>
+    <th>Auto</th>
+    <th>Darbinieks</th>
+    <th>Objekts</th>
+    <th>Darbs</th>
+    <th style="text-align:right">Eļļa (L)</th>
+    <th style="text-align:right">Degviela (L)</th>
+    <th style="text-align:right">Stundas</th>
+</tr></thead><tbody>`;
+
+h1 += filteredWork.map(e => `<tr>
+    <td>${e.date}</td>
+    <td>${e.car}</td>
+    <td>${e.worker_name}</td>
+    <td>${e.objekts}</td>
+    <td>${e.darbs}</td>
+    <td align="right" class="gold-val">${e.pielietā_eļļa || 0}</td>
+    <td align="right" class="gold-val">${e.pielietā_degviela || 0}</td>
+    <td align="right" style="font-weight:bold">${parseFloat(e.hours).toFixed(2)}</td>
+</tr>`).join("");
+
+document.getElementById("tableContainer").innerHTML = h1 + "</tbody></table>";
 
         // Render 2. tabula (Eļļa/Degviela)
         const fuelData = filteredWork.filter(e => (e.ella > 0 || e.degviela > 0));
