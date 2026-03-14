@@ -164,88 +164,109 @@
     const workSelect = document.getElementById("work");
     const tableContainer = document.getElementById("tableContainer");
 
-    async function loadWorkerData() {
-    try {
-        console.log("Sāku datu ielādi...");
-
-        // 1. Ielādējam datus pa vienam ar kļūdu tvērējiem, lai lapa "nenokārtos"
-        const cars = await fetch('/api/cars').then(r => r.ok ? r.json() : []).catch(() => []);
-        const objects = await fetch('/api/objects').then(r => r.ok ? r.json() : []).catch(() => []);
-        const workTypes = await fetch('/api/work-types').then(r => r.ok ? r.json() : []).catch(() => []);
-        const allSchedule = await fetch('/api/schedule').then(r => r.ok ? r.json() : []).catch(() => []);
-        const resources = await fetch('/api/resource-types').then(r => r.ok ? r.json() : []).catch(() => []);
-
-        // 2. Aizpildām galvenās izvēlnes
-        // Pārbaudām Array.isArray, jo serveris sūta masīvu, bet kļūdas gadījumā mums vajag tukšu masīvu
-        fillSelect(carSelect, Array.isArray(cars) ? cars : [], "-- Izvēlies mašīnu --");
-        fillSelect(objectSelect, Array.isArray(objects) ? objects : [], "-- Izvēlies objektu --");
-        fillSelect(workSelect, Array.isArray(workTypes) ? workTypes : [], "-- Izvēlies darba veidu --");
-
-        // 3. Aizpildām resursu izvēli modālajā logā
-        const resModalSelect = document.getElementById("modalResourceSelect");
-        if (resModalSelect && Array.isArray(resources)) {
-            resModalSelect.innerHTML = '<option value="">-- Ko Tu lej? --</option>' + 
-                resources.map(r => `<option value="${r.id}">${r.name} (Pieejams: ${r.quantity}L)</option>`).join("");
-        }
-
-        // 4. Meklējam, vai darbiniekam ir aktīvs darbs (nav beigu laika)
-        const activeJob = Array.isArray(allSchedule) ? allSchedule.find(e => e.worker_name === user.name && !e.beigu_laiks) : null;
+    // Palīgfunkcija select aizpildīšanai (strādā gan ar virknēm, gan objektiem)
+    function fillSelect(selectEl, data, defaultText) {
+        if (!selectEl) return;
+        const currentVal = selectEl.value;
+        selectEl.innerHTML = `<option value="">${defaultText}</option>`;
         
-        // Pārbaudām lokālo krātuvi, vai darba diena vispār ir sākta
-        const shiftStartTime = localStorage.getItem(`shift_start_${user.name}`);
-        const isShiftStarted = !!shiftStartTime;
-
-        // 5. UI elementu vadība atkarībā no statusa
-        const statusEl = document.getElementById("status");
-        const startTimeDisplay = document.getElementById("startTimeDisplay");
-        const startBtn = document.getElementById("startBtn");
-        const stopBtn = document.getElementById("stopBtn");
-        const leaveWorkBtn = document.getElementById("LeaveWork");
-        const atWorkBtn = document.getElementById("AtWork");
-        const resBtn = document.getElementById("OpenResourceBtn");
-
-        if (activeJob) {
-            // Ja strādā pie objekta
-            statusEl.innerHTML = `Strādā: <b>${activeJob.objekts}</b> (${activeJob.car})`;
-            startTimeDisplay.innerText = `Sāki: ${activeJob.sākuma_laiks}`;
-            startBtn.style.display = "none";
-            stopBtn.style.display = "block";
-            leaveWorkBtn.style.display = "none"; 
-            
-            // Nobloķējam izvēlnes, kamēr darbs procesā
-            [carSelect, objectSelect, workSelect].forEach(s => s.disabled = true);
-            carSelect.value = activeJob.car;
-            objectSelect.value = activeJob.objekts || "";
-            workSelect.value = activeJob.darbs || "";
-        } else {
-            // Ja ir starp darbiem vai nav sācis dienu
-            [carSelect, objectSelect, workSelect].forEach(s => s.disabled = false);
-            statusEl.textContent = isShiftStarted ? "Statuss: Maiņa sākta" : "Statuss: Gaidīšana";
-            startTimeDisplay.innerText = "";
-            startBtn.style.display = isShiftStarted ? "block" : "none";
-            stopBtn.style.display = "none";
-            leaveWorkBtn.style.display = isShiftStarted ? "block" : "none";
-        }
-
-        // Galvenās "Sākt dienu" un resursu pogas redzamība
-        atWorkBtn.style.display = isShiftStarted ? "none" : "block";
-        if (resBtn) resBtn.style.display = isShiftStarted ? "block" : "none";
-
-        // 6. Tabulas zīmēšana (tikai šī lietotāja dati)
-        if (Array.isArray(allSchedule)) {
-            renderTable(allSchedule.filter(e => e.worker_name === user.name));
-        }
-
-    } catch (err) {
-        console.error("Kritiskā kļūda loadWorkerData:", err);
-        document.getElementById("status").textContent = "Kļūda ielādējot datus!";
+        data.forEach(item => {
+            const opt = document.createElement("option");
+            // Pārbauda, vai datu elements ir objekts vai vienkārši teksts
+            const val = typeof item === 'object' ? (item.name || item.id) : item;
+            opt.value = val; 
+            opt.textContent = val;
+            selectEl.appendChild(opt);
+        });
+        selectEl.value = currentVal;
     }
-}
 
-    // --- MODĀLĀ LOGA VADĪBA ---
+    async function loadWorkerData() {
+        try {
+            console.log("Sāku datu ielādi...");
+
+            const fetchData = async (url) => {
+                try {
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error(`HTTP kļūda: ${response.status}`);
+                    return await response.json();
+                } catch (e) {
+                    console.error(`Neizdevās ielādēt ${url}:`, e);
+                    return [];
+                }
+            };
+
+            const [cars, objects, workTypes, allSchedule, resources] = await Promise.all([
+                fetchData('/api/cars'),
+                fetchData('/api/objects'),
+                fetchData('/api/work-types'),
+                fetchData('/api/schedule'),
+                fetchData('/api/resource-types')
+            ]);
+
+            // Aizpildām visas izvēlnes
+            fillSelect(carSelect, cars, "-- Izvēlies mašīnu --");
+            fillSelect(objectSelect, objects, "-- Izvēlies objektu --");
+            fillSelect(workSelect, workTypes, "-- Izvēlies darba veidu --");
+
+            // Resursu modālais logs
+            const resModalSelect = document.getElementById("modalResourceSelect");
+            if (resModalSelect && Array.isArray(resources)) {
+                resModalSelect.innerHTML = '<option value="">-- Ko Tu lej? --</option>' + 
+                    resources.map(r => `<option value="${r.id}">${r.name} (Pieejams: ${r.quantity}L)</option>`).join("");
+            }
+
+            // Aktīvā darba un maiņas stāvoklis
+            const activeJob = Array.isArray(allSchedule) ? allSchedule.find(e => e.worker_name === user.name && !e.beigu_laiks) : null;
+            const shiftStartTime = localStorage.getItem(`shift_start_${user.name}`);
+            const isShiftStarted = !!shiftStartTime;
+
+            // UI Elementu redzamība
+            const statusEl = document.getElementById("status");
+            const startTimeDisplay = document.getElementById("startTimeDisplay");
+            const startBtn = document.getElementById("startBtn");
+            const stopBtn = document.getElementById("stopBtn");
+            const leaveWorkBtn = document.getElementById("LeaveWork");
+            const atWorkBtn = document.getElementById("AtWork");
+            const resBtn = document.getElementById("OpenResourceBtn");
+
+            if (activeJob) {
+                statusEl.innerHTML = `Strādā: <b>${activeJob.objekts}</b> (${activeJob.car})`;
+                startTimeDisplay.innerText = `Sāki: ${activeJob.sākuma_laiks}`;
+                if(startBtn) startBtn.style.display = "none";
+                if(stopBtn) stopBtn.style.display = "block";
+                if(leaveWorkBtn) leaveWorkBtn.style.display = "none"; 
+                [carSelect, objectSelect, workSelect].forEach(s => s.disabled = true);
+                carSelect.value = activeJob.car;
+                objectSelect.value = activeJob.objekts || "";
+                workSelect.value = activeJob.darbs || "";
+            } else {
+                [carSelect, objectSelect, workSelect].forEach(s => s.disabled = false);
+                statusEl.textContent = isShiftStarted ? "Statuss: Maiņa sākta" : "Statuss: Gaidīšana";
+                startTimeDisplay.innerText = "";
+                if(startBtn) startBtn.style.display = isShiftStarted ? "block" : "none";
+                if(stopBtn) stopBtn.style.display = "none";
+                if(leaveWorkBtn) leaveWorkBtn.style.display = isShiftStarted ? "block" : "none";
+            }
+
+            if(atWorkBtn) atWorkBtn.style.display = isShiftStarted ? "none" : "block";
+            if(resBtn) resBtn.style.display = isShiftStarted ? "block" : "none";
+
+            // Tabulas zīmēšana
+            if (Array.isArray(allSchedule)) {
+                renderTable(allSchedule.filter(e => e.worker_name === user.name));
+            }
+
+        } catch (err) {
+            console.error("Kritiska kļūda loadWorkerData:", err);
+        }
+    }
+
+    // --- MODĀLĀ LOGA UN CITU POGU DARBĪBA ---
     document.getElementById("OpenResourceBtn").onclick = () => {
         const modalCar = document.getElementById("modalCarSelect");
-        modalCar.innerHTML = carSelect.innerHTML; // Pārkopējam sarakstu
+        // Kopējam auto sarakstu no galvenās izvēlnes
+        modalCar.innerHTML = carSelect.innerHTML;
         if (carSelect.value) modalCar.value = carSelect.value;
         document.getElementById("resourceModal").style.display = "flex";
     };
@@ -255,8 +276,9 @@
     };
 
     document.getElementById("modalSave").onclick = async () => {
-        const resourceId = document.getElementById("modalResourceSelect").value;
-        const resourceName = document.getElementById("modalResourceSelect").selectedOptions[0].text;
+        const select = document.getElementById("modalResourceSelect");
+        const resourceId = select.value;
+        const resourceName = select.options[select.selectedIndex]?.text || "";
         const auto = document.getElementById("modalCarSelect").value;
         const litri = parseFloat(document.getElementById("modalAmountInput").value);
 
@@ -265,43 +287,31 @@
         }
 
         try {
-            // 1. ATŅEMAM NO ADMIN NOLIKTAVAS
             const subRes = await fetch(`/api/resource-types/${resourceId}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action: 'sub', amount: litri })
             });
 
-            if (!subRes.ok) {
-                const errorData = await subRes.json();
-                throw new Error(errorData.error || "Kļūda noliktavā");
-            }
+            if (!subRes.ok) throw new Error("Nepietiekams resursu daudzums noliktavā!");
 
-            // 2. PIERAKSTĀM DARBINIEKA DARBA GAITAI
-            const isOil = resourceName.toLowerCase().includes("eļļa");
-            const type = isOil ? "Ella" : "Degviela";
+            const type = resourceName.toLowerCase().includes("eļļa") ? "Ella" : "Degviela";
 
             await fetch('/api/update-resources', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    worker_name: user.name, 
-                    car: auto, 
-                    type: type, 
-                    amount: litri 
-                })
+                body: JSON.stringify({ worker_name: user.name, car: auto, type, amount: litri })
             });
 
             document.getElementById("resourceModal").style.display = "none";
             document.getElementById("modalAmountInput").value = "";
-            loadWorkerData(); // Atsvaidzinām visu
+            loadWorkerData();
             alert("Veiksmīgi reģistrēts!");
         } catch (err) {
             alert("Kļūda: " + err.message);
         }
     };
 
-    // --- PĀRĒJĀS POGAS ---
     document.getElementById("AtWork").onclick = () => {
         localStorage.setItem(`shift_start_${user.name}`, new Date().toISOString());
         loadWorkerData();
@@ -314,33 +324,34 @@
         let stundas = 0;
         if (shiftStartRaw) { stundas = ((tagad - new Date(shiftStartRaw)) / 3600000).toFixed(2); }
 
-        const data = {
-            darbinieks: user.name,
-            datums: tagad.toLocaleDateString('lv-LV'),
-            sāka_darbu: shiftStartRaw ? new Date(shiftStartRaw).toLocaleTimeString('lv-LV') : "--",
-            beidza_darbu: tagad.toLocaleTimeString('lv-LV'),
-            month: new Intl.DateTimeFormat('lv-LV', { month: 'long' }).format(tagad),
-            stundas: parseFloat(stundas) || 0
-        };
-
         await fetch('/api/darba-stundas', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
+            body: JSON.stringify({
+                darbinieks: user.name,
+                datums: tagad.toLocaleDateString('lv-LV'),
+                sāka_darbu: shiftStartRaw ? new Date(shiftStartRaw).toLocaleTimeString('lv-LV') : "--",
+                beidza_darbu: tagad.toLocaleTimeString('lv-LV'),
+                month: new Intl.DateTimeFormat('lv-LV', { month: 'long' }).format(tagad),
+                stundas: parseFloat(stundas) || 0
+            })
         });
         localStorage.removeItem(`shift_start_${user.name}`);
         window.location.reload();
     };
 
     document.getElementById("startBtn").onclick = async () => {
-        if (!carSelect.value || !objectSelect.value || !workSelect.value) return alert("Aizpildi laukus!");
+        if (!carSelect.value || !objectSelect.value || !workSelect.value) return alert("Aizpildi visus laukus!");
         const now = new Date();
         await fetch('/api/start-work', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
-                worker_name: user.name, car: carSelect.value, objekts: objectSelect.value, 
-                darbs: workSelect.value, start_time: `${now.toLocaleDateString('lv-LV')} ${now.toLocaleTimeString('lv-LV')}` 
+                worker_name: user.name, 
+                car: carSelect.value, 
+                objekts: objectSelect.value, 
+                darbs: workSelect.value, 
+                start_time: `${now.toLocaleDateString('lv-LV')} ${now.toLocaleTimeString('lv-LV')}` 
             })
         });
         loadWorkerData();
@@ -352,32 +363,27 @@
         await fetch('/api/stop-work', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ worker_name: user.name, end_time: `${now.toLocaleDateString('lv-LV')} ${now.toLocaleTimeString('lv-LV')}` })
+            body: JSON.stringify({ 
+                worker_name: user.name, 
+                end_time: `${now.toLocaleDateString('lv-LV')} ${now.toLocaleTimeString('lv-LV')}` 
+            })
         });
         loadWorkerData();
     };
 
-    function fillSelect(selectEl, data, defaultText) {
-        const currentVal = selectEl.value;
-        selectEl.innerHTML = `<option value="">${defaultText}</option>`;
-        data.forEach(item => {
-            const opt = document.createElement("option");
-            opt.value = item; opt.textContent = item;
-            selectEl.appendChild(opt);
-        });
-        selectEl.value = currentVal;
-    }
-
     function renderTable(data) {
-        if (!data || !data.length) { tableContainer.innerHTML = "<p style='padding:15px;'>Nav ierakstu.</p>"; return; }
+        if (!data || !data.length) { 
+            tableContainer.innerHTML = "<p style='padding:15px;'>Nav ierakstu.</p>"; 
+            return; 
+        }
         let html = `<table><tr><th>Auto</th><th>Objekts</th><th>Darbs</th><th>Sākums</th><th>Beigas</th><th>Eļļa</th><th>Degv.</th><th>Stundas</th></tr>`;
         data.slice().reverse().forEach(e => {
             html += `<tr>
-                <td>${e.car}</td>
+                <td>${e.car || '-'}</td>
                 <td>${e.objekts || '-'}</td>
                 <td>${e.darbs || '-'}</td>
                 <td>${e.sākuma_laiks || '-'}</td>
-                <td>${e.beigu_laiks || 'Aktīvs'}</td>
+                <td>${e.beigu_laiks || '<span style="color:orange">Aktīvs</span>'}</td>
                 <td class="oil-text">${e.pielietā_eļļa || 0} L</td>
                 <td class="fuel-text">${e.pielietā_degviela || 0} L</td>
                 <td>${e.hours ? e.hours + ' h' : '-'}</td>
