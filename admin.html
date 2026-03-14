@@ -222,12 +222,15 @@
             ]);
             [workers, cars, schedule, workTypes, objects, daySummary, resourceTypes] = await Promise.all(res.map(r => r.json()));
             
+            // Tā kā backend sūta schedule ar DESC, tas jau ir pareizs.
+            // Sakārtojam daySummary, lai jaunākie datumi ir augšā (ja backend to nedara)
+            daySummary.sort((a, b) => b.id - a.id);
+
             renderSettings();
             updateGlobalFilterOptions();
             renderTables();
         } catch (err) { 
             console.error("Datu ielādes kļūda:", err);
-            // Pat ja ir kļūda, mēģinām renderēt tabulas (tās būs tukšas)
             renderTables();
         }
     }
@@ -235,8 +238,7 @@
     function renderTables() {
         const workExclusion = ["Degvielas uzpilde", "Eļļas papildināšana", "Eļļas uzpilde"];
 
-        // 1. MEKLĒJAM AKTĪVOS DARBUS
-        // Pārbaude: vai schedule ir ieraksts, kuram nav norādīts beigu laiks (stundas ir 0 vai nav)
+        // 1. POGU REDZAMĪBA
         const hasActiveWork = (schedule && schedule.length > 0) ? schedule.some(e => 
             !workExclusion.includes(e.darbs) && 
             e.objekts && 
@@ -244,18 +246,11 @@
             (!e.hours || parseFloat(e.hours) <= 0)
         ) : false;
 
-        // 2. VADĀM POGU REDZAMĪBU
-        const clearButtons = document.querySelectorAll('.btn-clear');
-        clearButtons.forEach(btn => {
-            if (hasActiveWork) {
-                btn.style.setProperty("display", "none", "important");
-            } else {
-                // Rādām pogu TIKAI tad, ja nav aktīvu darbu UN dati vispār ir ielādēti
-                btn.style.setProperty("display", "block", "important");
-            }
+        document.querySelectorAll('.btn-clear').forEach(btn => {
+            btn.style.display = hasActiveWork ? "none" : "block";
         });
 
-        // --- TABULU RENDERĒŠANA (Standarta) ---
+        // 2. DARBA GAITAS TABULA
         let filteredWork = schedule.filter(e => {
             const year = (e.date || "").split('.')[2] || "";
             const isWork = !workExclusion.includes(e.darbs) && e.objekts && e.objekts !== "-";
@@ -271,6 +266,7 @@
 
         document.getElementById("totalHoursValue").innerText = filteredWork.reduce((s, i) => s + parseFloat(i.hours || 0), 0).toFixed(2);
         const workDataForOptions = schedule.filter(x => !workExclusion.includes(x.darbs));
+        
         document.getElementById("tableContainer").innerHTML = `<table><thead><tr>
             <th>Datums<br><select class="header-filter" onchange="syncFilter('date', this.value)">${getOptions('date', 'date', workDataForOptions)}</select></th>
             <th>Auto<br><select class="header-filter" onchange="syncFilter('car', this.value)">${getOptions('car', 'car', workDataForOptions)}</select></th>
@@ -279,7 +275,7 @@
             <th>Darbs<br><select class="header-filter" onchange="syncFilter('darbs', this.value)">${getOptions('darbs', 'darbs', workDataForOptions)}</select></th>
             <th style="text-align:right">Stundas</th>
         </tr></thead><tbody>` + 
-        (filteredWork.length ? filteredWork.slice().reverse().map(e => {
+        (filteredWork.length ? filteredWork.map(e => {
             const isError = parseFloat(e.hours) <= 0;
             return `<tr class="${isError ? 'error-row' : ''}">
                 <td>${e.date}</td><td>${e.car}</td><td>${e.worker_name}</td><td>${e.objekts}</td><td>${e.darbs}</td>
@@ -287,7 +283,6 @@
             </tr>`
         }).join("") : '<tr><td colspan="6" align="center">Nav datu</td></tr>') + "</tbody></table>";
 
-        // --- PĀRĒJĀS TABULAS (Fuel & Summary) ---
         renderFuelTable();
         renderSummaryTable();
     }
@@ -303,8 +298,10 @@
                 (!activeFilters.car || e.car === activeFilters.car) &&
                 (!activeFilters.resource || e.resource_name === activeFilters.resource);
         });
+
         document.getElementById("totalFuelValue").innerText = filteredFuel.reduce((s, i) => s + parseFloat(i.resource_amount || 0), 0).toFixed(2);
         const fuelDataForOptions = schedule.filter(x => x.resource_name);
+        
         document.getElementById("oilContainer").innerHTML = `<table><thead><tr>
             <th>Datums<br><select class="header-filter" onchange="syncFilter('date', this.value)">${getOptions('date', 'date', fuelDataForOptions)}</select></th>
             <th>Darbinieks<br><select class="header-filter" onchange="syncFilter('worker_name', this.value)">${getOptions('worker_name', 'worker_name', fuelDataForOptions)}</select></th>
@@ -312,7 +309,13 @@
             <th>Resurss<br><select class="header-filter" onchange="syncFilter('resource', this.value)">${getOptions('resource', 'resource_name', fuelDataForOptions)}</select></th>
             <th style="text-align:right">Daudzums (L)</th>
         </tr></thead><tbody>` + 
-        (filteredFuel.length ? filteredFuel.slice().reverse().map(e => `<tr><td>${e.date}</td><td>${e.worker_name}</td><td>${e.car}</td><td><b>${e.resource_name}</b></td><td class="gold-val" align="right">${parseFloat(e.resource_amount || 0).toFixed(2)} L</td></tr>`).join("") : `<tr><td colspan="5" align="center">Nav ierakstu</td></tr>`) + "</tbody></table>";
+        (filteredFuel.length ? filteredFuel.map(e => `
+            <tr>
+                <td>${e.date}</td><td>${e.worker_name}</td><td>${e.car}</td><td><b>${e.resource_name}</b></td>
+                <td class="gold-val" align="right">${parseFloat(e.resource_amount || 0).toFixed(2)} L</td>
+            </tr>`).join("") 
+            : `<tr><td colspan="5" align="center">Nav ierakstu</td></tr>`
+        ) + "</tbody></table>";
     }
 
     function renderSummaryTable() {
@@ -323,30 +326,41 @@
                 (!activeFilters.date || s.datums === activeFilters.date) &&
                 (!activeFilters.worker_name || s.darbinieks === activeFilters.worker_name);
         });
+
         document.getElementById("totalDayHoursValue").innerText = filteredSum.reduce((s, i) => s + parseFloat(i.stundas || 0), 0).toFixed(2);
+
         document.getElementById("summaryTableContainer").innerHTML = `<table><thead><tr>
             <th>Darbinieks<br><select class="header-filter" onchange="syncFilter('worker_name', this.value)">${getOptions('worker_name', 'darbinieks', daySummary)}</select></th>
             <th>Datums<br><select class="header-filter" onchange="syncFilter('date', this.value)">${getOptions('date', 'datums', daySummary)}</select></th>
             <th>Sākums</th><th>Beigas</th><th style="text-align:right">Kopā</th>
         </tr></thead><tbody>` + 
-        (filteredSum.length ? filteredSum.slice().reverse().map(s => {
+        (filteredSum.length ? filteredSum.map(s => {
             const hrs = parseFloat(s.stundas || 0);
             const isError = hrs <= 0;
             return `<tr class="${hrs > 12 ? 'overtime' : ''} ${isError ? 'error-row' : ''}">
                 <td>${s.darbinieks}</td><td>${s.datums}</td><td>${s.sāka_darbu || '-'}</td><td>${s.beidza_darbu || '-'}</td>
                 <td align="right"><b>${hrs.toFixed(2)} h</b>${isError ? '<span class="error-badge">NAV BEIGTS</span>' : ''}</td>
-            </tr>`
+            </tr>`;
         }).join("") : '<tr><td colspan="5" align="center">Nav datu</td></tr>') + "</tbody></table>";
     }
 
-    // --- API & SETTINGS (Iepriekšējā loģika) ---
     function renderSettings() {
         const renderList = (id, data, deleteFn, nameKey = 'name') => {
             const el = document.getElementById(id); if (!el) return;
             el.innerHTML = data.map(item => `<li style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eee;"><span>${item[nameKey] || item}</span><button class="btn-del" onclick="${deleteFn}('${item[nameKey] || item}')">✖</button></li>`).join("");
         };
-        renderList("carList", cars, "deleteCar"); renderList("workList", workTypes, "deleteWorkType"); renderList("objectList", objects, "deleteObject");
+        renderList("carList", cars, "deleteCar"); 
+        renderList("workList", workTypes, "deleteWorkType"); 
+        renderList("objectList", objects, "deleteObject");
+        renderList("resourceList", resourceTypes, "deleteResource", "name");
         document.getElementById("workerList").innerHTML = workers.map(w => `<li style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eee;"><span><strong>${w.name}</strong></span><button class="btn-del" onclick="deleteWorker('${w.name}')">✖</button></li>`).join("");
+    }
+
+    function resetFilters() {
+        activeFilters = { year: "", month: "", date: "", car: "", worker_name: "", objekts: "", darbs: "", resource: "" };
+        document.getElementById("filterYear").value = "";
+        document.getElementById("filterMonth").value = "";
+        renderTables();
     }
 
     function updateGlobalFilterOptions() {
