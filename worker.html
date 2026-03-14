@@ -162,7 +162,13 @@
             resModalSelect.innerHTML = '<option value="">-- Ko Tu lej? --</option>' + 
                 resources.map(r => `<option value="${r.id}">${r.name} (Pieejams: ${r.quantity}L)</option>`).join("");
 
-            const activeJob = allSchedule.find(e => e.worker_name === user.name && !e["beigu_laiks"]);
+            // Atrod ierakstu bez beigu laika, bet IZSLĒDZ degvielas/eļļas ierakstus
+const activeJob = allSchedule.find(e => 
+    e.worker_name === user.name && 
+    !e["beigu_laiks"] && 
+    e.darbs !== "Degvielas uzpilde" && 
+    e.darbs !== "Eļļas papildināšana"
+);
             const shiftStartTime = localStorage.getItem(`shift_start_${user.name}`);
             const isShiftStarted = !!shiftStartTime;
 
