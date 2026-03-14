@@ -214,7 +214,13 @@ app.post('/api/stop-work', async (req, res) => {
     const { worker_name, end_time } = req.body;
     const timeOnly = end_time.split(' ')[1];
     try {
-        const active = await pool.query('SELECT sākuma_laiks FROM schedule WHERE worker_name=$1 AND beigu_laiks IS NULL', [worker_name]);
+        const active = await pool.query(`
+    SELECT sākuma_laiks 
+    FROM schedule 
+    WHERE worker_name=$1 
+    AND beigu_laiks IS NULL 
+    AND darbs NOT IN ('Degvielas uzpilde', 'Eļļas papildināšana')
+`, [worker_name]);
         if (active.rows.length > 0) {
             const start = active.rows[0].sākuma_laiks;
             const [sh, sm, ss] = start.split(':').map(Number);
@@ -233,10 +239,18 @@ app.post('/api/stop-work', async (req, res) => {
 
 app.post('/api/update-resources', async (req, res) => {
     const { worker_name, car, resource_name, resource_amount, type } = req.body;
+    
     const tagad = new Date();
-    const datums = tagad.toLocaleDateString('lv-LV');
-    const laiks = tagad.toLocaleTimeString('lv-LV');
-    const monthRaw = tagad.toLocaleDateString('lv-LV', { month: 'long' });
+    const datums = tagad.toLocaleDateString('lv-LV', { timeZone: 'Europe/Riga' });
+    const laiks = tagad.toLocaleTimeString('lv-LV', { 
+        timeZone: 'Europe/Riga', 
+        hour: '2-digit', 
+        minute: '2-digit', 
+        second: '2-digit',
+        hour12: false 
+    });
+
+    const monthRaw = tagad.toLocaleDateString('lv-LV', { month: 'long', timeZone: 'Europe/Riga' });
     const monthStr = monthRaw.charAt(0).toUpperCase() + monthRaw.slice(1);
 
     const oilVal = (type === 'Ella') ? resource_amount : null;
@@ -245,12 +259,23 @@ app.post('/api/update-resources', async (req, res) => {
     try {
         const query = `
             INSERT INTO schedule 
-            (worker_name, car, date, sākuma_laiks, month, resource_name, resource_amount, pielietā_eļļa, pielietā_degviela, darbs) 
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            (worker_name, car, date, sākuma_laiks, beigu_laiks, month, resource_name, resource_amount, pielietā_eļļa, pielietā_degviela, darbs, hours) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
         `;
-        await pool.query(query, [worker_name, car, datums, laiks, monthStr, resource_name, resource_amount, oilVal, fuelVal, type === 'Ella' ? 'Eļļas papildināšana' : 'Degvielas uzpilde']);
+        
+        // ŠEIT IR BŪTISKĀKĀ IZMAIŅA:
+        // beigu_laiks tiek ierakstīts uzreiz ($5), un stundas ir 0 ($12)
+        await pool.query(query, [
+            worker_name, car, datums, laiks, laiks, 
+            monthStr, resource_name, resource_amount, 
+            oilVal, fuelVal, 
+            type === 'Ella' ? 'Eļļas papildināšana' : 'Degvielas uzpilde', 
+            0
+        ]);
         res.json({ success: true });
-    } catch (err) { res.status(500).json({ error: "Servera kļūda saglabājot resursus" }); }
+    } catch (err) { 
+        res.status(500).json({ error: "Servera kļūda" }); 
+    }
 });
 
 // --- 5. ATSKAITES (Darba stundas) ---
