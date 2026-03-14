@@ -414,7 +414,12 @@
         renderTables();
     };
     
-    document.getElementById("logoutBtn").onclick = () => { if(confirm("Izrakstīties?")) window.location.href = "/logout"; };
+    document.getElementById("logoutBtn").onclick = () => { 
+    if(confirm("Izrakstīties?")) {
+        localStorage.removeItem("loggedInUser"); // Notīra sesiju
+        window.location.href = "index.html";     // Nosūta uz sākuma lapu
+    } 
+};
 
     loadData();
 </script>
