@@ -195,5 +195,41 @@ app.delete('/api/schedule', async (req, res) => {
     catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// PIEVIENOT JAUNU DARBINIEKU
+app.post('/api/workers', async (req, res) => {
+    const { name } = req.body;
+    try {
+        // Izveidojam lietotāju ar pagaidu paroli '12345'
+        await pool.query('INSERT INTO users (name, temp_password, role) VALUES ($1, $2, $3)', [name, '12345', 'worker']);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// PIEVIENOT JAUNU AUTO
+app.post('/api/cars', async (req, res) => {
+    const { name } = req.body;
+    try {
+        await pool.query('INSERT INTO cars (name) VALUES ($1)', [name]);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// PIEVIENOT JAUNU OBJEKTU
+app.post('/api/objects', async (req, res) => {
+    const { name } = req.body;
+    try {
+        await pool.query('INSERT INTO objects (name) VALUES ($1)', [name]);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// DZĒŠANAS MARŠRUTS (Universāls piemērs darbiniekiem)
+app.delete('/api/workers/:name', async (req, res) => {
+    try {
+        await pool.query('DELETE FROM users WHERE name = $1', [req.params.name]);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => console.log(`🚀 Server running on ${PORT}`));
