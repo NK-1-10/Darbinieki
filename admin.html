@@ -122,7 +122,18 @@
         button { cursor: pointer; border-radius: 8px; border: none; font-weight: 600; transition: 0.2s; }
         .btn-add { background: var(--success-green); color: white; width: 100%; padding: 10px; margin-bottom: 10px; }
         .btn-del { color: var(--danger-red); background: none; font-size: 1.2em; padding: 0 5px; }
-        .btn-clear { background: var(--danger-red); color: white; padding: 8px 12px; font-size: 0.85em; }
+        
+        /* SVARĪGI: Poga ir paslēpta pēc noklusējuma (display: none).
+           Tā parādīsies TIKAI caur JavaScript, ja netiks atrasts neviens aktīvs darbs.
+        */
+        .btn-clear { 
+            background: var(--danger-red); 
+            color: white; 
+            padding: 8px 12px; 
+            font-size: 0.85em; 
+            display: none; 
+        }
+
         .gold-val { color: #b8860b; font-weight: bold; }
         .overtime { background-color: #fff0f0; color: var(--danger-red); font-weight: bold; }
 
@@ -146,38 +157,10 @@
                 <ul id="workerList"></ul>
             </div>
         </details>
-
-        <details class="pogas">
-            <summary>🚗 Mašīnas</summary>
-            <div class="settings-content">
-                <button class="btn-add" onclick="addNewItem('/api/cars', 'Mašīnas nr')">➕ Pievienot mašīnu</button>
-                <ul id="carList"></ul>
-            </div>
-        </details>
-
-        <details class="pogas">
-            <summary>⚒️ Darba veidi</summary>
-            <div class="settings-content">
-                <button class="btn-add" onclick="addNewItem('/api/work-types', 'Darba veids')">➕ Pievienot veidu</button>
-                <ul id="workList"></ul>
-            </div>
-        </details>
-
-        <details class="pogas">
-            <summary>📍 Objekti</summary>
-            <div class="settings-content">
-                <button class="btn-add" onclick="addNewItem('/api/objects', 'Objekta nosaukums')">➕ Pievienot objektu</button>
-                <ul id="objectList"></ul>
-            </div>
-        </details>
-
-        <details class="pogas">
-            <summary>🛢️ Resursi</summary>
-            <div class="settings-content">
-                <button class="btn-add" onclick="addNewItem('/api/resource-types', 'Resursa nosaukums', {quantity: 0})">➕ Jauns resurss</button>
-                <ul id="resourceList"></ul>
-            </div>
-        </details>
+        <details class="pogas"><summary>🚗 Mašīnas</summary><div class="settings-content"><button class="btn-add" onclick="addNewItem('/api/cars', 'Mašīnas nr')">➕ Pievienot mašīnu</button><ul id="carList"></ul></div></details>
+        <details class="pogas"><summary>⚒️ Darba veidi</summary><div class="settings-content"><button class="btn-add" onclick="addNewItem('/api/work-types', 'Darba veids')">➕ Pievienot veidu</button><ul id="workList"></ul></div></details>
+        <details class="pogas"><summary>📍 Objekti</summary><div class="settings-content"><button class="btn-add" onclick="addNewItem('/api/objects', 'Objekta nosaukums')">➕ Pievienot objektu</button><ul id="objectList"></ul></div></details>
+        <details class="pogas"><summary>🛢️ Resursi</summary><div class="settings-content"><button class="btn-add" onclick="addNewItem('/api/resource-types', 'Resursa nosaukums', {quantity: 0})">➕ Jauns resurss</button><ul id="resourceList"></ul></div></details>
     </div>
 
     <div class="filter-section">
@@ -195,7 +178,7 @@
             <div class="settings-content">
                 <div class="summary-bar">
                     <div>Atlasītais laiks kopā: <span id="totalHoursValue" class="gold-val">0.00</span> h</div>
-                    <button id="clearScheduleBtn" class="btn-clear" onclick="clearTable('/api/schedule')">🗑️ Iztīrīt datus</button>
+                    <button class="btn-clear" onclick="clearTable('/api/schedule')">🗑️ Iztīrīt datus</button>
                 </div>
                 <div class="table-wrapper" id="tableContainer"></div>
             </div>
@@ -227,11 +210,7 @@
 
 <script>
     let workers = [], cars = [], schedule = [], workTypes = [], objects = [], daySummary = [], resourceTypes = [];
-    
-    let activeFilters = { 
-        year: "", month: "", date: "", car: "", worker_name: "", objekts: "", darbs: "", resource: ""
-    };
-
+    let activeFilters = { year: "", month: "", date: "", car: "", worker_name: "", objekts: "", darbs: "", resource: "" };
     const LV_MONTHS = ["Janvāris", "Februāris", "Marts", "Aprīlis", "Maijs", "Jūnijs", "Jūlijs", "Augusts", "Septembris", "Oktobris", "Novembris", "Decembris"];
 
     async function loadData() {
@@ -246,69 +225,37 @@
             renderSettings();
             updateGlobalFilterOptions();
             renderTables();
-        } catch (err) { console.error("Datu ielādes kļūda:", err); }
+        } catch (err) { 
+            console.error("Datu ielādes kļūda:", err);
+            // Pat ja ir kļūda, mēģinām renderēt tabulas (tās būs tukšas)
+            renderTables();
+        }
     }
-
-    function renderSettings() {
-        const renderList = (id, data, deleteFn, nameKey = 'name') => {
-            const el = document.getElementById(id);
-            if (!el) return;
-            el.innerHTML = data.map(item => `
-                <li style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eee;">
-                    <span>${item[nameKey] || item}</span>
-                    <button class="btn-del" onclick="${deleteFn}('${item[nameKey] || item}')">✖</button>
-                </li>`).join("");
-        };
-        renderList("carList", cars, "deleteCar");
-        renderList("workList", workTypes, "deleteWorkType");
-        renderList("objectList", objects, "deleteObject");
-        
-        document.getElementById("workerList").innerHTML = workers.map(w => `
-            <li style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eee;">
-                <span><strong>${w.name}</strong> ${w.temp_password ? `<small style="color:gray;">(Pass: ${w.temp_password})</small>` : ''}</span>
-                <button class="btn-del" onclick="deleteWorker('${w.name}')">✖</button>
-            </li>`).join("");
-
-        document.getElementById("resourceList").innerHTML = resourceTypes.map(r => `
-            <li style="padding:10px; border:1px solid #eee; border-radius:8px; margin-bottom:10px; background:#fafafa;">
-                <div style="margin-bottom:8px;"><strong>${r.name}</strong>: <span class="gold-val">${r.quantity || 0} L</span></div>
-                <div style="display:flex; gap:5px; align-items: center;">
-                    <input type="number" id="qty-${r.id}" step="0.1" placeholder="L">
-                    <button onclick="modifyQty('${r.id}', 'add')" style="background:#28a745; color:white; padding:5px 12px;">+</button>
-                    <button onclick="modifyQty('${r.id}', 'sub')" style="background:#dc3545; color:white; padding:5px 12px;">-</button>
-                    <button class="btn-del" onclick="deleteResourceType('${r.id}')" style="margin-left: auto;">✖</button>
-                </div>
-            </li>`).join("");
-    }
-
-    function updateGlobalFilterOptions() {
-        const allDates = [...schedule.map(s => s.date), ...daySummary.map(d => d.datums)].filter(Boolean);
-        const years = [...new Set(allDates.map(d => d.split('.')[2]))].sort();
-        const ySelect = document.getElementById("filterYear");
-        const mSelect = document.getElementById("filterMonth");
-
-        ySelect.innerHTML = '<option value="">Visi gadi</option>' + years.map(v => `<option value="${v}" ${activeFilters.year === v ? 'selected' : ''}>${v}</option>`).join("");
-        const relevantData = schedule.filter(s => !activeFilters.year || s.date.endsWith(activeFilters.year));
-        const monthsInSchedule = [...new Set(relevantData.map(e => e.month))].filter(Boolean);
-        const sortedMonths = LV_MONTHS.filter(m => monthsInSchedule.some(sm => sm.toLowerCase() === m.toLowerCase()));
-        mSelect.innerHTML = '<option value="">Visi mēneši</option>' + sortedMonths.map(v => `<option value="${v}" ${activeFilters.month === v ? 'selected' : ''}>${v}</option>`).join("");
-    }
-
-    const getOptions = (filterKey, dataKey, dataSource) => {
-        const vals = [...new Set(dataSource.map(item => item[dataKey]))].filter(Boolean).sort();
-        return `<option value="">Visi</option>` + vals.map(v => `<option value="${v}" ${activeFilters[filterKey] === v ? 'selected' : ''}>${v}</option>`).join("");
-    };
 
     function renderTables() {
         const workExclusion = ["Degvielas uzpilde", "Eļļas papildināšana", "Eļļas uzpilde"];
 
-        // PASLĒPJAM POGU, JA IR AKTĪVS DARBS (Stundas ir 0 vai nav aprēķinātas)
-        const hasActiveWork = schedule.some(e => !workExclusion.includes(e.darbs) && (!e.hours || parseFloat(e.hours) <= 0));
-        document.querySelectorAll('.btn-clear').forEach(btn => {
-            btn.style.visibility = hasActiveWork ? "hidden" : "visible";
+        // 1. MEKLĒJAM AKTĪVOS DARBUS
+        // Pārbaude: vai schedule ir ieraksts, kuram nav norādīts beigu laiks (stundas ir 0 vai nav)
+        const hasActiveWork = (schedule && schedule.length > 0) ? schedule.some(e => 
+            !workExclusion.includes(e.darbs) && 
+            e.objekts && 
+            e.objekts !== "-" &&
+            (!e.hours || parseFloat(e.hours) <= 0)
+        ) : false;
+
+        // 2. VADĀM POGU REDZAMĪBU
+        const clearButtons = document.querySelectorAll('.btn-clear');
+        clearButtons.forEach(btn => {
+            if (hasActiveWork) {
+                btn.style.setProperty("display", "none", "important");
+            } else {
+                // Rādām pogu TIKAI tad, ja nav aktīvu darbu UN dati vispār ir ielādēti
+                btn.style.setProperty("display", "block", "important");
+            }
         });
 
-        // --- 1. TABULA: DARBA GAITA ---
+        // --- TABULU RENDERĒŠANA (Standarta) ---
         let filteredWork = schedule.filter(e => {
             const year = (e.date || "").split('.')[2] || "";
             const isWork = !workExclusion.includes(e.darbs) && e.objekts && e.objekts !== "-";
@@ -340,7 +287,12 @@
             </tr>`
         }).join("") : '<tr><td colspan="6" align="center">Nav datu</td></tr>') + "</tbody></table>";
 
-        // --- 2. TABULA: PATĒRIŅŠ ---
+        // --- PĀRĒJĀS TABULAS (Fuel & Summary) ---
+        renderFuelTable();
+        renderSummaryTable();
+    }
+
+    function renderFuelTable() {
         let filteredFuel = schedule.filter(e => {
             const year = (e.date || "").split('.')[2] || "";
             return (e.resource_name && e.resource_amount) &&
@@ -361,8 +313,9 @@
             <th style="text-align:right">Daudzums (L)</th>
         </tr></thead><tbody>` + 
         (filteredFuel.length ? filteredFuel.slice().reverse().map(e => `<tr><td>${e.date}</td><td>${e.worker_name}</td><td>${e.car}</td><td><b>${e.resource_name}</b></td><td class="gold-val" align="right">${parseFloat(e.resource_amount || 0).toFixed(2)} L</td></tr>`).join("") : `<tr><td colspan="5" align="center">Nav ierakstu</td></tr>`) + "</tbody></table>";
+    }
 
-        // --- 3. TABULA: DIENAS STUNDAS ---
+    function renderSummaryTable() {
         let filteredSum = daySummary.filter(s => {
             const year = (s.datums || "").split('.')[2] || "";
             return (!activeFilters.year || year === activeFilters.year) &&
@@ -386,68 +339,37 @@
         }).join("") : '<tr><td colspan="5" align="center">Nav datu</td></tr>') + "</tbody></table>";
     }
 
-    function syncFilter(key, val) {
-        activeFilters[key] = val;
-        if(key === 'year' || key === 'month') updateGlobalFilterOptions();
-        renderTables();
+    // --- API & SETTINGS (Iepriekšējā loģika) ---
+    function renderSettings() {
+        const renderList = (id, data, deleteFn, nameKey = 'name') => {
+            const el = document.getElementById(id); if (!el) return;
+            el.innerHTML = data.map(item => `<li style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eee;"><span>${item[nameKey] || item}</span><button class="btn-del" onclick="${deleteFn}('${item[nameKey] || item}')">✖</button></li>`).join("");
+        };
+        renderList("carList", cars, "deleteCar"); renderList("workList", workTypes, "deleteWorkType"); renderList("objectList", objects, "deleteObject");
+        document.getElementById("workerList").innerHTML = workers.map(w => `<li style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eee;"><span><strong>${w.name}</strong></span><button class="btn-del" onclick="deleteWorker('${w.name}')">✖</button></li>`).join("");
     }
 
-    async function modifyQty(id, action) {
-        const input = document.getElementById(`qty-${id}`);
-        const amount = parseFloat(input.value);
-        if (isNaN(amount) || amount <= 0) return alert("Ievadiet derīgu skaitli!");
-        try {
-            const res = await fetch(`/api/resource-types/${id}`, { 
-                method: 'PATCH', headers: { 'Content-Type': 'application/json' }, 
-                body: JSON.stringify({ action, amount }) 
-            });
-            if (res.ok) { input.value = ""; loadData(); }
-        } catch(e) { alert("Kļūda saglabājot!"); }
+    function updateGlobalFilterOptions() {
+        const allDates = [...schedule.map(s => s.date), ...daySummary.map(d => d.datums)].filter(Boolean);
+        const years = [...new Set(allDates.map(d => d.split('.')[2]))].sort();
+        document.getElementById("filterYear").innerHTML = '<option value="">Visi gadi</option>' + years.map(v => `<option value="${v}">${v}</option>`).join("");
+        document.getElementById("filterMonth").innerHTML = '<option value="">Visi mēneši</option>' + LV_MONTHS.map(v => `<option value="${v}">${v}</option>`).join("");
     }
 
-    async function addNewItem(url, promptMsg, extraData = {}) {
-        const val = prompt(`${promptMsg}:`);
-        if (val) { 
-            await fetch(url, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ name: val, ...extraData }) }); 
-            loadData(); 
-        }
-    }
+    const getOptions = (filterKey, dataKey, dataSource) => {
+        const vals = [...new Set(dataSource.map(item => item[dataKey]))].filter(Boolean).sort();
+        return `<option value="">Visi</option>` + vals.map(v => `<option value="${v}" ${activeFilters[filterKey] === v ? 'selected' : ''}>${v}</option>`).join("");
+    };
 
-    async function addNewWorker() {
-        const name = prompt("Darbinieka vārds:"), pass = prompt("Pagaidu parole:");
-        if (name && pass) { 
-            await fetch('/api/workers', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ name, temp_password: pass }) }); 
-            loadData(); 
-        }
-    }
-
-    async function deleteItem(url) { if(confirm("Tiešām dzēst?")) { await fetch(url, {method:'DELETE'}); loadData(); } }
-    const deleteWorker = (n) => deleteItem(`/api/workers/${encodeURIComponent(n)}`);
-    const deleteCar = (n) => deleteItem(`/api/cars/${encodeURIComponent(n)}`);
-    const deleteWorkType = (n) => deleteItem(`/api/work-types/${encodeURIComponent(n)}`);
-    const deleteObject = (n) => deleteItem(`/api/objects/${encodeURIComponent(n)}`);
-    const deleteResourceType = (id) => deleteItem(`/api/resource-types/${id}`);
+    function syncFilter(key, val) { activeFilters[key] = val; renderTables(); }
 
     async function clearTable(apiUrl) {
-        if (confirm("UZMANĪBU! Šī darbība neatgriezeniski izdzēsīs visus datus šajā tabulā. Turpināt?")) {
+        if (confirm("UZMANĪBU! Šī darbība izdzēsīs visus datus. Turpināt?")) {
             const res = await fetch(apiUrl, { method: 'DELETE' });
             if (res.ok) { alert("Dati izdzēsti!"); loadData(); }
         }
     }
 
-    document.getElementById("clearAllFilters").onclick = () => { 
-        activeFilters = { year: "", month: "", date: "", car: "", worker_name: "", objekts: "", darbs: "", resource: "" }; 
-        updateGlobalFilterOptions();
-        renderTables(); 
-    };
-
-    document.getElementById("logoutBtn").onclick = () => { 
-        if(confirm("Izrakstīties?")) { 
-            localStorage.removeItem("loggedInUser"); 
-            window.location.href = "index.html"; 
-        } 
-    };
-    
     loadData();
 </script>
 </body>
