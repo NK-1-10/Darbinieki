@@ -75,7 +75,7 @@ app.patch('/api/resource-types/:id', async (req, res) => {
 
         if (action === 'sub') {
             if (currentQty < litri) return res.status(400).json({ error: `Noliktavā nav tik daudz! Pieejams: ${currentQty}L` });
-            const result = await pool.query('UPDATE resource_types SET quantity = COALESCE(quantity, 0) - $1 WHERE id = $2 RETURNING *', [litri, id]);
+            const result = await pool.query('UPDATE resource_types SET quantity = quantity - $1 WHERE id = $2 RETURNING *', [litri, id]);
             res.json(result.rows[0]);
         } else {
             let query = action === 'add' ? 'UPDATE resource_types SET quantity = COALESCE(quantity, 0) + $1 WHERE id = $2 RETURNING *' : 'UPDATE resource_types SET quantity = $1 WHERE id = $2 RETURNING *';
@@ -85,7 +85,7 @@ app.patch('/api/resource-types/:id', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// --- 3. DARBINIEKI, AUTO, OBJEKTI (Atsevišķas sadaļas) ---
+// --- 3. DARBINIEKI, AUTO, OBJEKTI ---
 app.get('/api/workers', async (req, res) => {
     try {
         const r = await pool.query("SELECT name, temp_password, role FROM users WHERE role != 'admin' OR role IS NULL ORDER BY name ASC");
@@ -174,7 +174,7 @@ app.delete('/api/work-types/:name', async (req, res) => {
 // --- 4. DARBA GAITA UN ŽURNĀLĒŠANA ---
 app.get('/api/schedule', async (req, res) => {
     try {
-        // Labojums kārtošanai:
+        // Galvenais labojums tabulas kārtošanai:
         const result = await pool.query("SELECT * FROM schedule ORDER BY TO_DATE(date, 'DD.MM.YYYY.') DESC, id DESC");
         res.json(result.rows);
     } catch (err) { res.status(500).json({ error: err.message }); }
@@ -182,9 +182,8 @@ app.get('/api/schedule', async (req, res) => {
 
 app.post('/api/start-work', async (req, res) => {
     const { worker_name, car, start_time, objekts, darbs } = req.body;
-    const parts = start_time.split(' '); 
-    const date = parts[0];
-    const time = parts[1];
+    const date = start_time.split(' ')[0];
+    const time = start_time.split(' ')[1];
     const months = ["Janvāris","Februāris","Marts","Aprīlis","Maijs","Jūnijs","Jūlijs","Augusts","Septembris","Oktobris","Novembris","Decembris"];
     const monthStr = months[parseInt(date.split('.')[1]) - 1] || "Februāris";
     try {
