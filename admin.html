@@ -325,7 +325,9 @@
         // --- 3. TABULA (Resursu Patēriņš) ---
 // --- 3. TABULA (Resursu Patēriņš) ---
 // Atlasām datus no filteredWork, kur ir jaunie resursu lauki
-const fuelData = filteredWork.filter(e => e.resource_name && e.resource_amount);
+// --- 3. TABULA (Resursu Patēriņš) ---
+// Atlasām ierakstus, kur ir vismaz resursa nosaukums VAI daudzums
+const fuelData = filteredWork.filter(e => e.resource_name || e.resource_amount);
 
 let h2 = `<table><thead><tr>
     <th>Datums</th>
@@ -336,15 +338,15 @@ let h2 = `<table><thead><tr>
 </tr></thead><tbody>`;
 
 if (fuelData.length === 0) {
-    h2 += `<tr><td colspan="5" style="text-align:center; padding:20px; color:#999;">Nav datu par resursu patēriņu šajā periodā.</td></tr>`;
+    h2 += `<tr><td colspan="5" style="text-align:center; padding:20px; color:#999;">Nav ierakstu ar jauno resursu sistēmu.</td></tr>`;
 } else {
     h2 += fuelData.map(e => `
         <tr>
             <td>${e.date || '-'}</td>
             <td>${e.worker_name || '-'}</td>
             <td>${e.car || '-'}</td>
-            <td style="font-weight: bold;">${e.resource_name}</td> 
-            <td class="gold-val" align="right">${parseFloat(e.resource_amount).toFixed(2)} L</td>
+            <td style="font-weight: bold;">${e.resource_name || 'Nav norādīts'}</td> 
+            <td class="gold-val" align="right">${e.resource_amount ? parseFloat(e.resource_amount).toFixed(2) : '0.00'} L</td>
         </tr>`).join("");
 }
 
