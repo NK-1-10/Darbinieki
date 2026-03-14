@@ -348,30 +348,30 @@
     const deleteResource = (n) => deleteItem('/api/resource-types', n);
     // --- API & SETTINGS (Iepriekšējā loģika) ---
 
-async function updateResourceStock(name) {
-    const amount = prompt(`Ievadiet daudzumu, ko pievienot resursam "${name}" (izmantojiet mīnusu, lai noņemtu, piemēram, -50):`);
-    
-    // Pārbaudām, vai ievadītais ir skaitlis un vai lietotājs nenospieda "Cancel"
-    const change = parseFloat(amount);
-    
+    async function updateResourceFromInput(name) {
+    const inputEl = document.getElementById(`input-${name}`);
+    const change = parseFloat(inputEl.value);
+
     if (isNaN(change) || change === 0) {
-        if (amount !== null) alert("Lūdzu, ievadiet derīgu skaitli!");
+        alert("Lūdzu, ievadiet skaitli (piemēram, 50 vai -20)");
         return;
     }
 
-    if (!confirm(`Vai tiešām mainīt "${name}" daudzumu par ${change} L?`)) return;
-    
+    // Apstiprinājums ātrumam var tikt noņemts, ja uzticies saviem pirkstiem
+    if (!confirm(`Mainīt "${name}" par ${change} L?`)) return;
+
     try {
         const res = await fetch('/api/resource-stock', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name, change })
         });
-        
+
         if (res.ok) {
+            inputEl.value = ""; // Notīrām lauciņu pēc veiksmīgas darbības
             loadData(); 
         } else {
-            alert("Servera kļūda, mainot krājumus.");
+            alert("Kļūda saglabājot datus.");
         }
     } catch (err) {
         console.error("Kļūda:", err);
@@ -394,19 +394,27 @@ async function updateResourceStock(name) {
     renderList("workList", workTypes, "deleteWorkType"); 
     renderList("objectList", objects, "deleteObject");
     
-    const resEl = document.getElementById("resourceList");
+const resEl = document.getElementById("resourceList");
 if (resEl) {
     resEl.innerHTML = resourceTypes.map(item => `
-        <li style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #eee;">
+        <li style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid #eee;">
             <div style="flex: 1;">
-                <strong>${item.name || item}</strong> 
-                <span class="gold-val" style="margin-left:10px;">${item.quantity || 0} L</span>
+                <strong>${item.name || item}</strong><br>
+                <span class="gold-val">${item.quantity || 0} L</span>
             </div>
+            
             <div style="display:flex; gap: 8px; align-items:center;">
-                <button onclick="updateResourceStock('${item.name || item}')" 
-                        style="background:var(--accent-gold); color:white; padding:6px 12px; border-radius:6px; font-size:12px;">
-                    Papildināt / Noņemt
+                <input type="number" 
+                       id="input-${item.name || item}" 
+                       placeholder="Litri" 
+                       onkeydown="if(event.key==='Enter') updateResourceFromInput('${item.name || item}')"
+                       style="width: 70px; padding: 6px; border: 1px solid var(--accent-gold); border-radius: 6px; font-size: 13px;">
+                
+                <button onclick="updateResourceFromInput('${item.name || item}')" 
+                        style="background: var(--success-green); color: white; padding: 6px 12px; border-radius: 6px; font-size: 12px; height: 31px;">
+                    OK
                 </button>
+                
                 <button class="btn-del" onclick="deleteResource('${item.name || item}')" style="margin-left:5px;">✖</button>
             </div>
         </li>`).join("");
