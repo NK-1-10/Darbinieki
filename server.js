@@ -214,26 +214,37 @@ app.post('/api/stop-work', async (req, res) => {
     const { worker_name, end_time } = req.body;
     const timeOnly = end_time.split(' ')[1];
     try {
+        // 1. Atrodam aktīvo darbu (izslēdzot degvielu)
         const active = await pool.query(`
-    SELECT sākuma_laiks 
-    FROM schedule 
-    WHERE worker_name=$1 
-    AND beigu_laiks IS NULL 
-    AND darbs NOT IN ('Degvielas uzpilde', 'Eļļas papildināšana')
-`, [worker_name]);
+            SELECT id, sākuma_laiks 
+            FROM schedule 
+            WHERE worker_name=$1 
+            AND beigu_laiks IS NULL 
+            AND darbs NOT IN ('Degvielas uzpilde', 'Eļļas papildināšana')
+            LIMIT 1
+        `, [worker_name]);
+
         if (active.rows.length > 0) {
+            const rowId = active.rows[0].id; // Izmantojam unikālo ID
             const start = active.rows[0].sākuma_laiks;
+            
+            // Aprēķinām stundas
             const [sh, sm, ss] = start.split(':').map(Number);
             const [eh, em, es] = timeOnly.split(':').map(Number);
             let diff = (eh * 3600 + em * 60 + es) - (sh * 3600 + sm * 60 + ss);
             if (diff < 0) diff += 86400;
             const hoursStr = (diff / 3600).toFixed(2);
+
+            // 2. Atjaunojam TIKAI šo konkrēto ierakstu pēc ID
             await pool.query(
-                'UPDATE schedule SET beigu_laiks=$1, hours=$2 WHERE worker_name=$3 AND beigu_laiks IS NULL',
-                [timeOnly, hoursStr, worker_name]
+                'UPDATE schedule SET beigu_laiks=$1, hours=$2 WHERE id=$3',
+                [timeOnly, hoursStr, rowId]
             );
+            
             res.json({ success: true });
-        } else { res.status(404).json({ error: "Nav aktīva darba" }); }
+        } else { 
+            res.status(404).json({ error: "Nav aktīva darba" }); 
+        }
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
