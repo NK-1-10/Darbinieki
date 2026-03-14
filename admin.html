@@ -348,7 +348,17 @@
     const deleteResource = (n) => deleteItem('/api/resource-types', n);
     // --- API & SETTINGS (Iepriekšējā loģika) ---
 
-async function updateResourceStock(name, change) {
+async function updateResourceStock(name) {
+    const amount = prompt(`Ievadiet daudzumu, ko pievienot resursam "${name}" (izmantojiet mīnusu, lai noņemtu, piemēram, -50):`);
+    
+    // Pārbaudām, vai ievadītais ir skaitlis un vai lietotājs nenospieda "Cancel"
+    const change = parseFloat(amount);
+    
+    if (isNaN(change) || change === 0) {
+        if (amount !== null) alert("Lūdzu, ievadiet derīgu skaitli!");
+        return;
+    }
+
     if (!confirm(`Vai tiešām mainīt "${name}" daudzumu par ${change} L?`)) return;
     
     try {
@@ -359,7 +369,7 @@ async function updateResourceStock(name, change) {
         });
         
         if (res.ok) {
-            loadData(); // Atsvaidzina datus, lai redzētu jauno skaitli
+            loadData(); 
         } else {
             alert("Servera kļūda, mainot krājumus.");
         }
@@ -393,8 +403,10 @@ if (resEl) {
                 <span class="gold-val" style="margin-left:10px;">${item.quantity || 0} L</span>
             </div>
             <div style="display:flex; gap: 8px; align-items:center;">
-                <button onclick="updateResourceStock('${item.name || item}', 10)" style="background:var(--success-green); color:white; padding:4px 8px; border-radius:6px; font-size:12px;">+10</button>
-                <button onclick="updateResourceStock('${item.name || item}', -10)" style="background:var(--danger-red); color:white; padding:4px 8px; border-radius:6px; font-size:12px;">-10</button>
+                <button onclick="updateResourceStock('${item.name || item}')" 
+                        style="background:var(--accent-gold); color:white; padding:6px 12px; border-radius:6px; font-size:12px;">
+                    Papildināt / Noņemt
+                </button>
                 <button class="btn-del" onclick="deleteResource('${item.name || item}')" style="margin-left:5px;">✖</button>
             </div>
         </li>`).join("");
