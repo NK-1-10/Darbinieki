@@ -250,50 +250,47 @@ app.post('/api/stop-work', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// Reģistrē resursu pieliešanu žurnālā
 // --- ATJAUNINĀTS: Reģistrē resursu pieliešanu žurnālā ---
 app.post('/api/update-resources', async (req, res) => {
-    const { worker_name, car, type, amount } = req.body; // 'type' tagad būs piem. "Eļļa1"
-    const litri = parseFloat(amount) || 0;
+    const { worker_name, car, resource_name, resource_amount, type } = req.body;
+
+    // Sagatavojam datus datubāzei
     const tagad = new Date();
     const datums = tagad.toLocaleDateString('lv-LV');
     const laiks = tagad.toLocaleTimeString('lv-LV');
     
-    // Uzlabots mēneša formāts (Vienmēr pirmais burts lielais)
+    // Sinhronizējam mēneša nosaukumu (tāpat kā start-work maršrutā)
     const monthRaw = tagad.toLocaleDateString('lv-LV', { month: 'long' });
     const monthStr = monthRaw.charAt(0).toUpperCase() + monthRaw.slice(1);
 
-    try {
-        // 1. Meklējam aktīvo darbu
-        const activeJob = await pool.query(
-            'SELECT id FROM schedule WHERE worker_name = $1 AND beigu_laiks IS NULL ORDER BY id DESC LIMIT 1',
-            [worker_name]
-        );
+    // Noteiksim vērtības vecajām kolonnām (pielietā_eļļa / pielietā_degviela), lai Admin panelis joprojām strādātu
+    const oilVal = (type === 'Ella') ? resource_amount : null;
+    const fuelVal = (type === 'Degviela') ? resource_amount : null;
 
-        if (activeJob.rows.length > 0) {
-            // Ja ir aktīvs darbs, papildinām informāciju par resursu
-            // Piezīme: Ja vienā darbā tiek pielieti vairāki resursi, 
-            // šis vienkāršotais modelis pārrakstīs pēdējo. 
-            // Labākai vēsturei mēs saglabājam nosaukumu un daudzumu.
-            await pool.query(
-                `UPDATE schedule 
-                 SET resource_name = $1, 
-                     resource_amount = $2
-                 WHERE id = $3`,
-                [type, litri, activeJob.rows[0].id]
-            );
-        } else {
-            // Ja nav aktīva darba, izveidojam jaunu ierakstu "Resursu papildināšana"
-            await pool.query(
-                `INSERT INTO schedule (worker_name, car, date, sākuma_laiks, beigu_laiks, month, resource_name, resource_amount, darbs) 
-                 VALUES ($1, $2, $3, $4, $4, $5, $6, $7, $8)`,
-                [worker_name, car, datums, laiks, monthStr, type, litri, `Papildināts: ${type}`]
-            );
-        }
-        res.sendStatus(200);
-    } catch (err) { 
-        console.error(err);
-        res.status(500).json({ error: err.message }); 
+    try {
+        const query = `
+            INSERT INTO schedule 
+            (worker_name, car, date, sākuma_laiks, month, resource_name, resource_amount, pielietā_eļļa, pielietā_degviela, darbs) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+        `;
+
+        await pool.query(query, [
+            worker_name, 
+            car, 
+            datums, 
+            laiks, 
+            monthStr,
+            resource_name,    // Jaunā kolonna (piem. "Eļļa 5W30")
+            resource_amount,  // Daudzums
+            oilVal,           // Savietojamībai ar veco "Eļļa" kolonnu
+            fuelVal,          // Savietojamībai ar veco "Degviela" kolonnu
+            type === 'Ella' ? 'Eļļas papildināšana' : 'Degvielas uzpilde' // Darba apraksts
+        ]);
+
+        res.json({ success: true });
+    } catch (err) {
+        console.error("Kļūda saglabājot resursus:", err);
+        res.status(500).json({ error: "Servera kļūda saglabājot resursus" });
     }
 });
 
