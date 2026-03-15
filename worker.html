@@ -116,30 +116,38 @@ td { padding: 12px 15px; border-bottom: 1px solid #eee; text-align: center; }
         border-top: 15px solid var(--saulstari-yellow) !important; /* Pārliecināmies, ka līnija ir redzama */
     }
 
-            h2{
-                font-size: 40px;
-            }
+    h2{
+        font-size: 40px;
+    }
 
     #tableContainer {
         width: 100% !important;
         border-radius: 0 !important;
-        margin: 0 !important;
+        margin: 20px 0 !important;
+        overflow-x: auto !important; /* Nodrošina bīdīšanu */
+        display: block !important;
+        -webkit-overflow-scrolling: touch; /* Padara skrollēšanu "mīkstu" uz iPhone */
     }
     #status{
         font-size: 30px !important;
     }
     #shiftStartTimeDisplay{
-        font-size: 20px !important;
+        font-size: 25px !important;
     }
     #car, #object, #work {
     font-size: 24px !important; 
     font-weight: bold !important;
 }
+    table {
+        /* Piespiežam tabulu būt ļoti platu, lai teksts nevarētu saspiesties */
+        min-width: 1200px !important; 
+        border-collapse: collapse;
+    }
 
     table {
         min-width: 700px !important; /* Nodrošina, ka tabulu var bīdīt sāniski */
     }
-            select {
+    select {
         padding: 40px !important;
         font-size: 1.1rem !important;
         margin: 6px 0 !important;
@@ -151,6 +159,16 @@ td { padding: 12px 15px; border-bottom: 1px solid #eee; text-align: center; }
         font-size: 1.3rem !important;       /* Palielina tekstu uz pogām */
         margin: 8px 0 !important;           /* Lielāka atstarpe starp pogām */
         letter-spacing: 1px;
+    }
+    th {
+        font-size: 35px !important; /* Galvenes nedaudz mazākas par 40px, lai taupītu vietu */
+        padding: 20px !important;
+    }
+
+    td {
+        font-size: 40px !important; /* Tavs prasītais izmērs */
+        padding: 25px !important;
+        white-space: nowrap !important; /* Neļauj tekstam pārlēkt jaunā rindā */
     }
 }
     </style>
