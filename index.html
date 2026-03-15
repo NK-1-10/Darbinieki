@@ -107,13 +107,16 @@
     @media (pointer: coarse) {
       form {
       width: 70% !important;
-      height: 25% !important; /* 80% var būt par šauru */
+      height: 30% !important; /* 80% var būt par šauru */
       max-width: none !important;
       padding: 30px 20px !important;
       }
     input, button {
-      padding: 30px !important; /* Lielāki elementi pirkstiem */
-      font-size: 25px;
+      padding: 35px !important; /* Lielāki elementi pirkstiem */
+      font-size: 30px;
+      }
+      .text{
+      font-size: 35px;
       }
     }
   </style>
@@ -121,10 +124,10 @@
 <body>
 
   <form id="loginForm" autocomplete="off">
-    <label for="username">Username</label>
+    <label class="text" for="username">Username</label>
     <input id="username" name="username" type="text" required />
 
-    <label for="password">Password</label>
+    <label class="text" for="password">Password</label>
     <input id="password" name="password" type="password" required />
 
     <button type="submit">Log in</button>
