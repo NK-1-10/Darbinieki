@@ -209,6 +209,8 @@
                 document.getElementById("status").innerHTML = `Strādā: <b>${activeJob.objekts}</b>`;
                 document.getElementById("startBtn").style.display = "none";
                 document.getElementById("stopBtn").style.display = "block";
+                document.getElementById("LeaveWork").style.display = "none";
+                
                 workTimeDisplay.textContent = `Uzsāki šo darbu: ${activeJob.sākuma_laiks.substring(0, 5)}`;
                 
                 // Iestatām vērtības un NOBLOĶĒJAM laukus
@@ -223,6 +225,7 @@
                 document.getElementById("status").textContent = isShiftStarted ? "Statuss: Maiņa sākta" : "Statuss: Gaidīšana";
                 document.getElementById("startBtn").style.display = isShiftStarted ? "block" : "none";
                 document.getElementById("stopBtn").style.display = "none";
+                document.getElementById("LeaveWork").style.display = isShiftStarted ? "block" : "none";
                 document.getElementById("LeaveWork").style.display = isShiftStarted ? "block" : "none";
                 workTimeDisplay.textContent = "";
                 
