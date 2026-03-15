@@ -140,7 +140,7 @@
     align-items: center;
 }
 
-        .gold-val { color: #b8860b; font-weight: bold; }
+        .gold-val { color: #b8860b !important; font-weight: bold; }
         .overtime { background-color: #fff0f0; color: var(--danger-red); font-weight: bold; }
 
         input[type="number"] { padding: 8px; border: 1px solid var(--accent-gold); border-radius: 8px; width: 80px; }
@@ -210,7 +210,7 @@
     <details class="report-card" open>
         <summary>⏱️ Dienas Nostrādātais Laiks</summary>
         <div class="settings-content">
-            <div class="summary-bar" style="border-left-color: #28a745;">
+            <div class="summary-bar" style="border-left-color: #b8860b;">
                 <div>Kopā nostrādāts: <span id="totalDayHoursValue" class="gold-val">0.00</span> h</div>
                 <div>
                     <button class="btn-clear" style="background: #6c757d;" onclick="deleteLastEntry('/api/darbastundas', daySummary)">⬅ Dzēst pēdējo</button>
@@ -361,7 +361,7 @@ document.getElementById('clearAllFilters').onclick = () => {
             <th>Darbinieks<br><select class="header-filter" onchange="syncFilter('worker_name', this.value)">${getOptions('worker_name', 'worker_name', workDataForOptions)}</select></th>
             <th>Objekts<br><select class="header-filter" onchange="syncFilter('objekts', this.value)">${getOptions('objekts', 'objekts', workDataForOptions)}</select></th>
             <th>Darbs<br><select class="header-filter" onchange="syncFilter('darbs', this.value)">${getOptions('darbs', 'darbs', workDataForOptions)}</select></th>
-            <th style="text-align:right">Stundas</th>
+            <th style="text-align:right"><span class="gold-val">Stundas</span></th>
         </tr></thead><tbody>`;
 
         if (filteredWork.length > 0) {
