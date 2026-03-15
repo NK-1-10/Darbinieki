@@ -2,7 +2,7 @@
 <html lang="lv">
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Admin Panelis - Darba Uzskaite</title>
     <style>
         :root {
@@ -145,6 +145,21 @@
 
         input[type="number"] { padding: 8px; border: 1px solid var(--accent-gold); border-radius: 8px; width: 80px; }
         ul { padding: 0; margin: 0; list-style: none; }
+
+        @media (pointer: coarse) {
+      h2{
+          font-size: 30px !important;
+      }
+            #logoutBtn{
+                width:40px !important;
+                height:20px !important;
+            }
+      }
+    }
+
+
+
+        
     </style>
 </head>
 <body>
