@@ -200,7 +200,7 @@
             <div class="settings-content">
                 <div class="summary-bar" style="border-left-color: #28a745;">
                     <div>Kopā nostrādāts: <span id="totalDayHoursValue" class="gold-val">0.00</span> h</div>
-                    <button class="btn-clear" onclick="clearTable('/api/darba-stundas')">🗑️ Iztīrīt datus</button>
+                    <button class="btn-clear" onclick="clearTable('/api/darbastundas')">🗑️ Iztīrīt datus</button>
                 </div>
                 <div class="table-wrapper" id="summaryTableContainer"></div>
             </div>
@@ -213,11 +213,88 @@
     let activeFilters = { year: "", month: "", date: "", car: "", worker_name: "", objekts: "", darbs: "", resource: "" };
     const LV_MONTHS = ["Janvāris", "Februāris", "Marts", "Aprīlis", "Maijs", "Jūnijs", "Jūlijs", "Augusts", "Septembris", "Oktobris", "Novembris", "Decembris"];
 
+// --- JAUNU VIENĪBU PIEVIENOŠANA ---
+
+async function addNewWorker() {
+    const vards = prompt("Ievadiet jauna darbinieka Vārdu un Uzvārdu:");
+    if (!vards) return;
+    
+    const res = await fetch('/api/workers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: vards })
+    });
+    
+    if (res.ok) {
+        alert("Darbinieks pievienots! Noklusējuma parole: 12345");
+        loadData();
+    }
+}
+
+async function addNewItem(url, promptMsg, extraData = {}) {
+    const name = prompt(`Ievadiet: ${promptMsg}`);
+    if (!name) return;
+    
+    const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, ...extraData })
+    });
+    
+    if (res.ok) loadData();
+    else alert("Kļūda pievienojot vienību.");
+}
+
+// --- DZĒŠANAS FUNKCIJAS ---
+
+async function deleteWorker(name) {
+    if (!confirm(`Vai tiešām dzēst darbinieku ${name}?`)) return;
+    const res = await fetch(`/api/workers/${encodeURIComponent(name)}`, { method: 'DELETE' });
+    if (res.ok) loadData();
+}
+
+async function deleteCar(name) {
+    if (!confirm(`Dzēst mašīnu ${name}?`)) return;
+    const res = await fetch(`/api/cars/${encodeURIComponent(name)}`, { method: 'DELETE' });
+    if (res.ok) loadData();
+}
+
+async function deleteObject(name) {
+    if (!confirm(`Dzēst objektu ${name}?`)) return;
+    const res = await fetch(`/api/objects/${encodeURIComponent(name)}`, { method: 'DELETE' });
+    if (res.ok) loadData();
+}
+
+async function deleteWorkType(name) {
+    if (!confirm(`Dzēst darba veidu ${name}?`)) return;
+    const res = await fetch(`/api/work-types/${encodeURIComponent(name)}`, { method: 'DELETE' });
+    if (res.ok) loadData();
+}
+
+async function deleteResource(name) {
+    if (!confirm(`Dzēst resursu ${name}?`)) return;
+    const res = await fetch(`/api/resource-types/${encodeURIComponent(name)}`, { method: 'DELETE' });
+    if (res.ok) loadData();
+}
+
+// --- IZRAKSTĪŠANĀS ---
+document.getElementById('logoutBtn').onclick = () => {
+    localStorage.clear();
+    window.location.href = 'index.html'; // Vai tava galvenā lapa
+};
+
+// --- FILTRU NOTĪRĪŠANA ---
+document.getElementById('clearAllFilters').onclick = () => {
+    activeFilters = { year: "", month: "", date: "", car: "", worker_name: "", objekts: "", darbs: "", resource: "" };
+    document.querySelectorAll('.header-filter').forEach(select => select.value = "");
+    renderTables();
+};
+    
     async function loadData() {
         try {
             const res = await Promise.all([
                 fetch('/api/workers'), fetch('/api/cars'), fetch('/api/schedule'),
-                fetch('/api/work-types'), fetch('/api/objects'), fetch('/api/darba-stundas'),
+                fetch('/api/work-types'), fetch('/api/objects'), fetch('/api/darbastundas'),
                 fetch('/api/resource-types')
             ]);
             [workers, cars, schedule, workTypes, objects, daySummary, resourceTypes] = await Promise.all(res.map(r => r.json()));
@@ -360,7 +437,14 @@ function renderSettings() {
     renderList("carList", cars, "deleteCar"); 
     renderList("workList", workTypes, "deleteWorkType"); 
     renderList("objectList", objects, "deleteObject");
-    renderList("resourceList", resourceTypes, "deleteResource", "name");
+    const resEl = document.getElementById("resourceList");
+if (resEl) {
+    resEl.innerHTML = resourceTypes.map(r => `
+        <li style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #eee;">
+            <span><strong>${r.name}</strong>: <span class="gold-val">${parseFloat(r.quantity || 0).toFixed(2)}</span></span>
+            <button class="btn-del" onclick="deleteResource('${r.name}')">✖</button>
+        </li>`).join("");
+}
 
     // 3. Īpašais renderējums darbiniekiem ar pagaidu paroli
     const workerEl = document.getElementById("workerList");
