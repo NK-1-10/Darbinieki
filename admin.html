@@ -150,17 +150,44 @@
        h2{
             font-size: 30px !important;
       }
-        button{
-            width:300px !important;
-            height:75px !important;
-            font-size: 25px;
-            }
-        .pogas{
-            width: 100% !important;
-            height: 100% !important;
-            font-size: 25px;
-        }
-      }
+        .grid-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr; /* Izveidojam tieši 2 kolonnas */
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    /* Pirmās 4 pogas (Darbinieki, Mašīnas, Darba veidi, Objekti) aizņem 1 rūtiņu katra */
+    .pogas {
+        width: 100% !important;
+        font-size: 16px; /* Teksts, lai ietilpst pogā */
+    }
+
+    /* Pēdējā poga (Resursi) aizņem abas kolonnas */
+    .pogas:last-child {
+        grid-column: span 2;
+    }
+            summary {
+        padding: 20px 10px !important;
+        justify-content: center; /* Centrējam tekstu un ikonu */
+        text-align: center;
+    }
+
+    /* Standarta pogas (Izrakstīties, Notīrīt utt) */
+    button {
+        width: 100% !important;
+        height: auto !important;
+        min-height: 50px;
+        font-size: 18px !important;
+        margin-top: 5px;
+    }
+    
+    /* Pievienot pogas sarakstos */
+    .btn-add {
+        width: 100% !important;
+        height: 50px !important;
+    }
+}
 
         
     }
@@ -181,10 +208,8 @@
     <div class="grid-container">
         <details class="pogas"><summary>👷 Darbinieki</summary><div class="settings-content"><button class="btn-add" onclick="addNewWorker()">➕ Pievienot darbinieku</button><ul id="workerList"></ul></div></details>
         <details class="pogas"><summary>🚗 Mašīnas</summary><div class="settings-content"><button class="btn-add" onclick="addNewItem('/api/cars', 'Mašīnas nr')">➕ Pievienot mašīnu</button><ul id="carList"></ul></div></details>
-        <br>
         <details class="pogas"><summary>⚒️ Darba veidi</summary><div class="settings-content"><button class="btn-add" onclick="addNewItem('/api/work-types', 'Darba veids')">➕ Pievienot veidu</button><ul id="workList"></ul></div></details>
         <details class="pogas"><summary>📍 Objekti</summary><div class="settings-content"><button class="btn-add" onclick="addNewItem('/api/objects', 'Objekta nosaukums')">➕ Pievienot objektu</button><ul id="objectList"></ul></div></details>
-        <br>
         <details class="pogas"><summary>🛢️ Resursi</summary><div class="settings-content"><button class="btn-add" onclick="addNewItem('/api/resource-types', 'Resursa nosaukums', {quantity: 0})">➕ Jauns resurss</button><ul id="resourceList"></ul></div></details>
     </div>
 
