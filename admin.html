@@ -411,7 +411,7 @@ document.getElementById('clearAllFilters').onclick = () => {
         <th>Darbinieks<br><select class="header-filter" onchange="syncFilter('worker_name', this.value)">${getOptions('worker_name', 'worker_name', fuelDataForOptions)}</select></th>
         <th>Auto<br><select class="header-filter" onchange="syncFilter('car', this.value)">${getOptions('car', 'car', fuelDataForOptions)}</select></th>
         <th>Resurss<br><select class="header-filter" onchange="syncFilter('resource', this.value)">${getOptions('resource', 'resource_name', fuelDataForOptions)}</select></th>
-        <th style="text-align:right">Daudzums (L)</th>
+        <th style="text-align:right"><span class="gold-val">Daudzums (L)</span></th>
     </tr></thead><tbody>` + 
     (filteredFuel.length ? filteredFuel.map(e => `
         <tr>
@@ -442,7 +442,7 @@ document.getElementById('clearAllFilters').onclick = () => {
     summaryContainer.innerHTML = `<table><thead><tr>
         <th>Darbinieks<br><select class="header-filter" onchange="syncFilter('worker_name', this.value)">${getOptions('worker_name', 'darbinieks', daySummary)}</select></th>
         <th>Datums<br><select class="header-filter" onchange="syncFilter('date', this.value)">${getOptions('date', 'datums', daySummary)}</select></th>
-        <th>Sākums</th><th>Beigas</th><th style="text-align:right">Kopā</th>
+        <th>Sākums</th><th>Beigas</th><th style="text-align:right"><span class="gold-val">Kopā</span></th>
     </tr></thead><tbody>` + 
     (filteredSum.length ? filteredSum.map(s => {
         const hrs = parseFloat(s.stundas || 0);
