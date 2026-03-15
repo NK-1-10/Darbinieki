@@ -369,7 +369,7 @@ document.getElementById('clearAllFilters').onclick = () => {
                 const isError = parseFloat(e.hours || 0) <= 0;
                 return `<tr class="${isError ? 'error-row' : ''}">
                     <td>${e.date}</td><td>${e.car}</td><td>${e.worker_name}</td><td>${e.objekts}</td><td>${e.darbs}</td>
-                    <td align="right"><b>${parseFloat(e.hours || 0).toFixed(2)}</b></td>
+                    <td class="gold-val" align="right"><b>${parseFloat(e.hours || 0).toFixed(2)}</b></td>
                 </tr>`;
             }).join("");
         } else {
