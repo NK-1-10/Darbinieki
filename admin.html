@@ -181,8 +181,10 @@
     <div class="grid-container">
         <details class="pogas"><summary>👷 Darbinieki</summary><div class="settings-content"><button class="btn-add" onclick="addNewWorker()">➕ Pievienot darbinieku</button><ul id="workerList"></ul></div></details>
         <details class="pogas"><summary>🚗 Mašīnas</summary><div class="settings-content"><button class="btn-add" onclick="addNewItem('/api/cars', 'Mašīnas nr')">➕ Pievienot mašīnu</button><ul id="carList"></ul></div></details>
+        <br>
         <details class="pogas"><summary>⚒️ Darba veidi</summary><div class="settings-content"><button class="btn-add" onclick="addNewItem('/api/work-types', 'Darba veids')">➕ Pievienot veidu</button><ul id="workList"></ul></div></details>
         <details class="pogas"><summary>📍 Objekti</summary><div class="settings-content"><button class="btn-add" onclick="addNewItem('/api/objects', 'Objekta nosaukums')">➕ Pievienot objektu</button><ul id="objectList"></ul></div></details>
+        <br>
         <details class="pogas"><summary>🛢️ Resursi</summary><div class="settings-content"><button class="btn-add" onclick="addNewItem('/api/resource-types', 'Resursa nosaukums', {quantity: 0})">➕ Jauns resurss</button><ul id="resourceList"></ul></div></details>
     </div>
 
