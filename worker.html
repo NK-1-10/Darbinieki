@@ -303,7 +303,7 @@
         const totalHours = (diffMs / (1000 * 60 * 60)).toFixed(2);
 
         try {
-            const response = await fetch('/api/darba-stundas', {
+            const response = await fetch('/api/darbastundas', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
