@@ -316,7 +316,7 @@ document.getElementById('clearAllFilters').onclick = () => {
     // 1. Definējam izslēgumus
     const workExclusion = ["Degvielas uzpilde", "Eļļas papildināšana", "Eļļas uzpilde"];
 
-    // 2. Pārbaudām, vai ir dati un vai ir aktīvi darbi
+    // 2. Pārbaudām datus pogas rādīšanai (🗑️ Iztīrīt visu tabulu)
     const hasData = schedule && schedule.length > 0;
     const hasActiveWork = hasData ? schedule.some(e => 
         !workExclusion.includes(e.darbs) && 
@@ -325,12 +325,11 @@ document.getElementById('clearAllFilters').onclick = () => {
         (!e.hours || parseFloat(e.hours) <= 0)
     ) : false;
 
-    // 3. LIELĀS POGAS (Rādām tikai, ja ir dati UN NAV aktīvu darbu)
     document.querySelectorAll('.btn-clear').forEach(btn => {
         btn.style.display = (hasData && !hasActiveWork) ? "block" : "none";
     });
 
-    // 4. DARBA GAITAS FILTRĒŠANA
+    // 3. DARBA GAITAS FILTRĒŠANA
     let filteredWork = (schedule || []).filter(e => {
         const year = (e.date || "").split('.')[2] || "";
         const isWork = !workExclusion.includes(e.darbs) && e.objekts && e.objekts !== "-";
@@ -344,7 +343,6 @@ document.getElementById('clearAllFilters').onclick = () => {
             (!activeFilters.darbs || e.darbs === activeFilters.darbs);
     });
 
-    // 5. TEKSTA UN TABULAS ATJAUNOŠANA (AR DROŠĪBAS PĀRBAUDI)
     const totalHrsEl = document.getElementById("totalHoursValue");
     if (totalHrsEl) {
         totalHrsEl.innerText = filteredWork.reduce((s, i) => s + parseFloat(i.hours || 0), 0).toFixed(2);
@@ -352,36 +350,33 @@ document.getElementById('clearAllFilters').onclick = () => {
 
     const tableContainer = document.getElementById("tableContainer");
     if (tableContainer) {
-        const workDataForOptions = (schedule || []).filter(x => !workExclusion.includes(x.darbs));
-        
+        // ŠEIT BIJA KĻŪDA: Izņemta "Darbība" kolonna no galvenes
         let tableHtml = `<table><thead><tr>
-    <th>Datums</th>
-    <th>Auto</th>
-    <th>Darbinieks</th>
-    <th>Objekts</th>
-    <th>Darbs</th>
-    <th style="text-align:right">Stundas</th>
-    <th style="text-align:center">Darbība</th> </tr></thead><tbody>`;
+            <th>Datums</th>
+            <th>Auto</th>
+            <th>Darbinieks</th>
+            <th>Objekts</th>
+            <th>Darbs</th>
+            <th style="text-align:right">Stundas</th>
+        </tr></thead><tbody>`;
 
-if (filteredWork.length > 0) {
-    tableHtml += filteredWork.map(e => {
-        const isError = parseFloat(e.hours || 0) <= 0;
-        return `<tr class="${isError ? 'error-row' : ''}">
-            <td>${e.date}</td><td>${e.car}</td><td>${e.worker_name}</td><td>${e.objekts}</td><td>${e.darbs}</td>
-            <td align="right"><b>${parseFloat(e.hours || 0).toFixed(2)}</b></td>
-            <td align="center">
-                <button class="btn-del" onclick="deleteEntry('/api/schedule', ${e.id})">🗑️</button>
-            </td>
-        </tr>`;
-    }).join("");
-} else {
+        if (filteredWork.length > 0) {
+            tableHtml += filteredWork.map(e => {
+                const isError = parseFloat(e.hours || 0) <= 0;
+                // ŠEIT BIJA KĻŪDA: Izņemta rinda ar miskastes pogu
+                return `<tr class="${isError ? 'error-row' : ''}">
+                    <td>${e.date}</td><td>${e.car}</td><td>${e.worker_name}</td><td>${e.objekts}</td><td>${e.darbs}</td>
+                    <td align="right"><b>${parseFloat(e.hours || 0).toFixed(2)}</b></td>
+                </tr>`;
+            }).join("");
+        } else {
             tableHtml += '<tr><td colspan="6" align="center">Nav datu</td></tr>';
         }
 
         tableContainer.innerHTML = tableHtml + "</tbody></table>";
     }
 
-    // 6. IZSAUCAM PĀRĒJĀS TABULAS (TIKAI JA TĀS EKSISTĒ)
+    // Izsaucam pārējās tabulas
     if (document.getElementById("fuelTableContainer")) renderFuelTable();
     if (document.getElementById("daySummaryContainer")) renderSummaryTable();
 }
