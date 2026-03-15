@@ -152,9 +152,12 @@
            text-align: center;
       }
             html, body {
-        max-width: 100vw;
-        overflow-x: hidden; /* Aizliedz visas lapas horizontālo skrollu */
-    }
+    max-width: 100vw;
+    overflow-x: hidden; /* Aizliedz šūpošanos pa labi/kreisi */
+    overflow-y: auto;   /* ATĻAUJ skrollēt uz augšu/leju */
+    position: relative; /* Noņem fixed pozīciju */
+    -webkit-overflow-scrolling: touch;
+}
         .grid-container {
         display: grid;
         grid-template-columns: 1fr 1fr; /* Izveidojam tieši 2 kolonnas */
@@ -197,12 +200,6 @@
         width: 100% !important;
         height: 50px !important;
     }
-            html, body {
-        height: 100%;
-        overflow: hidden;
-        position: fixed;
-        width: 100%;
-    }
 
     .container {
         width: 100%;
@@ -237,31 +234,28 @@
         padding-bottom: 20px;
     }
 
-    /* TABULU TRANSFORMĀCIJA */
-    .table-wrapper {
-        width: 100%;
-        overflow-x: auto;   /* Atļauj skrollēt pa labi TIKAI tabulā */
-        overflow-y: hidden; /* Vertikālo skrollu kontrolē galvenā lapa */
-        display: block;
-        border: 2px solid var(--accent-gold);
-        border-radius: 12px;
-        margin-top: 10px;
-        -webkit-overflow-scrolling: touch;
-    }
+            .table-wrapper {
+    width: 100%;
+    overflow-x: auto;   /* Atļauj horizontālo skrollu tikai šeit */
+    overflow-y: hidden; /* Neļaujam tabulai pašai skrollēties uz leju (lai lapa to dara) */
+    display: block;
+    border: 2px solid var(--accent-gold);
+    border-radius: 12px;
+    -webkit-overflow-scrolling: touch;
+}
 
-    table {
-        table {
-        min-width: 800px; /* Piespiež tabulu būt platu, lai dati būtu LIELI */
-        border-collapse: collapse;
-    } /* Atļaujam tabulai būt nedaudz platākai par ekrānu, lai dati nesaspiestos */
-    }
+/* PAŠA TABULA */
+table {
+    min-width: 1000px !important; /* Piespiež tabulu būt platu, lai dati būtu lieli */
+    border-collapse: collapse;
+}
 
-    th, td {
-        padding: 18px 12px !important; /* Milzīgi lauki, lai viegli trāpīt un lasīt */
-        font-size: 18px !important;    /* Liels teksts */
-        white-space: nowrap;           /* Neļaujam tekstam lūzt rindās */
-    }
-
+/* TABULAS ŠŪNAS */
+th, td {
+    padding: 20px 15px !important; /* Padara rindas ļoti augstas un viegli lasāmas */
+    font-size: 18px !important;    /* Liels teksts */
+    white-space: nowrap;           /* Neļauj tekstam salūzt vairākās rindās */
+}
     /* Kopsavilkuma joslas (Total stundas/litri) */
     .summary-bar {
         flex-direction: column;
