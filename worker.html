@@ -104,19 +104,16 @@ td { padding: 12px 15px; border-bottom: 1px solid #eee; text-align: center; }
     body { 
         padding: 0 !important; 
     }
-
     .card {
-        width: 100% !important;
+        width: calc(100% - 20px) !important; /* Atņemam 20px no platuma, lai paliek malas */
         max-width: 100% !important;
-        margin: 0 auto 10px !important;
-        border-radius: 0 0 20px 20px !important;
-        height: auto !important;
-        min-height: 40vh;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
+        height: auto !important;           /* Ļaujam augstumam pielāgoties saturam, ja pogas ir lielas */
+        min-height: 50vh !important;
+        margin: 15px auto !important;       /* 15px atstarpe no augšas un apakšas, centrēts */
         padding: 20px !important;
+        border-radius: 15px !important;     /* Visas malas nedaudz apaļas */
         box-sizing: border-box;
+        border-top: 5px solid var(--saulstari-yellow) !important; /* Pārliecināmies, ka līnija ir redzama */
     }
 
     #tableContainer {
@@ -128,10 +125,18 @@ td { padding: 12px 15px; border-bottom: 1px solid #eee; text-align: center; }
     table {
         min-width: 700px !important; /* Nodrošina, ka tabulu var bīdīt sāniski */
     }
+            select {
+        padding: 15px !important;
+        font-size: 1.1rem !important;
+        margin: 6px 0 !important;
+    }
 
     button {
-        padding: 20px !important;
-        font-size: 1rem !important;
+        width: 100% !important;
+        padding: 22px !important;           /* Padara pogas fiziski augstākas */
+        font-size: 1.3rem !important;       /* Palielina tekstu uz pogām */
+        margin: 8px 0 !important;           /* Lielāka atstarpe starp pogām */
+        letter-spacing: 1px;
     }
 }
     </style>
