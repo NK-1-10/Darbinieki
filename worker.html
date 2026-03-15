@@ -6,76 +6,6 @@
     <title>Darbinieka Panelis</title>
     <style>
 /* Mobilajām ierīcēm (ekrāniem līdz 768px) */
-@media (max-width: 768px) {
-    body { padding: 0; 
-         background-color: red !important; 
-         } /* Noņemam liekās malas lapai */
-    header {
-        flex-direction: column; /* Nosaukums un poga viens zem otra */
-        gap: 10px;
-        text-align: center;
-    }
-    .grid-container {
-        grid-template-columns: 1fr; 
-    }
-    .filter-row {
-        flex-direction: column;
-        align-items: stretch;
-    }
-    .header-filter {
-        width: 100%; /* Filtri aizņem pilnu platumu */
-    }
-    .summary-bar {
-        flex-direction: column;
-        gap: 10px;
-        text-align: center;
-    }
-    .btn-clear {
-        width: 100%; /* Pogas vieglāk nospiežamas ar īkšķi */
-        margin-left: 0;
-    }
-    /* TABULAS TRIKS: horizontālā ritināšana */
-    .table-wrapper {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch; /* Gluda ritināšana uz iPhone */
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-    }
-    #tableContainer {
-        width: 100% !important;
-        border-radius: 0 !important;
-        margin-bottom: 50px;
-    }
-    table {
-        min-width: 800px !important; /* Piespiež tabulu būt platu, lai var skrollēt */
-    }
-
-    th, td {
-        padding: 10px 8px !important;
-        font-size: 0.8rem !important;
-        white-space: nowrap;
-    }
-   .card {
-        width: 100% !important;
-        max-width: 100% !important;
-        height: 50vh !important; /* Puse no ekrāna augstuma */
-        margin: 0 0 20px 0 !important;
-        border-radius: 0 0 20px 20px !important;
-        display: flex;
-        flex-direction: column;
-        justify-content: center; /* Satura centrēšana */
-        padding: 15px !important;
-        box-sizing: border-box;
-    }
-    button {
-        width: 100% !important;
-        padding: 16px !important;
-        font-size: 1.1rem !important; /* Samazināju no 2rem, jo 2rem ir par milzīgu un aizpildīs visu 50% kasti */
-        margin: 5px 0 !important;
-    }
-    h2 { font-size: 1.2rem; }
-}
-
         :root {
     --saulstari-green: #1a3025;
     --saulstari-yellow: #d4b45d;
@@ -165,6 +95,78 @@ body {
 
         #resourceModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }justify-content: center;}
         .modal-content { background: white; padding: 25px; border-radius: 12px; width: 90%; max-width: 400px; text-align: left; }
+
+        @media (max-width: 768px) {
+    body { padding: 0; 
+         background-color: red !important; 
+         } /* Noņemam liekās malas lapai */
+    header {
+        flex-direction: column; /* Nosaukums un poga viens zem otra */
+        gap: 10px;
+        text-align: center;
+    }
+    .grid-container {
+        grid-template-columns: 1fr; 
+    }
+    .filter-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .header-filter {
+        width: 100%; /* Filtri aizņem pilnu platumu */
+    }
+    .summary-bar {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+    }
+    .btn-clear {
+        width: 100%; /* Pogas vieglāk nospiežamas ar īkšķi */
+        margin-left: 0;
+    }
+    /* TABULAS TRIKS: horizontālā ritināšana */
+    .table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch; /* Gluda ritināšana uz iPhone */
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+    }
+    #tableContainer {
+        width: 100% !important;
+        border-radius: 0 !important;
+        margin-bottom: 50px;
+    }
+    table {
+        min-width: 800px !important; /* Piespiež tabulu būt platu, lai var skrollēt */
+    }
+
+    th, td {
+        padding: 10px 8px !important;
+        font-size: 0.8rem !important;
+        white-space: nowrap;
+    }
+   .card {
+        width: 100% !important;
+        max-width: 100% !important;
+        height: 50vh !important; /* Puse no ekrāna augstuma */
+        margin: 0 0 20px 0 !important;
+        border-radius: 0 0 20px 20px !important;
+        display: flex;
+        flex-direction: column;
+        justify-content: center; /* Satura centrēšana */
+        padding: 15px !important;
+        box-sizing: border-box;
+    }
+    button {
+        width: 100% !important;
+        padding: 16px !important;
+        font-size: 1.1rem !important; /* Samazināju no 2rem, jo 2rem ir par milzīgu un aizpildīs visu 50% kasti */
+        margin: 5px 0 !important;
+    }
+    h2 { font-size: 1.2rem; }
+} /*-----------------------------------------------------------------------------------------beigas*/
+
+        
     </style>
 </head>
 <body>
