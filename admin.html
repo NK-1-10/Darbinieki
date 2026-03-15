@@ -398,30 +398,29 @@ if (filteredWork.length > 0) {
             (!activeFilters.resource || e.resource_name === activeFilters.resource);
     });
 
-    document.getElementById("totalFuelValue").innerText = filteredFuel.reduce((s, i) => s + parseFloat(i.resource_amount || 0), 0).toFixed(2);
-    const fuelDataForOptions = schedule.filter(x => x.resource_name);
-    
-    // IZMAIŅA: fuelTableContainer
+    const totalFuelEl = document.getElementById("totalFuelValue");
+    if (totalFuelEl) {
+        totalFuelEl.innerText = filteredFuel.reduce((s, i) => s + parseFloat(i.resource_amount || 0), 0).toFixed(2);
+    }
+
     const fuelContainer = document.getElementById("fuelTableContainer");
     if (!fuelContainer) return;
 
+    const fuelDataForOptions = schedule.filter(x => x.resource_name);
+    
     fuelContainer.innerHTML = `<table><thead><tr>
         <th>Datums<br><select class="header-filter" onchange="syncFilter('date', this.value)">${getOptions('date', 'date', fuelDataForOptions)}</select></th>
         <th>Darbinieks<br><select class="header-filter" onchange="syncFilter('worker_name', this.value)">${getOptions('worker_name', 'worker_name', fuelDataForOptions)}</select></th>
         <th>Auto<br><select class="header-filter" onchange="syncFilter('car', this.value)">${getOptions('car', 'car', fuelDataForOptions)}</select></th>
         <th>Resurss<br><select class="header-filter" onchange="syncFilter('resource', this.value)">${getOptions('resource', 'resource_name', fuelDataForOptions)}</select></th>
         <th style="text-align:right">Daudzums (L)</th>
-        <th style="text-align:center">Darbība</th>
     </tr></thead><tbody>` + 
     (filteredFuel.length ? filteredFuel.map(e => `
         <tr>
             <td>${e.date}</td><td>${e.worker_name}</td><td>${e.car}</td><td><b>${e.resource_name}</b></td>
             <td class="gold-val" align="right">${parseFloat(e.resource_amount || 0).toFixed(2)} L</td>
-            <td align="center">
-                <button class="btn-del" onclick="deleteEntry('/api/schedule', ${e.id})">🗑️</button>
-            </td>
         </tr>`).join("") 
-        : `<tr><td colspan="6" align="center">Nav ierakstu</td></tr>`
+        : `<tr><td colspan="5" align="center">Nav ierakstu</td></tr>`
     ) + "</tbody></table>";
 }
 
@@ -434,9 +433,11 @@ if (filteredWork.length > 0) {
             (!activeFilters.worker_name || s.darbinieks === activeFilters.worker_name);
     });
 
-    document.getElementById("totalDayHoursValue").innerText = filteredSum.reduce((s, i) => s + parseFloat(i.stundas || 0), 0).toFixed(2);
+    const totalDayHrsEl = document.getElementById("totalDayHoursValue");
+    if (totalDayHrsEl) {
+        totalDayHrsEl.innerText = filteredSum.reduce((s, i) => s + parseFloat(i.stundas || 0), 0).toFixed(2);
+    }
 
-    // IZMAIŅA: daySummaryContainer
     const summaryContainer = document.getElementById("daySummaryContainer");
     if (!summaryContainer) return;
 
@@ -444,7 +445,6 @@ if (filteredWork.length > 0) {
         <th>Darbinieks<br><select class="header-filter" onchange="syncFilter('worker_name', this.value)">${getOptions('worker_name', 'darbinieks', daySummary)}</select></th>
         <th>Datums<br><select class="header-filter" onchange="syncFilter('date', this.value)">${getOptions('date', 'datums', daySummary)}</select></th>
         <th>Sākums</th><th>Beigas</th><th style="text-align:right">Kopā</th>
-        <th style="text-align:center">Darbība</th>
     </tr></thead><tbody>` + 
     (filteredSum.length ? filteredSum.map(s => {
         const hrs = parseFloat(s.stundas || 0);
@@ -452,11 +452,8 @@ if (filteredWork.length > 0) {
         return `<tr class="${hrs > 12 ? 'overtime' : ''} ${isError ? 'error-row' : ''}">
             <td>${s.darbinieks}</td><td>${s.datums}</td><td>${s.sāka_darbu || '-'}</td><td>${s.beidza_darbu || '-'}</td>
             <td align="right"><b>${hrs.toFixed(2)} h</b>${isError ? '<span class="error-badge">NAV BEIGTS</span>' : ''}</td>
-            <td align="center">
-                <button class="btn-del" onclick="deleteEntry('/api/darbastundas', ${s.id})">🗑️</button>
-            </td>
         </tr>`;
-    }).join("") : '<tr><td colspan="6" align="center">Nav datu</td></tr>') + "</tbody></table>";
+    }).join("") : '<tr><td colspan="5" align="center">Nav datu</td></tr>') + "</tbody></table>";
 }
 
     // --- JAUNA FUNKCIJA RESURSU PRECIZĒŠANAI ---
