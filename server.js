@@ -297,14 +297,14 @@ app.post('/api/update-resources', async (req, res) => {
 });
 
 // --- 5. DARBA STUNDAS ---
-app.get('/api/darba-stundas', async (req, res) => {
+app.get('/api/darbastundas', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM "darbastundas" ORDER BY id DESC');
         res.json(result.rows);
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-app.post('/api/darba-stundas', async (req, res) => {
+app.post('/api/darbastundas', async (req, res) => {
     const { darbinieks, datums, sāka_darbu, beidza_darbu, month, stundas } = req.body;
     try {
         await pool.query('INSERT INTO "darbastundas" (darbinieks, datums, sāka_darbu, beidza_darbu, month, stundas) VALUES ($1, $2, $3, $4, $5, $6)', [darbinieks, datums, sāka_darbu, beidza_darbu, month, stundas]);
