@@ -293,6 +293,15 @@
     };
 
     document.getElementById("LeaveWork").onclick = async () => {
+
+        const stopBtn = document.getElementById("stopBtn");
+    if (stopBtn && stopBtn.style.display === "block") {
+        const statusEl = document.getElementById("status");
+        statusEl.style.color = "red"; // Pievērš uzmanību
+        alert("Tu nevari beigt darba dienu, kamēr neesi pabeidzis aktīvo darbu!");
+        setTimeout(() => { statusEl.style.color = ""; }, 3000); // Pēc 3 sek. atgriež krāsu
+        return;
+    }
         const shiftStartISO = localStorage.getItem(`shift_start_${user.name}`);
         if (!shiftStartISO) return;
         if (!confirm("Beigt darba dienu un saglabāt stundas?")) return;
@@ -332,7 +341,7 @@
         const obj = document.getElementById("object").value;
         const wrk = document.getElementById("work").value;
         if (!auto || !obj || !wrk) return alert("Izvēlies visus laukus!");
-
+        
         await fetch('/api/start-work', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
