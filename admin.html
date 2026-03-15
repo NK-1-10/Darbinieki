@@ -193,6 +193,19 @@
         width: 100% !important;
         height: 50px !important;
     }
+            html, body {
+        height: 100%;
+        overflow: hidden;
+        position: fixed;
+        width: 100%;
+    }
+
+    .container {
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        padding: 10px;
+    }
             h3{
                font-size: 28px !important; 
             }
@@ -216,29 +229,41 @@
         height: 45px;
         font-size: 18px !important;
     }
+            .report-stack {
+        flex-grow: 1;
+        overflow-y: auto; /* Šeit varēs skrollēt starp dažādām tabulām */
+        padding-bottom: 20px;
+    }
 
     /* TABULU TRANSFORMĀCIJA */
     .table-wrapper {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
+        max-height: 300px; /* Ierobežojam augstumu, lai redz saturu */
+        overflow-y: auto;  /* Vertikālais skrolls tabulas iekšienē */
+        overflow-x: auto;  /* Horizontālais skrolls datiem */
+        border: 1px solid var(--accent-gold);
+        border-radius: 8px;
+        -webkit-overflow-scrolling: touch; /* Gluda ritināšana iOS */
     }
 
     table {
         min-width: 600px; /* Atļaujam tabulai būt nedaudz platākai par ekrānu, lai dati nesaspiestos */
     }
 
-    th, td {
-        padding: 15px 8px !important; /* Lielāki laukumi pirkstiem */
-        font-size: 16px !important;    /* Lielāks teksts */
+    td, th {
+        padding: 12px 8px !important;
+        font-size: 15px !important;
     }
 
     /* Kopsavilkuma joslas (Total stundas/litri) */
     .summary-bar {
-        flex-direction: column;
-        gap: 10px;
-        text-align: center;
-        padding: 15px !important;
-        font-size: 18px !important;
+        font-size: 14px !important;
+        padding: 8px !important;
+    }
+
+    /* Režģis pogām augšā */
+    .grid-container {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
     }
 
     .btn-clear {
@@ -255,6 +280,9 @@
     
     .btn-del {
         padding: 10px 15px !important;
+    }
+            header, .grid-container, .filter-section {
+        flex-shrink: 0; 
     }
 
     /* Resursu rediģēšanas ievades lauki */
