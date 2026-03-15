@@ -147,14 +147,22 @@
         ul { padding: 0; margin: 0; list-style: none; }
 
         @media (pointer: coarse) {
-      h2{
-          font-size: 30px !important;
+       h2{
+            font-size: 30px !important;
       }
-            button{
-                width:300px !important;
-                height:75px !important;
+        button{
+            width:300px !important;
+            height:75px !important;
+            font-size: 25px;
             }
+        .pogas{
+            width: 50% !important;
+            height: 10% !important;
+            font-size: 25px;
+        }
       }
+
+        
     }
 
 
@@ -171,13 +179,7 @@
     </header>
 
     <div class="grid-container">
-        <details class="pogas">
-            <summary>👷 Darbinieki</summary>
-            <div class="settings-content">
-                <button class="btn-add" onclick="addNewWorker()">➕ Pievienot darbinieku</button>
-                <ul id="workerList"></ul>
-            </div>
-        </details>
+        <details class="pogas"><summary>👷 Darbinieki</summary><div class="settings-content"><button class="btn-add" onclick="addNewWorker()">➕ Pievienot darbinieku</button><ul id="workerList"></ul></div></details>
         <details class="pogas"><summary>🚗 Mašīnas</summary><div class="settings-content"><button class="btn-add" onclick="addNewItem('/api/cars', 'Mašīnas nr')">➕ Pievienot mašīnu</button><ul id="carList"></ul></div></details>
         <details class="pogas"><summary>⚒️ Darba veidi</summary><div class="settings-content"><button class="btn-add" onclick="addNewItem('/api/work-types', 'Darba veids')">➕ Pievienot veidu</button><ul id="workList"></ul></div></details>
         <details class="pogas"><summary>📍 Objekti</summary><div class="settings-content"><button class="btn-add" onclick="addNewItem('/api/objects', 'Objekta nosaukums')">➕ Pievienot objektu</button><ul id="objectList"></ul></div></details>
