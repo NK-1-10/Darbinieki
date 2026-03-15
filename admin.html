@@ -327,12 +327,30 @@ document.getElementById('clearAllFilters').onclick = () => {
     function renderTables() {
     const workExclusion = ["Degvielas uzpilde", "Eļļas papildināšana", "Eļļas uzpilde"];
 
-    const hasActiveWork = (schedule && schedule.length > 0) ? schedule.some(e => 
+    // 1. Pārbaudām, vai ir dati katrā kategorijā
+    const hasWorkEntries = schedule.some(e => !workExclusion.includes(e.darbs));
+    const hasFuelEntries = schedule.some(e => e.resource_name);
+    const hasSummaryEntries = daySummary && daySummary.length > 0;
+
+    // 2. Pārbaudām, vai ir kāds aktīvs (nepabeigts) darbs
+    const hasActiveWork = schedule.some(e => 
         !workExclusion.includes(e.darbs) && e.objekts && e.objekts !== "-" && (!e.hours || parseFloat(e.hours) <= 0)
-    ) : false;
+    );
 
-    document.querySelectorAll('.btn-clear').forEach(btn => btn.style.display = hasActiveWork ? "none" : "block");
+    // 3. Iestatām pogu redzamību
+    // Poga parādās tikai tad, ja ir dati UN nav neviena nepabeigta darba (lai neizdzēstu to, kas procesā)
+    
+    // Darba gaitas poga
+    document.querySelector('.report-card:nth-of-type(1) .btn-clear').style.display = 
+        (hasWorkEntries && !hasActiveWork) ? "block" : "none";
 
+    // Degvielas poga
+    document.querySelector('.report-card:nth-of-type(2) .btn-clear').style.display = 
+        (hasFuelEntries && !hasActiveWork) ? "block" : "none";
+
+    // Kopsavilkuma poga
+    document.querySelector('.report-card:nth-of-type(3) .btn-clear').style.display = 
+        (hasSummaryEntries && !hasActiveWork) ? "block" : "none";
     let filteredWork = schedule.filter(e => {
         const year = (e.date || "").split('.')[2] || "";
         const isWork = !workExclusion.includes(e.darbs) && e.objekts && e.objekts !== "-";
@@ -349,7 +367,6 @@ document.getElementById('clearAllFilters').onclick = () => {
     document.getElementById("totalHoursValue").innerText = filteredWork.reduce((s, i) => s + parseFloat(i.hours || 0), 0).toFixed(2);
     const workDataForOptions = schedule.filter(x => !workExclusion.includes(x.darbs));
     
-    // TABULA 1: Darba gaitas (7 kolonnas)
     document.getElementById("tableContainer").innerHTML = `<table><thead><tr>
             <th>Datums<br><select class="header-filter" onchange="syncFilter('date', this.value)">${getOptions('date', 'date', workDataForOptions)}</select></th>
             <th>Auto<br><select class="header-filter" onchange="syncFilter('car', this.value)">${getOptions('car', 'car', workDataForOptions)}</select></th>
@@ -373,35 +390,70 @@ document.getElementById('clearAllFilters').onclick = () => {
 }
 
     function renderFuelTable() {
+    // 1. Filtrējam datus
     let filteredFuel = schedule.filter(e => {
         const year = (e.date || "").split('.')[2] || "";
-        return (e.resource_name && e.resource_amount) &&
-            (!activeFilters.year || year === activeFilters.year) &&
-            (!activeFilters.month || (e.month || "").toLowerCase() === activeFilters.month.toLowerCase()) &&
-            (!activeFilters.date || e.date === activeFilters.date) &&
-            (!activeFilters.car || e.car === activeFilters.car) &&
-            (!activeFilters.resource || e.resource_name === activeFilters.resource);
+        const matchesYear = !activeFilters.year || year === activeFilters.year;
+        const matchesMonth = !activeFilters.month || (e.month || "").toLowerCase() === activeFilters.month.toLowerCase();
+        const matchesDate = !activeFilters.date || e.date === activeFilters.date;
+        const matchesCar = !activeFilters.car || e.car === activeFilters.car;
+        const matchesResource = !activeFilters.resource || e.resource_name === activeFilters.resource;
+
+        return e.resource_name && e.resource_amount && 
+               matchesYear && matchesMonth && matchesDate && matchesCar && matchesResource;
     });
 
-    document.getElementById("totalFuelValue").innerText = filteredFuel.reduce((s, i) => s + parseFloat(i.resource_amount || 0), 0).toFixed(2);
+    // 2. Aprēķinām kopējo daudzumu
+    const totalAmount = filteredFuel.reduce((sum, item) => sum + parseFloat(item.resource_amount || 0), 0);
+    const totalFuelEl = document.getElementById("totalFuelValue");
+    if (totalFuelEl) totalFuelEl.innerText = totalAmount.toFixed(2);
+
+    // 3. Sagatavojam opcijas filtriem (ņemam no visiem datiem, nevis filtrētajiem)
     const fuelDataForOptions = schedule.filter(x => x.resource_name);
     
-    // TABULA 2: Degviela (6 kolonnas)
-    document.getElementById("oilContainer").innerHTML = `<table><thead><tr>
-            <th>Datums<br><select class="header-filter" onchange="syncFilter('date', this.value)">${getOptions('date', 'date', fuelDataForOptions)}</select></th>
-            <th>Darbinieks</th><th>Auto<br><select class="header-filter" onchange="syncFilter('car', this.value)">${getOptions('car', 'car', fuelDataForOptions)}</select></th>
-            <th>Resurss<br><select class="header-filter" onchange="syncFilter('resource', this.value)">${getOptions('resource', 'resource_name', fuelDataForOptions)}</select></th>
-            <th style="text-align:right">Daudzums (L)</th>
-            <th style="text-align:center">Darbība</th>
-        </tr></thead><tbody>` + 
-        (filteredFuel.length ? filteredFuel.map(e => `
-            <tr>
-                <td>${e.date}</td><td>${e.worker_name}</td><td>${e.car}</td><td><b>${e.resource_name}</b></td>
-                <td class="gold-val" align="right">${parseFloat(e.resource_amount || 0).toFixed(2)} L</td>
-                <td align="center"><button class="btn-del-row" onclick="deleteEntry('/api/schedule', ${e.id})">🗑️</button></td>
-            </tr>`).join("") 
-            : '<tr><td colspan="6" align="center">Nav ierakstu</td></tr>'
-        ) + "</tbody></table>";
+    // 4. Uzģenerējam tabulu
+    const container = document.getElementById("oilContainer");
+    if (!container) return;
+
+    container.innerHTML = `
+        <table>
+            <thead>
+                <tr>
+                    <th>Datums<br>
+                        <select class="header-filter" onchange="syncFilter('date', this.value)">
+                            ${getOptions('date', 'date', fuelDataForOptions)}
+                        </select>
+                    </th>
+                    <th>Darbinieks</th>
+                    <th>Auto<br>
+                        <select class="header-filter" onchange="syncFilter('car', this.value)">
+                            ${getOptions('car', 'car', fuelDataForOptions)}
+                        </select>
+                    </th>
+                    <th>Resurss<br>
+                        <select class="header-filter" onchange="syncFilter('resource', this.value)">
+                            ${getOptions('resource', 'resource_name', fuelDataForOptions)}
+                        </select>
+                    </th>
+                    <th style="text-align:right">Daudzums (L)</th>
+                    <th style="text-align:center">Darbība</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${filteredFuel.length > 0 ? filteredFuel.map(e => `
+                    <tr>
+                        <td>${e.date || '-'}</td>
+                        <td>${e.worker_name || '-'}</td>
+                        <td>${e.car || '-'}</td>
+                        <td><b>${e.resource_name}</b></td>
+                        <td class="gold-val" align="right">${parseFloat(e.resource_amount || 0).toFixed(2)} L</td>
+                        <td align="center">
+                            <button class="btn-del-row" onclick="deleteEntry('/api/schedule', ${e.id})">🗑️</button>
+                        </td>
+                    </tr>
+                `).join("") : '<tr><td colspan="6" align="center">Nav ierakstu pēc šiem filtriem</td></tr>'}
+            </tbody>
+        </table>`;
 }
 
     function renderSummaryTable() {
@@ -539,11 +591,29 @@ if (resEl) {
     function syncFilter(key, val) { activeFilters[key] = val; renderTables(); }
 
     async function clearTable(apiUrl) {
-        if (confirm("UZMANĪBU! Šī darbība izdzēsīs visus datus. Turpināt?")) {
+    const sectionName = apiUrl.includes('darbastundas') ? "DIENAS KOPSAVILKUMU" : 
+                       apiUrl.includes('fuel') ? "DEGVIELAS DATUS" : "DARBA GAITAS ATSKAITI";
+
+    // Papildus drošība: liekam lietotājam ierakstīt vārdu
+    const check = prompt(`UZMANĪBU! Šī darbība neatgriezeniski izdzēsīs VISU ${sectionName} tabulu.\n\nLai apstiprinātu, ierakstiet: DZĒST`);
+    
+    if (check === "DZĒST") {
+        try {
             const res = await fetch(apiUrl, { method: 'DELETE' });
-            if (res.ok) { alert("Dati izdzēsti!"); loadData(); }
+            if (res.ok) {
+                alert("Tabula veiksmīgi iztīrīta!");
+                loadData(); 
+            } else {
+                alert("Servera kļūda dzēšot datus.");
+            }
+        } catch (err) {
+            console.error("Dzēšanas kļūda:", err);
+            alert("Neizdevās sazināties ar serveri.");
         }
+    } else if (check !== null) {
+        alert("Apstiprinājuma kods nepareizs. Darbība atcelta.");
     }
+}
 
     loadData();
 </script>
