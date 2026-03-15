@@ -327,30 +327,35 @@ document.getElementById('clearAllFilters').onclick = () => {
     function renderTables() {
     const workExclusion = ["Degvielas uzpilde", "Eļļas papildināšana", "Eļļas uzpilde"];
 
-    // 1. Pārbaudām, vai ir dati katrā kategorijā
+    // 1. Pārbaudām datus
     const hasWorkEntries = schedule.some(e => !workExclusion.includes(e.darbs));
     const hasFuelEntries = schedule.some(e => e.resource_name);
     const hasSummaryEntries = daySummary && daySummary.length > 0;
 
-    // 2. Pārbaudām, vai ir kāds aktīvs (nepabeigts) darbs
+    // 2. Pārbaudām, vai ir aktīvi (nepabeigti) darbi
     const hasActiveWork = schedule.some(e => 
-        !workExclusion.includes(e.darbs) && e.objekts && e.objekts !== "-" && (!e.hours || parseFloat(e.hours) <= 0)
+        !workExclusion.includes(e.darbs) && 
+        e.objekts && 
+        e.objekts !== "-" && 
+        (!e.hours || parseFloat(e.hours) <= 0)
     );
 
-    // 3. Iestatām pogu redzamību
-    // Poga parādās tikai tad, ja ir dati UN nav neviena nepabeigta darba (lai neizdzēstu to, kas procesā)
+    // 3. POGU KONTROLE
+    // Atrodam visas trīs pogas pēc kārtas
+    const clearButtons = document.querySelectorAll('.btn-clear');
     
-    // Darba gaitas poga
-    document.querySelector('.report-card:nth-of-type(1) .btn-clear').style.display = 
-        (hasWorkEntries && !hasActiveWork) ? "block" : "none";
+    if (clearButtons.length >= 3) {
+        // Pirmā poga (Darba gaitas) - rādām, ja ir dati un NAV aktīvu darbu
+        clearButtons[0].style.display = (hasWorkEntries && !hasActiveWork) ? "block" : "none";
+        
+        // Otrā poga (Degviela)
+        clearButtons[1].style.display = (hasFuelEntries && !hasActiveWork) ? "block" : "none";
+        
+        // Trešā poga (Dienas kopsavilkums)
+        clearButtons[2].style.display = (hasSummaryEntries && !hasActiveWork) ? "block" : "none";
+    }
 
-    // Degvielas poga
-    document.querySelector('.report-card:nth-of-type(2) .btn-clear').style.display = 
-        (hasFuelEntries && !hasActiveWork) ? "block" : "none";
-
-    // Kopsavilkuma poga
-    document.querySelector('.report-card:nth-of-type(3) .btn-clear').style.display = 
-        (hasSummaryEntries && !hasActiveWork) ? "block" : "none";
+    // 4. DARBA GAITAS FILTRĒŠANA
     let filteredWork = schedule.filter(e => {
         const year = (e.date || "").split('.')[2] || "";
         const isWork = !workExclusion.includes(e.darbs) && e.objekts && e.objekts !== "-";
@@ -364,7 +369,11 @@ document.getElementById('clearAllFilters').onclick = () => {
             (!activeFilters.darbs || e.darbs === activeFilters.darbs);
     });
 
-    document.getElementById("totalHoursValue").innerText = filteredWork.reduce((s, i) => s + parseFloat(i.hours || 0), 0).toFixed(2);
+    // 5. STUNDU SUMMA
+    const totalHours = filteredWork.reduce((s, i) => s + parseFloat(i.hours || 0), 0);
+    document.getElementById("totalHoursValue").innerText = totalHours.toFixed(2);
+
+    // 6. DARBA GAITAS TABULAS ZĪMĒŠANA
     const workDataForOptions = schedule.filter(x => !workExclusion.includes(x.darbs));
     
     document.getElementById("tableContainer").innerHTML = `<table><thead><tr>
@@ -385,6 +394,7 @@ document.getElementById('clearAllFilters').onclick = () => {
             </tr>`
         }).join("") : '<tr><td colspan="7" align="center">Nav datu</td></tr>') + "</tbody></table>";
 
+    // 7. IZSAUCAM PĀRĒJĀS TABULAS
     renderFuelTable();
     renderSummaryTable();
 }
