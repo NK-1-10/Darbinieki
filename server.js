@@ -22,6 +22,24 @@ function calculateHours(start, end) {
     return (diff / 3600).toFixed(2);
 }
 
+app.delete('/api/fuel-logs', async (req, res) => {
+    try { 
+        // Šis izdzēsīs tikai degvielas/eļļas ierakstus no kopējā saraksta
+        await pool.query("DELETE FROM schedule WHERE darbs IN ('Degvielas uzpilde', 'Eļļas papildināšana')"); 
+        res.json({ success: true }); 
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// Pievieno šo pie pārējiem DELETE maršrutiem
+app.delete('/api/darbastundas', async (req, res) => {
+    try { 
+        await pool.query('DELETE FROM "darbastundas"'); 
+        res.json({ success: true }); 
+    } catch (err) { 
+        res.status(500).json({ error: err.message }); 
+    }
+});
+
 // --- 1. AUTENTIFIKĀCIJA ---
 app.post('/api/login', async (req, res) => {
     const { username, password } = req.body;
