@@ -549,12 +549,24 @@ if (resEl) {
 
     function syncFilter(key, val) { activeFilters[key] = val; renderTables(); }
 
-    async function clearTable(apiUrl) {
-        if (confirm("UZMANĪBU! Šī darbība izdzēsīs visus datus. Turpināt?")) {
-            const res = await fetch(apiUrl, { method: 'DELETE' });
-            if (res.ok) { alert("Dati izdzēsti!"); loadData(); }
+    async function clearTable(endpoint) {
+    if (!confirm("Vai tiešām vēlaties dzēst visus datus šajā sadaļā?")) return;
+
+    try {
+        const response = await fetch(endpoint, { method: 'DELETE' });
+        const result = await response.json();
+
+        if (result.success) {
+            alert("Dati izdzēsti!");
+            location.reload(); // Atsvaidzinām lapu, lai tabulas paliktu tukšas
+        } else {
+            alert("Kļūda: " + result.error);
         }
+    } catch (err) {
+        console.error("Dzēšanas kļūda:", err);
+        alert("Neizdevās sazināties ar serveri.");
     }
+}
 
     loadData();
 </script>
