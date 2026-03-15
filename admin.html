@@ -123,16 +123,22 @@
         .btn-add { background: var(--success-green); color: white; width: 100%; padding: 10px; margin-bottom: 10px; }
         .btn-del { color: var(--danger-red); background: none; font-size: 1.2em; padding: 0 5px; }
         
-        /* SVARĪGI: Poga ir paslēpta pēc noklusējuma (display: none).
-           Tā parādīsies TIKAI caur JavaScript, ja netiks atrasts neviens aktīvs darbs.
-        */
-        .btn-clear { 
-            background: var(--danger-red); 
-            color: white; 
-            padding: 8px 12px; 
-            font-size: 0.85em; 
-            display: none; 
-        }
+        /* Pogu konteiners kopsavilkuma joslā */
+.btn-clear { 
+    background: var(--danger-red); 
+    color: white; 
+    padding: 8px 15px; 
+    font-size: 0.85em; 
+    display: inline-block !important; /* Piespiežam rādīt vienmēr */
+    margin-left: 10px;
+}
+.btn-clear:hover { background: #bd2130; }
+
+.summary-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
 
         .gold-val { color: #b8860b; font-weight: bold; }
         .overtime { background-color: #fff0f0; color: var(--danger-red); font-weight: bold; }
@@ -178,7 +184,10 @@
         <div class="settings-content">
             <div class="summary-bar">
                 <div>Atlasītais laiks kopā: <span id="totalHoursValue" class="gold-val">0.00</span> h</div>
-                <button class="btn-clear" onclick="clearTable('/api/schedule')">🗑️ Iztīrīt visu tabulu</button>
+                <div>
+                    <button class="btn-clear" style="background: #6c757d;" onclick="deleteLastEntry('/api/schedule', schedule)">⬅ Dzēst pēdējo</button>
+                    <button class="btn-clear" onclick="clearTable('/api/schedule')">🗑️ Iztīrīt visu tabulu</button>
+                </div>
             </div>
             <div id="tableContainer" class="table-wrapper"></div>
         </div>
@@ -189,7 +198,10 @@
         <div class="settings-content">
             <div class="summary-bar" style="border-left-color: #b8860b;">
                 <div>Atlasītais patēriņš kopā: <span id="totalFuelValue" class="gold-val">0.00</span> L</div>
-                <button class="btn-clear" onclick="clearTable('/api/fuel-logs')">🗑️ Iztīrīt visu tabulu</button>
+                <div>
+                    <button class="btn-clear" style="background: #6c757d;" onclick="deleteLastEntry('/api/schedule', schedule, 'fuel')">⬅ Dzēst pēdējo</button>
+                    <button class="btn-clear" onclick="clearTable('/api/fuel-logs')">🗑️ Iztīrīt visu tabulu</button>
+                </div>
             </div>
             <div id="fuelTableContainer" class="table-wrapper"></div>
         </div>
@@ -198,9 +210,12 @@
     <details class="report-card" open>
         <summary>⏱️ Dienas Nostrādātais Laiks</summary>
         <div class="settings-content">
-            <div class="summary-bar" style="border-left-color: #b8860b;">
+            <div class="summary-bar" style="border-left-color: #28a745;">
                 <div>Kopā nostrādāts: <span id="totalDayHoursValue" class="gold-val">0.00</span> h</div>
-                <button class="btn-clear" onclick="clearTable('/api/darbastundas')">🗑️ Iztīrīt visu tabulu</button>
+                <div>
+                    <button class="btn-clear" style="background: #6c757d;" onclick="deleteLastEntry('/api/darbastundas', daySummary)">⬅ Dzēst pēdējo</button>
+                    <button class="btn-clear" onclick="clearTable('/api/darbastundas')">🗑️ Iztīrīt visu tabulu</button>
+                </div>
             </div>
             <div id="daySummaryContainer" class="table-wrapper"></div>
         </div>
@@ -315,19 +330,6 @@ document.getElementById('clearAllFilters').onclick = () => {
     function renderTables() {
     // 1. Definējam izslēgumus
     const workExclusion = ["Degvielas uzpilde", "Eļļas papildināšana", "Eļļas uzpilde"];
-
-    // 2. Pārbaudām datus pogas rādīšanai
-    const hasData = schedule && schedule.length > 0;
-    const hasActiveWork = hasData ? schedule.some(e => 
-        !workExclusion.includes(e.darbs) && 
-        e.objekts && 
-        e.objekts !== "-" &&
-        (!e.hours || parseFloat(e.hours) <= 0)
-    ) : false;
-
-    document.querySelectorAll('.btn-clear').forEach(btn => {
-        btn.style.display = (hasData && !hasActiveWork) ? "block" : "none";
-    });
 
     // 3. DARBA GAITAS FILTRĒŠANA (Loģika paliek tā pati)
     let filteredWork = (schedule || []).filter(e => {
@@ -591,6 +593,19 @@ if (resEl) {
     } catch (err) {
         console.error("Dzēšanas kļūda:", err);
         alert("Neizdevās sazināties ar serveri.");
+    }
+}
+
+    async function deleteLastEntry(endpoint, dataArray, type = 'work') {
+    if (!dataArray || dataArray.length === 0) return;
+    
+    // Atrodam jaunāko (pēdējo sarakstā)
+    const target = (type === 'fuel') ? dataArray.find(e => e.resource_name) : dataArray[0];
+    if (!target || !target.id) return;
+
+    if (confirm("Dzēst pašu pēdējo ierakstu?")) {
+        const res = await fetch(`${endpoint}/${target.id}`, { method: 'DELETE' });
+        if (res.ok) loadData();
     }
 }
 
