@@ -2,14 +2,14 @@
 <html lang="lv">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Darbinieka Panelis</title>
     <style>
 
 /* Mobilajām ierīcēm (ekrāniem līdz 768px) */
 @media (max-width: 768px) {
     body {
-        padding: 10px; /* Mazākas malas */
+        padding: 5px; /* Vēl mazākas malas uz telefona, lai vairāk vietas pogām */
     }
 
     header {
@@ -59,6 +59,15 @@
 
     td, th {
         padding: 8px 5px; /* Kompaktākas šūnas */
+    }
+    .card {
+        padding: 15px;
+        border-radius: 10px; /* Mazāk apaļi stūri uz telefona izskatās modernāk */
+    }
+    button {
+        width: 100%; /* Visas pogas pilnā platumā, lai viegli trāpīt */
+        padding: 18px !important; /* Lielākas pogas pirkstiem */
+        font-size: 1rem !important;
     }
 }
 
@@ -126,7 +135,7 @@
 
         #AtWork { background: var(--saulstari-green); color: white; width: 100%; }
         #LeaveWork { background: var(--saulstari-gray); color: white; width: 100%; }
-        #startBtn { background: var(--saulstari-green); width: 100%; margin-top: 15px; }
+        #startBtn { background: var(--success); width: 100%; margin-top: 15px; }
         #stopBtn { background: var(--saulstari-yellow); color: var(--saulstari-green); width: 100%; margin-top: 15px; }
         .res-btn { background: #d4b45d; color: #1a3025; border: 2px solid #1a3025; }
 
