@@ -316,7 +316,7 @@ document.getElementById('clearAllFilters').onclick = () => {
     // 1. Definējam izslēgumus
     const workExclusion = ["Degvielas uzpilde", "Eļļas papildināšana", "Eļļas uzpilde"];
 
-    // 2. Pārbaudām datus pogas rādīšanai (🗑️ Iztīrīt visu tabulu)
+    // 2. Pārbaudām datus pogas rādīšanai
     const hasData = schedule && schedule.length > 0;
     const hasActiveWork = hasData ? schedule.some(e => 
         !workExclusion.includes(e.darbs) && 
@@ -329,7 +329,7 @@ document.getElementById('clearAllFilters').onclick = () => {
         btn.style.display = (hasData && !hasActiveWork) ? "block" : "none";
     });
 
-    // 3. DARBA GAITAS FILTRĒŠANA
+    // 3. DARBA GAITAS FILTRĒŠANA (Loģika paliek tā pati)
     let filteredWork = (schedule || []).filter(e => {
         const year = (e.date || "").split('.')[2] || "";
         const isWork = !workExclusion.includes(e.darbs) && e.objekts && e.objekts !== "-";
@@ -350,27 +350,28 @@ document.getElementById('clearAllFilters').onclick = () => {
 
     const tableContainer = document.getElementById("tableContainer");
     if (tableContainer) {
-        // ŠEIT BIJA KĻŪDA: Izņemta "Darbība" kolonna no galvenes
+        // Datu avots filtriem (tikai darba ieraksti, bez degvielas)
+        const workDataForOptions = schedule.filter(e => !workExclusion.includes(e.darbs) && e.objekts && e.objekts !== "-");
+
         let tableHtml = `<table><thead><tr>
-            <th>Datums</th>
-            <th>Auto</th>
-            <th>Darbinieks</th>
-            <th>Objekts</th>
-            <th>Darbs</th>
+            <th>Datums<br><select class="header-filter" onchange="syncFilter('date', this.value)">${getOptions('date', 'date', workDataForOptions)}</select></th>
+            <th>Auto<br><select class="header-filter" onchange="syncFilter('car', this.value)">${getOptions('car', 'car', workDataForOptions)}</select></th>
+            <th>Darbinieks<br><select class="header-filter" onchange="syncFilter('worker_name', this.value)">${getOptions('worker_name', 'worker_name', workDataForOptions)}</select></th>
+            <th>Objekts<br><select class="header-filter" onchange="syncFilter('objekts', this.value)">${getOptions('objekts', 'objekts', workDataForOptions)}</select></th>
+            <th>Darbs<br><select class="header-filter" onchange="syncFilter('darbs', this.value)">${getOptions('darbs', 'darbs', workDataForOptions)}</select></th>
             <th style="text-align:right">Stundas</th>
         </tr></thead><tbody>`;
 
         if (filteredWork.length > 0) {
             tableHtml += filteredWork.map(e => {
                 const isError = parseFloat(e.hours || 0) <= 0;
-                // ŠEIT BIJA KĻŪDA: Izņemta rinda ar miskastes pogu
                 return `<tr class="${isError ? 'error-row' : ''}">
                     <td>${e.date}</td><td>${e.car}</td><td>${e.worker_name}</td><td>${e.objekts}</td><td>${e.darbs}</td>
                     <td align="right"><b>${parseFloat(e.hours || 0).toFixed(2)}</b></td>
                 </tr>`;
             }).join("");
         } else {
-            tableHtml += '<tr><td colspan="6" align="center">Nav datu</td></tr>';
+            tableHtml += '<tr><td colspan="6" align="center">Nav datu atbilstoši filtriem</td></tr>';
         }
 
         tableContainer.innerHTML = tableHtml + "</tbody></table>";
