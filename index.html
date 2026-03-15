@@ -105,10 +105,15 @@
     line-height: 1.4;
   }
     @media (pointer: coarse) {
-      form{
-        width:80%;
-        heght: 40%;
-      }
+      form {
+      width: 90% !important; /* 80% var būt par šauru */
+      max-width: none !important;
+      padding: 30px 20px !important;
+    }
+    input, button {
+      padding: 16px !important; /* Lielāki elementi pirkstiem */
+      font-size: 1.1rem !important;
+    }
     }
   </style>
 </head>
