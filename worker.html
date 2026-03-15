@@ -410,17 +410,9 @@
         if (litri > availableQty) {
             return alert(`Kļūda! Tu nevari ieliet ${litri}L, jo noliktavā ir tikai ${availableQty}L.`);
         }
-
+        
         try {
-            const patchRes = await fetch(`/api/resource-types/${resourceId}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'sub', amount: litri })
-            });
-
-            if (!patchRes.ok) throw new Error("Neizdevās atjaunot noliktavu");
-
-            await fetch('/api/update-resources', {
+            const response = await fetch('/api/update-resources', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
@@ -431,6 +423,10 @@
                     type: resourceName.includes("Degviela") ? "Degviela" : "Ella"
                 })
             });
+
+            if (!response.ok) {
+                throw new Error("Serveris atgrieza kļūdu");
+            }
 
             document.getElementById("resourceModal").style.display = "none";
             document.getElementById("modalAmountInput").value = "";
