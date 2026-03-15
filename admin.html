@@ -149,6 +149,7 @@
         @media (pointer: coarse) {
        h2{
             font-size: 30px !important;
+           text-align: center;
       }
         .grid-container {
         display: grid;
@@ -207,6 +208,61 @@
             .settings-content{
                 font-size: 28px !important;
             }
+            .filter-row label {
+        flex: 1 1 100%; /* Katrs filtrs savā rindā vai abi blakus */
+        font-size: 18px !important;
+    }
+    .header-filter {
+        height: 45px;
+        font-size: 18px !important;
+    }
+
+    /* TABULU TRANSFORMĀCIJA */
+    .table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    table {
+        min-width: 600px; /* Atļaujam tabulai būt nedaudz platākai par ekrānu, lai dati nesaspiestos */
+    }
+
+    th, td {
+        padding: 15px 8px !important; /* Lielāki laukumi pirkstiem */
+        font-size: 16px !important;    /* Lielāks teksts */
+    }
+
+    /* Kopsavilkuma joslas (Total stundas/litri) */
+    .summary-bar {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+        padding: 15px !important;
+        font-size: 18px !important;
+    }
+
+    .btn-clear {
+        width: 100% !important;
+        margin-left: 0 !important;
+        height: 45px;
+    }
+
+    /* Saraksta elementi (iekš pogām) */
+    .settings-content li {
+        padding: 15px 0 !important;
+        font-size: 18px !important;
+    }
+    
+    .btn-del {
+        padding: 10px 15px !important;
+    }
+
+    /* Resursu rediģēšanas ievades lauki */
+    input[type="number"] {
+        height: 45px;
+        font-size: 18px !important;
+        width: 100px !important;
+    }
 }
 
         
