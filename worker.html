@@ -5,46 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Darbinieka Panelis</title>
     <style>
-
 /* Mobilajām ierīcēm (ekrāniem līdz 768px) */
 @media (max-width: 768px) {
-    body {
-        padding: 5px; /* Vēl mazākas malas uz telefona, lai vairāk vietas pogām */
-    }
-
+    body { padding: 0; } /* Noņemam liekās malas lapai */
     header {
         flex-direction: column; /* Nosaukums un poga viens zem otra */
         gap: 10px;
         text-align: center;
     }
-
-    /* Padarām gridu vienā kolonnā */
     .grid-container {
         grid-template-columns: 1fr; 
     }
-
-    /* Filtru sadaļa kļūst vertikāla */
     .filter-row {
         flex-direction: column;
         align-items: stretch;
     }
-
     .header-filter {
         width: 100%; /* Filtri aizņem pilnu platumu */
     }
-
-    /* Kopsavilkuma joslas uzlabojums */
     .summary-bar {
         flex-direction: column;
         gap: 10px;
         text-align: center;
     }
-
     .btn-clear {
         width: 100%; /* Pogas vieglāk nospiežamas ar īkšķi */
         margin-left: 0;
     }
-
     /* TABULAS TRIKS: horizontālā ritināšana */
     .table-wrapper {
         overflow-x: auto;
@@ -52,78 +39,70 @@
         border: 1px solid var(--border-color);
         border-radius: 8px;
     }
-
-    #tableContainer { 
-    width: 100%;           /* Aizņem visu pieejamo vietu */
-    max-width: 100%;       /* Neļauj iziet ārpus ekrāna */
-    overflow-x: auto;      /* JA tabula ir platāka par ekrānu, parādās scroll */
-    -webkit-overflow-scrolling: touch; /* Padara skrollēšanu gludu uz iPhone */
-    background: var(--white);
-    border-radius: 15px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-    margin: 0 auto;
-}
-
-    table { 
-    width: 100%; 
-    border-collapse: collapse; 
-    
-    /* ŠIS IR SVARĪGI: */
-    min-width: 600px; /* Piespiež tabulu būt vismaz 600px platu. 
-                         Tā kā telefons ir šaurāks, parādīsies scroll. */
-}
+    #tableContainer {
+        width: 100% !important;
+        border-radius: 0 !important;
+        margin-bottom: 50px;
+    }
+    table {
+        min-width: 800px !important; /* Piespiež tabulu būt platu, lai var skrollēt */
+    }
 
     th, td {
-    white-space: nowrap; /* Neļauj tekstam pārlēkt jaunā rindā, 
-                            saglabājot tabulu glītu un pārskatāmu */
-    padding: 12px 15px;
-}
-    
+        padding: 10px 8px !important;
+        font-size: 0.8rem !important;
+        white-space: nowrap;
+    }
    .card {
-        width: 100% !important;   /* Piespiežam būt pilnā platumā */
-        min-height: 50vh;         /* Aizņems vismaz pusi ekrāna augstuma */
-        padding: 20px !important; /* ATSTĀJ padding, lai pogas nav pie pašām malām */
-        border-radius: 5px;       /* Tavs vēlamais mazais stūru apaļums */
-        margin: 0;                /* Noņemam ārējās malas */
-        box-sizing: border-box;   /* Ļoti svarīgi, lai 100% platums iekļautu padding */
+        width: 100% !important;
+        max-width: 100% !important;
+        height: 50vh !important; /* Puse no ekrāna augstuma */
+        margin: 0 0 20px 0 !important;
+        border-radius: 0 0 20px 20px !important;
+        display: flex;
+        flex-direction: column;
+        justify-content: center; /* Satura centrēšana */
+        padding: 15px !important;
+        box-sizing: border-box;
     }
-    
     button {
-        width: 100%; /* Visas pogas pilnā platumā, lai viegli trāpīt */
-        padding: 20px !important; /* Lielākas pogas pirkstiem */
-        font-size: 2rem !important;
+        width: 100% !important;
+        padding: 16px !important;
+        font-size: 1.1rem !important; /* Samazināju no 2rem, jo 2rem ir par milzīgu un aizpildīs visu 50% kasti */
+        margin: 5px 0 !important;
     }
+    h2 { font-size: 1.2rem; }
 }
 
-        
         :root {
-            --saulstari-green: #1a3025;
-            --saulstari-yellow: #d4b45d;
-            --saulstari-gray: #4a5d53;
-            --bg-light: #f4f6f1;
-            --white: #ffffff;
-            --success: #27ae60;
-            --error: #e74c3c;
-        }
+    --saulstari-green: #1a3025;
+    --saulstari-yellow: #d4b45d;
+    --saulstari-gray: #4a5d53;
+    --bg-light: #f4f6f1;
+    --white: #ffffff;
+    --success: #27ae60;
+    --error: #e74c3c;
+}
 
-        body { 
-            font-family: 'Segoe UI', Roboto, sans-serif; 
-            background-color: var(--bg-light); 
-            margin: 0; 
-            padding: 20px; 
-            color: #333; 
-        }
+/* PAMATA STILI (Datoram) */
+body { 
+    font-family: 'Segoe UI', Roboto, sans-serif; 
+    background-color: var(--bg-light); 
+    margin: 0; 
+    padding: 20px; 
+    color: #333; 
+}
 
         .card {
-            background: var(--white);
-            padding: 25px;
-            border-radius: 20px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
-            max-width: 600px;
-            margin: 0 auto 30px;
-            border-top: 5px solid var(--saulstari-yellow);
-            text-align: center;
-        }
+    background: var(--white);
+    padding: 25px;
+    border-radius: 20px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+    max-width: 600px;
+    margin: 0 auto 30px;
+    border-top: 5px solid var(--saulstari-yellow);
+    text-align: center;
+}
 
         h2 { color: var(--saulstari-green); margin-top: 0; text-transform: uppercase; letter-spacing: 1px; }
         #status { font-size: 1.1rem; margin-bottom: 10px; padding: 10px; border-radius: 10px; background: #fdfdfd; }
@@ -165,7 +144,15 @@
 
         #logoutBtn { background: transparent; color: var(--saulstari-grey); border: 1px solid #ddd; margin-top: 20px; padding: 8px 15px; font-size: 0.8rem; }
 
-        #tableContainer { max-width: 900px; margin: 0 auto; background: var(--white); border-radius: 15px; overflow-x: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+
+        #tableContainer { 
+    max-width: 900px; 
+    margin: 0 auto; 
+    background: var(--white); 
+    border-radius: 15px; 
+    overflow-x: auto; 
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
+}
         table { width: 100%; border-collapse: collapse; min-width: 600px; }
         th { background: var(--saulstari-green); color: white; padding: 15px; font-size: 0.8rem; text-transform: uppercase; }
         td { padding: 12px 15px; border-bottom: 1px solid #eee; text-align: center; font-size: 0.9rem; }
@@ -174,15 +161,7 @@
         .shift-time { color: var(--saulstari-gray); font-style: italic; }
         .work-time { color: var(--success); font-weight: bold; }
 
-        #resourceModal {
-            display: none; 
-            position: fixed; 
-            top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.5); 
-            z-index: 1000; 
-            align-items: center; 
-            justify-content: center;
-        }
+        #resourceModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }justify-content: center;}
         .modal-content { background: white; padding: 25px; border-radius: 12px; width: 90%; max-width: 400px; text-align: left; }
     </style>
 </head>
