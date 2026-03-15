@@ -369,7 +369,7 @@ document.getElementById('clearAllFilters').onclick = () => {
                 const isError = parseFloat(e.hours || 0) <= 0;
                 return `<tr class="${isError ? 'error-row' : ''}">
                     <td>${e.date}</td><td>${e.car}</td><td>${e.worker_name}</td><td>${e.objekts}</td><td>${e.darbs}</td>
-                    <td class="gold-val" align="right"><b>${parseFloat(e.hours || 0).toFixed(2)}</b></td>
+                    <td class="gold-val" align="right">${parseFloat(e.hours || 0).toFixed(2)}</td>
                 </tr>`;
             }).join("");
         } else {
@@ -442,14 +442,14 @@ document.getElementById('clearAllFilters').onclick = () => {
     summaryContainer.innerHTML = `<table><thead><tr>
         <th>Darbinieks<br><select class="header-filter" onchange="syncFilter('worker_name', this.value)">${getOptions('worker_name', 'darbinieks', daySummary)}</select></th>
         <th>Datums<br><select class="header-filter" onchange="syncFilter('date', this.value)">${getOptions('date', 'datums', daySummary)}</select></th>
-        <th>Sākums</th><th>Beigas</th><th style="text-align:right"><span class="gold-val">Kopā</span></th>
+        <th>Sākums</th><th>Beigas</th><th style="text-align:right"><span class="gold-val">Stundas</span></th>
     </tr></thead><tbody>` + 
     (filteredSum.length ? filteredSum.map(s => {
         const hrs = parseFloat(s.stundas || 0);
         const isError = hrs <= 0;
         return `<tr class="${hrs > 12 ? 'overtime' : ''} ${isError ? 'error-row' : ''}">
             <td>${s.darbinieks}</td><td>${s.datums}</td><td>${s.sāka_darbu || '-'}</td><td>${s.beidza_darbu || '-'}</td>
-            <td align="right"><b>${hrs.toFixed(2)} h</b>${isError ? '<span class="error-badge">NAV BEIGTS</span>' : ''}</td>
+            <td class="gold-val" align="right">${hrs.toFixed(2)} h${isError ? '<span class="error-badge">NAV BEIGTS</span>' : ''}</td>
         </tr>`;
     }).join("") : '<tr><td colspan="5" align="center">Nav datu</td></tr>') + "</tbody></table>";
 }
