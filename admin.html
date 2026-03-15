@@ -14,6 +14,9 @@
             --border-color: #e0e0e0;
         }
 
+        .btn-del-row { color: #dc3545; background: #fff1f0; padding: 4px 8px; border: 1px solid #ffa39e; border-radius: 4px; cursor: pointer; }
+.btn-del-row:hover { background: #ff4d4f; color: white; }
+
         body { 
             font-family: 'Segoe UI', Roboto, sans-serif; 
             margin: 0; 
@@ -289,6 +292,15 @@ document.getElementById('clearAllFilters').onclick = () => {
     document.querySelectorAll('.header-filter').forEach(select => select.value = "");
     renderTables();
 };
+
+    async function deleteEntry(apiUrl, id) {
+    if (!confirm("Vai tiešām vēlies izdzēst šo ierakstu?")) return;
+    try {
+        const res = await fetch(`${apiUrl}/${id}`, { method: 'DELETE' });
+        if (res.ok) loadData();
+        else alert("Kļūda dzēšot ierakstu");
+    } catch (err) { alert("Servera savienojuma kļūda"); }
+}
     
     async function loadData() {
         try {
@@ -313,56 +325,60 @@ document.getElementById('clearAllFilters').onclick = () => {
     }
 
     function renderTables() {
-        const workExclusion = ["Degvielas uzpilde", "Eļļas papildināšana", "Eļļas uzpilde"];
+    const workExclusion = ["Degvielas uzpilde", "Eļļas papildināšana", "Eļļas uzpilde"];
 
-        // 1. POGU REDZAMĪBA
-        const hasActiveWork = (schedule && schedule.length > 0) ? schedule.some(e => 
-            !workExclusion.includes(e.darbs) && 
-            e.objekts && 
-            e.objekts !== "-" &&
-            (!e.hours || parseFloat(e.hours) <= 0)
-        ) : false;
+    // 1. POGU REDZAMĪBA
+    const hasActiveWork = (schedule && schedule.length > 0) ? schedule.some(e => 
+        !workExclusion.includes(e.darbs) && 
+        e.objekts && 
+        e.objekts !== "-" &&
+        (!e.hours || parseFloat(e.hours) <= 0)
+    ) : false;
 
-        document.querySelectorAll('.btn-clear').forEach(btn => {
-            btn.style.display = hasActiveWork ? "none" : "block";
-        });
+    document.querySelectorAll('.btn-clear').forEach(btn => {
+        btn.style.display = hasActiveWork ? "none" : "block";
+    });
 
-        // 2. DARBA GAITAS TABULA
-        let filteredWork = schedule.filter(e => {
-            const year = (e.date || "").split('.')[2] || "";
-            const isWork = !workExclusion.includes(e.darbs) && e.objekts && e.objekts !== "-";
-            return isWork &&
-                (!activeFilters.year || year === activeFilters.year) &&
-                (!activeFilters.month || (e.month || "").toLowerCase() === activeFilters.month.toLowerCase()) &&
-                (!activeFilters.date || e.date === activeFilters.date) &&
-                (!activeFilters.car || e.car === activeFilters.car) &&
-                (!activeFilters.worker_name || e.worker_name === activeFilters.worker_name) &&
-                (!activeFilters.objekts || e.objekts === activeFilters.objekts) &&
-                (!activeFilters.darbs || e.darbs === activeFilters.darbs);
-        });
+    // 2. DARBA GAITAS TABULA
+    let filteredWork = schedule.filter(e => {
+        const year = (e.date || "").split('.')[2] || "";
+        const isWork = !workExclusion.includes(e.darbs) && e.objekts && e.objekts !== "-";
+        return isWork &&
+            (!activeFilters.year || year === activeFilters.year) &&
+            (!activeFilters.month || (e.month || "").toLowerCase() === activeFilters.month.toLowerCase()) &&
+            (!activeFilters.date || e.date === activeFilters.date) &&
+            (!activeFilters.car || e.car === activeFilters.car) &&
+            (!activeFilters.worker_name || e.worker_name === activeFilters.worker_name) &&
+            (!activeFilters.objekts || e.objekts === activeFilters.objekts) &&
+            (!activeFilters.darbs || e.darbs === activeFilters.darbs);
+    });
 
-        document.getElementById("totalHoursValue").innerText = filteredWork.reduce((s, i) => s + parseFloat(i.hours || 0), 0).toFixed(2);
-        const workDataForOptions = schedule.filter(x => !workExclusion.includes(x.darbs));
-        
-        document.getElementById("tableContainer").innerHTML = `<table><thead><tr>
+    document.getElementById("totalHoursValue").innerText = filteredWork.reduce((s, i) => s + parseFloat(i.hours || 0), 0).toFixed(2);
+    const workDataForOptions = schedule.filter(x => !workExclusion.includes(x.darbs));
+    
+    document.getElementById("tableContainer").innerHTML = `<table><thead><tr>
             <th>Datums<br><select class="header-filter" onchange="syncFilter('date', this.value)">${getOptions('date', 'date', workDataForOptions)}</select></th>
             <th>Auto<br><select class="header-filter" onchange="syncFilter('car', this.value)">${getOptions('car', 'car', workDataForOptions)}</select></th>
             <th>Darbinieks<br><select class="header-filter" onchange="syncFilter('worker_name', this.value)">${getOptions('worker_name', 'worker_name', workDataForOptions)}</select></th>
             <th>Objekts<br><select class="header-filter" onchange="syncFilter('objekts', this.value)">${getOptions('objekts', 'objekts', workDataForOptions)}</select></th>
             <th>Darbs<br><select class="header-filter" onchange="syncFilter('darbs', this.value)">${getOptions('darbs', 'darbs', workDataForOptions)}</select></th>
             <th style="text-align:right">Stundas</th>
+            <th style="text-align:center">Darbība</th>
         </tr></thead><tbody>` + 
         (filteredWork.length ? filteredWork.map(e => {
             const isError = parseFloat(e.hours) <= 0;
             return `<tr class="${isError ? 'error-row' : ''}">
                 <td>${e.date}</td><td>${e.car}</td><td>${e.worker_name}</td><td>${e.objekts}</td><td>${e.darbs}</td>
                 <td align="right"><b>${parseFloat(e.hours || 0).toFixed(2)}</b>${isError ? '<span class="error-badge">AKTĪVS</span>' : ''}</td>
+                <td align="center">
+                    <button class="btn-del-row" onclick="deleteEntry('/api/schedule', ${e.id})">🗑️</button>
+                </td>
             </tr>`
-        }).join("") : '<tr><td colspan="6" align="center">Nav datu</td></tr>') + "</tbody></table>";
+        }).join("") : '<tr><td colspan="7" align="center">Nav datu</td></tr>') + "</tbody></table>"; // Šeit tagad ir colspan="7"
 
-        renderFuelTable();
-        renderSummaryTable();
-    }
+    renderFuelTable();
+    renderSummaryTable();
+}
 
     function renderFuelTable() {
         let filteredFuel = schedule.filter(e => {
@@ -380,20 +396,23 @@ document.getElementById('clearAllFilters').onclick = () => {
         const fuelDataForOptions = schedule.filter(x => x.resource_name);
         
         document.getElementById("oilContainer").innerHTML = `<table><thead><tr>
-            <th>Datums<br><select class="header-filter" onchange="syncFilter('date', this.value)">${getOptions('date', 'date', fuelDataForOptions)}</select></th>
-            <th>Darbinieks<br><select class="header-filter" onchange="syncFilter('worker_name', this.value)">${getOptions('worker_name', 'worker_name', fuelDataForOptions)}</select></th>
-            <th>Auto<br><select class="header-filter" onchange="syncFilter('car', this.value)">${getOptions('car', 'car', fuelDataForOptions)}</select></th>
-            <th>Resurss<br><select class="header-filter" onchange="syncFilter('resource', this.value)">${getOptions('resource', 'resource_name', fuelDataForOptions)}</select></th>
-            <th style="text-align:right">Daudzums (L)</th>
-        </tr></thead><tbody>` + 
-        (filteredFuel.length ? filteredFuel.map(e => `
-            <tr>
-                <td>${e.date}</td><td>${e.worker_name}</td><td>${e.car}</td><td><b>${e.resource_name}</b></td>
-                <td class="gold-val" align="right">${parseFloat(e.resource_amount || 0).toFixed(2)} L</td>
-            </tr>`).join("") 
-            : `<tr><td colspan="5" align="center">Nav ierakstu</td></tr>`
-        ) + "</tbody></table>";
-    }
+      // Atrodi rindiņu, kur sākas <thead> vidējai tabulai
+document.getElementById("oilContainer").innerHTML = `<table><thead><tr>
+    <th>Datums<br><select class="header-filter" onchange="syncFilter('date', this.value)">${getOptions('date', 'date', fuelDataForOptions)}</select></th>
+    <th>Darbinieks<br><select class="header-filter" onchange="syncFilter('worker_name', this.value)">${getOptions('worker_name', 'worker_name', fuelDataForOptions)}</select></th>
+    <th>Auto<br><select class="header-filter" onchange="syncFilter('car', this.value)">${getOptions('car', 'car', fuelDataForOptions)}</select></th>
+    <th>Resurss<br><select class="header-filter" onchange="syncFilter('resource', this.value)">${getOptions('resource', 'resource_name', fuelDataForOptions)}</select></th>
+    <th style="text-align:right">Daudzums (L)</th>
+    <th style="text-align:center">Darbība</th> </tr></thead><tbody>` + 
+(filteredFuel.length ? filteredFuel.map(e => `
+    <tr>
+        <td>${e.date}</td><td>${e.worker_name}</td><td>${e.car}</td><td><b>${e.resource_name}</b></td>
+        <td class="gold-val" align="right">${parseFloat(e.resource_amount || 0).toFixed(2)} L</td>
+        <td align="center"> <button class="btn-del-row" onclick="deleteEntry('/api/schedule', ${e.id})">🗑️</button>
+        </td>
+    </tr>`).join("") 
+    : `<tr><td colspan="6" align="center">Nav ierakstu</td></tr>` // Nomainīts colspan uz 6
+) + "</tbody></table>";
 
     function renderSummaryTable() {
         let filteredSum = daySummary.filter(s => {
@@ -410,6 +429,7 @@ document.getElementById('clearAllFilters').onclick = () => {
             <th>Darbinieks<br><select class="header-filter" onchange="syncFilter('worker_name', this.value)">${getOptions('worker_name', 'darbinieks', daySummary)}</select></th>
             <th>Datums<br><select class="header-filter" onchange="syncFilter('date', this.value)">${getOptions('date', 'datums', daySummary)}</select></th>
             <th>Sākums</th><th>Beigas</th><th style="text-align:right">Kopā</th>
+            <th style="text-align:center">Darbība</th>
         </tr></thead><tbody>` + 
         (filteredSum.length ? filteredSum.map(s => {
             const hrs = parseFloat(s.stundas || 0);
@@ -417,6 +437,9 @@ document.getElementById('clearAllFilters').onclick = () => {
             return `<tr class="${hrs > 12 ? 'overtime' : ''} ${isError ? 'error-row' : ''}">
                 <td>${s.darbinieks}</td><td>${s.datums}</td><td>${s.sāka_darbu || '-'}</td><td>${s.beidza_darbu || '-'}</td>
                 <td align="right"><b>${hrs.toFixed(2)} h</b>${isError ? '<span class="error-badge">NAV BEIGTS</span>' : ''}</td>
+                <td align="center">
+    <button class="btn-del-row" onclick="deleteEntry('/api/darbastundas', ${s.id})">🗑️</button>
+</td>
             </tr>`;
         }).join("") : '<tr><td colspan="5" align="center">Nav datu</td></tr>') + "</tbody></table>";
     }
