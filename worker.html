@@ -53,19 +53,41 @@
         border-radius: 8px;
     }
 
-    table {
-        font-size: 16px; /* Mazāks fonts, lai vairāk lien ekrānā */
-    }
+    #tableContainer { 
+    width: 100%;           /* Aizņem visu pieejamo vietu */
+    max-width: 100%;       /* Neļauj iziet ārpus ekrāna */
+    overflow-x: auto;      /* JA tabula ir platāka par ekrānu, parādās scroll */
+    -webkit-overflow-scrolling: touch; /* Padara skrollēšanu gludu uz iPhone */
+    background: var(--white);
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    margin: 0 auto;
+}
 
-    td, th {
-        padding: 10px 5px; /* Kompaktākas šūnas */
+    table { 
+    width: 100%; 
+    border-collapse: collapse; 
+    
+    /* ŠIS IR SVARĪGI: */
+    min-width: 600px; /* Piespiež tabulu būt vismaz 600px platu. 
+                         Tā kā telefons ir šaurāks, parādīsies scroll. */
+}
+
+    th, td {
+    white-space: nowrap; /* Neļauj tekstam pārlēkt jaunā rindā, 
+                            saglabājot tabulu glītu un pārskatāmu */
+    padding: 12px 15px;
+}
+    
+   .card {
+        width: 100% !important;   /* Piespiežam būt pilnā platumā */
+        min-height: 50vh;         /* Aizņems vismaz pusi ekrāna augstuma */
+        padding: 20px !important; /* ATSTĀJ padding, lai pogas nav pie pašām malām */
+        border-radius: 5px;       /* Tavs vēlamais mazais stūru apaļums */
+        margin: 0;                /* Noņemam ārējās malas */
+        box-sizing: border-box;   /* Ļoti svarīgi, lai 100% platums iekļautu padding */
     }
-    .card {
-        width: 100%;
-        height: 50%;
-        padding: 0px;
-        border-radius: 3px; /* Mazāk apaļi stūri uz telefona izskatās modernāk */
-    }
+    
     button {
         width: 100%; /* Visas pogas pilnā platumā, lai viegli trāpīt */
         padding: 20px !important; /* Lielākas pogas pirkstiem */
