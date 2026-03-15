@@ -421,6 +421,31 @@ document.getElementById('clearAllFilters').onclick = () => {
         }).join("") : '<tr><td colspan="5" align="center">Nav datu</td></tr>') + "</tbody></table>";
     }
 
+    // --- JAUNA FUNKCIJA RESURSU PRECIZĒŠANAI ---
+async function adjustResource(id, action) {
+    const input = document.getElementById(`input-res-${id}`);
+    const amount = parseFloat(input.value);
+
+    if (isNaN(amount) || amount <= 0) {
+        alert("Lūdzu ievadiet derīgu skaitli!");
+        return;
+    }
+
+    // Izmantojam tavu esošo PATCH maršrutu /api/resource-types/:id
+    const res = await fetch(`/api/resource-types/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, amount })
+    });
+
+    if (res.ok) {
+        input.value = ""; // Notīrām lauku
+        loadData();      // Atjaunojam datus sarakstā
+    } else {
+        alert("Kļūda saglabājot datus");
+    }
+}
+
 function renderSettings() {
     // 1. Universālā funkcija pārējiem sarakstiem
     const renderList = (id, data, deleteFn, nameKey = 'name') => {
@@ -437,12 +462,26 @@ function renderSettings() {
     renderList("carList", cars, "deleteCar"); 
     renderList("workList", workTypes, "deleteWorkType"); 
     renderList("objectList", objects, "deleteObject");
+    
     const resEl = document.getElementById("resourceList");
 if (resEl) {
     resEl.innerHTML = resourceTypes.map(r => `
-        <li style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #eee;">
-            <span><strong>${r.name}</strong>: <span class="gold-val">${parseFloat(r.quantity || 0).toFixed(2)}</span></span>
-            <button class="btn-del" onclick="deleteResource('${r.name}')">✖</button>
+        <li style="display:flex; flex-direction:column; padding:12px 0; border-bottom:1px solid #eee; gap: 8px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span><strong>${r.name}</strong>: <span class="gold-val">${parseFloat(r.quantity || 0).toFixed(2)}</span></span>
+                <button class="btn-del" onclick="deleteResource('${r.name}')">✖</button>
+            </div>
+            
+            <div style="display:flex; gap:5px; align-items:center;">
+                <input type="number" id="input-res-${r.id}" placeholder="Litri" 
+                       style="flex: 1; padding: 5px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px;">
+                
+                <button onclick="adjustResource(${r.id}, 'add')" 
+                        style="background:var(--success-green); color:white; padding:5px 12px; border-radius:4px; font-weight:bold; cursor:pointer;">+</button>
+                
+                <button onclick="adjustResource(${r.id}, 'sub')" 
+                        style="background:var(--danger-red); color:white; padding:5px 12px; border-radius:4px; font-weight:bold; cursor:pointer;">-</button>
+            </div>
         </li>`).join("");
 }
 
