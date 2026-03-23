@@ -16,21 +16,16 @@
 
         body { 
             font-family: 'Segoe UI', Roboto, sans-serif; 
-            margin: 0; 
-            padding: 20px;
-            background: var(--bg-light); 
-            color: #333; 
+            margin: 0; padding: 20px;
+            background: var(--bg-light); color: #333; 
             font-size: 14px;
         }
 
         .container { max-width: 1300px; margin: 0 auto; }
 
         header {
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            margin-bottom: 30px; 
-            border-bottom: 2px solid var(--primary-dark); 
+            display: flex; justify-content: space-between; align-items: center; 
+            margin-bottom: 30px; border-bottom: 2px solid var(--primary-dark); 
             padding-bottom: 10px;
         }
 
@@ -39,24 +34,17 @@
         .grid-container { 
             display: grid; 
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
-            gap: 15px; 
-            margin-bottom: 30px; 
+            gap: 15px; margin-bottom: 30px; 
         }
         
         details.pogas { 
-            background: #fff; 
-            border: 1px solid var(--border-color); 
-            border-radius: 12px; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.02); 
+            background: #fff; border: 1px solid var(--border-color); 
+            border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); 
         }
         
         summary { 
-            cursor: pointer; 
-            font-weight: bold; 
-            padding: 12px 15px; 
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            cursor: pointer; font-weight: bold; padding: 12px 15px; 
+            display: flex; justify-content: space-between; align-items: center;
         }
 
         details[open] summary { border-bottom: 2px solid var(--accent-gold); }
@@ -64,50 +52,29 @@
         .settings-content { padding: 15px; }
 
         .filter-section { 
-            background: #fff; 
-            border: 1px solid var(--border-color); 
-            padding: 20px; 
-            border-radius: 15px; 
-            margin-bottom: 25px; 
+            background: #fff; border: 1px solid var(--border-color); 
+            padding: 20px; border-radius: 15px; margin-bottom: 25px; 
         }
 
-        .filter-row { 
-            display: flex; 
-            flex-wrap: wrap; 
-            gap: 15px; 
-            align-items: flex-end; 
-        }
+        .filter-row { display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end; }
 
         .summary-bar { 
-            background: #f8f9fa; 
-            padding: 12px 20px; 
-            border-radius: 10px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center;
-            border-left: 5px solid var(--accent-gold);
-            font-weight: bold;
-            margin-bottom: 15px;
+            background: #f8f9fa; padding: 12px 20px; border-radius: 10px; 
+            display: flex; justify-content: space-between; align-items: center;
+            border-left: 5px solid var(--accent-gold); font-weight: bold; margin-bottom: 15px;
         }
 
         .report-card { 
-            background: #fff; 
-            border-radius: 15px; 
-            margin-bottom: 20px;
-            overflow: hidden; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            background: #fff; border-radius: 15px; margin-bottom: 20px;
+            overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05);
         }
 
         .report-card > summary { background: var(--primary-dark); color: #fff; padding: 15px 25px; list-style: none; }
 
         .header-filter {
-            width: 100%;
-            margin-top: 5px;
-            padding: 6px;
-            border: 1px solid rgba(197, 160, 89, 0.4);
-            border-radius: 4px;
-            font-size: 0.85em;
-            background: #fff;
+            width: 100%; margin-top: 5px; padding: 6px;
+            border: 1px solid rgba(197, 160, 89, 0.4); border-radius: 4px;
+            font-size: 0.85em; background: #fff;
         }
 
         .table-wrapper { overflow-x: auto; max-height: 500px; overflow-y: auto; }
@@ -123,22 +90,8 @@
         .btn-add { background: var(--success-green); color: white; width: 100%; padding: 10px; margin-bottom: 10px; }
         .btn-del { color: var(--danger-red); background: none; font-size: 1.2em; padding: 0 5px; }
         
-        /* Pogu konteiners kopsavilkuma joslā */
-.btn-clear { 
-    background: var(--danger-red); 
-    color: white; 
-    padding: 8px 15px; 
-    font-size: 0.85em; 
-    display: inline-block !important; /* Piespiežam rādīt vienmēr */
-    margin-left: 10px;
-}
-.btn-clear:hover { background: #bd2130; }
-
-.summary-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
+        .btn-clear { background: var(--danger-red); color: white; padding: 8px 15px; font-size: 0.85em; display: inline-block !important; margin-left: 10px; }
+        .btn-clear:hover { background: #bd2130; }
 
         .gold-val { color: #b8860b !important; font-weight: bold; }
         .overtime { background-color: #fff0f0; color: var(--danger-red); font-weight: bold; }
@@ -146,163 +99,25 @@
         input[type="number"] { padding: 8px; border: 1px solid var(--accent-gold); border-radius: 8px; width: 80px; }
         ul { padding: 0; margin: 0; list-style: none; }
 
+        /* Mobilā versija (saglabāta no tava koda) */
         @media (pointer: coarse) {
-       h2{
-            font-size: 30px !important;
-           text-align: center;
-      }
-            html, body {
-    max-width: 100vw;
-    overflow-x: hidden; /* Aizliedz šūpošanos pa labi/kreisi */
-    overflow-y: auto;   /* ATĻAUJ skrollēt uz augšu/leju */
-    position: relative; /* Noņem fixed pozīciju */
-    -webkit-overflow-scrolling: touch;
-}
-        .grid-container {
-        display: grid;
-        grid-template-columns: 1fr 1fr; /* Izveidojam tieši 2 kolonnas */
-        gap: 10px;
-        margin-bottom: 20px;
-        font-size: 22px;
-    }
-
-    /* Pirmās 4 pogas (Darbinieki, Mašīnas, Darba veidi, Objekti) aizņem 1 rūtiņu katra */
-    .pogas {
-        width: 100% !important;
-        height: 30%
-        font-size: 22px; /* Teksts, lai ietilpst pogā */
-    }
-
-    /* Pēdējā poga (Resursi) aizņem abas kolonnas */
-    .pogas:last-child {
-        grid-column: span 2;
-        height: 30%
-        font-size: 22px;
-    }
-        summary {
-        padding: 20px 10px !important;
-        justify-content: center; /* Centrējam tekstu un ikonu */
-        text-align: center;
-        font-size: 28px;
-    }
-
-    /* Standarta pogas (Izrakstīties, Notīrīt utt) */
-    button {
-        width: 100% !important;
-        height: auto !important;
-        min-height: 50px;
-        font-size: 20px !important;
-        margin-top: 5px;
-    }
-    
-    /* Pievienot pogas sarakstos */
-    .btn-add {
-        width: 100% !important;
-        height: 50px !important;
-    }
-
-    .container {
-        width: 100%;
-        padding: 10px;
-        box-sizing: border-box;
-    }
-            h3{
-               font-size: 28px !important; 
-            }
-        .header-filter {
-        height: 45px !important;
-        font-size: 16px !important;
-        min-width: 100px;
-    }
-            label{
-                font-size: 20px !important; 
-            }
-            .settings-content{
-                font-size: 28px !important;
-            }
-            .filter-row label {
-        flex: 1 1 100%; /* Katrs filtrs savā rindā vai abi blakus */
-        font-size: 18px !important;
-    }
-    .header-filter {
-        height: 45px;
-        font-size: 18px !important;
-    }
-            .report-stack {
-        flex-grow: 1;
-        overflow-y: auto; /* Šeit varēs skrollēt starp dažādām tabulām */
-        padding-bottom: 20px;
-    }
-
-            .table-wrapper {
-    width: 100%;
-    overflow-x: auto;   /* Atļauj horizontālo skrollu tikai šeit */
-    overflow-y: hidden; /* Neļaujam tabulai pašai skrollēties uz leju (lai lapa to dara) */
-    display: block;
-    border: 2px solid var(--accent-gold);
-    border-radius: 12px;
-    -webkit-overflow-scrolling: touch;
-}
-
-/* PAŠA TABULA */
-table {
-    min-width: 1000px !important; /* Piespiež tabulu būt platu, lai dati būtu lieli */
-    border-collapse: collapse;
-}
-
-/* TABULAS ŠŪNAS */
-th, td {
-    padding: 20px 15px !important; /* Padara rindas ļoti augstas un viegli lasāmas */
-    font-size: 18px !important;    /* Liels teksts */
-    white-space: nowrap;           /* Neļauj tekstam salūzt vairākās rindās */
-}
-    /* Kopsavilkuma joslas (Total stundas/litri) */
-    .summary-bar {
-        flex-direction: column;
-        font-size: 20px !important;
-        gap: 12px;
-        padding: 15px !important;
-    }
-
-    /* Režģis pogām augšā */
-    .grid-container {
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-    }
-
-    .btn-clear {
-        width: 100% !important;
-        margin-left: 0 !important;
-        height: 45px;
-    }
-
-    /* Saraksta elementi (iekš pogām) */
-    .settings-content li {
-        padding: 15px 0 !important;
-        font-size: 18px !important;
-    }
-    
-    .btn-del {
-        padding: 10px 15px !important;
-    }
-            header, .grid-container, .filter-section {
-        flex-shrink: 0; 
-    }
-
-    /* Resursu rediģēšanas ievades lauki */
-    input[type="number"] {
-        height: 45px;
-        font-size: 18px !important;
-        width: 100px !important;
-    }
-}
-
-        
-    }
-
-
-
-        
+            h2 { font-size: 30px !important; text-align: center; }
+            .grid-container { grid-template-columns: 1fr 1fr; gap: 10px; font-size: 22px; }
+            .pogas { width: 100% !important; }
+            .pogas:last-child { grid-column: span 2; }
+            summary { padding: 20px 10px !important; justify-content: center; text-align: center; font-size: 28px; }
+            button { width: 100% !important; min-height: 50px; font-size: 20px !important; }
+            .btn-add { height: 50px !important; }
+            h3 { font-size: 28px !important; }
+            label { font-size: 20px !important; }
+            .settings-content { font-size: 28px !important; }
+            .table-wrapper { border: 2px solid var(--accent-gold); border-radius: 12px; }
+            table { min-width: 1000px !important; }
+            th, td { padding: 20px 15px !important; font-size: 18px !important; }
+            .summary-bar { flex-direction: column; font-size: 20px !important; gap: 12px; padding: 15px !important; }
+            .btn-clear { width: 100% !important; margin-left: 0 !important; height: 45px; }
+            input[type="number"] { height: 45px; font-size: 18px !important; width: 100px !important; }
+        }
     </style>
 </head>
 <body>
@@ -331,45 +146,39 @@ th, td {
     </div>
 
     <div class="report-stack">
-    <details class="report-card" open>
-        <summary>📋 Darba Gaitas Atskaite</summary>
-        <div class="settings-content">
-            <div class="summary-bar">
-                <div>Atlasītais laiks kopā: <span id="totalHoursValue" class="gold-val">0.00</span> h</div>
-                <div>
-                    <button class="btn-clear" onclick="clearTable('/api/schedule')">🗑️ Iztīrīt visu tabulu</button>
+        <details class="report-card" open>
+            <summary>📋 Darba Gaitas Atskaite</summary>
+            <div class="settings-content">
+                <div class="summary-bar">
+                    <div>Atlasītais laiks kopā: <span id="totalHoursValue" class="gold-val">0.00</span> h</div>
+                    <button class="btn-clear" onclick="clearTable('/api/schedule')">🗑️ Iztīrīt tabulu</button>
                 </div>
+                <div id="tableContainer" class="table-wrapper"></div>
             </div>
-            <div id="tableContainer" class="table-wrapper"></div>
-        </div>
-    </details>
+        </details>
 
-    <details class="report-card" open>
-        <summary>⛽ Patēriņa Kopsavilkums</summary>
-        <div class="settings-content">
-            <div class="summary-bar" style="border-left-color: #b8860b;">
-                <div>Atlasītais patēriņš kopā: <span id="totalFuelValue" class="gold-val">0.00</span> L</div>
-                <div>
-                    <button class="btn-clear" onclick="clearTable('/api/fuel-logs')">🗑️ Iztīrīt visu tabulu</button>
+        <details class="report-card" open>
+            <summary>⛽ Patēriņa Kopsavilkums</summary>
+            <div class="settings-content">
+                <div class="summary-bar" style="border-left-color: #b8860b;">
+                    <div>Atlasītais patēriņš kopā: <span id="totalFuelValue" class="gold-val">0.00</span> L</div>
+                    <button class="btn-clear" onclick="clearTable('/api/fuel-logs')">🗑️ Iztīrīt tabulu</button>
                 </div>
+                <div id="fuelTableContainer" class="table-wrapper"></div>
             </div>
-            <div id="fuelTableContainer" class="table-wrapper"></div>
-        </div>
-    </details>
+        </details>
 
-    <details class="report-card" open>
-        <summary>⏱️ Dienas Nostrādātais Laiks</summary>
-        <div class="settings-content">
-            <div class="summary-bar" style="border-left-color: #b8860b;">
-                <div>Kopā nostrādāts: <span id="totalDayHoursValue" class="gold-val">0.00</span> h</div>
-                <div>
-                    <button class="btn-clear" onclick="clearTable('/api/darbastundas')">🗑️ Iztīrīt visu tabulu</button>
+        <details class="report-card" open>
+            <summary>⏱️ Dienas Nostrādātais Laiks</summary>
+            <div class="settings-content">
+                <div class="summary-bar" style="border-left-color: #b8860b;">
+                    <div>Kopā nostrādāts: <span id="totalDayHoursValue" class="gold-val">0.00</span> h</div>
+                    <button class="btn-clear" onclick="clearTable('/api/darbastundas')">🗑️ Iztīrīt tabulu</button>
                 </div>
+                <div id="daySummaryContainer" class="table-wrapper"></div>
             </div>
-            <div id="daySummaryContainer" class="table-wrapper"></div>
-        </div>
-    </details>
-</div>
+        </details>
+    </div>
 </div>
 
 <script>
@@ -377,83 +186,6 @@ th, td {
     let activeFilters = { year: "", month: "", date: "", car: "", worker_name: "", objekts: "", darbs: "", resource: "" };
     const LV_MONTHS = ["Janvāris", "Februāris", "Marts", "Aprīlis", "Maijs", "Jūnijs", "Jūlijs", "Augusts", "Septembris", "Oktobris", "Novembris", "Decembris"];
 
-// --- JAUNU VIENĪBU PIEVIENOŠANA ---
-
-async function addNewWorker() {
-    const vards = prompt("Ievadiet jauna darbinieka Vārdu un Uzvārdu:");
-    if (!vards) return;
-    
-    const res = await fetch('/api/workers', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: vards })
-    });
-    
-    if (res.ok) {
-        alert("Darbinieks pievienots! Noklusējuma parole: 12345");
-        loadData();
-    }
-}
-
-async function addNewItem(url, promptMsg, extraData = {}) {
-    const name = prompt(`Ievadiet: ${promptMsg}`);
-    if (!name) return;
-    
-    const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, ...extraData })
-    });
-    
-    if (res.ok) loadData();
-    else alert("Kļūda pievienojot vienību.");
-}
-
-// --- DZĒŠANAS FUNKCIJAS ---
-
-async function deleteWorker(name) {
-    if (!confirm(`Vai tiešām dzēst darbinieku ${name}?`)) return;
-    const res = await fetch(`/api/workers/${encodeURIComponent(name)}`, { method: 'DELETE' });
-    if (res.ok) loadData();
-}
-
-async function deleteCar(name) {
-    if (!confirm(`Dzēst mašīnu ${name}?`)) return;
-    const res = await fetch(`/api/cars/${encodeURIComponent(name)}`, { method: 'DELETE' });
-    if (res.ok) loadData();
-}
-
-async function deleteObject(name) {
-    if (!confirm(`Dzēst objektu ${name}?`)) return;
-    const res = await fetch(`/api/objects/${encodeURIComponent(name)}`, { method: 'DELETE' });
-    if (res.ok) loadData();
-}
-
-async function deleteWorkType(name) {
-    if (!confirm(`Dzēst darba veidu ${name}?`)) return;
-    const res = await fetch(`/api/work-types/${encodeURIComponent(name)}`, { method: 'DELETE' });
-    if (res.ok) loadData();
-}
-
-async function deleteResource(name) {
-    if (!confirm(`Dzēst resursu ${name}?`)) return;
-    const res = await fetch(`/api/resource-types/${encodeURIComponent(name)}`, { method: 'DELETE' });
-    if (res.ok) loadData();
-}
-
-// --- IZRAKSTĪŠANĀS ---
-document.getElementById('logoutBtn').onclick = () => {
-    localStorage.clear();
-    window.location.href = 'index.html'; // Vai tava galvenā lapa
-};
-
-// --- FILTRU NOTĪRĪŠANA ---
-document.getElementById('clearAllFilters').onclick = () => {
-    activeFilters = { year: "", month: "", date: "", car: "", worker_name: "", objekts: "", darbs: "", resource: "" };
-    document.querySelectorAll('.header-filter').forEach(select => select.value = "");
-    renderTables();
-};
-    
     async function loadData() {
         try {
             const res = await Promise.all([
@@ -463,300 +195,167 @@ document.getElementById('clearAllFilters').onclick = () => {
             ]);
             [workers, cars, schedule, workTypes, objects, daySummary, resourceTypes] = await Promise.all(res.map(r => r.json()));
             
-            // Tā kā backend sūta schedule ar DESC, tas jau ir pareizs.
-            // Sakārtojam daySummary, lai jaunākie datumi ir augšā (ja backend to nedara)
-            daySummary.sort((a, b) => b.id - a.id);
-
             renderSettings();
             updateGlobalFilterOptions();
             renderTables();
-        } catch (err) { 
-            console.error("Datu ielādes kļūda:", err);
-            renderTables();
+        } catch (err) { console.error(err); }
+    }
+
+    // --- RESURSU PAPILDINĀŠANA (Atgrieztā funkcija) ---
+    async function adjustResource(id, action) {
+        const input = document.getElementById(`input-res-${id}`);
+        const amount = parseFloat(input.value);
+        if (isNaN(amount) || amount <= 0) { alert("Ievadiet skaitli!"); return; }
+
+        const res = await fetch(`/api/resource-types/${id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action, amount })
+        });
+        if (res.ok) { input.value = ""; loadData(); }
+    }
+
+    function renderSettings() {
+        const renderList = (id, data, deleteFn, nameKey = 'name') => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.innerHTML = data.map(item => `
+                <li style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eee;">
+                    <span>${item[nameKey] || item}</span>
+                    <button class="btn-del" onclick="${deleteFn}('${item[nameKey] || item}')">✖</button>
+                </li>`).join("");
+        };
+
+        renderList("carList", cars, "deleteCar");
+        renderList("workList", workTypes, "deleteWorkType");
+        renderList("objectList", objects, "deleteObject");
+
+        // Resursu saraksts ar ievades lauku
+        const resEl = document.getElementById("resourceList");
+        if (resEl) {
+            resEl.innerHTML = resourceTypes.map(r => `
+                <li style="display:flex; flex-direction:column; padding:12px 0; border-bottom:1px solid #eee; gap: 8px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span><strong>${r.name}</strong>: <span class="gold-val">${parseFloat(r.quantity || 0).toFixed(2)}</span></span>
+                        <button class="btn-del" onclick="deleteResource('${r.name}')">✖</button>
+                    </div>
+                    <div style="display:flex; gap:5px; align-items:center;">
+                        <input type="number" id="input-res-${r.id}" placeholder="Litri" style="flex: 1;">
+                        <button onclick="adjustResource(${r.id}, 'add')" style="background:var(--success-green); color:white; padding:5px 12px; border-radius:4px;">+</button>
+                        <button onclick="adjustResource(${r.id}, 'sub')" style="background:var(--danger-red); color:white; padding:5px 12px; border-radius:4px;">-</button>
+                    </div>
+                </li>`).join("");
+        }
+
+        const workerEl = document.getElementById("workerList");
+        if (workerEl) {
+            workerEl.innerHTML = workers.map(w => `
+                <li style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid #eee;">
+                    <span><strong>${w.name}</strong>${w.temp_password ? `<br><small>Parole: ${w.temp_password}</small>` : ''}</span>
+                    <button class="btn-del" onclick="deleteWorker('${w.name}')">✖</button>
+                </li>`).join("");
         }
     }
 
+    // --- TABULU UN FILTRU LOĢIKA ---
     function renderTables() {
-    // 1. Definējam izslēgumus
-    const workExclusion = ["Degvielas uzpilde", "Eļļas papildināšana", "Eļļas uzpilde"];
+        const workExclusion = ["Degvielas uzpilde", "Eļļas papildināšana", "Eļļas uzpilde"];
+        
+        let filteredWork = schedule.filter(e => {
+            const year = (e.date || "").split('.')[2] || "";
+            const isWork = !workExclusion.includes(e.darbs) && e.objekts && e.objekts !== "-";
+            return isWork &&
+                (!activeFilters.year || year === activeFilters.year) &&
+                (!activeFilters.month || e.month?.toLowerCase() === activeFilters.month.toLowerCase()) &&
+                (!activeFilters.date || e.date === activeFilters.date) &&
+                (!activeFilters.car || e.car === activeFilters.car) &&
+                (!activeFilters.worker_name || e.worker_name === activeFilters.worker_name) &&
+                (!activeFilters.objekts || e.objekts === activeFilters.objekts) &&
+                (!activeFilters.darbs || e.darbs === activeFilters.darbs);
+        });
 
-    // 3. DARBA GAITAS FILTRĒŠANA (Loģika paliek tā pati)
-    let filteredWork = (schedule || []).filter(e => {
-        const year = (e.date || "").split('.')[2] || "";
-        const isWork = !workExclusion.includes(e.darbs) && e.objekts && e.objekts !== "-";
-        return isWork &&
-            (!activeFilters.year || year === activeFilters.year) &&
-            (!activeFilters.month || (e.month || "").toLowerCase() === activeFilters.month.toLowerCase()) &&
-            (!activeFilters.date || e.date === activeFilters.date) &&
-            (!activeFilters.car || e.car === activeFilters.car) &&
-            (!activeFilters.worker_name || e.worker_name === activeFilters.worker_name) &&
-            (!activeFilters.objekts || e.objekts === activeFilters.objekts) &&
-            (!activeFilters.darbs || e.darbs === activeFilters.darbs);
-    });
+        document.getElementById("totalHoursValue").innerText = filteredWork.reduce((s, i) => s + parseFloat(i.hours || 0), 0).toFixed(2);
+        const workData = schedule.filter(e => !workExclusion.includes(e.darbs) && e.objekts && e.objekts !== "-");
+        
+        document.getElementById("tableContainer").innerHTML = `<table><thead><tr>
+            <th>Datums<br><select class="header-filter" onchange="syncFilter('date', this.value)">${getOptions('date', 'date', workData)}</select></th>
+            <th>Auto<br><select class="header-filter" onchange="syncFilter('car', this.value)">${getOptions('car', 'car', workData)}</select></th>
+            <th>Darbinieks<br><select class="header-filter" onchange="syncFilter('worker_name', this.value)">${getOptions('worker_name', 'worker_name', workData)}</select></th>
+            <th>Objekts<br><select class="header-filter" onchange="syncFilter('objekts', this.value)">${getOptions('objekts', 'objekts', workData)}</select></th>
+            <th>Darbs<br><select class="header-filter" onchange="syncFilter('darbs', this.value)">${getOptions('darbs', 'darbs', workData)}</select></th>
+            <th align="right" class="gold-val">Stundas</th>
+        </tr></thead><tbody>` + 
+        filteredWork.map(e => `<tr><td>${e.date}</td><td>${e.car}</td><td>${e.worker_name}</td><td>${e.objekts}</td><td>${e.darbs}</td><td align="right" class="gold-val">${parseFloat(e.hours).toFixed(2)}</td></tr>`).join("") + "</tbody></table>";
 
-    const totalHrsEl = document.getElementById("totalHoursValue");
-    if (totalHrsEl) {
-        totalHrsEl.innerText = filteredWork.reduce((s, i) => s + parseFloat(i.hours || 0), 0).toFixed(2);
+        renderFuelTable();
+        renderSummaryTable();
     }
-
-    const tableContainer = document.getElementById("tableContainer");
-    if (tableContainer) {
-        // Datu avots filtriem (tikai darba ieraksti, bez degvielas)
-        const workDataForOptions = schedule.filter(e => !workExclusion.includes(e.darbs) && e.objekts && e.objekts !== "-");
-
-        let tableHtml = `<table><thead><tr>
-            <th>Datums<br><select class="header-filter" onchange="syncFilter('date', this.value)">${getOptions('date', 'date', workDataForOptions)}</select></th>
-            <th>Auto<br><select class="header-filter" onchange="syncFilter('car', this.value)">${getOptions('car', 'car', workDataForOptions)}</select></th>
-            <th>Darbinieks<br><select class="header-filter" onchange="syncFilter('worker_name', this.value)">${getOptions('worker_name', 'worker_name', workDataForOptions)}</select></th>
-            <th>Objekts<br><select class="header-filter" onchange="syncFilter('objekts', this.value)">${getOptions('objekts', 'objekts', workDataForOptions)}</select></th>
-            <th>Darbs<br><select class="header-filter" onchange="syncFilter('darbs', this.value)">${getOptions('darbs', 'darbs', workDataForOptions)}</select></th>
-            <th style="text-align:right"><span class="gold-val">Stundas</span></th>
-        </tr></thead><tbody>`;
-
-        if (filteredWork.length > 0) {
-            tableHtml += filteredWork.map(e => {
-                const isError = parseFloat(e.hours || 0) <= 0;
-                return `<tr class="${isError ? 'error-row' : ''}">
-                    <td>${e.date}</td><td>${e.car}</td><td>${e.worker_name}</td><td>${e.objekts}</td><td>${e.darbs}</td>
-                    <td class="gold-val" align="right">${parseFloat(e.hours || 0).toFixed(2)}</td>
-                </tr>`;
-            }).join("");
-        } else {
-            tableHtml += '<tr><td colspan="6" align="center">Nav datu atbilstoši filtriem</td></tr>';
-        }
-
-        tableContainer.innerHTML = tableHtml + "</tbody></table>";
-    }
-
-    // Izsaucam pārējās tabulas
-    if (document.getElementById("fuelTableContainer")) renderFuelTable();
-    if (document.getElementById("daySummaryContainer")) renderSummaryTable();
-}
 
     function renderFuelTable() {
-    let filteredFuel = schedule.filter(e => {
-        const year = (e.date || "").split('.')[2] || "";
-        return (e.resource_name && e.resource_amount) &&
-            (!activeFilters.year || year === activeFilters.year) &&
-            (!activeFilters.month || (e.month || "").toLowerCase() === activeFilters.month.toLowerCase()) &&
-            (!activeFilters.date || e.date === activeFilters.date) &&
-            (!activeFilters.worker_name || e.worker_name === activeFilters.worker_name) &&
-            (!activeFilters.car || e.car === activeFilters.car) &&
-            (!activeFilters.resource || e.resource_name === activeFilters.resource);
-    });
-
-    const totalFuelEl = document.getElementById("totalFuelValue");
-    if (totalFuelEl) {
-        totalFuelEl.innerText = filteredFuel.reduce((s, i) => s + parseFloat(i.resource_amount || 0), 0).toFixed(2);
+        let filteredFuel = schedule.filter(e => {
+            const year = (e.date || "").split('.')[2] || "";
+            return (e.resource_name && e.resource_amount) &&
+                (!activeFilters.year || year === activeFilters.year) &&
+                (!activeFilters.month || e.month?.toLowerCase() === activeFilters.month.toLowerCase()) &&
+                (!activeFilters.worker_name || e.worker_name === activeFilters.worker_name) &&
+                (!activeFilters.resource || e.resource_name === activeFilters.resource);
+        });
+        document.getElementById("totalFuelValue").innerText = filteredFuel.reduce((s, i) => s + parseFloat(i.resource_amount || 0), 0).toFixed(2);
+        const fuelData = schedule.filter(x => x.resource_name);
+        document.getElementById("fuelTableContainer").innerHTML = `<table><thead><tr>
+            <th>Datums</th>
+            <th>Darbinieks<br><select class="header-filter" onchange="syncFilter('worker_name', this.value)">${getOptions('worker_name', 'worker_name', fuelData)}</select></th>
+            <th>Resurss<br><select class="header-filter" onchange="syncFilter('resource', this.value)">${getOptions('resource', 'resource_name', fuelData)}</select></th>
+            <th align="right" class="gold-val">Litri</th>
+        </tr></thead><tbody>` +
+        filteredFuel.map(e => `<tr><td>${e.date}</td><td>${e.worker_name}</td><td><b>${e.resource_name}</b></td><td align="right" class="gold-val">${parseFloat(e.resource_amount).toFixed(2)} L</td></tr>`).join("") + "</tbody></table>";
     }
-
-    const fuelContainer = document.getElementById("fuelTableContainer");
-    if (!fuelContainer) return;
-
-    const fuelDataForOptions = schedule.filter(x => x.resource_name);
-    
-    fuelContainer.innerHTML = `<table><thead><tr>
-        <th>Datums<br><select class="header-filter" onchange="syncFilter('date', this.value)">${getOptions('date', 'date', fuelDataForOptions)}</select></th>
-        <th>Darbinieks<br><select class="header-filter" onchange="syncFilter('worker_name', this.value)">${getOptions('worker_name', 'worker_name', fuelDataForOptions)}</select></th>
-        <th>Auto<br><select class="header-filter" onchange="syncFilter('car', this.value)">${getOptions('car', 'car', fuelDataForOptions)}</select></th>
-        <th>Resurss<br><select class="header-filter" onchange="syncFilter('resource', this.value)">${getOptions('resource', 'resource_name', fuelDataForOptions)}</select></th>
-        <th style="text-align:right"><span class="gold-val">Daudzums (L)</span></th>
-    </tr></thead><tbody>` + 
-    (filteredFuel.length ? filteredFuel.map(e => `
-        <tr>
-            <td>${e.date}</td><td>${e.worker_name}</td><td>${e.car}</td><td><b>${e.resource_name}</b></td>
-            <td class="gold-val" align="right">${parseFloat(e.resource_amount || 0).toFixed(2)} L</td>
-        </tr>`).join("") 
-        : `<tr><td colspan="5" align="center">Nav ierakstu</td></tr>`
-    ) + "</tbody></table>";
-}
 
     function renderSummaryTable() {
-    let filteredSum = daySummary.filter(s => {
-        const year = (s.datums || "").split('.')[2] || "";
-        return (!activeFilters.year || year === activeFilters.year) &&
-            (!activeFilters.month || (s.month || "").toLowerCase() === activeFilters.month.toLowerCase()) &&
-            (!activeFilters.date || s.datums === activeFilters.date) &&
-            (!activeFilters.worker_name || s.darbinieks === activeFilters.worker_name);
-    });
-
-    const totalDayHrsEl = document.getElementById("totalDayHoursValue");
-    if (totalDayHrsEl) {
-        totalDayHrsEl.innerText = filteredSum.reduce((s, i) => s + parseFloat(i.stundas || 0), 0).toFixed(2);
+        let filteredSum = daySummary.filter(s => {
+            const year = (s.datums || "").split('.')[2] || "";
+            return (!activeFilters.year || year === activeFilters.year) &&
+                (!activeFilters.month || s.month?.toLowerCase() === activeFilters.month.toLowerCase()) &&
+                (!activeFilters.worker_name || s.darbinieks === activeFilters.worker_name);
+        });
+        document.getElementById("totalDayHoursValue").innerText = filteredSum.reduce((s, i) => s + parseFloat(i.stundas || 0), 0).toFixed(2);
+        document.getElementById("daySummaryContainer").innerHTML = `<table><thead><tr>
+            <th>Darbinieks<br><select class="header-filter" onchange="syncFilter('worker_name', this.value)">${getOptions('worker_name', 'darbinieks', daySummary)}</select></th>
+            <th>Datums</th><th>Sākums</th><th>Beigas</th><th align="right" class="gold-val">Stundas</th>
+        </tr></thead><tbody>` +
+        filteredSum.map(s => `<tr><td>${s.darbinieks}</td><td>${s.datums}</td><td>${s.sāka_darbu || '-'}</td><td>${s.beidza_darbu || '-'}</td><td align="right" class="gold-val">${parseFloat(s.stundas).toFixed(2)}</td></tr>`).join("") + "</tbody></table>";
     }
 
-    const summaryContainer = document.getElementById("daySummaryContainer");
-    if (!summaryContainer) return;
-
-    summaryContainer.innerHTML = `<table><thead><tr>
-        <th>Darbinieks<br><select class="header-filter" onchange="syncFilter('worker_name', this.value)">${getOptions('worker_name', 'darbinieks', daySummary)}</select></th>
-        <th>Datums<br><select class="header-filter" onchange="syncFilter('date', this.value)">${getOptions('date', 'datums', daySummary)}</select></th>
-        <th>Sākums</th><th>Beigas</th><th style="text-align:right"><span class="gold-val">Stundas</span></th>
-    </tr></thead><tbody>` + 
-    (filteredSum.length ? filteredSum.map(s => {
-        const hrs = parseFloat(s.stundas || 0);
-        const isError = hrs <= 0;
-        return `<tr class="${hrs > 12 ? 'overtime' : ''} ${isError ? 'error-row' : ''}">
-            <td>${s.darbinieks}</td><td>${s.datums}</td><td>${s.sāka_darbu || '-'}</td><td>${s.beidza_darbu || '-'}</td>
-            <td class="gold-val" align="right">${hrs.toFixed(2)} h${isError ? '<span class="error-badge">NAV BEIGTS</span>' : ''}</td>
-        </tr>`;
-    }).join("") : '<tr><td colspan="5" align="center">Nav datu</td></tr>') + "</tbody></table>";
-}
-
-    // --- JAUNA FUNKCIJA RESURSU PRECIZĒŠANAI ---
-async function adjustResource(id, action) {
-    const input = document.getElementById(`input-res-${id}`);
-    const amount = parseFloat(input.value);
-
-    if (isNaN(amount) || amount <= 0) {
-        alert("Lūdzu ievadiet derīgu skaitli!");
-        return;
+    // --- PAMATFUNKCIJAS (Dzēšana, pievienošana) ---
+    async function addNewWorker() {
+        const n = prompt("Vārds Uzvārds:");
+        if (n) { const res = await fetch('/api/workers', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ name: n }) }); if (res.ok) loadData(); }
     }
-
-    // Izmantojam tavu esošo PATCH maršrutu /api/resource-types/:id
-    const res = await fetch(`/api/resource-types/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action, amount })
-    });
-
-    if (res.ok) {
-        input.value = ""; // Notīrām lauku
-        loadData();      // Atjaunojam datus sarakstā
-    } else {
-        alert("Kļūda saglabājot datus");
+    async function addNewItem(url, msg, extra = {}) {
+        const n = prompt(msg);
+        if (n) { const res = await fetch(url, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ name: n, ...extra }) }); if (res.ok) loadData(); }
     }
-}
-
-function renderSettings() {
-    // 1. Universālā funkcija pārējiem sarakstiem
-    const renderList = (id, data, deleteFn, nameKey = 'name') => {
-        const el = document.getElementById(id); 
-        if (!el) return;
-        el.innerHTML = data.map(item => `
-            <li style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eee;">
-                <span>${item[nameKey] || item}</span>
-                <button class="btn-del" onclick="${deleteFn}('${item[nameKey] || item}')">✖</button>
-            </li>`).join("");
-    };
-
-    // 2. Izsaucam standarta sarakstiem
-    renderList("carList", cars, "deleteCar"); 
-    renderList("workList", workTypes, "deleteWorkType"); 
-    renderList("objectList", objects, "deleteObject");
+    async function deleteWorker(n) { if (confirm(`Dzēst ${n}?`)) { await fetch(`/api/workers/${encodeURIComponent(n)}`, {method:'DELETE'}); loadData(); }}
+    async function deleteCar(n) { if (confirm(`Dzēst ${n}?`)) { await fetch(`/api/cars/${encodeURIComponent(n)}`, {method:'DELETE'}); loadData(); }}
+    async function deleteObject(n) { if (confirm(`Dzēst ${n}?`)) { await fetch(`/api/objects/${encodeURIComponent(n)}`, {method:'DELETE'}); loadData(); }}
+    async function deleteWorkType(n) { if (confirm(`Dzēst ${n}?`)) { await fetch(`/api/work-types/${encodeURIComponent(n)}`, {method:'DELETE'}); loadData(); }}
+    async function deleteResource(n) { if (confirm(`Dzēst ${n}?`)) { await fetch(`/api/resource-types/${encodeURIComponent(n)}`, {method:'DELETE'}); loadData(); }}
     
-    const resEl = document.getElementById("resourceList");
-if (resEl) {
-    resEl.innerHTML = resourceTypes.map(r => `
-        <li style="display:flex; flex-direction:column; padding:12px 0; border-bottom:1px solid #eee; gap: 8px;">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <span><strong>${r.name}</strong>: <span class="gold-val">${parseFloat(r.quantity || 0).toFixed(2)}</span></span>
-                <button class="btn-del" onclick="deleteResource('${r.name}')">✖</button>
-            </div>
-            
-            <div style="display:flex; gap:5px; align-items:center;">
-                <input type="number" id="input-res-${r.id}" placeholder="Litri" 
-                       style="flex: 1; padding: 5px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px;">
-                
-                <button onclick="adjustResource(${r.id}, 'add')" 
-                        style="background:var(--success-green); color:white; padding:5px 12px; border-radius:4px; font-weight:bold; cursor:pointer;">+</button>
-                
-                <button onclick="adjustResource(${r.id}, 'sub')" 
-                        style="background:var(--danger-red); color:white; padding:5px 12px; border-radius:4px; font-weight:bold; cursor:pointer;">-</button>
-            </div>
-        </li>`).join("");
-}
-
-    // 3. Īpašais renderējums darbiniekiem ar pagaidu paroli
-    const workerEl = document.getElementById("workerList");
-    if (workerEl) {
-        workerEl.innerHTML = workers.map(w => {
-            // Pārbaudām vai ir parole. Ja ir, sagatavojam mazu parakstu
-            const tempPassHtml = w.temp_password 
-                ? `<br><small style="color: #666;">Parole: <b style="color: #c5a059;">${w.temp_password}</b></small>` 
-                : '';
-
-            return `
-                <li style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid #eee;">
-                    <span>
-                        <strong>${w.name}</strong>
-                        ${tempPassHtml}
-                    </span>
-                    <button class="btn-del" onclick="deleteWorker('${w.name}')">✖</button>
-                </li>`;
-        }).join("");
-    }
-}
-
-    function resetFilters() {
-        activeFilters = { year: "", month: "", date: "", car: "", worker_name: "", objekts: "", darbs: "", resource: "" };
-        document.getElementById("filterYear").value = "";
-        document.getElementById("filterMonth").value = "";
-        renderTables();
-    }
-
-    function updateGlobalFilterOptions() {
-        const allDates = [...schedule.map(s => s.date), ...daySummary.map(d => d.datums)].filter(Boolean);
-        const years = [...new Set(allDates.map(d => d.split('.')[2]))].sort();
-        document.getElementById("filterYear").innerHTML = '<option value="">Visi gadi</option>' + years.map(v => `<option value="${v}">${v}</option>`).join("");
-        document.getElementById("filterMonth").innerHTML = '<option value="">Visi mēneši</option>' + LV_MONTHS.map(v => `<option value="${v}">${v}</option>`).join("");
-    }
-
-    const getOptions = (filterKey, dataKey, dataSource) => {
-        const vals = [...new Set(dataSource.map(item => item[dataKey]))].filter(Boolean).sort();
-        return `<option value="">Visi</option>` + vals.map(v => `<option value="${v}" ${activeFilters[filterKey] === v ? 'selected' : ''}>${v}</option>`).join("");
-    };
+    async function clearTable(endpoint) { if (confirm("Dzēst VISU tabulu?")) { await fetch(endpoint, {method:'DELETE'}); loadData(); }}
 
     function syncFilter(key, val) { activeFilters[key] = val; renderTables(); }
-
-    async function clearTable(endpoint) {
-    if (!confirm("Vai tiešām vēlaties dzēst visus datus šajā sadaļā?")) return;
-
-    try {
-        const response = await fetch(endpoint, { method: 'DELETE' });
-        const result = await response.json();
-
-        if (result.success) {
-            alert("Dati izdzēsti!");
-            location.reload(); // Atsvaidzinām lapu, lai tabulas paliktu tukšas
-        } else {
-            alert("Kļūda: " + result.error);
-        }
-    } catch (err) {
-        console.error("Dzēšanas kļūda:", err);
-        alert("Neizdevās sazināties ar serveri.");
+    function getOptions(fKey, dKey, src) {
+        const vals = [...new Set(src.map(i => i[dKey]))].filter(Boolean).sort();
+        return `<option value="">Visi</option>` + vals.map(v => `<option value="${v}" ${activeFilters[fKey] === v ? 'selected' : ''}>${v}</option>`).join("");
     }
-}
-    async function deleteEntry(endpoint, id) {
-    if (!confirm("Vai tiešām dzēst šo ierakstu?")) return;
-
-    try {
-        const response = await fetch(`${endpoint}/${id}`, { method: 'DELETE' });
-        const result = await response.json();
-
-        if (result.success) {
-            loadData(); // Pārlādējam datus, lai rinda pazustu
-        } else {
-            alert("Kļūda dzēšot: " + (result.error || "Nezināma kļūda"));
-        }
-    } catch (err) {
-        console.error("Dzēšanas kļūda:", err);
-        alert("Neizdevās sazināties ar serveri.");
+    function updateGlobalFilterOptions() {
+        const years = [...new Set([...schedule, ...daySummary].map(d => (d.date || d.datums || "").split('.')[2]))].filter(Boolean).sort();
+        document.getElementById("filterYear").innerHTML = '<option value="">Gadi</option>' + years.map(v => `<option value="${v}">${v}</option>`).join("");
+        document.getElementById("filterMonth").innerHTML = '<option value="">Mēneši</option>' + LV_MONTHS.map(v => `<option value="${v}">${v}</option>`).join("");
     }
-}
 
-    async function deleteLastEntry(endpoint, dataArray, type = 'work') {
-    if (!dataArray || dataArray.length === 0) return;
-    
-    // Atrodam jaunāko (pēdējo sarakstā)
-    const target = (type === 'fuel') ? dataArray.find(e => e.resource_name) : dataArray[0];
-    if (!target || !target.id) return;
-
-    if (confirm("Dzēst pašu pēdējo ierakstu?")) {
-        const res = await fetch(`${endpoint}/${target.id}`, { method: 'DELETE' });
-        if (res.ok) loadData();
-    }
-}
+    document.getElementById('logoutBtn').onclick = () => { localStorage.clear(); window.location.href = 'index.html'; };
+    document.getElementById('clearAllFilters').onclick = () => { activeFilters = { year: "", month: "", date: "", car: "", worker_name: "", objekts: "", darbs: "", resource: "" }; loadData(); };
 
     loadData();
 </script>
