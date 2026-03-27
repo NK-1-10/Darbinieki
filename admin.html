@@ -15,65 +15,36 @@
             --success: #28a745;
         }
 
-        body { 
-            font-family: 'Segoe UI', sans-serif; 
-            margin: 0; display: flex; height: 100vh; 
-            background: var(--bg-light); color: #333;
-        }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; height: 100vh; background: var(--bg-light); color: #333; }
 
         /* SIDEBAR */
-        .sidebar {
-            width: 280px; background: var(--sidebar-bg);
-            color: var(--sidebar-text); display: flex; flex-direction: column;
-            transition: 0.3s; flex-shrink: 0;
-        }
+        .sidebar { width: 280px; background: var(--sidebar-bg); color: var(--sidebar-text); display: flex; flex-direction: column; transition: 0.3s; flex-shrink: 0; }
         .sidebar-header { padding: 25px; border-bottom: 1px solid rgba(255,255,255,0.1); }
         .sidebar-header h2 { margin: 0; font-size: 18px; color: var(--accent-gold); text-transform: uppercase; }
-
         .nav-group { padding: 15px 0; }
         .nav-label { padding: 0 25px 10px; font-size: 11px; text-transform: uppercase; opacity: 0.5; letter-spacing: 1px; }
-
-        .nav-item {
-            padding: 12px 25px; cursor: pointer; display: flex; align-items: center;
-            transition: 0.2s; font-size: 14px;
-        }
+        .nav-item { padding: 12px 25px; cursor: pointer; display: flex; align-items: center; transition: 0.2s; font-size: 14px; }
         .nav-item:hover { background: var(--active-item); color: var(--accent-gold); }
         .nav-item.active { border-left: 4px solid var(--accent-gold); background: var(--active-item); color: var(--accent-gold); font-weight: bold; }
 
         /* CONTENT */
         .main-content { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; }
-        
-        header { 
-            background: #fff; padding: 15px 30px; display: flex; 
-            justify-content: space-between; align-items: center; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-
+        header { background: #fff; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .view-section { padding: 30px; display: none; }
         .view-section.active { display: block; }
+        .card { background: #fff; border-radius: 12px; padding: 25px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
 
-        .card { 
-            background: #fff; border-radius: 12px; padding: 25px; 
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-        }
-
-        /* FILTRU JOSLA ZEM VIRSRAKSTA */
-        .filter-row {
-            display: flex; flex-wrap: wrap; gap: 10px; 
-            background: #f8f9fa; padding: 15px; border-radius: 8px;
-            margin-bottom: 15px; border: 1px solid #eee; align-items: center;
-        }
+        /* FILTRU JOSLA */
+        .filter-row { display: flex; flex-wrap: wrap; gap: 10px; background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #eee; align-items: center; }
         .filter-group { display: flex; flex-direction: column; gap: 4px; }
         .filter-group label { font-size: 11px; font-weight: bold; text-transform: uppercase; color: #666; }
-        
-        .header-filter { padding: 8px; border: 1px solid #ddd; border-radius: 5px; background: white; min-width: 120px; }
+        .header-filter { padding: 8px; border: 1px solid #ddd; border-radius: 5px; background: white; min-width: 130px; font-size: 13px; }
 
         /* TABULAS */
         .table-wrapper { overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; min-width: 900px; }
         th { text-align: left; padding: 12px; border-bottom: 2px solid #eee; background: #fafafa; font-size: 13px; }
         td { padding: 12px; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
-        
         .gold-val { color: #b8860b; font-weight: bold; }
         .summary-badge { background: var(--sidebar-bg); color: var(--accent-gold); padding: 5px 12px; border-radius: 20px; font-weight: bold; }
 
@@ -83,17 +54,13 @@
         ul { list-style: none; padding: 0; }
         li { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #f9f9f9; align-items: center; }
 
-        @media (max-width: 768px) {
-            .sidebar { width: 60px; }
-            .nav-label, .nav-item span { display: none; }
-        }
+        @media (max-width: 768px) { .sidebar { width: 60px; } .nav-label, .nav-item span { display: none; } }
     </style>
 </head>
 <body>
 
     <div class="sidebar">
         <div class="sidebar-header"><h2>SIA Admin</h2></div>
-        
         <div class="nav-group">
             <div class="nav-label">Iestatījumi</div>
             <div class="nav-item active" onclick="showView('v-workers', this)"><i>👷</i><span>Darbinieki</span></div>
@@ -102,7 +69,6 @@
             <div class="nav-item" onclick="showView('v-objects', this)"><i>📍</i><span>Objekti</span></div>
             <div class="nav-item" onclick="showView('v-res', this)"><i>🛢️</i><span>Resursi</span></div>
         </div>
-
         <div class="nav-group">
             <div class="nav-label">Atskaites</div>
             <div class="nav-item" onclick="showView('v-report-work', this)"><i>📋</i><span>Darba gaita</span></div>
@@ -112,9 +78,7 @@
     </div>
 
     <div class="main-content">
-        <header>
-            <h3 id="current-view-title">Darbinieki</h3>
-        </header>
+        <header><h3 id="current-view-title">Darbinieki</h3></header>
 
         <main>
             <section id="v-workers" class="view-section active"><div class="card"><button class="btn-add" onclick="addNewWorker()">➕ Pievienot darbinieku</button><ul id="workerList"></ul></div></section>
@@ -143,6 +107,7 @@
                         <div class="filter-group"><label>Gads</label><select class="header-filter year-sel" onchange="renderTables()"></select></div>
                         <div class="filter-group"><label>Mēnesis</label><select class="header-filter month-sel" onchange="renderTables()"></select></div>
                         <div class="filter-group"><label>Darbinieks</label><select class="header-filter worker-sel" onchange="renderTables()"></select></div>
+                        <div class="filter-group"><label>Auto</label><select class="header-filter car-sel" onchange="renderTables()"></select></div>
                         <div class="filter-group"><label>Resurss</label><select class="header-filter res-sel" onchange="renderTables()"></select></div>
                         <div style="margin-left:auto">Kopā: <span id="totalFuelValue" class="summary-badge">0.00 L</span></div>
                     </div>
@@ -184,7 +149,6 @@
                     fetch('/api/resource-types')
                 ]);
                 [workers, cars, schedule, workTypes, objects, daySummary, resourceTypes] = await Promise.all(res.map(r => r.json()));
-                
                 populateFilters();
                 renderLists();
                 renderTables();
@@ -193,7 +157,6 @@
 
         function populateFilters() {
             const years = [...new Set([...schedule, ...daySummary].map(d => (d.date || d.datums || "").split('.')[2]))].filter(Boolean).sort();
-            
             const fill = (selector, data, defaultText) => {
                 document.querySelectorAll(selector).forEach(sel => {
                     const val = sel.value;
@@ -201,7 +164,6 @@
                     sel.value = val;
                 });
             };
-
             fill('.year-sel', years, "Visi gadi");
             fill('.month-sel', LV_MONTHS, "Visi mēneši");
             fill('.worker-sel', workers.map(w => w.name), "Visi darbinieki");
@@ -212,41 +174,41 @@
 
         function renderTables() {
             // 1. Darba gaitas filtrēšana
-            const fWork = document.getElementById('filters-work');
+            const fW = document.getElementById('filters-work');
             const d1 = schedule.filter(e => 
-                (!fWork.querySelector('.year-sel').value || e.date.includes(fWork.querySelector('.year-sel').value)) &&
-                (!fWork.querySelector('.month-sel').value || e.month === fWork.querySelector('.month-sel').value) &&
-                (!fWork.querySelector('.worker-sel').value || e.worker_name === fWork.querySelector('.worker-sel').value) &&
-                (!fWork.querySelector('.car-sel').value || e.car === fWork.querySelector('.car-sel').value) &&
-                (!fWork.querySelector('.object-sel').value || e.objekts === fWork.querySelector('.object-sel').value)
+                (!fW.querySelector('.year-sel').value || e.date.includes(fW.querySelector('.year-sel').value)) &&
+                (!fW.querySelector('.month-sel').value || e.month === fW.querySelector('.month-sel').value) &&
+                (!fW.querySelector('.worker-sel').value || e.worker_name === fW.querySelector('.worker-sel').value) &&
+                (!fW.querySelector('.car-sel').value || e.car === fW.querySelector('.car-sel').value) &&
+                (!fW.querySelector('.object-sel').value || e.objekts === fW.querySelector('.object-sel').value)
             );
             document.getElementById('totalHoursValue').innerText = d1.reduce((s,i) => s + parseFloat(i.hours || 0), 0).toFixed(2) + " h";
             document.getElementById('tableContainer').innerHTML = `<table><thead><tr><th>Datums</th><th>Auto</th><th>Darbinieks</th><th>Objekts</th><th>Darbs</th><th align="right">Stundas</th></tr></thead><tbody>${d1.map(e => `<tr><td>${e.date}</td><td>${e.car}</td><td>${e.worker_name}</td><td>${e.objekts}</td><td>${e.darbs}</td><td align="right" class="gold-val">${parseFloat(e.hours).toFixed(2)}</td></tr>`).join("")}</tbody></table>`;
 
-            // 2. Patēriņa filtrēšana
-            const fFuel = document.getElementById('filters-fuel');
+            // 2. Patēriņa filtrēšana (Pievienots Auto filtrs)
+            const fF = document.getElementById('filters-fuel');
             const d2 = schedule.filter(e => 
                 e.resource_amount &&
-                (!fFuel.querySelector('.year-sel').value || e.date.includes(fFuel.querySelector('.year-sel').value)) &&
-                (!fFuel.querySelector('.month-sel').value || e.month === fFuel.querySelector('.month-sel').value) &&
-                (!fFuel.querySelector('.worker-sel').value || e.worker_name === fFuel.querySelector('.worker-sel').value) &&
-                (!fFuel.querySelector('.res-sel').value || e.resource_name === fFuel.querySelector('.res-sel').value)
+                (!fF.querySelector('.year-sel').value || e.date.includes(fF.querySelector('.year-sel').value)) &&
+                (!fF.querySelector('.month-sel').value || e.month === fF.querySelector('.month-sel').value) &&
+                (!fF.querySelector('.worker-sel').value || e.worker_name === fF.querySelector('.worker-sel').value) &&
+                (!fF.querySelector('.car-sel').value || e.car === fF.querySelector('.car-sel').value) &&
+                (!fF.querySelector('.res-sel').value || e.resource_name === fF.querySelector('.res-sel').value)
             );
             document.getElementById('totalFuelValue').innerText = d2.reduce((s,i) => s + parseFloat(i.resource_amount || 0), 0).toFixed(2) + " L";
             document.getElementById('fuelTableContainer').innerHTML = `<table><thead><tr><th>Datums</th><th>Darbinieks</th><th>Auto</th><th>Resurss</th><th align="right">Litri</th></tr></thead><tbody>${d2.map(e => `<tr><td>${e.date}</td><td>${e.worker_name}</td><td>${e.car}</td><td>${e.resource_name}</td><td align="right" class="gold-val">${e.resource_amount} L</td></tr>`).join("")}</tbody></table>`;
 
             // 3. Stundu filtrēšana
-            const fHrs = document.getElementById('filters-hours');
+            const fH = document.getElementById('filters-hours');
             const d3 = daySummary.filter(e => 
-                (!fHrs.querySelector('.year-sel').value || e.datums.includes(fHrs.querySelector('.year-sel').value)) &&
-                (!fHrs.querySelector('.month-sel').value || e.month === fHrs.querySelector('.month-sel').value) &&
-                (!fHrs.querySelector('.worker-sel').value || e.darbinieks === fHrs.querySelector('.worker-sel').value)
+                (!fH.querySelector('.year-sel').value || e.datums.includes(fH.querySelector('.year-sel').value)) &&
+                (!fH.querySelector('.month-sel').value || e.month === fH.querySelector('.month-sel').value) &&
+                (!fH.querySelector('.worker-sel').value || e.darbinieks === fH.querySelector('.worker-sel').value)
             );
             document.getElementById('totalDayHoursValue').innerText = d3.reduce((s,i) => s + parseFloat(i.stundas || 0), 0).toFixed(2) + " h";
             document.getElementById('daySummaryContainer').innerHTML = `<table><thead><tr><th>Darbinieks</th><th>Datums</th><th>Sākums</th><th>Beigas</th><th align="right">Stundas</th></tr></thead><tbody>${d3.map(e => `<tr><td>${e.darbinieks}</td><td>${e.datums}</td><td>${e.sāka_darbu}</td><td>${e.beidza_darbu}</td><td align="right" class="gold-val">${e.stundas}</td></tr>`).join("")}</tbody></table>`;
         }
 
-        // Tavas oriģinālās funkcijas
         function renderLists() {
             const draw = (id, data, api, key='name') => {
                 document.getElementById(id).innerHTML = data.map(item => `<li><span>${item[key] || item}</span><button class="btn-del" onclick="deleteItem('${api}', '${item[key] || item}')">✖</button></li>`).join("");
