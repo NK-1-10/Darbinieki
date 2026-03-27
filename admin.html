@@ -15,10 +15,6 @@
             --success: #28a745;
         }
 
-        th:last-child, td:last-child {
-    text-align: center !important;
-}
-
         body { 
             font-family: 'Segoe UI', sans-serif; 
             margin: 0; display: flex; height: 100vh; 
@@ -82,7 +78,8 @@
         .summary-badge { background: var(--sidebar-bg); color: var(--accent-gold); padding: 5px 12px; border-radius: 20px; font-weight: bold; }
 
         .btn-add { background: var(--success); color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; margin-bottom: 15px; width: auto; }
-        .btn-del { color: var(--danger); background: none; border: none; font-size: 1.2em; cursor: pointer; }
+        .btn-del { color: var(--danger); background: none; border: none; font-size: 1.2em; cursor: pointer; transition: transform 0.1s; }
+        .btn-del:hover { transform: scale(1.2); }
 
         ul { list-style: none; padding: 0; }
         li { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #f9f9f9; align-items: center; }
@@ -243,11 +240,21 @@
                 </li>`).join("");
         }
 
+        async function deleteScheduleItem(id) {
+            if (confirm("Vai tiešām vēlies dzēst šo ierakstu?")) {
+                try {
+                    const response = await fetch(`/api/schedule/${id}`, { method: 'DELETE' });
+                    if (response.ok) { loadData(); } 
+                    else { alert("Kļūda dzēšot ierakstu."); }
+                } catch (err) { console.error("Servera kļūda:", err); }
+            }
+        }
+
         function renderTables() {
-            // 1. Darba gaitas atskaite (Izņemta "Darbs" kolonna)
+            // 1. Darba gaitas atskaite
             const workSec = document.getElementById('v-report-work');
             let fWork = schedule.filter(e => 
-                (!workSec.querySelector('.year-sel').value || e.date.includes(workSec.querySelector('.year-sel').value)) &&
+                (!workSec.querySelector('.year-sel').value || (e.date && e.date.includes(workSec.querySelector('.year-sel').value))) &&
                 (!workSec.querySelector('.month-sel').value || e.month === workSec.querySelector('.month-sel').value) &&
                 (!workSec.querySelector('.worker-sel').value || e.worker_name === workSec.querySelector('.worker-sel').value) &&
                 (!workSec.querySelector('.car-sel').value || e.car === workSec.querySelector('.car-sel').value) &&
@@ -255,13 +262,36 @@
             );
             
             document.getElementById('totalHoursValue').innerText = fWork.reduce((s,i) => s + parseFloat(i.hours || 0), 0).toFixed(2) + " h";
-            document.getElementById('tableContainer').innerHTML = `<table><thead><tr><th>Datums</th><th>Auto</th><th>Darbinieks</th><th>Objekts</th><th align="right">Stundas</th></tr></thead><tbody>${fWork.map(e => `<tr><td>${e.date}</td><td>${e.car}</td><td>${e.worker_name}</td><td>${e.objekts}</td><td align="right" class="gold-val">${parseFloat(e.hours).toFixed(2)}</td></tr>`).join("")}</tbody></table>`;
+            document.getElementById('tableContainer').innerHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Datums</th>
+                            <th>Auto</th>
+                            <th>Darbinieks</th>
+                            <th>Objekts</th>
+                            <th style="text-align: center;">Stundas</th>
+                            <th style="width: 50px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${fWork.map(e => `
+                            <tr>
+                                <td>${e.date}</td>
+                                <td>${e.car || '-'}</td>
+                                <td>${e.worker_name}</td>
+                                <td>${e.objekts}</td>
+                                <td style="text-align: center;" class="gold-val">${parseFloat(e.hours).toFixed(2)}</td>
+                                <td><button class="btn-del" onclick="deleteScheduleItem(${e.id})">✖</button></td>
+                            </tr>`).join("")}
+                    </tbody>
+                </table>`;
 
             // 2. Patēriņa atskaite
             const fuelSec = document.getElementById('v-report-fuel');
             let fFuel = schedule.filter(e => 
                 e.resource_amount && 
-                (!fuelSec.querySelector('.year-sel').value || e.date.includes(fuelSec.querySelector('.year-sel').value)) &&
+                (!fuelSec.querySelector('.year-sel').value || (e.date && e.date.includes(fuelSec.querySelector('.year-sel').value))) &&
                 (!fuelSec.querySelector('.month-sel').value || e.month === fuelSec.querySelector('.month-sel').value) &&
                 (!fuelSec.querySelector('.worker-sel').value || e.worker_name === fuelSec.querySelector('.worker-sel').value) &&
                 (!fuelSec.querySelector('.car-sel').value || e.car === fuelSec.querySelector('.car-sel').value) &&
@@ -269,18 +299,62 @@
             );
             
             document.getElementById('totalFuelValue').innerText = fFuel.reduce((s,i) => s + parseFloat(i.resource_amount || 0), 0).toFixed(2) + " L";
-            document.getElementById('fuelTableContainer').innerHTML = `<table><thead><tr><th>Datums</th><th>Darbinieks</th><th>Auto</th><th>Resurss</th><th align="right">Litri</th></tr></thead><tbody>${fFuel.map(e => `<tr><td>${e.date}</td><td>${e.worker_name}</td><td>${e.car}</td><td>${e.resource_name}</td><td align="right" class="gold-val">${e.resource_amount} L</td></tr>`).join("")}</tbody></table>`;
+            document.getElementById('fuelTableContainer').innerHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Datums</th>
+                            <th>Darbinieks</th>
+                            <th>Auto</th>
+                            <th>Resurss</th>
+                            <th style="text-align: center;">Litri</th>
+                            <th style="width: 50px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${fFuel.map(e => `
+                            <tr>
+                                <td>${e.date}</td>
+                                <td>${e.worker_name}</td>
+                                <td>${e.car || '-'}</td>
+                                <td>${e.resource_name}</td>
+                                <td style="text-align: center;" class="gold-val">${e.resource_amount} L</td>
+                                <td><button class="btn-del" onclick="deleteScheduleItem(${e.id})">✖</button></td>
+                            </tr>`).join("")}
+                    </tbody>
+                </table>`;
 
             // 3. Darba stundu atskaite
             const hoursSec = document.getElementById('v-report-hours');
             let fSum = daySummary.filter(e => 
-                (!hoursSec.querySelector('.year-sel').value || e.datums.includes(hoursSec.querySelector('.year-sel').value)) &&
+                (!hoursSec.querySelector('.year-sel').value || (e.datums && e.datums.includes(hoursSec.querySelector('.year-sel').value))) &&
                 (!hoursSec.querySelector('.month-sel').value || e.month === hoursSec.querySelector('.month-sel').value) &&
                 (!hoursSec.querySelector('.worker-sel').value || e.darbinieks === hoursSec.querySelector('.worker-sel').value)
             );
             
             document.getElementById('totalDayHoursValue').innerText = fSum.reduce((s,i) => s + parseFloat(i.stundas || 0), 0).toFixed(2) + " h";
-            document.getElementById('daySummaryContainer').innerHTML = `<table><thead><tr><th>Darbinieks</th><th>Datums</th><th>Sākums</th><th>Beigas</th><th align="right">Stundas</th></tr></thead><tbody>${fSum.map(e => `<tr><td>${e.darbinieks}</td><td>${e.datums}</td><td>${e.sāka_darbu}</td><td>${e.beidza_darbu}</td><td align="right" class="gold-val">${parseFloat(e.stundas || 0).toFixed(2)}</td></tr>`).join("")}</tbody></table>`;
+            document.getElementById('daySummaryContainer').innerHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Darbinieks</th>
+                            <th>Datums</th>
+                            <th>Sākums</th>
+                            <th>Beigas</th>
+                            <th style="text-align: center;">Stundas</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${fSum.map(e => `
+                            <tr>
+                                <td>${e.darbinieks}</td>
+                                <td>${e.datums}</td>
+                                <td>${e.sāka_darbu}</td>
+                                <td>${e.beidza_darbu}</td>
+                                <td style="text-align: center;" class="gold-val">${parseFloat(e.stundas || 0).toFixed(2)}</td>
+                            </tr>`).join("")}
+                    </tbody>
+                </table>`;
         }
 
         async function addNewWorker() { const n = prompt("Vārds Uzvārds:"); if(n) { await fetch('/api/workers', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name:n})}); loadData(); } }
