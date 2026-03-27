@@ -57,15 +57,16 @@
             box-shadow: 0 4px 20px rgba(0,0,0,0.05);
         }
 
-        /* FILTRU STILS PIE TABULĀM */
+        /* FILTRU STILS */
         .table-controls {
-            display: flex; gap: 15px; align-items: center;
+            display: flex; flex-wrap: wrap; gap: 10px;
             background: #fcfcfc; padding: 15px; border-radius: 8px;
-            margin-bottom: 15px; border: 1px solid #eee;
+            margin-bottom: 15px; border: 1px solid #eee; align-items: flex-end;
         }
-        .table-controls label { font-size: 13px; font-weight: bold; color: var(--primary-dark); }
+        .filter-group { display: flex; flex-direction: column; gap: 4px; }
+        .filter-group label { font-size: 11px; font-weight: bold; text-transform: uppercase; color: #666; }
         
-        .header-filter { padding: 6px 10px; border: 1px solid #ddd; border-radius: 4px; background: white; }
+        .header-filter { padding: 8px; border: 1px solid #ddd; border-radius: 5px; background: white; min-width: 120px; }
 
         /* TABULAS */
         .table-wrapper { overflow-x: auto; margin-top: 10px; }
@@ -74,17 +75,18 @@
         td { padding: 12px; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
         
         .gold-val { color: #b8860b; font-weight: bold; }
+        .summary-badge { background: var(--sidebar-bg); color: var(--accent-gold); padding: 5px 12px; border-radius: 20px; font-weight: bold; }
+
         .btn-add { background: var(--success); color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; margin-bottom: 15px; width: auto; }
         .btn-del { color: var(--danger); background: none; border: none; font-size: 1.2em; cursor: pointer; }
 
         ul { list-style: none; padding: 0; }
         li { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #f9f9f9; align-items: center; }
 
-        /* Mobilais */
         @media (max-width: 768px) {
             .sidebar { width: 60px; }
             .nav-label, .nav-item span { display: none; }
-            .table-controls { flex-direction: column; align-items: flex-start; }
+            .table-controls { flex-direction: column; align-items: stretch; }
         }
     </style>
 </head>
@@ -129,9 +131,12 @@
             <section id="v-report-work" class="view-section">
                 <div class="card">
                     <div class="table-controls">
-                        <label>Gads: <select class="header-filter year-sel" onchange="renderTables()"></select></label>
-                        <label>Mēnesis: <select class="header-filter month-sel" onchange="renderTables()"></select></label>
-                        <div style="margin-left:auto">Kopā: <span id="totalHoursValue" class="gold-val">0.00</span> h</div>
+                        <div class="filter-group"><label>Gads</label><select class="header-filter year-sel" onchange="renderTables()"></select></div>
+                        <div class="filter-group"><label>Mēnesis</label><select class="header-filter month-sel" onchange="renderTables()"></select></div>
+                        <div class="filter-group"><label>Darbinieks</label><select class="header-filter worker-sel" onchange="renderTables()"></select></div>
+                        <div class="filter-group"><label>Auto</label><select class="header-filter car-sel" onchange="renderTables()"></select></div>
+                        <div class="filter-group"><label>Objekts</label><select class="header-filter object-sel" onchange="renderTables()"></select></div>
+                        <div style="margin-left:auto">Kopā: <span id="totalHoursValue" class="summary-badge">0.00 h</span></div>
                     </div>
                     <div class="table-wrapper" id="tableContainer"></div>
                 </div>
@@ -140,9 +145,12 @@
             <section id="v-report-fuel" class="view-section">
                 <div class="card">
                     <div class="table-controls">
-                        <label>Gads: <select class="header-filter year-sel" onchange="renderTables()"></select></label>
-                        <label>Mēnesis: <select class="header-filter month-sel" onchange="renderTables()"></select></label>
-                        <div style="margin-left:auto">Kopā: <span id="totalFuelValue" class="gold-val">0.00</span> L</div>
+                        <div class="filter-group"><label>Gads</label><select class="header-filter year-sel" onchange="renderTables()"></select></div>
+                        <div class="filter-group"><label>Mēnesis</label><select class="header-filter month-sel" onchange="renderTables()"></select></div>
+                        <div class="filter-group"><label>Darbinieks</label><select class="header-filter worker-sel" onchange="renderTables()"></select></div>
+                        <div class="filter-group"><label>Auto</label><select class="header-filter car-sel" onchange="renderTables()"></select></div>
+                        <div class="filter-group"><label>Resurss</label><select class="header-filter res-sel" onchange="renderTables()"></select></div>
+                        <div style="margin-left:auto">Kopā: <span id="totalFuelValue" class="summary-badge">0.00 L</span></div>
                     </div>
                     <div class="table-wrapper" id="fuelTableContainer"></div>
                 </div>
@@ -151,9 +159,10 @@
             <section id="v-report-hours" class="view-section">
                 <div class="card">
                     <div class="table-controls">
-                        <label>Gads: <select class="header-filter year-sel" onchange="renderTables()"></select></label>
-                        <label>Mēnesis: <select class="header-filter month-sel" onchange="renderTables()"></select></label>
-                        <div style="margin-left:auto">Kopā: <span id="totalDayHoursValue" class="gold-val">0.00</span> h</div>
+                        <div class="filter-group"><label>Gads</label><select class="header-filter year-sel" onchange="renderTables()"></select></div>
+                        <div class="filter-group"><label>Mēnesis</label><select class="header-filter month-sel" onchange="renderTables()"></select></div>
+                        <div class="filter-group"><label>Darbinieks</label><select class="header-filter worker-sel" onchange="renderTables()"></select></div>
+                        <div style="margin-left:auto">Kopā: <span id="totalDayHoursValue" class="summary-badge">0.00 h</span></div>
                     </div>
                     <div class="table-wrapper" id="daySummaryContainer"></div>
                 </div>
@@ -190,16 +199,21 @@
 
         function updateFilterOptions() {
             const years = [...new Set([...schedule, ...daySummary].map(d => (d.date || d.datums || "").split('.')[2]))].filter(Boolean).sort();
-            document.querySelectorAll('.year-sel').forEach(sel => {
-                const current = sel.value;
-                sel.innerHTML = '<option value="">Visi gadi</option>' + years.map(y => `<option value="${y}">${y}</option>`).join("");
-                sel.value = current;
-            });
-            document.querySelectorAll('.month-sel').forEach(sel => {
-                const current = sel.value;
-                sel.innerHTML = '<option value="">Visi mēneši</option>' + LV_MONTHS.map(m => `<option value="${m}">${m}</option>`).join("");
-                sel.value = current;
-            });
+            
+            const fill = (selector, data, defaultText) => {
+                document.querySelectorAll(selector).forEach(sel => {
+                    const current = sel.value;
+                    sel.innerHTML = `<option value="">${defaultText}</option>` + data.map(item => `<option value="${item}">${item}</option>`).join("");
+                    sel.value = current;
+                });
+            };
+
+            fill('.year-sel', years, "Visi gadi");
+            fill('.month-sel', LV_MONTHS, "Visi mēneši");
+            fill('.worker-sel', workers.map(w => w.name), "Visi darbinieki");
+            fill('.car-sel', cars.map(c => c.name), "Visi auto");
+            fill('.object-sel', objects.map(o => o.name), "Visi objekti");
+            fill('.res-sel', resourceTypes.map(r => r.name), "Visi resursi");
         }
 
         function renderLists() {
@@ -226,30 +240,43 @@
         }
 
         function renderTables() {
-            // Katrai sekcijai nolasa tās specifiskos filtrus
+            // 1. Darba gaitas atskaite (Izņemta "Darbs" kolonna)
             const workSec = document.getElementById('v-report-work');
-            const yWork = workSec.querySelector('.year-sel').value;
-            const mWork = workSec.querySelector('.month-sel').value;
+            let fWork = schedule.filter(e => 
+                (!workSec.querySelector('.year-sel').value || e.date.includes(workSec.querySelector('.year-sel').value)) &&
+                (!workSec.querySelector('.month-sel').value || e.month === workSec.querySelector('.month-sel').value) &&
+                (!workSec.querySelector('.worker-sel').value || e.worker_name === workSec.querySelector('.worker-sel').value) &&
+                (!workSec.querySelector('.car-sel').value || e.car === workSec.querySelector('.car-sel').value) &&
+                (!workSec.querySelector('.object-sel').value || e.objekts === workSec.querySelector('.object-sel').value)
+            );
+            
+            document.getElementById('totalHoursValue').innerText = fWork.reduce((s,i) => s + parseFloat(i.hours || 0), 0).toFixed(2) + " h";
+            document.getElementById('tableContainer').innerHTML = `<table><thead><tr><th>Datums</th><th>Auto</th><th>Darbinieks</th><th>Objekts</th><th align="right">Stundas</th></tr></thead><tbody>${fWork.map(e => `<tr><td>${e.date}</td><td>${e.car}</td><td>${e.worker_name}</td><td>${e.objekts}</td><td align="right" class="gold-val">${parseFloat(e.hours).toFixed(2)}</td></tr>`).join("")}</tbody></table>`;
 
-            let fWork = schedule.filter(e => (!yWork || e.date.includes(yWork)) && (!mWork || e.month === mWork) && e.objekts !== "-");
-            document.getElementById('totalHoursValue').innerText = fWork.reduce((s,i) => s + parseFloat(i.hours || 0), 0).toFixed(2);
-            document.getElementById('tableContainer').innerHTML = `<table><thead><tr><th>Datums</th><th>Auto</th><th>Darbinieks</th><th>Objekts</th><th>Darbs</th><th align="right">Stundas</th></tr></thead><tbody>${fWork.map(e => `<tr><td>${e.date}</td><td>${e.car}</td><td>${e.worker_name}</td><td>${e.objekts}</td><td>${e.darbs}</td><td align="right" class="gold-val">${parseFloat(e.hours).toFixed(2)}</td></tr>`).join("")}</tbody></table>`;
-
+            // 2. Patēriņa atskaite
             const fuelSec = document.getElementById('v-report-fuel');
-            const yFuel = fuelSec.querySelector('.year-sel').value;
-            const mFuel = fuelSec.querySelector('.month-sel').value;
-
-            let fFuel = schedule.filter(e => e.resource_amount && (!yFuel || e.date.includes(yFuel)) && (!mFuel || e.month === mFuel));
-            document.getElementById('totalFuelValue').innerText = fFuel.reduce((s,i) => s + parseFloat(i.resource_amount || 0), 0).toFixed(2);
+            let fFuel = schedule.filter(e => 
+                e.resource_amount && 
+                (!fuelSec.querySelector('.year-sel').value || e.date.includes(fuelSec.querySelector('.year-sel').value)) &&
+                (!fuelSec.querySelector('.month-sel').value || e.month === fuelSec.querySelector('.month-sel').value) &&
+                (!fuelSec.querySelector('.worker-sel').value || e.worker_name === fuelSec.querySelector('.worker-sel').value) &&
+                (!fuelSec.querySelector('.car-sel').value || e.car === fuelSec.querySelector('.car-sel').value) &&
+                (!fuelSec.querySelector('.res-sel').value || e.resource_name === fuelSec.querySelector('.res-sel').value)
+            );
+            
+            document.getElementById('totalFuelValue').innerText = fFuel.reduce((s,i) => s + parseFloat(i.resource_amount || 0), 0).toFixed(2) + " L";
             document.getElementById('fuelTableContainer').innerHTML = `<table><thead><tr><th>Datums</th><th>Darbinieks</th><th>Auto</th><th>Resurss</th><th align="right">Litri</th></tr></thead><tbody>${fFuel.map(e => `<tr><td>${e.date}</td><td>${e.worker_name}</td><td>${e.car}</td><td>${e.resource_name}</td><td align="right" class="gold-val">${e.resource_amount} L</td></tr>`).join("")}</tbody></table>`;
 
+            // 3. Darba stundu atskaite
             const hoursSec = document.getElementById('v-report-hours');
-            const yHours = hoursSec.querySelector('.year-sel').value;
-            const mHours = hoursSec.querySelector('.month-sel').value;
-
-            let fSum = daySummary.filter(e => (!yHours || e.datums.includes(yHours)) && (!mHours || e.month === mHours));
-            document.getElementById('totalDayHoursValue').innerText = fSum.reduce((s,i) => s + parseFloat(i.stundas || 0), 0).toFixed(2);
-            document.getElementById('daySummaryContainer').innerHTML = `<table><thead><tr><th>Darbinieks</th><th>Datums</th><th>Sākums</th><th>Beigas</th><th align="right">Stundas</th></tr></thead><tbody>${fSum.map(e => `<tr><td>${e.darbinieks}</td><td>${e.datums}</td><td>${e.sāka_darbu}</td><td>${e.beidza_darbu}</td><td align="right" class="gold-val">${e.stundas}</td></tr>`).join("")}</tbody></table>`;
+            let fSum = daySummary.filter(e => 
+                (!hoursSec.querySelector('.year-sel').value || e.datums.includes(hoursSec.querySelector('.year-sel').value)) &&
+                (!hoursSec.querySelector('.month-sel').value || e.month === hoursSec.querySelector('.month-sel').value) &&
+                (!hoursSec.querySelector('.worker-sel').value || e.darbinieks === hoursSec.querySelector('.worker-sel').value)
+            );
+            
+            document.getElementById('totalDayHoursValue').innerText = fSum.reduce((s,i) => s + parseFloat(i.stundas || 0), 0).toFixed(2) + " h";
+            document.getElementById('daySummaryContainer').innerHTML = `<table><thead><tr><th>Darbinieks</th><th>Datums</th><th>Sākums</th><th>Beigas</th><th align="right">Stundas</th></tr></thead><tbody>${fSum.map(e => `<tr><td>${e.darbinieks}</td><td>${e.datums}</td><td>${e.sāka_darbu}</td><td>${e.beidza_darbu}</td><td align="right" class="gold-val">${parseFloat(e.stundas || 0).toFixed(2)}</td></tr>`).join("")}</tbody></table>`;
         }
 
         async function addNewWorker() { const n = prompt("Vārds Uzvārds:"); if(n) { await fetch('/api/workers', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name:n})}); loadData(); } }
