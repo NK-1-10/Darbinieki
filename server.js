@@ -22,16 +22,27 @@ function calculateHours(start, end) {
     return (diff / 3600).toFixed(2);
 }
 
-app.delete('/api/schedule/all', (req, res) => {
-    // SQL komanda, kas iztīra visu tabulu
-    const sql = "DELETE FROM schedule"; 
+// Dzēst vienu konkrētu ierakstu pēc ID
+app.delete('/api/schedule/:id', (req, res) => {
+    const id = req.params.id;
+    const sql = "DELETE FROM schedule WHERE id = ?";
     
-    db.run(sql, [], (err) => {
+    db.run(sql, id, function(err) {
         if (err) {
-            console.error(err.message);
-            res.status(500).json({ error: "Neizdevās izdzēst datus" });
+            res.status(500).json({ error: err.message });
+            return;
+        }
+        res.json({ message: "Izdzēsts", changes: this.changes });
+    });
+});
+
+// Iztīrīt visu tabulu pilnībā
+app.delete('/api/schedule/all', (req, res) => {
+    db.run("DELETE FROM schedule", [], (err) => {
+        if (err) {
+            res.status(500).json({ error: "Neizdevās izdzēst visu" });
         } else {
-            res.json({ message: "Visi dati veiksmīgi izdzēsti" });
+            res.json({ message: "Tabula iztīrīta" });
         }
     });
 });
