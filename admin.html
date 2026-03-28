@@ -84,6 +84,12 @@
         ul { list-style: none; padding: 0; }
         li { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #f9f9f9; align-items: center; }
 
+        .btn-all-delete {
+            width: 100%; background: #942525; color: white; border: 1px solid rgba(255,255,255,0.1); 
+            padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 12px; margin-bottom: 10px;
+        }
+        .btn-all-delete:hover { background: var(--danger); }
+
         @media (max-width: 768px) {
             .sidebar { width: 60px; }
             .nav-label, .nav-item span { display: none; }
@@ -113,7 +119,8 @@
         </div>
 
         <div style="margin-top: auto; padding: 20px;">
-            <button onclick="logout()" style="width: 100%; background: var(--danger); color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer;">Iziet</button>
+            <button class="btn-all-delete" onclick="deleteAllData()">⚠️ DZĒST VISUS DATUS</button>
+            <button onclick="logout()" style="width: 100%; background: #444; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer;">Iziet</button>
         </div>
     </div>
 
@@ -247,6 +254,30 @@
                     if (response.ok) { loadData(); } 
                     else { alert("Kļūda dzēšot ierakstu."); }
                 } catch (err) { console.error("Servera kļūda:", err); }
+            }
+        }
+
+        async function deleteAllData() {
+            const confirm1 = confirm("UZMANĪBU! Šī darbība neatgriezeniski izdzēsīs VISUS ierakstus (darba gaitas un patēriņu). Vai turpināt?");
+            if (!confirm1) return;
+
+            const confirm2 = prompt("Lai apstiprinātu, ierakstiet vārdu: DZĒST");
+            if (confirm2 !== "DZĒST") {
+                alert("Darbība atcelta. Ierakstītais vārds nesakrita.");
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/schedule/all', { method: 'DELETE' });
+                if (response.ok) {
+                    alert("Visi dati ir veiksmīgi izdzēsti!");
+                    loadData();
+                } else {
+                    alert("Kļūda dzēšot datus. Pārbaudiet servera iestatījumus.");
+                }
+            } catch (err) {
+                console.error("Servera kļūda:", err);
+                alert("Neizdevās sazināties ar serveri.");
             }
         }
 
