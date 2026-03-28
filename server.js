@@ -22,21 +22,34 @@ function calculateHours(start, end) {
     return (diff / 3600).toFixed(2);
 }
 
-// Dzēst vienu konkrētu ierakstu pēc ID
 app.delete('/api/schedule/:id', async (req, res) => {
     const id = req.params.id;
     try {
-        // Izmantojam pool.query un $1 (PostgreSQL standarts)
         const result = await pool.query("DELETE FROM schedule WHERE id = $1", [id]);
-        
         if (result.rowCount > 0) {
-            res.json({ success: true, message: "Izdzēsts" });
+            res.json({ success: true, message: "Ieraksts izdzēsts" });
         } else {
             res.status(404).json({ error: "Ieraksts netika atrasts" });
         }
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: "Servera kļūda dzēšot: " + err.message });
+        res.status(500).json({ error: "Servera kļūda: " + err.message });
+    }
+});
+
+// --- JAUNS: Dzēst vienu ierakstu no DARBASTUNDAS ---
+app.delete('/api/darbastundas/:id', async (req, res) => {
+    const id = req.params.id;
+    try {
+        const result = await pool.query('DELETE FROM "darbastundas" WHERE id = $1', [id]);
+        if (result.rowCount > 0) {
+            res.json({ success: true, message: "Stundu ieraksts izdzēsts" });
+        } else {
+            res.status(404).json({ error: "Ieraksts netika atrasts" });
+        }
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Servera kļūda: " + err.message });
     }
 });
 
