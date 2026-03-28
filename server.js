@@ -22,6 +22,20 @@ function calculateHours(start, end) {
     return (diff / 3600).toFixed(2);
 }
 
+app.delete('/api/schedule/all', (req, res) => {
+    // SQL komanda, kas iztīra visu tabulu
+    const sql = "DELETE FROM schedule"; 
+    
+    db.run(sql, [], (err) => {
+        if (err) {
+            console.error(err.message);
+            res.status(500).json({ error: "Neizdevās izdzēst datus" });
+        } else {
+            res.json({ message: "Visi dati veiksmīgi izdzēsti" });
+        }
+    });
+});
+
 app.delete('/api/fuel-logs', async (req, res) => {
     try { 
         // Šis izdzēsīs tikai degvielas/eļļas ierakstus no kopējā saraksta
