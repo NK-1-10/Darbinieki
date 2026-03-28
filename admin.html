@@ -257,6 +257,21 @@
             }
         }
 
+        async function deleteHoursItem(id) {
+    if (confirm("Vai tiešām vēlies dzēst šo stundu ierakstu?")) {
+        try {
+            const response = await fetch(`/api/darbastundas/${id}`, { method: 'DELETE' });
+            if (response.ok) { 
+                loadData(); // Atjaunojam datus lapā
+            } else { 
+                alert("Kļūda dzēšot ierakstu."); 
+            }
+        } catch (err) { 
+            console.error("Servera kļūda:", err); 
+        }
+    }
+}
+
         async function deleteAllData() {
             const confirm1 = confirm("UZMANĪBU! Šī darbība neatgriezeniski izdzēsīs VISUS ierakstus (darba gaitas un patēriņu). Vai turpināt?");
             if (!confirm1) return;
