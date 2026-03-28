@@ -23,28 +23,32 @@ function calculateHours(start, end) {
 }
 
 // Dzēst vienu konkrētu ierakstu pēc ID
-app.delete('/api/schedule/:id', (req, res) => {
+app.delete('/api/schedule/:id', async (req, res) => {
     const id = req.params.id;
-    const sql = "DELETE FROM schedule WHERE id = ?";
-    
-    db.run(sql, id, function(err) {
-        if (err) {
-            res.status(500).json({ error: err.message });
-            return;
+    try {
+        // Izmantojam pool.query un $1 (PostgreSQL standarts)
+        const result = await pool.query("DELETE FROM schedule WHERE id = $1", [id]);
+        
+        if (result.rowCount > 0) {
+            res.json({ success: true, message: "Izdzēsts" });
+        } else {
+            res.status(404).json({ error: "Ieraksts netika atrasts" });
         }
-        res.json({ message: "Izdzēsts", changes: this.changes });
-    });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Servera kļūda dzēšot: " + err.message });
+    }
 });
 
-// Iztīrīt visu tabulu pilnībā
-app.delete('/api/schedule/all', (req, res) => {
-    db.run("DELETE FROM schedule", [], (err) => {
-        if (err) {
-            res.status(500).json({ error: "Neizdevās izdzēst visu" });
-        } else {
-            res.json({ message: "Tabula iztīrīta" });
-        }
-    });
+// Iztīrīt visu tabulu pilnībā (salabo lielo sarkano pogu)
+app.delete('/api/schedule/all', async (req, res) => {
+    try {
+        await pool.query("DELETE FROM schedule");
+        res.json({ success: true, message: "Tabula pilnībā iztīrīta" });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Neizdevās izdzēst visu: " + err.message });
+    }
 });
 
 app.delete('/api/fuel-logs', async (req, res) => {
