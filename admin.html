@@ -3,208 +3,193 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
     <title>Admin Panelis</title>
     <link rel="icon" type="image/png" href="admin.png">
     
     <style>
         :root {
-    --sidebar-bg: #1a3025;
-    --sidebar-text: #ffffff;
-    --accent-gold: #c5a059;
-    --bg-light: #f4f7f6;
-    --active-item: rgba(197, 160, 89, 0.2);
-    --danger: #dc3545;
-    --success: #28a745;
-    --sidebar-wide: 280px;
-    --sidebar-collapsed: 60px;
-}
+            --sidebar-bg: #1a3025;
+            --sidebar-text: #ffffff;
+            --accent-gold: #c5a059;
+            --bg-light: #f4f7f6;
+            --active-item: rgba(197, 160, 89, 0.2);
+            --danger: #dc3545;
+            --success: #28a745;
+            --sidebar-wide: 280px;
+            --sidebar-collapsed: 60px;
+        }
 
-body { 
-    font-family: 'Segoe UI', sans-serif; 
-    margin: 0; 
-    display: flex; 
-    height: 100vh; 
-    background: var(--bg-light); 
-    color: #333;
-    overflow: hidden;
-}
+        body { 
+            font-family: 'Segoe UI', sans-serif; 
+            margin: 0; 
+            display: flex; 
+            height: 100vh; 
+            background: var(--bg-light); 
+            color: #333;
+            overflow: hidden;
+        }
 
-/* SĀNJOSLA */
-.sidebar {
-    width: var(--sidebar-wide);
-    background: var(--sidebar-bg);
-    color: var(--sidebar-text);
-    display: flex;
-    flex-direction: column;
-    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 1000;
-    position: relative;
-    flex-shrink: 0;
-}
+        /* SĀNJOSLA */
+        .sidebar {
+            width: var(--sidebar-wide);
+            background: var(--sidebar-bg);
+            color: var(--sidebar-text);
+            display: flex;
+            flex-direction: column;
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            position: relative;
+            flex-shrink: 0;
+        }
 
-/* AIZVĒRTS STĀVOKLIS */
-.sidebar.collapsed {
-    width: var(--sidebar-collapsed);
-}
+        .sidebar.collapsed {
+            width: var(--sidebar-collapsed);
+        }
 
-/* HAMBURGER POGA - PIELIPUSI PIE MALAS */
-#toggle-btn {
-    position: absolute;
-    right: 5px; 
-    top: 15px;
-    width: 50px;
-    height: 45px;
-    z-index: 1100;
-    background: var(--sidebar-bg);
-    color: var(--accent-gold);
-    border: 1px solid var(--accent-gold);
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.2s;
-}
+        #toggle-btn {
+            position: absolute;
+            right: 5px; 
+            top: 15px;
+            width: 50px;
+            height: 45px;
+            z-index: 1100;
+            background: var(--sidebar-bg);
+            color: var(--accent-gold);
+            border: 1px solid var(--accent-gold);
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
 
-#toggle-btn:hover {
-    background: var(--active-item);
-}
+        #toggle-btn:hover {
+            background: var(--active-item);
+        }
 
-/* SATURA PASLĒPŠANA AIZVĒRTAJĀ VEIDĀ */
-.sidebar.collapsed .nav-item span,
-.sidebar.collapsed .nav-label,
-.sidebar.collapsed .sidebar-header h2,
-.sidebar.collapsed .btn-all-delete span {
-    display: none;
-}
+        .sidebar.collapsed .nav-item span,
+        .sidebar.collapsed .nav-label,
+        .sidebar.collapsed .sidebar-header h2,
+        .sidebar.collapsed .btn-all-delete span,
+        .sidebar.collapsed .logout-text {
+            display: none;
+        }
 
-.sidebar-header { 
-    padding: 25px; 
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-    height: 75px;
-    box-sizing: border-box;
-    overflow: hidden;
-    white-space: nowrap;
-}
+        .sidebar-header { 
+            padding: 25px; 
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            height: 75px;
+            box-sizing: border-box;
+            overflow: hidden;
+            white-space: nowrap;
+        }
 
-.sidebar-header h2 { 
-    margin: 0; 
-    font-size: 18px; 
-    color: var(--accent-gold); 
-    text-transform: uppercase; 
-}
+        .sidebar-header h2 { 
+            margin: 0; 
+            font-size: 18px; 
+            color: var(--accent-gold); 
+            text-transform: uppercase; 
+        }
 
-/* NAVIGĀCIJA */
-.nav-group { padding: 15px 0; overflow: hidden; }
-.nav-label { padding: 0 25px 10px; font-size: 11px; text-transform: uppercase; opacity: 0.5; letter-spacing: 1px; white-space: nowrap; }
+        .nav-group { padding: 15px 0; overflow: hidden; }
+        .nav-label { padding: 0 25px 10px; font-size: 11px; text-transform: uppercase; opacity: 0.5; letter-spacing: 1px; white-space: nowrap; }
 
-.nav-item {
-    padding: 12px 20px; 
-    cursor: pointer; 
-    display: flex; 
-    align-items: center;
-    transition: 0.2s; 
-    font-size: 14px;
-    color: inherit;
-    text-decoration: none;
-    white-space: nowrap;
-}
+        .nav-item {
+            padding: 12px 20px; 
+            cursor: pointer; 
+            display: flex; 
+            align-items: center;
+            transition: 0.2s; 
+            font-size: 14px;
+            color: inherit;
+            text-decoration: none;
+            white-space: nowrap;
+        }
 
-.nav-item i {
-    width: 20px;
-    text-align: center;
-    margin-right: 15px;
-    font-style: normal;
-}
+        .nav-item i {
+            width: 20px;
+            text-align: center;
+            margin-right: 15px;
+            font-style: normal;
+        }
 
-.sidebar.collapsed .nav-item i {
-    margin-right: 0;
-    width: 100%;
-    font-size: 18px;
-}
+        .sidebar.collapsed .nav-item i {
+            margin-right: 0;
+            width: 100%;
+            font-size: 18px;
+        }
 
-.nav-item:hover { background: var(--active-item); color: var(--accent-gold); }
-.nav-item.active { 
-    border-left: 4px solid var(--accent-gold); 
-    background: var(--active-item); 
-    color: var(--accent-gold); 
-    font-weight: bold; 
-}
+        .nav-item:hover { background: var(--active-item); color: var(--accent-gold); }
+        .nav-item.active { 
+            border-left: 4px solid var(--accent-gold); 
+            background: var(--active-item); 
+            color: var(--accent-gold); 
+            font-weight: bold; 
+        }
 
-/* CONTENT DAĻA */
-.main-content { 
-    flex-grow: 1; 
-    overflow-y: auto; 
-    display: flex; 
-    flex-direction: column;
-    min-width: 0; /* Novērš tabulu izplešanos ārpus ekrāna */
-}
+        .main-content { 
+            flex-grow: 1; 
+            overflow-y: auto; 
+            display: flex; 
+            flex-direction: column;
+            min-width: 0;
+        }
 
-header { 
-    background: #fff; 
-    padding: 15px 30px;
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    height: 75px;
-    box-sizing: border-box;
-}
+        header { 
+            background: #fff; 
+            padding: 15px 30px;
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            height: 75px;
+            box-sizing: border-box;
+        }
 
-.view-section { padding: 30px; display: none; }
-.view-section.active { display: block; }
+        .view-section { padding: 30px; display: none; }
+        .view-section.active { display: block; }
 
-.card { 
-    background: #fff; border-radius: 12px; padding: 25px; 
-    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-}
+        .card { 
+            background: #fff; border-radius: 12px; padding: 25px; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
 
-/* FILTRI UN TABULAS */
-.table-controls {
-    display: flex; flex-wrap: wrap; gap: 10px;
-    background: #fcfcfc; padding: 15px; border-radius: 8px;
-    margin-bottom: 15px; border: 1px solid #eee; align-items: flex-end;
-}
-.header-filter { padding: 8px; border: 1px solid #ddd; border-radius: 5px; background: white; min-width: 120px; }
+        .table-controls {
+            display: flex; flex-wrap: wrap; gap: 10px;
+            background: #fcfcfc; padding: 15px; border-radius: 8px;
+            margin-bottom: 15px; border: 1px solid #eee; align-items: flex-end;
+        }
+        .header-filter { padding: 8px; border: 1px solid #ddd; border-radius: 5px; background: white; min-width: 120px; }
 
-.table-wrapper { overflow-x: auto; margin-top: 10px; }
-table { width: 100%; border-collapse: collapse; min-width: 800px; }
-th { text-align: left; padding: 12px; border-bottom: 2px solid #eee; background: #fafafa; font-size: 13px; }
-td { padding: 12px; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
+        .table-wrapper { overflow-x: auto; margin-top: 10px; }
+        table { width: 100%; border-collapse: collapse; min-width: 800px; }
+        th { text-align: left; padding: 12px; border-bottom: 2px solid #eee; background: #fafafa; font-size: 13px; }
+        td { padding: 12px; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
 
-.gold-val { color: #b8860b; font-weight: bold; }
-.summary-badge { background: var(--sidebar-bg); color: var(--accent-gold); padding: 5px 12px; border-radius: 20px; font-weight: bold; }
+        .gold-val { color: #b8860b; font-weight: bold; }
+        .summary-badge { background: var(--sidebar-bg); color: var(--accent-gold); padding: 5px 12px; border-radius: 20px; font-weight: bold; }
 
-.btn-add { background: var(--success); color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; margin-bottom: 15px; }
-.btn-del { color: var(--danger); background: none; border: none; font-size: 1.2em; cursor: pointer; }
+        .btn-add { background: var(--success); color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; margin-bottom: 15px; }
+        .btn-del { color: var(--danger); background: none; border: none; font-size: 1.2em; cursor: pointer; }
 
-/* APAKŠĒJĀS POGAS */
-.sidebar-footer {
-    margin-top: auto;
-    padding: 20px;
-    overflow: hidden;
-}
+        .sidebar-footer {
+            margin-top: auto;
+            padding: 20px;
+        }
 
-.btn-all-delete {
-    width: 100%; background: #942525; color: white; border: none; 
-    padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 12px; margin-bottom: 10px;
-    white-space: nowrap;
-}
-
-.sidebar.collapsed .btn-all-delete {
-    background: transparent;
-    color: var(--danger);
-    font-size: 18px;
-    padding: 10px 0;
-}
+        .btn-all-delete {
+            width: 100%; background: #942525; color: white; border: none; 
+            padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 12px; margin-bottom: 10px;
+            white-space: nowrap;
+        }
+        
+        .sidebar.collapsed .btn-all-delete { background: #942525; padding: 10px 0; }
 
         @media (max-width: 768px) {
-            .sidebar { margin-left: -280px; }
-            .sidebar.active { margin-left: 0; }
-            .nav-label, .nav-item span { display: block; }
-            .table-controls { flex-direction: column; align-items: stretch; }
+            .sidebar { position: fixed; height: 100%; left: -280px; }
+            .sidebar.active { left: 0; }
         }
     </style>
 </head>
@@ -232,9 +217,11 @@ td { padding: 12px; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
             <div class="nav-item" onclick="showView('v-report-hours', this)"><i>⏱️</i><span>Darba stundas</span></div>
         </div>
 
-        <div style="margin-top: auto; padding: 20px;">
-            <button class="btn-all-delete" onclick="deleteAllData()">⚠️ DZĒST VISUS DATUS</button>
-            <button onclick="logout()" style="width: 100%; background: #444; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer;">Iziet</button>
+        <div class="sidebar-footer">
+            <button class="btn-all-delete" onclick="deleteAllData()">⚠️ <span>DZĒST VISUS DATUS</span></button>
+            <button onclick="logout()" style="width: 100%; background: #444; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                <i>🚪</i><span class="logout-text">Iziet</span>
+            </button>
         </div>
     </div>
 
@@ -244,88 +231,89 @@ td { padding: 12px; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
         </header>
 
         <main>
-    <section id="v-workers" class="view-section active">
-        <div class="card">
-            <button class="btn-add" onclick="addNewWorker()">+ Pievienot darbinieku</button>
-            <ul id="workerList"></ul>
-        </div>
-    </section>
+            <section id="v-workers" class="view-section active">
+                <div class="card">
+                    <button class="btn-add" onclick="addNewWorker()">+ Pievienot darbinieku</button>
+                    <ul id="workerList"></ul>
+                </div>
+            </section>
 
-    <section id="v-cars" class="view-section">
-        <div class="card">
-            <button class="btn-add" onclick="addNewItem('/api/cars', 'Auto numurs:')">+ Pievienot auto</button>
-            <ul id="carList"></ul>
-        </div>
-    </section>
+            <section id="v-cars" class="view-section">
+                <div class="card">
+                    <button class="btn-add" onclick="addNewItem('/api/cars', 'Auto numurs:')">+ Pievienot auto</button>
+                    <ul id="carList"></ul>
+                </div>
+            </section>
 
-    <section id="v-worktypes" class="view-section">
-        <div class="card">
-            <button class="btn-add" onclick="addNewItem('/api/work-types', 'Darba veids:')">+ Pievienot darba veidu</button>
-            <ul id="workList"></ul>
-        </div>
-    </section>
+            <section id="v-worktypes" class="view-section">
+                <div class="card">
+                    <button class="btn-add" onclick="addNewItem('/api/work-types', 'Darba veids:')">+ Pievienot darba veidu</button>
+                    <ul id="workList"></ul>
+                </div>
+            </section>
 
-    <section id="v-objects" class="view-section">
-        <div class="card">
-            <button class="btn-add" onclick="addNewItem('/api/objects', 'Objekta nosaukums:')">+ Pievienot objektu</button>
-            <ul id="objectList"></ul>
-        </div>
-    </section>
+            <section id="v-objects" class="view-section">
+                <div class="card">
+                    <button class="btn-add" onclick="addNewItem('/api/objects', 'Objekta nosaukums:')">+ Pievienot objektu</button>
+                    <ul id="objectList"></ul>
+                </div>
+            </section>
 
-    <section id="v-res" class="view-section">
-        <div class="card">
-            <button class="btn-add" onclick="addNewItem('/api/resource-types', 'Resursa nosaukums:', {quantity:0})">+ Jauns resursa veids</button>
-            <ul id="resourceList"></ul>
-        </div>
-    </section>
+            <section id="v-res" class="view-section">
+                <div class="card">
+                    <button class="btn-add" onclick="addNewItem('/api/resource-types', 'Resursa nosaukums:', {quantity:0})">+ Jauns resursa veids</button>
+                    <ul id="resourceList"></ul>
+                </div>
+            </section>
 
-    <section id="v-report-work" class="view-section">
-        <div class="card">
-            <div class="table-controls">
-                <select class="year-sel header-filter" onchange="renderTables()"></select>
-                <select class="month-sel header-filter" onchange="renderTables()"></select>
-                <select class="worker-sel header-filter" onchange="renderTables()"></select>
-                <select class="car-sel header-filter" onchange="renderTables()"></select>
-                <select class="object-sel header-filter" onchange="renderTables()"></select>
-                <div class="summary-badge">Kopā stundas: <span id="totalHoursValue">0</span></div>
-            </div>
-            <div id="tableContainer" class="table-wrapper"></div>
-        </div>
-    </section>
+            <section id="v-report-work" class="view-section">
+                <div class="card">
+                    <div class="table-controls">
+                        <select class="year-sel header-filter" onchange="renderTables()"></select>
+                        <select class="month-sel header-filter" onchange="renderTables()"></select>
+                        <select class="worker-sel header-filter" onchange="renderTables()"></select>
+                        <select class="car-sel header-filter" onchange="renderTables()"></select>
+                        <select class="object-sel header-filter" onchange="renderTables()"></select>
+                        <div class="summary-badge">Kopā stundas: <span id="totalHoursValue">0</span></div>
+                    </div>
+                    <div id="tableContainer" class="table-wrapper"></div>
+                </div>
+            </section>
 
-    <section id="v-report-fuel" class="view-section">
-        <div class="card">
-            <div class="table-controls">
-                <select class="year-sel header-filter" onchange="renderTables()"></select>
-                <select class="month-sel header-filter" onchange="renderTables()"></select>
-                <select class="res-sel header-filter" onchange="renderTables()"></select>
-                <div class="summary-badge">Kopā: <span id="totalFuelValue">0</span></div>
-            </div>
-            <div id="fuelTableContainer" class="table-wrapper"></div>
-        </div>
-    </section>
+            <section id="v-report-fuel" class="view-section">
+                <div class="card">
+                    <div class="table-controls">
+                        <select class="year-sel header-filter" onchange="renderTables()"></select>
+                        <select class="month-sel header-filter" onchange="renderTables()"></select>
+                        <select class="res-sel header-filter" onchange="renderTables()"></select>
+                        <div class="summary-badge">Kopā: <span id="totalFuelValue">0</span></div>
+                    </div>
+                    <div id="fuelTableContainer" class="table-wrapper"></div>
+                </div>
+            </section>
 
-    <section id="v-report-hours" class="view-section">
-        <div class="card">
-            <div class="table-controls">
-                <select class="year-sel header-filter" onchange="renderTables()"></select>
-                <select class="month-sel header-filter" onchange="renderTables()"></select>
-                <select class="worker-sel header-filter" onchange="renderTables()"></select>
-                <div class="summary-badge">Kopā: <span id="totalDayHoursValue">0</span></div>
-            </div>
-            <div id="daySummaryContainer" class="table-wrapper"></div>
-        </div>
-    </section>
-</main>
+            <section id="v-report-hours" class="view-section">
+                <div class="card">
+                    <div class="table-controls">
+                        <select class="year-sel header-filter" onchange="renderTables()"></select>
+                        <select class="month-sel header-filter" onchange="renderTables()"></select>
+                        <select class="worker-sel header-filter" onchange="renderTables()"></select>
+                        <div class="summary-badge">Kopā: <span id="totalDayHoursValue">0</span></div>
+                    </div>
+                    <div id="daySummaryContainer" class="table-wrapper"></div>
+                </div>
+            </section>
+        </main>
     </div>
 
     <script>
         let workers = [], cars = [], schedule = [], workTypes = [], objects = [], daySummary = [], resourceTypes = [];
         const LV_MONTHS = ["Janvāris", "Februāris", "Marts", "Aprīlis", "Maijs", "Jūnijs", "Jūlijs", "Augusts", "Septembris", "Oktobris", "Novembris", "Decembris"];
 
-        ffunction toggleSidebar() {
-    document.querySelector('.sidebar').classList.toggle('collapsed');
-}
+        // SALABOTS: Noņemta dubultā 'f' burtu drukas kļūda (bija ffunction)
+        function toggleSidebar() {
+            document.querySelector('.sidebar').classList.toggle('collapsed');
+        }
 
         function showView(viewId, el) {
             document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
@@ -364,194 +352,163 @@ td { padding: 12px; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
             fill('.year-sel', years, "Visi gadi");
             fill('.month-sel', LV_MONTHS, "Visi mēneši");
             fill('.worker-sel', workers.map(w => w.name), "Visi darbinieki"); 
-            fill('.car-sel', cars, "Visi auto"); // šeit izmaiņa
-            fill('.object-sel', objects, "Visi objekti"); // šeit izmaiņa
+            fill('.car-sel', cars, "Visi auto");
+            fill('.object-sel', objects, "Visi objekti");
             fill('.res-sel', resourceTypes.map(r => r.name), "Visi resursi");
         }
 
         function renderLists() {
             const draw = (id, data, api, key='name') => {
-                document.getElementById(id).innerHTML = data.map(item => `<li><span>${item[key] || item}</span><button class="btn-del" onclick="deleteItem('${api}', '${item[key] || item}')">✖</button></li>`).join("");
+                const el = document.getElementById(id);
+                if(el) {
+                    el.innerHTML = data.map(item => `<li><span>${item[key] || item}</span><button class="btn-del" onclick="deleteItem('${api}', '${item[key] || item}')">✖</button></li>`).join("");
+                }
             };
             draw('workerList', workers, '/api/workers');
             draw('carList', cars, '/api/cars');
             draw('workList', workTypes, '/api/work-types');
             draw('objectList', objects, '/api/objects');
 
-            document.getElementById('resourceList').innerHTML = resourceTypes.map(r => `
-                <li style="flex-direction:column; align-items:stretch; border-bottom: 2px solid #eee; padding-bottom:15px;">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                        <strong>${r.name}</strong> <span class="gold-val">${parseFloat(r.quantity || 0).toFixed(2)} L</span>
-                    </div>
-                    <div style="display:flex; gap:10px;">
-                        <input type="number" id="in-${r.id}" placeholder="Daudzums" style="flex:1">
-                        <button onclick="adjustRes(${r.id}, 'add')" style="background:var(--success); color:white; border:none; border-radius:4px; padding:8px 15px;">+</button>
-                        <button onclick="adjustRes(${r.id}, 'sub')" style="background:var(--danger); color:white; border:none; border-radius:4px; padding:8px 15px;">-</button>
-                        <button class="btn-del" onclick="deleteItem('/api/resource-types', '${r.name}')">✖</button>
-                    </div>
-                </li>`).join("");
-        }
-
-        async function deleteScheduleItem(id) {
-            if (confirm("Vai tiešām vēlies dzēst šo ierakstu?")) {
-                try {
-                    const response = await fetch(`/api/schedule/${id}`, { method: 'DELETE' });
-                    if (response.ok) { loadData(); } 
-                    else { alert("Kļūda dzēšot ierakstu."); }
-                } catch (err) { console.error("Servera kļūda:", err); }
-            }
-        }
-
-        async function deleteHoursItem(id) {
-    if (confirm("Vai tiešām vēlies dzēst šo stundu ierakstu?")) {
-        try {
-            const response = await fetch(`/api/darbastundas/${id}`, { method: 'DELETE' });
-            if (response.ok) { 
-                loadData(); // Atjaunojam datus lapā
-            } else { 
-                alert("Kļūda dzēšot ierakstu."); 
-            }
-        } catch (err) { 
-            console.error("Servera kļūda:", err); 
-        }
-    }
-}
-
-        async function deleteAllData() {
-            const confirm1 = confirm("UZMANĪBU! Šī darbība neatgriezeniski izdzēsīs VISUS ierakstus (darba gaitas un patēriņu). Vai turpināt?");
-            if (!confirm1) return;
-
-            const confirm2 = prompt("Lai apstiprinātu, ierakstiet vārdu: DZĒST");
-            if (confirm2 !== "DZĒST") {
-                alert("Darbība atcelta. Ierakstītais vārds nesakrita.");
-                return;
-            }
-
-            try {
-                const response = await fetch('/api/schedule/all', { method: 'DELETE' });
-                if (response.ok) {
-                    alert("Visi dati ir veiksmīgi izdzēsti!");
-                    loadData();
-                } else {
-                    alert("Kļūda dzēšot datus. Pārbaudiet servera iestatījumus.");
-                }
-            } catch (err) {
-                console.error("Servera kļūda:", err);
-                alert("Neizdevās sazināties ar serveri.");
+            const resList = document.getElementById('resourceList');
+            if(resList) {
+                resList.innerHTML = resourceTypes.map(r => `
+                    <li style="flex-direction:column; align-items:stretch; border-bottom: 2px solid #eee; padding-bottom:15px;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                            <strong>${r.name}</strong> <span class="gold-val">${parseFloat(r.quantity || 0).toFixed(2)} L</span>
+                        </div>
+                        <div style="display:flex; gap:10px;">
+                            <input type="number" id="in-${r.id}" placeholder="Daudzums" style="flex:1">
+                            <button onclick="adjustRes(${r.id}, 'add')" style="background:var(--success); color:white; border:none; border-radius:4px; padding:8px 15px;">+</button>
+                            <button onclick="adjustRes(${r.id}, 'sub')" style="background:var(--danger); color:white; border:none; border-radius:4px; padding:8px 15px;">-</button>
+                            <button class="btn-del" onclick="deleteItem('/api/resource-types', '${r.name}')">✖</button>
+                        </div>
+                    </li>`).join("");
             }
         }
 
         function renderTables() {
-    // 1. Darba gaitas atskaite
-    const workSec = document.getElementById('v-report-work');
-    let fWork = schedule.filter(e => 
-        (!workSec.querySelector('.year-sel').value || (e.date && e.date.includes(workSec.querySelector('.year-sel').value))) &&
-        (!workSec.querySelector('.month-sel').value || e.month === workSec.querySelector('.month-sel').value) &&
-        (!workSec.querySelector('.worker-sel').value || e.worker_name === workSec.querySelector('.worker-sel').value) &&
-        (!workSec.querySelector('.car-sel').value || e.car === workSec.querySelector('.car-sel').value) &&
-        (!workSec.querySelector('.object-sel').value || e.objekts === workSec.querySelector('.object-sel').value)
-    );
-    
-    document.getElementById('totalHoursValue').innerText = fWork.reduce((s,i) => s + parseFloat(i.hours || 0), 0).toFixed(2) + " h";
-    document.getElementById('tableContainer').innerHTML = `
-        <table>
-            <thead>
-                <tr>
-                    <th>Datums</th>
-                    <th>Auto</th>
-                    <th>Darbinieks</th>
-                    <th>Objekts</th>
-                    <th style="text-align: center;">Stundas</th>
-                    <th style="width: 50px;"></th>
-                </tr>
-            </thead>
-            <tbody>
-                ${fWork.map(e => `
-                    <tr>
-                        <td>${e.date}</td>
-                        <td>${e.car || '-'}</td>
-                        <td>${e.worker_name}</td>
-                        <td>${e.objekts}</td>
-                        <td style="text-align: center;" class="gold-val">${parseFloat(e.hours || 0).toFixed(2)}</td>
-                        <td><button class="btn-del" onclick="deleteScheduleItem(${e.id})">✖</button></td>
-                    </tr>`).join("")}
-            </tbody>
-        </table>`;
+            // Darba gaita
+            const workSec = document.getElementById('v-report-work');
+            if (workSec) {
+                let fWork = schedule.filter(e => 
+                    (!workSec.querySelector('.year-sel').value || (e.date && e.date.includes(workSec.querySelector('.year-sel').value))) &&
+                    (!workSec.querySelector('.month-sel').value || e.month === workSec.querySelector('.month-sel').value) &&
+                    (!workSec.querySelector('.worker-sel').value || e.worker_name === workSec.querySelector('.worker-sel').value) &&
+                    (!workSec.querySelector('.car-sel').value || e.car === workSec.querySelector('.car-sel').value) &&
+                    (!workSec.querySelector('.object-sel').value || e.objekts === workSec.querySelector('.object-sel').value)
+                );
+                
+                document.getElementById('totalHoursValue').innerText = fWork.reduce((s,i) => s + parseFloat(i.hours || 0), 0).toFixed(2) + " h";
+                document.getElementById('tableContainer').innerHTML = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Datums</th>
+                                <th>Auto</th>
+                                <th>Darbinieks</th>
+                                <th>Objekts</th>
+                                <th style="text-align: center;">Stundas</th>
+                                <th style="width: 50px;"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${fWork.map(e => `
+                                <tr>
+                                    <td>${e.date}</td>
+                                    <td>${e.car || '-'}</td>
+                                    <td>${e.worker_name}</td>
+                                    <td>${e.objekts}</td>
+                                    <td style="text-align: center;" class="gold-val">${parseFloat(e.hours || 0).toFixed(2)}</td>
+                                    <td><button class="btn-del" onclick="deleteScheduleItem(${e.id})">✖</button></td>
+                                </tr>`).join("")}
+                        </tbody>
+                    </table>`;
+            }
 
-    // 2. Patēriņa atskaite (DROŠĀ VERSIJA)
-const fuelSec = document.getElementById('v-report-fuel');
-if (fuelSec) {
-    const yearVal = fuelSec.querySelector('.year-sel')?.value;
-    const monthVal = fuelSec.querySelector('.month-sel')?.value;
-    const resVal = fuelSec.querySelector('.res-sel')?.value;
+            // Patēriņš
+            const fuelSec = document.getElementById('v-report-fuel');
+            if (fuelSec) {
+                const yearVal = fuelSec.querySelector('.year-sel')?.value;
+                const monthVal = fuelSec.querySelector('.month-sel')?.value;
+                const resVal = fuelSec.querySelector('.res-sel')?.value;
 
-    let fFuel = schedule.filter(e => 
-        e.resource_amount && 
-        (!yearVal || (e.date && e.date.includes(yearVal))) &&
-        (!monthVal || e.month === monthVal) &&
-        (!resVal || e.resource_name === resVal)
-    );
-    
-    document.getElementById('totalFuelValue').innerText = fFuel.reduce((s,i) => s + parseFloat(i.resource_amount || 0), 0).toFixed(2) + " L";
-    document.getElementById('fuelTableContainer').innerHTML = `
-        <table>
-            <thead>
-                <tr>
-                    <th>Datums</th>
-                    <th>Resurss</th>
-                    <th style="text-align: center;">Litri</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                ${fFuel.map(e => `
-                    <tr>
-                        <td>${e.date}</td>
-                        <td>${e.resource_name}</td>
-                        <td style="text-align: center;" class="gold-val">${e.resource_amount} L</td>
-                        <td><button class="btn-del" onclick="deleteScheduleItem(${e.id})">✖</button></td>
-                    </tr>`).join("")}
-            </tbody>
-        </table>`;
-}
+                let fFuel = schedule.filter(e => 
+                    e.resource_amount && 
+                    (!yearVal || (e.date && e.date.includes(yearVal))) &&
+                    (!monthVal || e.month === monthVal) &&
+                    (!resVal || e.resource_name === resVal)
+                );
+                
+                document.getElementById('totalFuelValue').innerText = fFuel.reduce((s,i) => s + parseFloat(i.resource_amount || 0), 0).toFixed(2) + " L";
+                document.getElementById('fuelTableContainer').innerHTML = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Datums</th>
+                                <th>Resurss</th>
+                                <th style="text-align: center;">Litri</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${fFuel.map(e => `
+                                <tr>
+                                    <td>${e.date}</td>
+                                    <td>${e.resource_name}</td>
+                                    <td style="text-align: center;" class="gold-val">${e.resource_amount} L</td>
+                                    <td><button class="btn-del" onclick="deleteScheduleItem(${e.id})">✖</button></td>
+                                </tr>`).join("")}
+                        </tbody>
+                    </table>`;
+            }
 
-    // 3. Darba stundu atskaite (AR DZĒŠANAS POGĀM)
-    const hoursSec = document.getElementById('v-report-hours');
-    let fSum = daySummary.filter(e => 
-        (!hoursSec.querySelector('.year-sel').value || (e.datums && e.datums.includes(hoursSec.querySelector('.year-sel').value))) &&
-        (!hoursSec.querySelector('.month-sel').value || e.month === hoursSec.querySelector('.month-sel').value) &&
-        (!hoursSec.querySelector('.worker-sel').value || e.darbinieks === hoursSec.querySelector('.worker-sel').value)
-    );
-    
-    document.getElementById('totalDayHoursValue').innerText = fSum.reduce((s,i) => s + parseFloat(i.stundas || 0), 0).toFixed(2) + " h";
-    document.getElementById('daySummaryContainer').innerHTML = `
-        <table>
-            <thead>
-                <tr>
-                    <th>Darbinieks</th>
-                    <th>Datums</th>
-                    <th>Sākums</th>
-                    <th>Beigas</th>
-                    <th style="text-align: center;">Stundas</th>
-                    <th style="width: 50px;"></th>
-                </tr>
-            </thead>
-            <tbody>
-                ${fSum.map(e => `
-                    <tr>
-                        <td>${e.darbinieks}</td>
-                        <td>${e.datums}</td>
-                        <td>${e.sāka_darbu}</td>
-                        <td>${e.beidza_darbu}</td>
-                        <td style="text-align: center;" class="gold-val">${parseFloat(e.stundas || 0).toFixed(2)}</td>
-                        <td>
-                            ${e.id ? `<button class="btn-del" onclick="deleteHoursItem(${e.id})">✖</button>` : ''}
-                        </td>
-                    </tr>`).join("")}
-            </tbody>
-        </table>`;
-}
+            // Darba stundas
+            const hoursSec = document.getElementById('v-report-hours');
+            if (hoursSec) {
+                let fSum = daySummary.filter(e => 
+                    (!hoursSec.querySelector('.year-sel').value || (e.datums && e.datums.includes(hoursSec.querySelector('.year-sel').value))) &&
+                    (!hoursSec.querySelector('.month-sel').value || e.month === hoursSec.querySelector('.month-sel').value) &&
+                    (!hoursSec.querySelector('.worker-sel').value || e.darbinieks === hoursSec.querySelector('.worker-sel').value)
+                );
+                
+                document.getElementById('totalDayHoursValue').innerText = fSum.reduce((s,i) => s + parseFloat(i.stundas || 0), 0).toFixed(2) + " h";
+                document.getElementById('daySummaryContainer').innerHTML = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Darbinieks</th>
+                                <th>Datums</th>
+                                <th>Sākums</th>
+                                <th>Beigas</th>
+                                <th style="text-align: center;">Stundas</th>
+                                <th style="width: 50px;"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${fSum.map(e => `
+                                <tr>
+                                    <td>${e.darbinieks}</td>
+                                    <td>${e.datums}</td>
+                                    <td>${e.sāka_darbu}</td>
+                                    <td>${e.beidza_darbu}</td>
+                                    <td style="text-align: center;" class="gold-val">${parseFloat(e.stundas || 0).toFixed(2)}</td>
+                                    <td>
+                                        ${e.id ? `<button class="btn-del" onclick="deleteHoursItem(${e.id})">✖</button>` : ''}
+                                    </td>
+                                </tr>`).join("")}
+                        </tbody>
+                    </table>`;
+            }
+        }
 
+        async function deleteScheduleItem(id) { if (confirm("Dzēst ierakstu?")) { await fetch(`/api/schedule/${id}`, { method: 'DELETE' }); loadData(); } }
+        async function deleteHoursItem(id) { if (confirm("Dzēst stundu ierakstu?")) { await fetch(`/api/darbastundas/${id}`, { method: 'DELETE' }); loadData(); } }
+        async function deleteAllData() {
+            if (confirm("DZĒST VISUS DATUS?")) {
+                const confirm2 = prompt("Ierakstiet: DZĒST");
+                if (confirm2 === "DZĒST") { await fetch('/api/schedule/all', { method: 'DELETE' }); loadData(); }
+            }
+        }
         async function addNewWorker() { const n = prompt("Vārds Uzvārds:"); if(n) { await fetch('/api/workers', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name:n})}); loadData(); } }
         async function addNewItem(url, msg, extra={}) { const n = prompt(msg); if(n) { await fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name:n, ...extra})}); loadData(); } }
         async function deleteItem(url, name) { if(confirm(`Dzēst ${name}?`)) { await fetch(`${url}/${encodeURIComponent(name)}`, {method:'DELETE'}); loadData(); } }
