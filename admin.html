@@ -538,12 +538,13 @@ if(workerEl) {
                 if (confirm2 === "DZĒST") { await fetch('/api/schedule/all', { method: 'DELETE' }); loadData(); }
             }
         }
+
         async function addNewWorker() { 
     const name = prompt("Ievadiet darbinieka Vārdu Uzvārdu:"); 
     if (!name) return;
 
-    const password = prompt(`Ievadiet pagaidu paroli darbiniekam ${name}:`);
-    if (!password) {
+    const tempPassword = prompt(`Ievadiet pagaidu paroli darbiniekam ${name}:`);
+    if (!tempPassword) {
         alert("Parole ir obligāta!");
         return;
     }
@@ -554,19 +555,22 @@ if(workerEl) {
             headers: {'Content-Type': 'application/json'}, 
             body: JSON.stringify({ 
                 name: name, 
-                password: password // Nosūta paroli uz serveri
+                temp_password: tempPassword, // Sūtam kā temp_password
+                role: 'worker'
             })
         });
 
         if (response.ok) {
             loadData(); 
         } else {
-            alert("Kļūda saglabājot darbinieku.");
+            const errData = await response.json();
+            alert("Kļūda: " + (errData.error || "neizdevās saglabāt"));
         }
     } catch (err) {
         console.error("Servera kļūda:", err);
     }
 }
+        
         async function addNewItem(url, msg, extra={}) { const n = prompt(msg); if(n) { await fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name:n, ...extra})}); loadData(); } }
         async function deleteItem(url, name) { if(confirm(`Dzēst ${name}?`)) { await fetch(`${url}/${encodeURIComponent(name)}`, {method:'DELETE'}); loadData(); } }
         async function adjustRes(id, action) { const val = parseFloat(document.getElementById(`in-${id}`).value); if(!val) return; await fetch(`/api/resource-types/${id}`, {method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action, amount:val})}); loadData(); }
