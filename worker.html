@@ -372,12 +372,11 @@ td { padding: 12px 15px; border-bottom: 1px solid #eee; text-align: center; }
         return; 
     }
 
-    const exclusionList = ["Degvielas uzpilde", "Eļļas papildināšana", "Eļļas uzpilde", "MAIŅAS_SĀKUMS"];
-
-    // Atvieglots filtrs: rādām visu, kas nav exclusionListā
     const filteredData = data.filter(e => {
+    // 1. Iegūstam darba nosaukumu vai tukšu tekstu
     const darbaVeids = e.darbs || "";
-    // Definējam, ko mēs NEGRIBAM redzēt galvenajā darbu tabulā
+    
+    // 2. Saraksts ar lietām, ko mēs NEGRATĀM rādīt darbu tabulā
     const exclusionList = [
         "Degvielas uzpilde", 
         "Eļļas papildināšana", 
@@ -385,10 +384,10 @@ td { padding: 12px 15px; border-bottom: 1px solid #eee; text-align: center; }
         "MAIŅAS_SĀKUMS"
     ];
 
-    // Atstājam tikai tos, kas nav exclusionList sarakstā
+    // 3. Atgriežam TRUE tikai tad, ja darbs nav izslēgšanas sarakstā
+    // Mēs vairs nepārbaudām e.objekts, lai ieraksts nepazustu
     return !exclusionList.includes(darbaVeids);
 });
-
     if (filteredData.length === 0) {
         container.innerHTML = "<p style='padding:15px;'>Nav veikto darbu ierakstu.</p>";
         return;
