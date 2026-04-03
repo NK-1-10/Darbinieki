@@ -159,10 +159,22 @@
         }
 
         .table-controls {
-            display: flex; flex-wrap: wrap; gap: 10px;
-            background: #fcfcfc; padding: 15px; border-radius: 8px;
-            margin-bottom: 15px; border: 1px solid #eee; align-items: flex-end;
-        }
+    display: flex;
+    flex-wrap: wrap; /* Lai mazākos ekrānos pārlec jaunā rindā */
+    gap: 10px;       /* Atstarpe starp filtriem */
+    align-items: center;
+}
+
+.summary-badge {
+    background: var(--sidebar-bg);
+    color: var(--accent-gold);
+    padding: 5px 12px;
+    border-radius: 5px;
+    font-weight: bold;
+    
+    /* Šī ir maģiskā rindiņa: */
+    margin-left: auto; 
+}
         .header-filter { padding: 8px; border: 1px solid #ddd; border-radius: 5px; background: white; min-width: 120px; }
 
         .table-wrapper { overflow-x: auto; margin-top: 10px; }
@@ -171,7 +183,16 @@
         td { padding: 12px; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
 
         .gold-val { color: #b8860b; font-weight: bold; }
-        .summary-badge { background: var(--sidebar-bg); color: var(--accent-gold); padding: 5px 12px; border-radius: 5px; font-weight: bold; text-align: right;}
+        .summary-badge {
+    background: var(--sidebar-bg);
+    color: var(--accent-gold);
+    padding: 5px 12px;
+    border-radius: 5px;
+    font-weight: bold;
+    
+    /* Šī ir maģiskā rindiņa: */
+    margin-left: auto; 
+}
 
         .btn-add { background: var(--success); color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; margin-bottom: 15px; }
         .btn-del { color: var(--danger); background: none; border: none; font-size: 1.2em; cursor: pointer; }
