@@ -54,18 +54,18 @@
 
         /* HAMBURGER POGA */
         #toggle-btn {
-            position: fixed;
-            left: 15px;
-            top: 15px;
-            z-index: 1100;
-            background: var(--sidebar-bg);
-            color: white;
-            border: 1px solid var(--accent-gold);
-            padding: 8px 12px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 20px;
-        }
+    position: absolute; /* Mainām no fixed uz absolute */
+    right: -50px;       /* Izbīdām pogu ārpus sānjoslas labās malas */
+    top: 15px;
+    z-index: 1100;
+    background: var(--sidebar-bg);
+    color: white;
+    border: 1px solid var(--accent-gold);
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 20px;
+}
 
         .nav-group { padding: 15px 0; }
         .nav-label { padding: 0 25px 10px; font-size: 11px; text-transform: uppercase; opacity: 0.5; letter-spacing: 1px; }
@@ -138,9 +138,8 @@
 </head>
 <body>
 
-    <button id="toggle-btn" onclick="toggleSidebar()">&#9776;</button>
-
     <div class="sidebar">
+        <button id="toggle-btn" onclick="toggleSidebar()">&#9776;</button>
         <div class="sidebar-header">
             <h2>SIA Admin</h2>
         </div>
