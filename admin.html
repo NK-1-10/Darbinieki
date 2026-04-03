@@ -208,19 +208,19 @@
                 </div>
             </section>
 
-            <section id="v-report-hours" class="view-section">
-    <div class="card">
-        <div class="table-controls">
-            <select class="year-sel header-filter" onchange="renderTables()"></select>
-            <select class="month-sel header-filter" onchange="renderTables()"></select>
-            <select class="worker-sel header-filter" onchange="renderTables()"></select>
-            <div class="summary-badge">Kopā stundas: <span id="totalDayHoursValue">0</span></div>
-        </div>
-        
-        <div id="daySummaryContainer" class="table-wrapper">
-            </div>
-    </div>
-</section>
+            <section id="v-report-work" class="view-section">
+                <div class="card">
+                    <div class="table-controls">
+                        <select class="year-sel header-filter" onchange="renderTables()"></select>
+                        <select class="month-sel header-filter" onchange="renderTables()"></select>
+                        <select class="worker-sel header-filter" onchange="renderTables()"></select>
+                        <select class="car-sel header-filter" onchange="renderTables()"></select>
+                        <select class="object-sel header-filter" onchange="renderTables()"></select>
+                        <div class="summary-badge">Kopā stundas: <span id="totalHoursValue">0</span></div>
+                    </div>
+                    <div id="tableContainer" class="table-wrapper"></div>
+                </div>
+            </section>
 
             <section id="v-report-fuel" class="view-section">
                 <div class="card">
