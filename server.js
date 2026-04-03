@@ -136,9 +136,12 @@ app.patch('/api/resource-types/:id', async (req, res) => {
 // --- 3. DARBINIEKI, AUTO, OBJEKTI ---
 app.get('/api/workers', async (req, res) => {
     try {
+        // Atlasām vārdu un pagaidu paroli, lai admins varētu to pateikt darbiniekam
         const r = await pool.query("SELECT name, temp_password, role FROM users WHERE role != 'admin' OR role IS NULL ORDER BY name ASC");
         res.json(r.rows);
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 app.get('/api/cars', async (req, res) => {
@@ -181,11 +184,16 @@ app.get('/api/schedule', async (req, res) => {
 // --- ADMIN: JAUNU VIENĪBU PIEVIENOŠANA ---
 
 app.post('/api/workers', async (req, res) => {
-    const { name } = req.body;
+    const { name, temp_password, role } = req.body;
     try {
-        await pool.query('INSERT INTO users (name, temp_password, role) VALUES ($1, $2, $3)', [name, '12345', 'worker']);
+        const query = 'INSERT INTO users (name, temp_password, role) VALUES ($1, $2, $3) RETURNING *';
+        const values = [name, temp_password, role || 'worker'];
+        await pool.query(query, values);
         res.json({ success: true });
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Neizdevās pievienot darbinieku (iespējams, vārds jau eksistē)" });
+    }
 });
 
 app.post('/api/cars', async (req, res) => {
@@ -265,10 +273,13 @@ app.delete('/api/resource-types/:name', async (req, res) => {
 });
 
 app.delete('/api/workers/:name', async (req, res) => {
+    const name = req.params.name;
     try {
-        await pool.query('DELETE FROM users WHERE name = $1', [req.params.name]);
+        await pool.query("DELETE FROM users WHERE name = $1", [name]);
         res.json({ success: true });
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // (Pievieno līdzīgus delete maršrutus cars, objects un work-types)
