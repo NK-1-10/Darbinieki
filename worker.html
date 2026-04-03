@@ -282,8 +282,6 @@ td { padding: 12px 15px; border-bottom: 1px solid #eee; text-align: center; }
             const workTypes = await wRes.json();
             const allSchedule = await sRes.json();
             const resources = await rRes.json();
-            const statusRes = await fetch(`/api/shift-status/${user.name}`);
-            const statusData = await statusRes.json();
 
             // Atrodam aktīvo darbu
             const activeJob = allSchedule.find(e => 
@@ -292,12 +290,6 @@ td { padding: 12px 15px; border-bottom: 1px solid #eee; text-align: center; }
                 e.darbs !== "Degvielas uzpilde" && 
                 e.darbs !== "Eļļas papildināšana"
             );
-
-            if (statusData.shift_start) {
-        localStorage.setItem(`shift_start_${user.name}`, statusData.shift_start);
-             }
-            const shiftStartTime = localStorage.getItem(`shift_start_${user.name}`);
-            const isShiftStarted = !!shiftStartTime;
 
             // Aizpildām selectus
             fillSelect(document.getElementById("car"), cars, "-- Izvēlies mašīnu --");
@@ -308,6 +300,9 @@ td { padding: 12px 15px; border-bottom: 1px solid #eee; text-align: center; }
             const resModalSelect = document.getElementById("modalResourceSelect");
             resModalSelect.innerHTML = '<option value="">-- Ko Tu lej? --</option>' + 
                 resources.map(r => `<option value="${r.id}" data-qty="${r.quantity}">${r.name} (Pieejams: ${r.quantity}L)</option>`).join("");
+
+            const shiftStartTime = localStorage.getItem(`shift_start_${user.name}`);
+            const isShiftStarted = !!shiftStartTime;
 
             // Elementu kontrole
             const carEl = document.getElementById("car");
@@ -363,67 +358,57 @@ td { padding: 12px 15px; border-bottom: 1px solid #eee; text-align: center; }
     }
 
     function renderTable(data) {
-    const container = document.getElementById("tableContainer");
-    if (!data || !data.length) { 
-        container.innerHTML = "<p style='padding:15px;'>Nav ierakstu.</p>"; 
-        return; 
+        const container = document.getElementById("tableContainer");
+        if (!data || !data.length) { 
+            container.innerHTML = "<p style='padding:15px;'>Nav ierakstu.</p>"; 
+            return; 
+        }
+
+        const exclusionList = ["Degvielas uzpilde", "Eļļas papildināšana", "Eļļas uzpilde"];
+
+        let html = `<table>
+            <thead>
+                <tr>
+                    <th>Auto</th>
+                    <th>Objekts</th>
+                    <th>Darbs</th>
+                    <th>Sākums</th>
+                    <th>Beigas</th>
+                    <th>Stundas</th>
+                </tr>
+            </thead>
+            <tbody>`;
+
+        const filteredData = data.filter(e => {
+            const darbaVeids = e.darbs || "";
+            return !exclusionList.includes(darbaVeids) && e.objekts && e.objekts !== "-";
+        });
+
+        if (filteredData.length === 0) {
+            container.innerHTML = "<p style='padding:15px;'>Nav veikto darbu ierakstu.</p>";
+            return;
+        }
+
+        filteredData.slice().forEach(e => {
+            html += `<tr>
+                <td>${e.car || '-'}</td>
+                <td>${e.objekts || '-'}</td>
+                <td>${e.darbs || '-'}</td>
+                <td>${e["sākuma_laiks"] || '-'}</td>
+                <td>${e["beigu_laiks"] || 'Aktīvs'}</td>
+                <td>${e.hours ? e.hours + ' h' : '-'}</td>
+            </tr>`;
+        });
+
+        html += `</tbody></table>`;
+        container.innerHTML = html;
     }
 
-const filteredData = data.filter(e => {
-    const darbaVeids = e.darbs || "";
-    const exclusionList = ["Degvielas uzpilde", "Eļļas papildināšana", "MAIŅAS_SĀKUMS"];
-    
-    // Svarīgi: noņemam pārbaudi uz e.objekts, lai rādītu "nepabeigtos" darbus
-    return !exclusionList.includes(darbaVeids);
-});
-        
-    if (filteredData.length === 0) {
-        container.innerHTML = "<p style='padding:15px;'>Nav veikto darbu ierakstu.</p>";
-        return;
-    }
-
-    let html = `<table>
-        <thead>
-            <tr>
-                <th>Auto</th>
-                <th>Objekts</th>
-                <th>Darbs</th>
-                <th>Sākums</th>
-                <th>Beigas</th>
-                <th>Stundas</th>
-            </tr>
-        </thead>
-        <tbody>`;
-
-    // Kārtojam, lai jaunākie darbi būtu augšā
-    filteredData.reverse().forEach(e => {
-        html += `<tr>
-            <td>${e.car || '-'}</td>
-            <td>${e.objekts || '-'}</td>
-            <td>${e.darbs || '-'}</td>
-            <td>${e["sākuma_laiks"] || '-'}</td>
-            <td>${e["beigu_laiks"] || '<span style="color:green;">Aktīvs</span>'}</td>
-            <td>${e.hours ? e.hours + ' h' : '-'}</td>
-        </tr>`;
-    });
-
-    html += `</tbody></table>`;
-    container.innerHTML = html;
-}
-
-    document.getElementById("AtWork").onclick = async () => {
-    const now = new Date().toISOString();
-    
-    // Saglabājam serverī
-    await fetch('/api/shift-start', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ worker_name: user.name, start_iso: now })
-    });
-
-    localStorage.setItem(`shift_start_${user.name}`, now);
-    loadWorkerData();
-};
+    document.getElementById("AtWork").onclick = () => {
+        const now = new Date();
+        localStorage.setItem(`shift_start_${user.name}`, now.toISOString());
+        loadWorkerData();
+    };
 
     document.getElementById("LeaveWork").onclick = async () => {
 
@@ -459,7 +444,6 @@ const filteredData = data.filter(e => {
             });
 
             if (response.ok) {
-                await pool.query("DELETE FROM schedule WHERE worker_name = $1 AND darbs = 'MAIŅAS_SĀKUMS'", [user.name]); // (Šis jādara caur jaunu API endpointu)
                 localStorage.removeItem(`shift_start_${user.name}`);
                 alert(`Darba diena beigta. Kopā: ${totalHours} h`);
                 window.location.reload();
