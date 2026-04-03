@@ -173,7 +173,57 @@
         </header>
 
         <main>
-            </main>
+    <section id="v-workers" class="view-section active">
+        <div class="card">
+            <button class="btn-add" onclick="addNewWorker()">+ Pievienot darbinieku</button>
+            <ul id="workerList"></ul>
+        </div>
+    </section>
+
+    <section id="v-report-work" class="view-section">
+        <div class="card">
+            <div class="table-controls">
+                <div class="filter-group">
+                    <label>Gads</label>
+                    <select class="year-sel" onchange="renderTables()"></select>
+                </div>
+                <div class="filter-group">
+                    <label>Mēnesis</label>
+                    <select class="month-sel" onchange="renderTables()"></select>
+                </div>
+                <div class="filter-group">
+                    <label>Darbinieks</label>
+                    <select class="worker-sel" onchange="renderTables()"></select>
+                </div>
+                <div class="summary-badge">Kopā stundas: <span id="totalHoursValue">0</span></div>
+            </div>
+            <div id="tableContainer" class="table-wrapper"></div>
+        </div>
+    </section>
+
+    <section id="v-report-fuel" class="view-section">
+        <div class="card">
+            <div class="table-controls">
+                <select class="year-sel" onchange="renderTables()"></select>
+                <select class="month-sel" onchange="renderTables()"></select>
+                <div class="summary-badge">Kopā: <span id="totalFuelValue">0</span></div>
+            </div>
+            <div id="fuelTableContainer" class="table-wrapper"></div>
+        </div>
+    </section>
+
+    <section id="v-report-hours" class="view-section">
+        <div class="card">
+            <div class="table-controls">
+                <select class="year-sel" onchange="renderTables()"></select>
+                <select class="month-sel" onchange="renderTables()"></select>
+                <div class="summary-badge">Kopā stundas: <span id="totalDayHoursValue">0</span></div>
+            </div>
+            <div id="daySummaryContainer" class="table-wrapper"></div>
+        </div>
+    </section>
+    
+    </main>
     </div>
 
     <script>
