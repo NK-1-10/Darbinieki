@@ -158,22 +158,27 @@
             box-shadow: 0 4px 20px rgba(0,0,0,0.05);
         }
 
-        .table-controls {
+        /* Atrodas ap rindu 116 tavā failā */
+.table-controls {
     display: flex;
-    flex-wrap: wrap; /* Lai mazākos ekrānos pārlec jaunā rindā */
-    gap: 10px;       /* Atstarpe starp filtriem */
+    flex-wrap: wrap; 
+    gap: 10px;       
     align-items: center;
+    width: 100%; /* Pievieno šo, lai konteiners aizņemtu visu platumu */
 }
 
+/* VIENĪGAIS summary-badge stils */
 .summary-badge {
     background: var(--sidebar-bg);
     color: var(--accent-gold);
-    padding: 5px 12px;
+    padding: 8px 15px; /* Nedaudz palielināju padding labākam skatam */
     border-radius: 5px;
     font-weight: bold;
     
-    /* Šī ir maģiskā rindiņa: */
-    margin-left: auto; 
+    /* Šīs divas rindiņas "izstums" elementu uz labo malu */
+    margin-left: auto;
+    display: flex;
+    align-items: center;
 }
         .header-filter { padding: 8px; border: 1px solid #ddd; border-radius: 5px; background: white; min-width: 120px; }
 
@@ -186,12 +191,14 @@
         .summary-badge {
     background: var(--sidebar-bg);
     color: var(--accent-gold);
-    padding: 5px 12px;
+    padding: 8px 15px; /* Nedaudz palielināju padding labākam skatam */
     border-radius: 5px;
     font-weight: bold;
     
-    /* Šī ir maģiskā rindiņa: */
-    margin-left: auto; 
+    /* Šīs divas rindiņas "izstums" elementu uz labo malu */
+    margin-left: auto;
+    display: flex;
+    align-items: center;
 }
 
         .btn-add { background: var(--success); color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; margin-bottom: 15px; }
