@@ -380,7 +380,20 @@ li{
                     el.innerHTML = data.map(item => `<li><span>${item[key] || item}</span><button class="btn-del" onclick="deleteItem('${api}', '${item[key] || item}')">✖</button></li>`).join("");
                 }
             };
-            draw('workerList', workers, '/api/workers');
+            const workerEl = document.getElementById('workerList');
+if(workerEl) {
+    workerEl.innerHTML = workers.map(w => `
+        <li>
+            <div>
+                <strong>${w.name}</strong> 
+                <span style="color: #888; font-size: 12px; margin-left: 10px;">
+                    Parole: <code style="background: #eee; padding: 2px 5px; border-radius: 3px;">${w.password || 'nav iestatīta'}</code>
+                </span>
+            </div>
+            <button class="btn-del" onclick="deleteItem('/api/workers', '${w.name}')">✖</button>
+        </li>
+    `).join("");
+}
             draw('carList', cars, '/api/cars');
             draw('workList', workTypes, '/api/work-types');
             draw('objectList', objects, '/api/objects');
@@ -525,7 +538,35 @@ li{
                 if (confirm2 === "DZĒST") { await fetch('/api/schedule/all', { method: 'DELETE' }); loadData(); }
             }
         }
-        async function addNewWorker() { const n = prompt("Vārds Uzvārds:"); if(n) { await fetch('/api/workers', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name:n})}); loadData(); } }
+        async function addNewWorker() { 
+    const name = prompt("Ievadiet darbinieka Vārdu Uzvārdu:"); 
+    if (!name) return;
+
+    const password = prompt(`Ievadiet pagaidu paroli darbiniekam ${name}:`);
+    if (!password) {
+        alert("Parole ir obligāta!");
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/workers', {
+            method: 'POST', 
+            headers: {'Content-Type': 'application/json'}, 
+            body: JSON.stringify({ 
+                name: name, 
+                password: password // Nosūta paroli uz serveri
+            })
+        });
+
+        if (response.ok) {
+            loadData(); 
+        } else {
+            alert("Kļūda saglabājot darbinieku.");
+        }
+    } catch (err) {
+        console.error("Servera kļūda:", err);
+    }
+}
         async function addNewItem(url, msg, extra={}) { const n = prompt(msg); if(n) { await fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name:n, ...extra})}); loadData(); } }
         async function deleteItem(url, name) { if(confirm(`Dzēst ${name}?`)) { await fetch(`${url}/${encodeURIComponent(name)}`, {method:'DELETE'}); loadData(); } }
         async function adjustRes(id, action) { const val = parseFloat(document.getElementById(`in-${id}`).value); if(!val) return; await fetch(`/api/resource-types/${id}`, {method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action, amount:val})}); loadData(); }
