@@ -380,19 +380,34 @@ li{
                     el.innerHTML = data.map(item => `<li><span>${item[key] || item}</span><button class="btn-del" onclick="deleteItem('${api}', '${item[key] || item}')">✖</button></li>`).join("");
                 }
             };
+
             const workerEl = document.getElementById('workerList');
 if(workerEl) {
-    workerEl.innerHTML = workers.map(w => `
-        <li>
-            <div>
-                <strong>${w.name}</strong> 
-                <span style="color: #888; font-size: 12px; margin-left: 10px;">
-                    Parole: <code style="background: #eee; padding: 2px 5px; border-radius: 3px;">${w.password || 'nav iestatīta'}</code>
-                </span>
-            </div>
-            <button class="btn-del" onclick="deleteItem('/api/workers', '${w.name}')">✖</button>
-        </li>
-    `).join("");
+    workerEl.innerHTML = workers.map(w => {
+        // 1. Noteicam, kādu tekstu rādīt (Pagaidu vai parasto)
+        const label = w.temp_password ? 'Temp password:' : 'Parole:';
+        
+        // 2. Noteicam, kuru vērtību rādīt
+        // Prioritāte ir temp_password, tad password, tad "nav iestatīta"
+        const displayPass = w.temp_password || w.password || 'nav iestatīta';
+        
+        // 3. Ja tā ir pagaidu parole, varam tai pielikt citu krāsu (piemēram, sarkanīgu)
+        const codeStyle = w.temp_password 
+            ? "background: #fff0f0; color: #d63384; padding: 2px 5px; border-radius: 3px; border: 1px solid #ffcccc;" 
+            : "background: #eee; padding: 2px 5px; border-radius: 3px;";
+
+        return `
+            <li>
+                <div>
+                    <strong>${w.name}</strong> 
+                    <span style="color: #888; font-size: 12px; margin-left: 10px;">
+                        ${label} <code style="${codeStyle}">${displayPass}</code>
+                    </span>
+                </div>
+                <button class="btn-del" onclick="deleteItem('/api/workers', '${w.name}')">✖</button>
+            </li>
+        `;
+    }).join("");
 }
             draw('carList', cars, '/api/cars');
             draw('workList', workTypes, '/api/work-types');
