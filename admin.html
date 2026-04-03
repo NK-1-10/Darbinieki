@@ -22,58 +22,50 @@
             font-family: 'Segoe UI', sans-serif; 
             margin: 0; display: flex; height: 100vh; 
             background: var(--bg-light); color: #333;
+            overflow: hidden;
         }
 
-        /* Sānjoslas pamatstils ar pārejas animāciju */
-.sidebar {
-    width: 280px; 
-    transition: width 0.3s ease; /* Padara aizvēršanos plūstošu */
-    overflow: hidden; /* Nepieļauj teksta izlīšanu ārā, kad sānjosla ir šaura */
-    white-space: nowrap; /* Neļauj tekstam pārlēkt jaunā rindā aizveroties */
-}
-
-/* Stils, kad sānjosla ir aizvērta */
-.sidebar.collapsed {
-    width: 60px; /* Atstāj nedaudz vietas, lai poga joprojām būtu redzama */
-}
-
-/* Paslēpj tekstu "SIA Admin" un navigācijas nosaukumus, kad aizvērts */
-.sidebar.collapsed h2, 
-.sidebar.collapsed .nav-item span,
-.sidebar.collapsed .nav-label {
-    display: none;
-}
-        .sidebar.collapsed {
-    transform: translateX(-100%); /* Izstumj ārpus ekrāna */
-    margin-right: -280px; /* Kompensē vietu, lai main-content neizkustētos */
-}
-
-/* Centrē pogu, kad sānjosla ir maza */
-.sidebar.collapsed #toggle-btn {
-    width: 100%;
-    text-align: center;
-}
-
-        #toggle-btn {
-    position: fixed; /* Poga paliks savā vietā pat ja sānjosla pazūd */
-    left: 20px;
-    top: 20px;
-    z-index: 1100;
-    background: #1a3025; /* Sānjoslas krāsa, lai saplūst */
-    padding: 10px;
-    border-radius: 5px;
-}
-
-        /* SIDEBAR */
+        /* SĀNJOSLA */
         .sidebar {
-    width: 280px;
-    height: 100vh;
-    transition: transform 0.3s ease; /* Izmantosim transform, jo tas nebīda citus elementus */
-    position: relative; 
-    z-index: 1000;
-}
-        .sidebar-header { padding: 25px; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .sidebar-header h2 { margin: 0; font-size: 18px; color: var(--accent-gold); text-transform: uppercase; }
+            width: 280px;
+            min-width: 280px;
+            background: var(--sidebar-bg);
+            color: var(--sidebar-text);
+            display: flex;
+            flex-direction: column;
+            transition: margin-left 0.3s ease; /* Šis nodrošina izslīdēšanu */
+            z-index: 1000;
+            position: relative;
+        }
+
+        /* Klase, kas paslēpj sānjoslu */
+        .sidebar.collapsed {
+            margin-left: -280px;
+        }
+
+        .sidebar-header { 
+            padding: 25px; 
+            border-bottom: 1px solid rgba(255,255,255,0.1); 
+        }
+        
+        .sidebar-header h2 { 
+            margin: 0; font-size: 18px; color: var(--accent-gold); text-transform: uppercase; 
+        }
+
+        /* HAMBURGER POGA */
+        #toggle-btn {
+            position: fixed;
+            left: 15px;
+            top: 15px;
+            z-index: 1100;
+            background: var(--sidebar-bg);
+            color: white;
+            border: 1px solid var(--accent-gold);
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 20px;
+        }
 
         .nav-group { padding: 15px 0; }
         .nav-label { padding: 0 25px 10px; font-size: 11px; text-transform: uppercase; opacity: 0.5; letter-spacing: 1px; }
@@ -89,7 +81,9 @@
         .main-content { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; }
         
         header { 
-            background: #fff; padding: 15px 30px; display: flex; 
+            background: #fff; 
+            padding: 15px 30px 15px 80px; /* Atstarpe pogai kreisajā pusē */
+            display: flex; 
             justify-content: space-between; align-items: center; 
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
@@ -110,7 +104,6 @@
         }
         .filter-group { display: flex; flex-direction: column; gap: 4px; }
         .filter-group label { font-size: 11px; font-weight: bold; text-transform: uppercase; color: #666; }
-        
         .header-filter { padding: 8px; border: 1px solid #ddd; border-radius: 5px; background: white; min-width: 120px; }
 
         /* TABULAS */
@@ -136,41 +129,22 @@
         .btn-all-delete:hover { background: var(--danger); }
 
         @media (max-width: 768px) {
-            .sidebar { width: 60px; }
-            .nav-label, .nav-item span { display: none; }
+            .sidebar { margin-left: -280px; }
+            .sidebar.active { margin-left: 0; }
+            .nav-label, .nav-item span { display: block; }
             .table-controls { flex-direction: column; align-items: stretch; }
         }
-
-        .header-container {
-    display: flex;         /* Novieto elementus blakus */
-    align-items: center;   /* Izlīdzina vertikāli pa vidu */
-    gap: 12px;             /* Atstarpe starp logo un tekstu */
-    padding: 10px;
-}
-
-.main-logo {
-    height: 45px;          /* Pielāgo logo augstumu pēc vajadzības */
-    width: auto;           /* Saglabā proporcijas */
-}
-
-.main-title {
-    margin: 0;             /* Noņem liekās atstarpes */
-    font-size: 24px;
-    font-weight: bold;
-}
-        
     </style>
 </head>
 <body>
 
-    <button id="toggle-btn">&#9776;</button>
+    <button id="toggle-btn" onclick="toggleSidebar()">&#9776;</button>
 
-<div class="sidebar">
-    <div class="sidebar-header">
-        <h2>SIA Admin</h2>
-    </div>
-    </div>
-        
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>SIA Admin</h2>
+        </div>
+
         <div class="nav-group">
             <div class="nav-label">Iestatījumi</div>
             <div class="nav-item active" onclick="showView('v-workers', this)"><i>👷</i><span>Darbinieki</span></div>
@@ -199,57 +173,16 @@
         </header>
 
         <main>
-            <section id="v-workers" class="view-section active"><div class="card"><button class="btn-add" onclick="addNewWorker()">➕ Pievienot darbinieku</button><ul id="workerList"></ul></div></section>
-            <section id="v-cars" class="view-section"><div class="card"><button class="btn-add" onclick="addNewItem('/api/cars', 'Auto Nr.')">➕ Pievienot mašīnu</button><ul id="carList"></ul></div></section>
-            <section id="v-worktypes" class="view-section"><div class="card"><button class="btn-add" onclick="addNewItem('/api/work-types', 'Veids')">➕ Pievienot veidu</button><ul id="workList"></ul></div></section>
-            <section id="v-objects" class="view-section"><div class="card"><button class="btn-add" onclick="addNewItem('/api/objects', 'Objekts')">➕ Pievienot objektu</button><ul id="objectList"></ul></div></section>
-            <section id="v-res" class="view-section"><div class="card"><button class="btn-add" onclick="addNewItem('/api/resource-types', 'Resurss', {quantity:0})">➕ Jauns resurss</button><ul id="resourceList"></ul></div></section>
-
-            <section id="v-report-work" class="view-section">
-                <div class="card">
-                    <div class="table-controls">
-                        <div class="filter-group"><label>Gads</label><select class="header-filter year-sel" onchange="renderTables()"></select></div>
-                        <div class="filter-group"><label>Mēnesis</label><select class="header-filter month-sel" onchange="renderTables()"></select></div>
-                        <div class="filter-group"><label>Auto</label><select class="header-filter car-sel" onchange="renderTables()"></select></div>
-                        <div class="filter-group"><label>Darbinieks</label><select class="header-filter worker-sel" onchange="renderTables()"></select></div>
-                        <div class="filter-group"><label>Objekts</label><select class="header-filter object-sel" onchange="renderTables()"></select></div>
-                        <div style="margin-left:auto">Kopā: <span id="totalHoursValue" class="summary-badge">0.00 h</span></div>
-                    </div>
-                    <div class="table-wrapper" id="tableContainer"></div>
-                </div>
-            </section>
-
-            <section id="v-report-fuel" class="view-section">
-                <div class="card">
-                    <div class="table-controls">
-                        <div class="filter-group"><label>Gads</label><select class="header-filter year-sel" onchange="renderTables()"></select></div>
-                        <div class="filter-group"><label>Mēnesis</label><select class="header-filter month-sel" onchange="renderTables()"></select></div>
-                        <div class="filter-group"><label>Darbinieks</label><select class="header-filter worker-sel" onchange="renderTables()"></select></div>
-                        <div class="filter-group"><label>Auto</label><select class="header-filter car-sel" onchange="renderTables()"></select></div>
-                        <div class="filter-group"><label>Resurss</label><select class="header-filter res-sel" onchange="renderTables()"></select></div>
-                        <div style="margin-left:auto">Kopā: <span id="totalFuelValue" class="summary-badge">0.00 L</span></div>
-                    </div>
-                    <div class="table-wrapper" id="fuelTableContainer"></div>
-                </div>
-            </section>
-
-            <section id="v-report-hours" class="view-section">
-                <div class="card">
-                    <div class="table-controls">
-                        <div class="filter-group"><label>Gads</label><select class="header-filter year-sel" onchange="renderTables()"></select></div>
-                        <div class="filter-group"><label>Mēnesis</label><select class="header-filter month-sel" onchange="renderTables()"></select></div>
-                        <div class="filter-group"><label>Darbinieks</label><select class="header-filter worker-sel" onchange="renderTables()"></select></div>
-                        <div style="margin-left:auto">Kopā: <span id="totalDayHoursValue" class="summary-badge">0.00 h</span></div>
-                    </div>
-                    <div class="table-wrapper" id="daySummaryContainer"></div>
-                </div>
-            </section>
-        </main>
+            </main>
     </div>
 
     <script>
         let workers = [], cars = [], schedule = [], workTypes = [], objects = [], daySummary = [], resourceTypes = [];
         const LV_MONTHS = ["Janvāris", "Februāris", "Marts", "Aprīlis", "Maijs", "Jūnijs", "Jūlijs", "Augusts", "Septembris", "Oktobris", "Novembris", "Decembris"];
+
+        function toggleSidebar() {
+            document.querySelector('.sidebar').classList.toggle('collapsed');
+        }
 
         function showView(viewId, el) {
             document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
