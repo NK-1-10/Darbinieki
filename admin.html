@@ -389,7 +389,8 @@ if(workerEl) {
         
         // 2. Noteicam, kuru vērtību rādīt
         // Prioritāte ir temp_password, tad password, tad "nav iestatīta"
-        const displayPass = w.temp_password || w.password || ' ';
+        //const displayPass = w.temp_password || w.password || ' ';
+        const displayPass = ' ';
         
         // 3. Ja tā ir pagaidu parole, varam tai pielikt citu krāsu (piemēram, sarkanīgu)
         const codeStyle = w.temp_password 
