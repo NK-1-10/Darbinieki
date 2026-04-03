@@ -3,7 +3,10 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
     <title>Admin Panelis</title>
+    <link rel="icon" type="image/png" href="admin.png">
+    
     <style>
         :root {
             --sidebar-bg: #1a3025;
@@ -95,6 +98,25 @@
             .nav-label, .nav-item span { display: none; }
             .table-controls { flex-direction: column; align-items: stretch; }
         }
+
+        .header-container {
+    display: flex;         /* Novieto elementus blakus */
+    align-items: center;   /* Izlīdzina vertikāli pa vidu */
+    gap: 12px;             /* Atstarpe starp logo un tekstu */
+    padding: 10px;
+}
+
+.main-logo {
+    height: 45px;          /* Pielāgo logo augstumu pēc vajadzības */
+    width: auto;           /* Saglabā proporcijas */
+}
+
+.main-title {
+    margin: 0;             /* Noņem liekās atstarpes */
+    font-size: 24px;
+    font-weight: bold;
+}
+        
     </style>
 </head>
 <body>
