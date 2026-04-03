@@ -309,9 +309,6 @@ td { padding: 12px 15px; border-bottom: 1px solid #eee; text-align: center; }
             resModalSelect.innerHTML = '<option value="">-- Ko Tu lej? --</option>' + 
                 resources.map(r => `<option value="${r.id}" data-qty="${r.quantity}">${r.name} (Pieejams: ${r.quantity}L)</option>`).join("");
 
-            const shiftStartTime = localStorage.getItem(`shift_start_${user.name}`);
-            const isShiftStarted = !!shiftStartTime;
-
             // Elementu kontrole
             const carEl = document.getElementById("car");
             const objEl = document.getElementById("object");
@@ -372,22 +369,14 @@ td { padding: 12px 15px; border-bottom: 1px solid #eee; text-align: center; }
         return; 
     }
 
-    const filteredData = data.filter(e => {
-    // 1. Iegūstam darba nosaukumu vai tukšu tekstu
+const filteredData = data.filter(e => {
     const darbaVeids = e.darbs || "";
+    const exclusionList = ["Degvielas uzpilde", "Eļļas papildināšana", "MAIŅAS_SĀKUMS"];
     
-    // 2. Saraksts ar lietām, ko mēs NEGRATĀM rādīt darbu tabulā
-    const exclusionList = [
-        "Degvielas uzpilde", 
-        "Eļļas papildināšana", 
-        "Eļļas uzpilde", 
-        "MAIŅAS_SĀKUMS"
-    ];
-
-    // 3. Atgriežam TRUE tikai tad, ja darbs nav izslēgšanas sarakstā
-    // Mēs vairs nepārbaudām e.objekts, lai ieraksts nepazustu
+    // Svarīgi: noņemam pārbaudi uz e.objekts, lai rādītu "nepabeigtos" darbus
     return !exclusionList.includes(darbaVeids);
 });
+        
     if (filteredData.length === 0) {
         container.innerHTML = "<p style='padding:15px;'>Nav veikto darbu ierakstu.</p>";
         return;
