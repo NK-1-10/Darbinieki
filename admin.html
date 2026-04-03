@@ -409,17 +409,17 @@
 
     // 2. Patēriņa atskaite
     const fuelSec = document.getElementById('v-report-fuel');
-    let fFuel = schedule.filter(e => 
-        e.resource_amount && 
-        (!fuelSec.querySelector('.year-sel').value || (e.date && e.date.includes(fuelSec.querySelector('.year-sel').value))) &&
-        (!fuelSec.querySelector('.month-sel').value || e.month === fuelSec.querySelector('.month-sel').value) &&
-        (!fuelSec.querySelector('.worker-sel').value || e.worker_name === fuelSec.querySelector('.worker-sel').value) &&
-        (!fuelSec.querySelector('.car-sel').value || e.car === fuelSec.querySelector('.car-sel').value) &&
-        (!fuelSec.querySelector('.res-sel').value || e.resource_name === fuelSec.querySelector('.res-sel').value)
-    );
+    if (fuelSec) {
+        let fFuel = schedule.filter(e => 
+            e.resource_amount && 
+            (!fuelSec.querySelector('.year-sel').value || (e.date && e.date.includes(fuelSec.querySelector('.year-sel').value))) &&
+            (!fuelSec.querySelector('.month-sel').value || e.month === fuelSec.querySelector('.month-sel').value) &&
+            // Pievienojam pārbaudi: filtrējam tikai tad, ja filtrs vispār eksistē HTMLā
+            (!fuelSec.querySelector('.res-sel').value || e.resource_name === fuelSec.querySelector('.res-sel').value)
+        );
     
     document.getElementById('totalFuelValue').innerText = fFuel.reduce((s,i) => s + parseFloat(i.resource_amount || 0), 0).toFixed(2) + " L";
-    document.getElementById('fuelTableContainer').innerHTML = `
+        document.getElementById('fuelTableContainer').innerHTML = `...`;
         <table>
             <thead>
                 <tr>
