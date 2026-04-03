@@ -366,51 +366,62 @@ td { padding: 12px 15px; border-bottom: 1px solid #eee; text-align: center; }
     }
 
     function renderTable(data) {
-        const container = document.getElementById("tableContainer");
-        if (!data || !data.length) { 
-            container.innerHTML = "<p style='padding:15px;'>Nav ierakstu.</p>"; 
-            return; 
-        }
-
-        const exclusionList = ["Degvielas uzpilde", "Eļļas papildināšana", "Eļļas uzpilde"];
-
-        let html = `<table>
-            <thead>
-                <tr>
-                    <th>Auto</th>
-                    <th>Objekts</th>
-                    <th>Darbs</th>
-                    <th>Sākums</th>
-                    <th>Beigas</th>
-                    <th>Stundas</th>
-                </tr>
-            </thead>
-            <tbody>`;
-
-        const filteredData = data.filter(e => {
-            const darbaVeids = e.darbs || "";
-            return !exclusionList.includes(darbaVeids) && e.objekts && e.objekts !== "-";
-        });
-
-        if (filteredData.length === 0) {
-            container.innerHTML = "<p style='padding:15px;'>Nav veikto darbu ierakstu.</p>";
-            return;
-        }
-
-        filteredData.slice().forEach(e => {
-            html += `<tr>
-                <td>${e.car || '-'}</td>
-                <td>${e.objekts || '-'}</td>
-                <td>${e.darbs || '-'}</td>
-                <td>${e["sākuma_laiks"] || '-'}</td>
-                <td>${e["beigu_laiks"] || 'Aktīvs'}</td>
-                <td>${e.hours ? e.hours + ' h' : '-'}</td>
-            </tr>`;
-        });
-
-        html += `</tbody></table>`;
-        container.innerHTML = html;
+    const container = document.getElementById("tableContainer");
+    if (!data || !data.length) { 
+        container.innerHTML = "<p style='padding:15px;'>Nav ierakstu.</p>"; 
+        return; 
     }
+
+    const exclusionList = ["Degvielas uzpilde", "Eļļas papildināšana", "Eļļas uzpilde", "MAIŅAS_SĀKUMS"];
+
+    // Atvieglots filtrs: rādām visu, kas nav exclusionListā
+    const filteredData = data.filter(e => {
+    const darbaVeids = e.darbs || "";
+    // Definējam, ko mēs NEGRIBAM redzēt galvenajā darbu tabulā
+    const exclusionList = [
+        "Degvielas uzpilde", 
+        "Eļļas papildināšana", 
+        "Eļļas uzpilde", 
+        "MAIŅAS_SĀKUMS"
+    ];
+
+    // Atstājam tikai tos, kas nav exclusionList sarakstā
+    return !exclusionList.includes(darbaVeids);
+});
+
+    if (filteredData.length === 0) {
+        container.innerHTML = "<p style='padding:15px;'>Nav veikto darbu ierakstu.</p>";
+        return;
+    }
+
+    let html = `<table>
+        <thead>
+            <tr>
+                <th>Auto</th>
+                <th>Objekts</th>
+                <th>Darbs</th>
+                <th>Sākums</th>
+                <th>Beigas</th>
+                <th>Stundas</th>
+            </tr>
+        </thead>
+        <tbody>`;
+
+    // Kārtojam, lai jaunākie darbi būtu augšā
+    filteredData.reverse().forEach(e => {
+        html += `<tr>
+            <td>${e.car || '-'}</td>
+            <td>${e.objekts || '-'}</td>
+            <td>${e.darbs || '-'}</td>
+            <td>${e["sākuma_laiks"] || '-'}</td>
+            <td>${e["beigu_laiks"] || '<span style="color:green;">Aktīvs</span>'}</td>
+            <td>${e.hours ? e.hours + ' h' : '-'}</td>
+        </tr>`;
+    });
+
+    html += `</tbody></table>`;
+    container.innerHTML = html;
+}
 
     document.getElementById("AtWork").onclick = async () => {
     const now = new Date().toISOString();
