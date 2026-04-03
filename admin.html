@@ -407,42 +407,42 @@
             </tbody>
         </table>`;
 
-    // 2. Patēriņa atskaite
-    const fuelSec = document.getElementById('v-report-fuel');
-    if (fuelSec) {
-        let fFuel = schedule.filter(e => 
-            e.resource_amount && 
-            (!fuelSec.querySelector('.year-sel').value || (e.date && e.date.includes(fuelSec.querySelector('.year-sel').value))) &&
-            (!fuelSec.querySelector('.month-sel').value || e.month === fuelSec.querySelector('.month-sel').value) &&
-            // Pievienojam pārbaudi: filtrējam tikai tad, ja filtrs vispār eksistē HTMLā
-            (!fuelSec.querySelector('.res-sel').value || e.resource_name === fuelSec.querySelector('.res-sel').value)
-        );
+    // 2. Patēriņa atskaite (DROŠĀ VERSIJA)
+const fuelSec = document.getElementById('v-report-fuel');
+if (fuelSec) {
+    const yearVal = fuelSec.querySelector('.year-sel')?.value;
+    const monthVal = fuelSec.querySelector('.month-sel')?.value;
+    const resVal = fuelSec.querySelector('.res-sel')?.value;
+
+    let fFuel = schedule.filter(e => 
+        e.resource_amount && 
+        (!yearVal || (e.date && e.date.includes(yearVal))) &&
+        (!monthVal || e.month === monthVal) &&
+        (!resVal || e.resource_name === resVal)
+    );
     
     document.getElementById('totalFuelValue').innerText = fFuel.reduce((s,i) => s + parseFloat(i.resource_amount || 0), 0).toFixed(2) + " L";
-        document.getElementById('fuelTableContainer').innerHTML = `...`;
+    document.getElementById('fuelTableContainer').innerHTML = `
         <table>
             <thead>
                 <tr>
                     <th>Datums</th>
-                    <th>Darbinieks</th>
-                    <th>Auto</th>
                     <th>Resurss</th>
                     <th style="text-align: center;">Litri</th>
-                    <th style="width: 50px;"></th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody>
                 ${fFuel.map(e => `
                     <tr>
                         <td>${e.date}</td>
-                        <td>${e.worker_name}</td>
-                        <td>${e.car || '-'}</td>
                         <td>${e.resource_name}</td>
                         <td style="text-align: center;" class="gold-val">${e.resource_amount} L</td>
                         <td><button class="btn-del" onclick="deleteScheduleItem(${e.id})">✖</button></td>
                     </tr>`).join("")}
             </tbody>
         </table>`;
+}
 
     // 3. Darba stundu atskaite (AR DZĒŠANAS POGĀM)
     const hoursSec = document.getElementById('v-report-hours');
@@ -486,10 +486,6 @@
         async function deleteItem(url, name) { if(confirm(`Dzēst ${name}?`)) { await fetch(`${url}/${encodeURIComponent(name)}`, {method:'DELETE'}); loadData(); } }
         async function adjustRes(id, action) { const val = parseFloat(document.getElementById(`in-${id}`).value); if(!val) return; await fetch(`/api/resource-types/${id}`, {method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action, amount:val})}); loadData(); }
         function logout() { localStorage.clear(); window.location.href = 'index.html'; }
-
-        document.getElementById('toggle-btn').addEventListener('click', function() {
-    document.querySelector('.sidebar').classList.toggle('collapsed');
-});
 
         loadData();
     </script>
