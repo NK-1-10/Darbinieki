@@ -43,6 +43,10 @@
 .sidebar.collapsed .nav-label {
     display: none;
 }
+        .sidebar.collapsed {
+    transform: translateX(-100%); /* Izstumj ārpus ekrāna */
+    margin-right: -280px; /* Kompensē vietu, lai main-content neizkustētos */
+}
 
 /* Centrē pogu, kad sānjosla ir maza */
 .sidebar.collapsed #toggle-btn {
@@ -50,12 +54,24 @@
     text-align: center;
 }
 
+        #toggle-btn {
+    position: fixed; /* Poga paliks savā vietā pat ja sānjosla pazūd */
+    left: 20px;
+    top: 20px;
+    z-index: 1100;
+    background: #1a3025; /* Sānjoslas krāsa, lai saplūst */
+    padding: 10px;
+    border-radius: 5px;
+}
+
         /* SIDEBAR */
         .sidebar {
-            width: 280px; background: var(--sidebar-bg);
-            color: var(--sidebar-text); display: flex; flex-direction: column;
-            transition: 0.3s; flex-shrink: 0;
-        }
+    width: 280px;
+    height: 100vh;
+    transition: transform 0.3s ease; /* Izmantosim transform, jo tas nebīda citus elementus */
+    position: relative; 
+    z-index: 1000;
+}
         .sidebar-header { padding: 25px; border-bottom: 1px solid rgba(255,255,255,0.1); }
         .sidebar-header h2 { margin: 0; font-size: 18px; color: var(--accent-gold); text-transform: uppercase; }
 
@@ -147,13 +163,13 @@
 </head>
 <body>
 
-    <div class="sidebar">
-        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
-        <h2 id="admin-title">SIA Admin</h2>
-        <button id="toggle-btn" style="background: none; border: none; color: white; cursor: pointer; font-size: 20px;">
-            &#9776; </button>
+    <button id="toggle-btn">&#9776;</button>
+
+<div class="sidebar">
+    <div class="sidebar-header">
+        <h2>SIA Admin</h2>
     </div>
-        </div>
+    </div>
         
         <div class="nav-group">
             <div class="nav-label">Iestatījumi</div>
@@ -467,9 +483,7 @@
         function logout() { localStorage.clear(); window.location.href = 'index.html'; }
 
         document.getElementById('toggle-btn').addEventListener('click', function() {
-    const sidebar = document.querySelector('.sidebar');
-    // Ieslēdz/izslēdz klasi, kas kontrolē platumu
-    sidebar.classList.toggle('collapsed');
+    document.querySelector('.sidebar').classList.toggle('collapsed');
 });
 
         loadData();
