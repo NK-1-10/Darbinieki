@@ -13,6 +13,41 @@ const pool = new Pool({
     ssl: { rejectUnauthorized: false }
 });
 
+// 1. Saglabāt maiņas sākumu serverī
+app.post('/api/shift-start', async (req, res) => {
+    const { worker_name, start_iso } = req.body;
+    try {
+        // Pārbaudām, vai jau nav sākta maiņa, kas nav pabeigta
+        // Mēs izmantojam worker_name kā atslēgu
+        await pool.query(
+            'INSERT INTO schedule (worker_name, sākuma_laiks, darbs, date) VALUES ($1, $2, $3, $4)',
+            [worker_name, start_iso, 'MAIŅAS_SĀKUMS', new Date().toLocaleDateString('lv-LV')]
+        );
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// 2. Iegūt maiņas sākumu (lai otrs dators zinātu statusu)
+app.get('/api/shift-status/:worker_name', async (req, res) => {
+    try {
+        const result = await pool.query(
+            "SELECT sākuma_laiks FROM schedule WHERE worker_name = $1 AND darbs = 'MAIŅAS_SĀKUMS' ORDER BY id DESC LIMIT 1",
+            [req.params.worker_name]
+        );
+        if (result.rows.length > 0) {
+            res.json({ shift_start: result.rows[0].sākuma_laiks });
+        } else {
+            res.json({ shift_start: null });
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+
+
 // --- PALĪGFUNKCIJA LAIKA STARPĪBAI ---
 function calculateHours(start, end) {
     const [sh, sm, ss] = start.split(':').map(Number);
