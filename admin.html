@@ -24,6 +24,32 @@
             background: var(--bg-light); color: #333;
         }
 
+        /* Sānjoslas pamatstils ar pārejas animāciju */
+.sidebar {
+    width: 280px; 
+    transition: width 0.3s ease; /* Padara aizvēršanos plūstošu */
+    overflow: hidden; /* Nepieļauj teksta izlīšanu ārā, kad sānjosla ir šaura */
+    white-space: nowrap; /* Neļauj tekstam pārlēkt jaunā rindā aizveroties */
+}
+
+/* Stils, kad sānjosla ir aizvērta */
+.sidebar.collapsed {
+    width: 60px; /* Atstāj nedaudz vietas, lai poga joprojām būtu redzama */
+}
+
+/* Paslēpj tekstu "SIA Admin" un navigācijas nosaukumus, kad aizvērts */
+.sidebar.collapsed h2, 
+.sidebar.collapsed .nav-item span,
+.sidebar.collapsed .nav-label {
+    display: none;
+}
+
+/* Centrē pogu, kad sānjosla ir maza */
+.sidebar.collapsed #toggle-btn {
+    width: 100%;
+    text-align: center;
+}
+
         /* SIDEBAR */
         .sidebar {
             width: 280px; background: var(--sidebar-bg);
@@ -122,7 +148,12 @@
 <body>
 
     <div class="sidebar">
-        <div class="sidebar-header"><h2>SIA Admin</h2></div>
+        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+        <h2 id="admin-title">SIA Admin</h2>
+        <button id="toggle-btn" style="background: none; border: none; color: white; cursor: pointer; font-size: 20px;">
+            &#9776; </button>
+    </div>
+        </div>
         
         <div class="nav-group">
             <div class="nav-label">Iestatījumi</div>
@@ -434,6 +465,12 @@
         async function deleteItem(url, name) { if(confirm(`Dzēst ${name}?`)) { await fetch(`${url}/${encodeURIComponent(name)}`, {method:'DELETE'}); loadData(); } }
         async function adjustRes(id, action) { const val = parseFloat(document.getElementById(`in-${id}`).value); if(!val) return; await fetch(`/api/resource-types/${id}`, {method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action, amount:val})}); loadData(); }
         function logout() { localStorage.clear(); window.location.href = 'index.html'; }
+
+        document.getElementById('toggle-btn').addEventListener('click', function() {
+    const sidebar = document.querySelector('.sidebar');
+    // Ieslēdz/izslēdz klasi, kas kontrolē platumu
+    sidebar.classList.toggle('collapsed');
+});
 
         loadData();
     </script>
