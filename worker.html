@@ -445,48 +445,44 @@ td { padding: 12px 15px; border-bottom: 1px solid #eee; text-align: center; }
 };
 
     document.getElementById("LeaveWork").onclick = async () => {
-        // 1. Pārbaude, vai nav aktīvs darbs kādā objektā
-        const stopBtn = document.getElementById("stopBtn");
-        if (stopBtn && stopBtn.style.display === "block") {
-            const statusEl = document.getElementById("status");
-            statusEl.style.color = "red";
-            alert("Tu nevari beigt darba dienu, kamēr neesi pabeidzis aktīvo darbu!");
-            setTimeout(() => { statusEl.style.color = ""; }, 3000);
-            return;
+    // Pārbaude uz aktīvu darbu objektā
+    const stopBtn = document.getElementById("stopBtn");
+    if (stopBtn && stopBtn.style.display === "block") {
+        alert("Pabeidz aktīvo darbu objektā!");
+        return;
+    }
+
+    if (!confirm("Beigt darba dienu?")) return;
+
+    const now = new Date();
+    const endTime = now.toLocaleTimeString('lv-LV', {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+
+    try {
+        const response = await fetch('/api/darbastundas', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                darbinieks: user.name,
+                beidza_darbu: endTime,
+                status: "FINISH",
+                datums: now.toLocaleDateString('lv-LV')
+            })
+        });
+
+        if (response.ok) {
+            // Svarīgi: Notīrām visu, kas varētu traucēt
+            localStorage.removeItem(`shift_start_${user.name}`);
+            alert("Darba diena sekmīgi noslēgta!");
+            window.location.reload();
+        } else {
+            const errorText = await response.text();
+            console.error("Servera atbilde:", errorText);
+            alert("Serveris nepieņēma datus. Pārbaudi vai datubāzē nav 'null' ierakstu.");
         }
-
-        if (!confirm("Beigt darba dienu un saglabāt stundas?")) return;
-
-        const now = new Date();
-        const endTime = now.toLocaleTimeString('lv-LV', {hour: '2-digit', minute:'2-digit', second:'2-digit'});
-
-        try {
-            // 2. Sūtām signālu serverim, lai tas "aizver" Procesā esošo rindu
-            const response = await fetch('/api/darbastundas', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    darbinieks: user.name,
-                    beidza_darbu: endTime, // Serveris izmantos šo, lai aizstātu "Procesā"
-                    status: "FINISH",      // Svarīgs marķieris servera loģikai
-                    datums: now.toLocaleDateString('lv-LV')
-                })
-            });
-
-            if (response.ok) {
-                // 3. Notīrām lokālo rezerves kopiju un pārlādējam lapu
-                localStorage.removeItem(`shift_start_${user.name}`);
-                alert(`Darba diena beigta plkst. ${endTime}`);
-                window.location.reload();
-            } else {
-                const errData = await response.json();
-                alert("Kļūda saglabājot: " + (errData.error || "Servera kļūda"));
-            }
-        } catch (err) { 
-            console.error(err);
-            alert("Servera savienojuma kļūda!"); 
-        }
-    };
+    } catch (err) {
+        alert("Savienojuma kļūda! Pārbaudi vai serveris (Railway) darbojas.");
+    }
+};
 
 
     document.getElementById("startBtn").onclick = async () => {
