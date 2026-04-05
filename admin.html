@@ -231,12 +231,46 @@ li{
         
         .sidebar.collapsed .btn-all-delete { background: #942525; padding: 10px 0; }
 
-        @media (pointer: coarse) {
-            .sidebar { position: fixed; height: 100%; left: -280px; }
-            .sidebar.active { left: 0; }
-            .nav-label {font-size: 20px;}
-            .current-view-title{font-size: 30px;}
-        }
+        @media (pointer: coarse), (max-width: 768px) {
+    .sidebar { 
+        position: fixed; 
+        top: 0;
+        bottom: 0;
+        left: -100%; /* Drošāk nekā fiksēti pikseļi, pilnībā iziet no ekrāna */
+        width: 280px; 
+        height: 100vh;
+        z-index: 9999; /* Obligāti, lai būtu virs visām pogām un kartēm */
+        transition: left 0.3s ease-in-out; /* Maigāka kustība */
+        box-shadow: none;
+        background: var(--saulstari-green); /* Pārliecinies, ka krāsa sakrīt */
+    }
+
+    .sidebar.active { 
+        left: 0; 
+        box-shadow: 5px 0 15px rgba(0,0,0,0.3); /* Vizuāls dziļums, kad atvērts */
+    }
+
+    .nav-label {
+        font-size: 22px; /* Mazliet lielāks pirkstiem */
+        padding: 15px 0;
+    }
+
+    .current-view-title {
+        font-size: 28px;
+        margin-left: 50px; /* Atstāj vietu burgera pogai augšējā stūrī */
+    }
+
+    /* Ieteicams: fona aptumšojums, kad sidebar ir vaļā */
+    .sidebar-overlay {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 9998;
+    }
+    .sidebar-overlay.active { display: block; }
+}
+        
     </style>
 </head>
 <body>
