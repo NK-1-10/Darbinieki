@@ -232,7 +232,7 @@ li{
         .sidebar.collapsed .btn-all-delete { background: #942525; padding: 10px 0; }
 
 @media (pointer: coarse), (max-width: 768px) {
-    /* 1. POGA - Vienmēr fiksēta tajā pašā vietā */
+    /* 1. POGA - Fiksēta */
     #toggle-btn {
         position: fixed !important;
         left: 10px !important;
@@ -245,7 +245,7 @@ li{
         border: 1px solid var(--accent-gold) !important;
     }
 
-    /* 2. SIDEBAR - Fiksēts */
+    /* 2. SIDEBAR */
     .sidebar {
         position: fixed !important;
         left: -280px; 
@@ -256,58 +256,98 @@ li{
         transition: left 0.3s ease-in-out !important;
     }
 
-    /* Kad sidebar ir VAĻĀ (nav collapsed) */
     .sidebar:not(.collapsed) {
         left: 0 !important;
     }
 
-    /* 3. SATURA BĪDĪŠANA (Šis ir tas, ko tu prasīji) */
+    /* 3. GALVENAIS KONTEINERS */
     .main-content {
         margin-left: 0 !important;
         width: 100% !important;
-        transition: transform 0.3s ease-in-out !important; /* Gluda nobīde */
+        height: 100vh !important;
+        transition: transform 0.3s ease-in-out !important;
+        /* Noņemam overflow ierobežojumus šeit */
+        overflow: visible !important; 
     }
 
-    /* Ja sānjosla ir VAĻĀ, nobīdām visu galveno saturu pa labi */
+    /* Bīdām saturu, kad sidebar ir vaļā */
     .sidebar:not(.collapsed) ~ .main-content {
         transform: translateX(280px) !important;
-    }
-
-    /* 4. CARD UN SKROLLĒŠANA */
-    .view-section {
-        padding: 10px !important;
-        width: 100vw !important;
-        height: calc(100vh - 80px) !important;
-        margin-top: 60px !important;
-    }
-
-    .card {
-        min-width: 600px !important; /* Saglabā platumu, lai varētu skrollēt vārdus */
-        height: 100% !important;
-        display: flex !important;
-        flex-direction: column !important;
-        overflow-x: auto !important; 
-        -webkit-overflow-scrolling: touch;
-        background: white !important;
-    }
-
-    /* 5. VĀRDU IZMĒRS */
-    li, li strong, li span {
-        font-size: 28px !important;
-        white-space: nowrap !important; /* Neļauj vārdiem pārlūzt rindās */
-    }
-
-    li {
-        min-height: 90px !important;
-        border-bottom: 2px solid #eee !important;
-        display: flex !important;
-        justify-content: space-between !important;
-        align-items: center !important;
     }
 
     header {
         background: white !important;
         padding-left: 70px !important;
+        width: 100% !important;
+        position: sticky !important;
+        top: 0;
+        z-index: 999;
+    }
+
+    /* 4. SEKCIJA UN KARTE - SKROLLĒŠANAS LABOJUMS */
+    .view-section {
+        padding: 10px !important;
+        display: block !important; /* Mainām no flex uz block */
+        width: 100% !important;
+    }
+
+    .card {
+        /* Šeit ir atslēga: width jābūt fit-content, lai tas izstieptos līdz krustiem */
+        width: fit-content !important; 
+        min-width: 100% !important;
+        background: white !important;
+        padding: 15px !important;
+        border-radius: 0 !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Ļaujam visai lapai skrollēties horizontāli, lai tiktu pie krustiem */
+    body {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* 5. SARAKSTS UN MILZĪGI FONTI */
+    ul {
+        margin: 0 !important;
+        padding: 0 !important;
+        list-style: none !important;
+    }
+
+    li {
+        /* Piespiežam rindu būt platu */
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        min-width: 700px !important; /* Garantējam vietu krustam */
+        padding: 20px 10px !important;
+        border-bottom: 2px solid #eee !important;
+    }
+
+    li strong, li span {
+        font-size: 26px !important;
+        white-space: nowrap !important;
+    }
+
+    /* Dzēšanas poga */
+    .btn-del {
+        font-size: 32px !important;
+        padding: 10px 25px !important;
+        margin-left: 30px !important;
+        color: var(--danger) !important;
+        flex-shrink: 0 !important; /* Neļaujam pogai saspiesties */
+    }
+
+    /* Pievienošanas poga */
+    .btn-add {
+        width: 100% !important;
+        max-width: 400px;
+        padding: 20px !important;
+        font-size: 22px !important;
+        position: sticky !important;
+        left: 10px;
     }
 }
         
