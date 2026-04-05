@@ -18,6 +18,18 @@
 
         thead { cursor: pointer; user-select: none; }
 .hidden-body { display: none; }
+
+        /* Kursors uz virsraksta, lai saprastu, ka var spiest */
+#tableContainer thead {
+    cursor: pointer;
+    user-select: none;
+}
+
+/* Klase, kas paslēps rindas */
+.hidden-rows {
+    display: none !important;
+}
+        
 /* --- PAMATA STILI (Datoram) --- */
 body { 
     font-family: 'Segoe UI', Roboto, sans-serif; 
@@ -367,61 +379,61 @@ td { padding: 12px 15px; border-bottom: 1px solid #eee; text-align: center; }
     }
 
     function renderTable(data) {
-        const container = document.getElementById("tableContainer");
-        if (!data || !data.length) { 
-            container.innerHTML = "<p style='padding:15px;'>Nav ierakstu.</p>"; 
-            return; 
-        }
-
-        const exclusionList = ["Degvielas uzpilde", "Eļļas papildināšana", "Eļļas uzpilde"];
-
-        let html = `<table>
-            <thead>
-                <tr>
-                    <th>Auto</th>
-                    <th>Objekts</th>
-                    <th>Darbs</th>
-                    <th>Sākums</th>
-                    <th>Beigas</th>
-                    <th>Stundas</th>
-                </tr>
-            </thead>
-            <tbody id="tableBody">`;
-
-        const filteredData = data.filter(e => {
-            const darbaVeids = e.darbs || "";
-            return !exclusionList.includes(darbaVeids) && e.objekts && e.objekts !== "-";
-        });
-
-        if (filteredData.length === 0) {
-            container.innerHTML = "<p style='padding:15px;'>Nav veikto darbu ierakstu.</p>";
-            return;
-        }
-
-        filteredData.slice().forEach(e => {
-            html += `<tr>
-                <td>${e.car || '-'}</td>
-                <td>${e.objekts || '-'}</td>
-                <td>${e.darbs || '-'}</td>
-                <td>${e["sākuma_laiks"] || '-'}</td>
-                <td>${e["beigu_laiks"] || 'Aktīvs'}</td>
-                <td>${e.hours ? e.hours + ' h' : '-'}</td>
-            </tr>`;
-        });
-
-        html += `</tbody></table>`;
-        container.innerHTML = html;
-
-        document.getElementById("tableHeader").onclick = function() {
-        const body = document.getElementById("tableBody");
-        if (body.classList.contains("hidden-body")) {
-            body.classList.remove("hidden-body");
-        } else {
-            body.classList.add("hidden-body");
-        }
-    };
-        
+    const container = document.getElementById("tableContainer");
+    if (!data || !data.length) { 
+        container.innerHTML = "<p style='padding:15px;'>Nav ierakstu.</p>"; 
+        return; 
     }
+
+    const exclusionList = ["Degvielas uzpilde", "Eļļas papildināšana", "Eļļas uzpilde"];
+
+    // Izveidojam tabulas skeletu
+    let html = `<table>
+        <thead>
+            <tr id="toggleHeader">
+                <th>Auto</th>
+                <th>Objekts</th>
+                <th>Darbs</th>
+                <th>Sākums</th>
+                <th>Beigas</th>
+                <th>Stundas</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody">`; // Šeit ir ID, ko paslēpsim
+
+    const filteredData = data.filter(e => {
+        const darbaVeids = e.darbs || "";
+        return !exclusionList.includes(darbaVeids) && e.objekts && e.objekts !== "-";
+    });
+
+    if (filteredData.length === 0) {
+        container.innerHTML = "<p style='padding:15px;'>Nav veikto darbu ierakstu.</p>";
+        return;
+    }
+
+    // Aizpildām rindas (jaunākie darbi augšā)
+    filteredData.slice().reverse().forEach(e => {
+        html += `<tr>
+            <td>${e.car || '-'}</td>
+            <td>${e.objekts || '-'}</td>
+            <td>${e.darbs || '-'}</td>
+            <td>${e["sākuma_laiks"] || '-'}</td>
+            <td>${e["beigu_laiks"] || 'Aktīvs'}</td>
+            <td>${e.hours ? e.hours + ' h' : '-'}</td>
+        </tr>`;
+    });
+
+    html += `</tbody></table>`;
+    container.innerHTML = html;
+
+    // PIEVIENOJAM NOTIKUMU
+    const header = document.getElementById("toggleHeader");
+    const body = document.getElementById("tableBody");
+
+    header.onclick = () => {
+        body.classList.toggle("hidden-rows");
+    };
+}
 
     document.getElementById("AtWork").onclick = () => {
         const now = new Date();
