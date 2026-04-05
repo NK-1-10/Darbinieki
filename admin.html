@@ -232,155 +232,96 @@ li{
         .sidebar.collapsed .btn-all-delete { background: #942525; padding: 10px 0; }
 
         /* MOBILO IERĪČU UN PIESIENIENA EKRĀNU STILI */
+
+        /* MOBILO IERĪČU UN PIESIENIENA EKRĀNU STILI */
 @media (pointer: coarse), (max-width: 768px) {
-    /* 1. SIDEBAR LABOJUMS */
-    .sidebar { 
-        .sidebar {
-        position: fixed !important; /* Mainām no relative uz fixed */
-        left: -280px;               /* Paslēpjam pa kreisi */
+    
+    /* 1. SIDEBAR FIKSĒŠANA */
+    .sidebar {
+        position: fixed !important;
+        left: -280px;
         top: 0;
         bottom: 0;
-        width: 280px !important;    /* Fiksēts platums */
-        z-index: 99999 !important;  /* Virs visa pārējā */
+        width: 280px !important;
+        z-index: 99999 !important;
         transition: left 0.3s ease !important;
-        
-        /* Fontu palielināšana pēc tva lūguma */
-        font-size: 20px !important;
+        background: var(--sidebar-bg) !important;
     }
 
-    /* Kad JS pievieno klasi .active vai .open (pārbaudi, kuru klasi izmanto tavs JS) */
     .sidebar.active, .sidebar.open { 
         left: 0 !important; 
         box-shadow: 10px 0 20px rgba(0,0,0,0.5) !important;
     }
 
-    /* 2. MILZĪGI FONTI UN POGAS */
-    .nav-item {
-        padding: 20px 25px !important;
+    /* 2. CARD - PADARĀM PA VISU EKRĀNU */
+    .view-section {
+        padding: 10px !important;
+        height: calc(100vh - 80px) !important; /* Atņemam vietu headerim */
+        display: flex !important;
+        flex-direction: column !important;
+    }
+
+    .card {
+        flex: 1 !important; /* Izstiepj kartīti pa visu atlikušo vietu */
+        height: 100% !important;
+        display: flex !important;
+        flex-direction: column !important;
+        padding: 20px !important;
+        border-radius: 0 !important;
+        box-sizing: border-box !important;
+    }
+
+    /* 3. SARAKSTS (UL) - SKROLLĒJAMS UN MILZĪGS */
+    ul {
+        flex: 1 !important;
+        overflow-y: auto !important;
+        overflow-x: auto !important;
+        display: block !important;
+        -webkit-overflow-scrolling: touch;
+        margin-top: 20px !important;
+    }
+
+    /* DARBINIEKU VĀRDU FONTS - šeit mēs mērķējam uz visu */
+    li, li strong, li span {
+        font-size: 26px !important; /* Šis beidzot mainīs vārdu izmēru */
+    }
+
+    li {
+        min-width: 600px !important; /* Lai varētu skrollēt līdz krustiņam */
+        min-height: 90px !important; /* Augstākas rindas pirkstiem */
+        padding: 10px 20px !important;
+        border-bottom: 2px solid #eee !important;
+    }
+
+    /* 4. POGAS UN IEVADES LAUKI */
+    .btn-add {
+        width: 100% !important;
+        padding: 20px !important;
+        font-size: 22px !important;
+        margin-bottom: 20px !important;
+    }
+
+    input, select {
+        height: 60px !important;
         font-size: 20px !important;
     }
 
-    .nav-label {
-        font-size: 16px !important;
-        padding: 25px 25px 10px !important;
-        opacity: 0.8 !important;
-    }
-
-    .sidebar-header h2 {
-        font-size: 24px !important;
-        padding: 10px 0 !important;
-    }
-
-    /* 3. GALVENAIS SATURS UN VIRSRAKSTI */
-    .nav-item {
-        padding: 20px 25px !important;
-        font-size: 20px !important;
-    }
-
-    .current-view-title {
-        font-size: 28px !important; /* Ļoti liels virsraksts */
-        margin-left: 60px !important; /* Vieta burgera pogai */
-    }
-
+    /* 5. HEADER UN VIRSRAKSTI */
     header {
         height: 80px !important;
+        padding: 0 20px !important;
     }
 
-    /* 4. TABULAS UN FILTRI */
-    .table-controls {
-        flex-direction: column !important;
-        gap: 15px !important;
-    }
-
-    .header-filter {
-        width: 100% !important;
-        height: 55px !important; /* Augstāki lauki pirkstiem */
-        font-size: 18px !important;
+    #current-view-title {
+        font-size: 30px !important;
+        margin-left: 50px !important; /* Vieta burgerim */
     }
 
     .summary-badge {
         width: 100% !important;
-        margin-left: 0 !important;
-        font-size: 22px !important; /* Izcelta kopsumma */
+        font-size: 24px !important;
         padding: 15px !important;
         justify-content: center !important;
-    }
-
-    /* 5. SARAKSTI (li) */
-    .view-section h2 {
-        font-size: 26px !important;
-        margin-bottom: 20px !important;
-    }
-
-        .view-section {
-        flex-grow: 1 !important; /* Paņem visu brīvo vietu */
-        display: flex !important;
-        flex-direction: column !important;
-        padding: 10px !important;
-        overflow: hidden !important;
-    }
-
-        ul {
-        flex-grow: 1 !important;
-        overflow-y: auto !important; /* Vertikālais skrolls darbiniekiem */
-        overflow-x: auto !important; /* Horizontālais skrolls līdz krustiņam */
-        display: block !important;
-        -webkit-overflow-scrolling: touch;
-        margin-top: 15px !important;
-        border: 1px solid #eee; /* Vizuāla robeža saraksta laukam */
-    }
-
-    /* 5. Katra rinda sarakstā */
-    li {
-        min-width: 500px !important; /* Izstiepjam, lai garantētu horizontālo skrollu */
-        height: 70px !important; /* Fiksēts augstums rindai, lai vieglāk skrollēt */
-        padding: 0 20px !important;
-        font-size: 25px !important;
-    }
-
-    /* Darbinieka vārds un paroles info */
-    li span {
-        font-size: 25px !important;
-        flex-grow: 1;
-    }
-
-    /* Dzēšanas krustiņš (poga) */
-    .btn-del {
-        padding: 10px 20px !important; /* Lielāks laukums pirkstam */
-        font-size: 24px !important;
-        margin-left: 20px !important;
-        color: var(--danger) !important;
-    }
-
-    /* Ievades lauki (Inputs) un pogas "Pievienot" */
-    input, select {
-        height: 55px !important; /* Augstāki lauki */
-        font-size: 18px !important;
-        margin-bottom: 15px !important;
-    }
-
-    .btn-add {
-        width: 100% !important;
-        padding: 18px !important;
-        font-size: 20px !important;
-        text-transform: uppercase;
-    }
-
-    /* Kartītes (Card) pielāgošana */
-    .card {
-        flex-grow: 1 !important;
-        display: flex !important;
-        flex-direction: column !important;
-        height: 700px !important; /* Augstums 100% */
-        padding: 15px !important;
-        overflow: hidden !important;
-        border-radius: 0 !important;
-    }
-        .main-content {
-        height: 100vh !important;
-        display: flex !important;
-        flex-direction: column !important;
-        overflow: hidden !important; /* Neļaujam visai lapai lēkāt */
     }
 }
         
