@@ -241,11 +241,26 @@ li{
         margin: 0;
     }
           #workerList li strong {
-    font-size: 27px;        /* Palielinām izmēru */
+    font-size: 30px;        /* Palielinām izmēru */
     font-weight: 700;       /* Padarām treknāku */
     display: inline-block;  /* Ļauj labāk kontrolēt atkāpes */
     margin-bottom: 2px;
     text-transform: capitalize; /* Katrs vārds ar lielo burtu */
+}
+
+          #workerList li code {
+    font-family: 'Courier New', monospace; /* Programmētāju stila fonts */
+    font-size: 24px;
+    font-weight: bold;
+    padding: 4px 8px;
+    border-radius: 2px;
+    letter-spacing: 1px; /* Vieglāk izlasīt simbolus */
+}
+
+/* Specifisks efekts, ja tā ir pagaidu parole (sarkanais stils) */
+#workerList li span code[style*="color: #d63384"] {
+    border: 1px dashed #d63384; /* Pārtraukta līnija uzsver pagaidāmību */
+    box-shadow: 0 0 5px rgba(214, 51, 132, 0.1);
 }
 
     /* 2. SIDEBAR - Fiksēts un vienmēr pa virsu */
