@@ -235,15 +235,17 @@ li{
 @media (pointer: coarse), (max-width: 768px) {
     /* 1. SIDEBAR LABOJUMS */
     .sidebar { 
-        position: fixed !important; 
-        top: 0 !important;
-        left: -280px; /* Sākumā paslēpts */
-        width: 280px !important; 
-        height: 100vh !important;
-        z-index: 99999 !important; /* Maksimāla prioritāte, lai nepazūd zem kartēm */
-        transition: left 0.3s ease-in-out !important;
-        background: var(--sidebar-bg) !important;
-        display: flex !important; /* Pārliecināmies, ka nav display: none */
+        .sidebar {
+        position: fixed !important; /* Mainām no relative uz fixed */
+        left: -280px;               /* Paslēpjam pa kreisi */
+        top: 0;
+        bottom: 0;
+        width: 280px !important;    /* Fiksēts platums */
+        z-index: 99999 !important;  /* Virs visa pārējā */
+        transition: left 0.3s ease !important;
+        
+        /* Fontu palielināšana pēc tva lūguma */
+        font-size: 20px !important;
     }
 
     /* Kad JS pievieno klasi .active vai .open (pārbaudi, kuru klasi izmanto tavs JS) */
@@ -254,8 +256,8 @@ li{
 
     /* 2. MILZĪGI FONTI UN POGAS */
     .nav-item {
-        padding: 20px 25px !important; 
-        font-size: 20px !important; /* Liels fonts sānjoslā */
+        padding: 20px 25px !important;
+        font-size: 20px !important;
     }
 
     .nav-label {
@@ -270,9 +272,9 @@ li{
     }
 
     /* 3. GALVENAIS SATURS UN VIRSRAKSTI */
-    .main-content {
-        margin-left: 0 !important; /* Mobilajā saturs nevar bīdīties */
-        width: 100% !important;
+    .nav-item {
+        padding: 20px 25px !important;
+        font-size: 20px !important;
     }
 
     .current-view-title {
