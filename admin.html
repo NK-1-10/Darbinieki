@@ -311,22 +311,31 @@ li{
         font-size: 26px !important;
         margin-bottom: 20px !important;
     }
-        ul {
-        width: 100% !important;
-        overflow-x: auto; /* Atļauj ritināt pa labi, ja saturs netiek galā */
-        -webkit-overflow-scrolling: touch; /* Gluda ritināšana iOS ierīcēs */
-        padding: 0 !important;
+
+        .view-section {
+        flex-grow: 1 !important; /* Paņem visu brīvo vietu */
+        display: flex !important;
+        flex-direction: column !important;
+        padding: 10px !important;
+        overflow: hidden !important;
     }
 
+        ul {
+        flex-grow: 1 !important;
+        overflow-y: auto !important; /* Vertikālais skrolls darbiniekiem */
+        overflow-x: auto !important; /* Horizontālais skrolls līdz krustiņam */
+        display: block !important;
+        -webkit-overflow-scrolling: touch;
+        margin-top: 15px !important;
+        border: 1px solid #eee; /* Vizuāla robeža saraksta laukam */
+    }
+
+    /* 5. Katra rinda sarakstā */
     li {
-        display: flex !important;
-        justify-content: space-between !important;
-        align-items: center !important;
-        min-width: 450px; /* Šis IR NOSLĒPUMS: tas izstiepj rindu garāku par ekrānu, lai varētu ritināt līdz krustiņam */
-        padding: 20px 15px !important;
-        font-size: 20px !important; /* Palielināts fonts vārdiem */
-        border-bottom: 2px solid #eee !important;
-        background: #fff;
+        min-width: 500px !important; /* Izstiepjam, lai garantētu horizontālo skrollu */
+        height: 70px !important; /* Fiksēts augstums rindai, lai vieglāk skrollēt */
+        padding: 0 20px !important;
+        font-size: 20px !important;
     }
 
     /* Darbinieka vārds un paroles info */
@@ -359,10 +368,19 @@ li{
 
     /* Kartītes (Card) pielāgošana */
     .card {
+        flex-grow: 1 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        height: 100% !important; /* Augstums 100% */
         padding: 15px !important;
-        width: 100% !important;
-        box-sizing: border-box;
-        border-radius: 0 !important; /* Mobilajā labāk izskatās bez noapaļotiem stūriem, ja aizņem visu platumu */
+        overflow: hidden !important;
+        border-radius: 0 !important;
+    }
+        .main-content {
+        height: 100vh !important;
+        display: flex !important;
+        flex-direction: column !important;
+        overflow: hidden !important; /* Neļaujam visai lapai lēkāt */
     }
 }
         
