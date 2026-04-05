@@ -9,258 +9,107 @@
     
     
     <style>
+
         :root {
-            --sidebar-bg: #1a3025;
-            --sidebar-text: #ffffff;
-            --accent-gold: #c5a059;
-            --bg-light: #f4f7f6;
-            --active-item: rgba(197, 160, 89, 0.2);
-            --danger: #dc3545;
-            --success: #28a745;
-            --sidebar-wide: 280px;
-            --sidebar-collapsed: 60px;
-        }
-
-        body { 
-            font-family: 'Segoe UI', sans-serif; 
-            margin: 0; 
-            display: flex; 
-            height: 100vh; 
-            background: var(--bg-light); 
-            color: #333;
-            overflow: hidden;
-        }
-
-        /* SĀNJOSLA */
-        .sidebar {
-            width: var(--sidebar-wide);
-            background: var(--sidebar-bg);
-            color: var(--sidebar-text);
-            display: flex;
-            flex-direction: column;
-            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 1000;
-            position: relative;
-            flex-shrink: 0;
-        }
-
-        .sidebar.collapsed {
-            width: var(--sidebar-collapsed);
-        }
-
-        #toggle-btn {
-            position: absolute;
-            right: 5px; 
-            top: 15px;
-            width: 50px;
-            height: 45px;
-            z-index: 1100;
-            background: var(--sidebar-bg);
-            color: var(--accent-gold);
-            border: 1px solid var(--accent-gold);
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background 0.2s;
-        }
-
-        #toggle-btn:hover {
-            background: var(--active-item);
-        }
-
-        .sidebar.collapsed .nav-item span,
-        .sidebar.collapsed .nav-label,
-        .sidebar.collapsed .sidebar-header h2,
-        .sidebar.collapsed .btn-all-delete span,
-        .sidebar.collapsed .logout-text {
-            display: none;
-        }
-
-        .sidebar-header { 
-            padding: 25px; 
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            height: 75px;
-            box-sizing: border-box;
-            overflow: hidden;
-            white-space: nowrap;
-        }
-
-        .sidebar-header h2 { 
-            margin: 0; 
-            font-size: 18px; 
-            color: var(--accent-gold); 
-            text-transform: uppercase; 
-        }
-
-        .nav-group { padding: 15px 0; overflow: hidden; }
-        .nav-label { padding: 0 25px 10px; font-size: 11px; text-transform: uppercase; opacity: 0.5; letter-spacing: 1px; white-space: nowrap; }
-
-        .nav-item {
-            padding: 12px 20px; 
-            cursor: pointer; 
-            display: flex; 
-            align-items: center;
-            transition: 0.2s; 
-            font-size: 14px;
-            color: inherit;
-            text-decoration: none;
-            white-space: nowrap;
-        }
-
-        .nav-item i {
-            width: 20px;
-            text-align: center;
-            margin-right: 15px;
-            font-style: normal;
-        }
-
-        .sidebar.collapsed .nav-item i {
-            margin-right: 0;
-            width: 100%;
-            font-size: 18px;
-        }
-
-        .nav-item:hover { background: var(--active-item); color: var(--accent-gold); }
-        .nav-item.active { 
-            border-left: 4px solid var(--accent-gold); 
-            background: var(--active-item); 
-            color: var(--accent-gold); 
-            font-weight: bold; 
-        }
-
-        .main-content { 
-            flex-grow: 1; 
-            overflow-y: auto; 
-            display: flex; 
-            flex-direction: column;
-            min-width: 0;
-        }
-
-        header { 
-            background: #fff; 
-            padding: 15px 30px;
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            height: 75px;
-            box-sizing: border-box;
-        }
-
-        .view-section { padding: 30px; display: none; }
-        .view-section.active { display: block; }
-
-        .card { 
-            background: #fff; border-radius: 12px; padding: 25px; 
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-        }
-
-        /* Atrodas ap rindu 116 tavā failā */
-.table-controls {
-    display: flex;
-    flex-wrap: wrap; 
-    gap: 10px;       
-    align-items: center;
-    width: 100%; /* Pievieno šo, lai konteiners aizņemtu visu platumu */
+    --sidebar-bg: #1a3025;
+    --sidebar-text: #ffffff;
+    --accent-gold: #c5a059;
+    --bg-light: #f4f7f6;
+    --active-item: rgba(197, 160, 89, 0.2);
+    --danger: #dc3545;
+    --success: #28a745;
+    --sidebar-wide: 280px;
+    --sidebar-collapsed: 60px;
 }
-        #current-view-title{
-              font-size: 20px;
-              text-align: center;
-          }
 
-        .nav-item,.nav-item active{
-            font-size: 18px;
-        } 
-        .nav-label{
-            font-size: 18px;
-        }
-        .sidebar-header{
-            font-size: 20px !;
-            text-align: right;
-        }
-        .Admin-head{
-            font-size: 20px ;
-        }
-        .btn-all-delete{
-            height: 60px ;
-            font-size: 10px ;
-        }
-        .btn-logout{
-            height: 60px ;
-            font-size: 10px;
-        }
-        .summary-badge{
-            height: 30px !important;
-            font-size: 20px !important;
-        }
+/* --- PAMATA STILI (DATORAM) --- */
+body { 
+    font-family: 'Segoe UI', sans-serif; 
+    margin: 0; display: flex; height: 100vh; 
+    background: var(--bg-light); color: #333; overflow: hidden;
+}
 
-/* VIENĪGAIS summary-badge stils */
+.sidebar {
+    width: var(--sidebar-wide); background: var(--sidebar-bg);
+    color: var(--sidebar-text); display: flex; flex-direction: column;
+    transition: width 0.3s ease; z-index: 1000; position: relative; flex-shrink: 0;
+}
+
+.sidebar.collapsed { width: var(--sidebar-collapsed); }
+
+#toggle-btn {
+    position: absolute; right: 5px; top: 15px; width: 45px; height: 40px;
+    background: var(--sidebar-bg); color: var(--accent-gold);
+    border: 1px solid var(--accent-gold); cursor: pointer; border-radius: 5px;
+}
+
+.main-content { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; min-width: 0; }
+
+header { 
+    background: #fff; padding: 10px 30px; height: 60px;
+    display: flex; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.view-section { padding: 20px; display: none; }
+.view-section.active { display: block; }
+
+.card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
+
+/* --- SAMAZINĀTĀS POGAS UN KONTEINERI --- */
 .summary-badge {
-    background: var(--sidebar-bg);
-    color: var(--accent-gold);
-    padding: 8px 15px; /* Nedaudz palielināju padding labākam skatam */
-    border-radius: 5px;
-    font-weight: bold;
+    background: var(--sidebar-bg); color: var(--accent-gold);
+    padding: 6px 12px; border-radius: 5px; font-weight: bold;
+    font-size: 14px; /* Samazināts no milzīgā */
+    margin-left: auto; display: inline-flex; align-items: center;
+}
+
+.btn-all-delete {
+    width: calc(100% - 20px); margin: 10px; background: #942525; color: white;
+    border: none; padding: 10px; border-radius: 6px; cursor: pointer;
+    font-weight: bold; font-size: 12px; /* Samazināts */
+}
+
+.btn-logout {
+    width: calc(100% - 20px); margin: 0 10px 10px 10px; background: #444; color: white;
+    border: none; padding: 10px; border-radius: 6px; cursor: pointer;
+    font-size: 12px; display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+
+.table-wrapper { overflow-x: auto; margin-top: 10px; }
+table { width: 100%; border-collapse: collapse; min-width: 800px; }
+th, td { padding: 10px; border-bottom: 1px solid #eee; text-align: left; font-size: 14px; }
+
+/* --- MOBILIE STILI (TIKAI TELEFONIEM) --- */
+@media (max-width: 768px) {
+    body { position: fixed; width: 100%; overflow: hidden; }
+
+    #toggle-btn {
+        position: fixed !important; left: 10px !important; top: 10px !important;
+        width: 60px !important; height: 60px !important; font-size: 30px !important; z-index: 11000;
+    }
+
+    .sidebar { position: fixed !important; left: -300px; width: 300px !important; transition: 0.3s; }
+    .sidebar:not(.collapsed) { left: 0 !important; }
+
+    .main-content { width: 100vw !important; }
     
-    /* Šīs divas rindiņas "izstums" elementu uz labo malu */
-    margin-left: auto;
-    display: flex;
-    align-items: center;
-}
-        .header-filter { padding: 8px; border: 1px solid #ddd; border-radius: 5px; background: white; min-width: 120px; }
+    /* HORIZONTĀLĀ SKROLLĒŠANA MOBILAJĀ */
+    .view-section { 
+        padding: 10px !important; 
+        overflow-x: auto !important; 
+        -webkit-overflow-scrolling: touch; 
+    }
+    .card { min-width: 850px !important; margin-top: 60px !important; }
 
-        .table-wrapper { overflow-x: auto; margin-top: 10px; }
-        table { width: 100%; border-collapse: collapse; min-width: 800px; }
-        th { text-align: left; padding: 12px; border-bottom: 2px solid #eee; background: #fafafa; font-size: 13px; }
-        td { padding: 12px; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
-
-        .gold-val { color: #b8860b; font-weight: bold; }
-        .summary-badge {
-    background: var(--sidebar-bg);
-    color: var(--accent-gold);
-    padding: 8px 15px; /* Nedaudz palielināju padding labākam skatam */
-    border-radius: 5px;
-    font-weight: bold;
+    /* MOBILĀS POGAS (LIELAS PIRKSTAM) */
+    .summary-badge { font-size: 26px !important; padding: 15px !important; height: auto !important; }
+    .btn-all-delete, .btn-logout { height: 80px !important; font-size: 20px !important; }
+    .nav-item { font-size: 28px !important; padding: 20px !important; }
     
-    /* Šīs divas rindiņas "izstums" elementu uz labo malu */
-    margin-left: auto;
-    display: flex;
-    align-items: center;
+    header h3 { font-size: 35px !important; padding-left: 70px; }
 }
 
-        .btn-add { background: var(--success); color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; margin-bottom: 15px; }
-        .btn-del { color: var(--danger); background: none; border: none; font-size: 1.2em; cursor: pointer; }
-
-        .sidebar-footer {
-            margin-top: auto;
-            padding: 20px;
-        }
-
-        .btn-all-delete {
-            width: 100%; background: #942525; color: white; border: none; 
-            padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 12px; margin-bottom: 10px;
-            white-space: nowrap;
-        }
-
-ul {
-    list-style: none;
-    padding: 0;
-}
-
-li{
-    display: flex;
-    justify-content: space-between; /* Izstumj tekstu pa kreisi, pogu pa labi */
-    align-items: center;
-    padding: 8px 12px;
-    border-bottom: 1px solid #eee;
-    max-width: 90%x; /* Vari pielāgot platumu pēc vajadzības */
-}
         
-        .sidebar.collapsed .btn-all-delete { background: #942525; padding: 10px 0; }
-
       @media (pointer: coarse), (max-width: 768px) {
     /* 1. FIKSĒJAM PAMATU */
     body {
