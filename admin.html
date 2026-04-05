@@ -307,9 +307,62 @@ li{
     }
 
     /* 5. SARAKSTI (li) */
+    .view-section h2 {
+        font-size: 26px !important;
+        margin-bottom: 20px !important;
+    }
+        ul {
+        width: 100% !important;
+        overflow-x: auto; /* Atļauj ritināt pa labi, ja saturs netiek galā */
+        -webkit-overflow-scrolling: touch; /* Gluda ritināšana iOS ierīcēs */
+        padding: 0 !important;
+    }
+
     li {
-        padding: 20px !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        min-width: 450px; /* Šis IR NOSLĒPUMS: tas izstiepj rindu garāku par ekrānu, lai varētu ritināt līdz krustiņam */
+        padding: 20px 15px !important;
+        font-size: 20px !important; /* Palielināts fonts vārdiem */
+        border-bottom: 2px solid #eee !important;
+        background: #fff;
+    }
+
+    /* Darbinieka vārds un paroles info */
+    li span {
+        font-size: 18px !important;
+        flex-grow: 1;
+    }
+
+    /* Dzēšanas krustiņš (poga) */
+    .btn-del {
+        padding: 10px 20px !important; /* Lielāks laukums pirkstam */
+        font-size: 24px !important;
+        margin-left: 20px !important;
+        color: var(--danger) !important;
+    }
+
+    /* Ievades lauki (Inputs) un pogas "Pievienot" */
+    input, select {
+        height: 55px !important; /* Augstāki lauki */
+        font-size: 18px !important;
+        margin-bottom: 15px !important;
+    }
+
+    .btn-add {
+        width: 100% !important;
+        padding: 18px !important;
         font-size: 20px !important;
+        text-transform: uppercase;
+    }
+
+    /* Kartītes (Card) pielāgošana */
+    .card {
+        padding: 15px !important;
+        width: 100% !important;
+        box-sizing: border-box;
+        border-radius: 0 !important; /* Mobilajā labāk izskatās bez noapaļotiem stūriem, ja aizņem visu platumu */
     }
 }
         
