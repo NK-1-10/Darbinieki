@@ -231,135 +231,144 @@ li{
         
         .sidebar.collapsed .btn-all-delete { background: #942525; padding: 10px 0; }
 
-        @media (pointer: coarse), (max-width: 768px) {
-    /* 1. PAMATA KONTEINERS */
-    body {
-        overflow: hidden !important; /* Neļaujam visai lapai grīļoties */
-        position: fixed;
-        width: 100%;
-    }
-
-    /* 2. BURGERA POGA */
+       @media (pointer: coarse), (max-width: 768px) {
+    /* 1. POGA - BURGERIS */
     #toggle-btn {
         position: fixed !important;
-        left: 15px !important;
-        top: 15px !important;
-        z-index: 100002 !important;
-        width: 65px !important;
+        left: 10px !important;
+        top: 10px !important;
+        z-index: 100001 !important;
+        display: flex !important;
+        width: 65px !important; /* Lielāka poga */
         height: 65px !important;
         font-size: 30px !important;
-        display: flex !important;
         background: var(--sidebar-bg) !important;
         border: 2px solid var(--accent-gold) !important;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important;
     }
 
-    /* 3. SIDEBAR */
+    /* 2. SIDEBAR - TEKSTS UN IZMĒRI */
     .sidebar {
         position: fixed !important;
-        left: -320px;
+        left: -320px; /* Platāks sidebar */
+        top: 0;
+        bottom: 0;
         width: 320px !important;
-        z-index: 100001 !important;
-        transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        z-index: 100000 !important;
     }
 
     .sidebar:not(.collapsed) {
         left: 0 !important;
     }
 
-    /* Sānjoslas teksti - Milzīgi */
-    .nav-item {
-        padding: 22px 25px !important;
-        font-size: 24px !important;
+    .sidebar-header h2 {
+        font-size: 26px !important; /* Lielāks virsraksts sidebarā */
+        padding-top: 10px;
     }
 
-    /* 4. GALVENAIS SATURS UN SKROLLĒŠANA */
+    .nav-label {
+        font-size: 16px !important; /* Grupu nosaukumi (Iestatījumi/Atskaites) */
+        margin-top: 20px;
+    }
+
+    .nav-item {
+        padding: 20px 25px !important; /* Augstākas izvēlnes rindas */
+        font-size: 22px !important; /* Milzīgs teksts izvēlnē */
+    }
+
+    .nav-item i {
+        font-size: 26px !important;
+        margin-right: 20px !important;
+    }
+
+    /* 3. SATURA BĪDĪŠANA UN FONS */
     .main-content {
         margin-left: 0 !important;
-        width: 100vw !important;
+        width: 100% !important;
         height: 100vh !important;
-        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-        display: flex !important;
-        flex-direction: column !important;
+        overflow: hidden !important; /* Nofiksējam fonu (mašīnu) */
+        transition: transform 0.3s ease;
     }
 
-    /* Kad sidebar ir vaļā, mēs nobīdām visu saturu */
-    .sidebar:not(.collapsed) ~ .main-content {
+    /* Nobīdām tikai view-section, nevis visu body */
+    .sidebar:not(.collapsed) ~ .main-content .view-section {
         transform: translateX(320px) !important;
     }
 
     header {
-        height: 100px !important;
-        padding-left: 90px !important;
-        flex-shrink: 0 !important;
+        height: 100px !important; /* Augstāks headers */
+        padding-left: 85px !important;
+        display: flex;
+        align-items: center;
     }
 
     #current-view-title {
-        font-size: 32px !important;
+        font-size: 32px !important; /* Lielais virsraksts augšā */
+        font-weight: bold;
     }
 
-    /* 5. VIEW SECTION - Šeit notiek horizontālā maģija */
+    /* 4. POGAS UN KARTĪTES */
     .view-section {
-        flex-grow: 1 !important;
-        padding: 15px !important;
-        overflow-x: auto !important; /* ATĻAUJ SKROLLĒT PA LABI/KREISI */
-        overflow-y: auto !important; /* ATĻAUJ SKROLLĒT UZ LEJU */
-        display: none;
-        -webkit-overflow-scrolling: touch; /* Gluda skrollēšana iOS */
+        padding: 10px !important;
+        margin-top: 0 !important;
+        height: calc(100vh - 100px) !important;
+        overflow-x: auto !important; /* Atļauj skrollēt sarakstu */
     }
 
-    .view-section.active {
-        display: block !important;
-    }
-
-    /* 6. CARD - Tā kļūst par platu joslu */
     .card {
-        min-width: 850px !important; /* PIESPIEŽAM platumu, lai būtu ko skrollēt */
-        background: white !important;
-        border-radius: 15px !important;
+        min-width: 800px !important; /* Saturs nevar saspiesties */
         padding: 25px !important;
-        box-shadow: 0 5px 25px rgba(0,0,0,0.1) !important;
-        margin-bottom: 50px !important;
     }
 
-    /* 7. POGAS UN SARAKSTS */
+    /* VISAS PIEVIENOŠANAS POGAS */
     .btn-add {
-        height: 80px !important; /* Milzīga poga */
-        font-size: 26px !important;
-        position: sticky !important; /* Poga paliek redzama, kad skrollē pa labi */
-        left: 0;
+        height: 70px !important; /* Ļoti augstas pogas pirkstam */
+        font-size: 24px !important;
         width: 100% !important;
-        max-width: 500px !important;
+        margin-bottom: 25px !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
+    /* 5. SARAKSTA ELEMENTI (LI) */
     li {
-        min-height: 120px !important;
-        padding: 20px 0 !important;
-        border-bottom: 3px solid #f0f0f0 !important;
+        min-height: 110px !important; /* Katra rinda ir liela */
+        padding: 15px !important;
     }
 
     li strong {
-        font-size: 30px !important;
+        font-size: 28px !important; /* Darbinieka vārds */
     }
 
     li span {
-        font-size: 22px !important;
+        font-size: 20px !important; /* Paroles un apraksti */
     }
 
     .btn-del {
-        font-size: 45px !important; /* Krustiņš, kuru nevar aizšaut garām */
-        padding: 15px 30px !important;
-        color: var(--danger) !important;
+        font-size: 40px !important; /* Krustiņi milzīgi */
+        padding: 10px 25px !important;
     }
 
-    /* Tabulas atskaitēs */
-    table {
-        min-width: 1000px !important; /* Atskaites ir vēl platākas */
+    /* 6. TABULAS FILTRI (ATSKAITĒS) */
+    .table-controls {
+        gap: 15px !important;
     }
-    
-    th, td {
-        font-size: 20px !important;
-        padding: 20px !important;
+
+    .header-filter {
+        height: 60px !important; /* Filtru izvēlnes augstas */
+        font-size: 18px !important;
+        min-width: 160px !important;
+    }
+
+    .summary-badge {
+        font-size: 22px !important;
+        padding: 15px !important;
+    }
+
+    /* DZĒST VISUS DATUS POGA */
+    .btn-all-delete {
+        height: 60px !important;
+        font-size: 16px !important;
     }
 }
         
