@@ -232,12 +232,12 @@ li{
         .sidebar.collapsed .btn-all-delete { background: #942525; padding: 10px 0; }
 
 @media (pointer: coarse), (max-width: 768px) {
-    /* 1. POGA - Vienmēr stūrī, lai nekas nepazūd */
+    /* 1. POGA - Vienmēr fiksēta tajā pašā vietā */
     #toggle-btn {
         position: fixed !important;
         left: 10px !important;
         top: 15px !important;
-        z-index: 100001 !important; /* Augstāk par visu */
+        z-index: 100001 !important;
         display: flex !important;
         width: 50px !important;
         height: 50px !important;
@@ -245,7 +245,7 @@ li{
         border: 1px solid var(--accent-gold) !important;
     }
 
-    /* 2. SIDEBAR - Izbrauc virsū, bet neko nesaspiež */
+    /* 2. SIDEBAR - Fiksēts */
     .sidebar {
         position: fixed !important;
         left: -280px; 
@@ -253,71 +253,61 @@ li{
         bottom: 0;
         width: 280px !important;
         z-index: 100000 !important;
-        transition: left 0.3s ease !important;
+        transition: left 0.3s ease-in-out !important;
     }
 
+    /* Kad sidebar ir VAĻĀ (nav collapsed) */
     .sidebar:not(.collapsed) {
         left: 0 !important;
     }
 
-    /* 3. GALVENAIS SATURS - Ļaujam tam būt platākam par ekrānu */
+    /* 3. SATURA BĪDĪŠANA (Šis ir tas, ko tu prasīji) */
     .main-content {
         margin-left: 0 !important;
         width: 100% !important;
-        height: 100vh !important;
-        display: block !important;
-        overflow-x: auto !important; /* ŠIS ATĻAUJ SCROLL PA LABI/KREISI */
-        overflow-y: hidden !important;
-        -webkit-overflow-scrolling: touch;
+        transition: transform 0.3s ease-in-out !important; /* Gluda nobīde */
     }
 
-    header {
-        width: 100% !important;
-        min-width: 375px; /* Telefona minimālais platums */
-        padding-left: 70px !important;
-        height: 80px !important;
-        background: white !important;
+    /* Ja sānjosla ir VAĻĀ, nobīdām visu galveno saturu pa labi */
+    .sidebar:not(.collapsed) ~ .main-content {
+        transform: translateX(280px) !important;
     }
 
-    /* 4. CARD - Šis tagad ir tavs "darba lauks" */
+    /* 4. CARD UN SKROLLĒŠANA */
     .view-section {
         padding: 10px !important;
-        width: 100vw !important; /* Sākumā platums ir precīzs ekrānam */
+        width: 100vw !important;
         height: calc(100vh - 80px) !important;
+        margin-top: 60px !important;
     }
 
     .card {
-        min-width: 800px !important; /* PIESPIEŽAM būt platākam, lai useris VARētu scrollēt */
+        min-width: 600px !important; /* Saglabā platumu, lai varētu skrollēt vārdus */
         height: 100% !important;
         display: flex !important;
         flex-direction: column !important;
-        padding: 20px !important;
-        border-radius: 0 !important;
+        overflow-x: auto !important; 
+        -webkit-overflow-scrolling: touch;
         background: white !important;
     }
 
-    /* 5. FONTI UN SARAKSTS */
+    /* 5. VĀRDU IZMĒRS */
     li, li strong, li span {
-        font-size: 28px !important; /* Milzīgi vārdi */
-    }
-
-    ul {
-        flex: 1 !important;
-        overflow-y: auto !important;
-        padding: 0 !important;
+        font-size: 28px !important;
+        white-space: nowrap !important; /* Neļauj vārdiem pārlūzt rindās */
     }
 
     li {
-        padding: 20px 0 !important;
+        min-height: 90px !important;
         border-bottom: 2px solid #eee !important;
         display: flex !important;
         justify-content: space-between !important;
+        align-items: center !important;
     }
 
-    .btn-add {
-        width: 100% !important;
-        padding: 20px !important;
-        font-size: 22px !important;
+    header {
+        background: white !important;
+        padding-left: 70px !important;
     }
 }
         
