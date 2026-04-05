@@ -307,21 +307,53 @@ li{
     font-size: 50px !important;
     font-weight: 700;       /* Padarām treknāku */
 }  
-           #resourceList li strong {
-    font-size: 50px !important; /* Šeit maini skaitli, lai palielinātu/samazinātu */
-    color: #1a3025;            /* Tumši zaļais tonis */
-    display: block;            /* Novieto nosaukumu atsevišķā rindā */
-    margin-bottom: 5px;        /* Atstarpe līdz valsts numuram */
-    font-weight: 700;   
-    }/* Padarām treknāku */
+           #resourceList li {
+        padding: 20px 0 !important;
+        border-bottom: 2px solid #eee !important;
+    }
 
-/* Automašīnas numurzīme vai apraksts (span) */
-#resourceList li span {
-    font-size: 50px !important;
-    font-weight: 700;       /* Padarām treknāku */
-}  
+    /* 2. NOSAUKUMS UN DAUDZUMS (Augšējā rinda) */
+    #resourceList li strong, 
+    #resourceList li .gold-val {
+        font-size: 20px !important;
+        margin-bottom: 10px;
+    }
 
+    /* 3. IEVADES LAUKS (Input) */
+    #resourceList li input[type="number"] {
+        height: 60px !important;    /* Krietni augstāks */
+        font-size: 20px !important;  /* Lielāks teksts iekšā */
+        padding: 0 15px !important;
+        border-radius: 8px !important;
+        border: 1px solid #ccc !important;
+    }
 
+    /* 4. KONTROLES POGAS (+ un -) */
+    #resourceList li button[onclick*="adjustRes"] {
+        width: 70px !important;     /* Platākas pogas pirkstam */
+        height: 60px !important;    /* Vienādā augstumā ar input */
+        font-size: 28px !important;  /* Lieli + un - simboli */
+        font-weight: bold !important;
+        border-radius: 8px !important;
+    }
+
+    /* 5. DZĒŠANAS POGA (X) */
+    #resourceList li .btn-del {
+        width: 60px !important;
+        height: 60px !important;
+        font-size: 24px !important;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        margin-left: 5px !important;
+        border-radius: 8px !important;
+    }
+
+    /* 6. Izkārtojuma labojums pogu rindai */
+    #resourceList li div:last-child {
+        gap: 12px !important; /* Lielāka atstarpe starp pogām */
+    }
+}
           
 
     /* 2. SIDEBAR - Fiksēts un vienmēr pa virsu */
