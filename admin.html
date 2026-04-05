@@ -232,110 +232,82 @@ li{
         .sidebar.collapsed .btn-all-delete { background: #942525; padding: 10px 0; }
 
         /* MOBILO IERĪČU UN PIESIENIENA EKRĀNU STILI */
-@media (pointer: coarse){
-    /* Galvenie fontu palielinājumi */
-    body { 
-        font-size: 18px; /* Palielināts bāzes fonts */
-    }
-
-    /* SĀNJOSLA (SIDEBAR) - Padarām to par "uznirstošu" no sāniem */
+@media (pointer: coarse), (max-width: 768px) {
+    /* 1. SIDEBAR LABOJUMS */
     .sidebar { 
-        position: fixed; 
-        top: 0;
-        left: -280px; /* Sākumā paslēpts pa kreisi */
-        width: 280px; 
-        height: 100vh;
-        z-index: 9999;
-        transition: left 0.3s ease-in-out;
-        background: var(--sidebar-bg);
-        box-shadow: none;
+        position: fixed !important; 
+        top: 0 !important;
+        left: -280px; /* Sākumā paslēpts */
+        width: 280px !important; 
+        height: 100vh !important;
+        z-index: 99999 !important; /* Maksimāla prioritāte, lai nepazūd zem kartēm */
+        transition: left 0.3s ease-in-out !important;
+        background: var(--sidebar-bg) !important;
+        display: flex !important; /* Pārliecināmies, ka nav display: none */
     }
 
-    .sidebar.active { 
-        left: 0; 
-        box-shadow: 5px 0 15px rgba(0,0,0,0.3);
+    /* Kad JS pievieno klasi .active vai .open (pārbaudi, kuru klasi izmanto tavs JS) */
+    .sidebar.active, .sidebar.open { 
+        left: 0 !important; 
+        box-shadow: 10px 0 20px rgba(0,0,0,0.5) !important;
     }
 
-    /* Sānjoslas elementi - lielāki, lai vieglāk trāpīt */
+    /* 2. MILZĪGI FONTI UN POGAS */
     .nav-item {
-        padding: 18px 25px; /* Lielāka zona pirkstam */
-        font-size: 18px !important; 
+        padding: 20px 25px !important; 
+        font-size: 20px !important; /* Liels fonts sānjoslā */
     }
 
     .nav-label {
-        font-size: 16px !important; /* Grupu nosaukumi (DARBINIEKI, ATSKAITES) */
-        padding: 20px 25px 10px;
+        font-size: 16px !important;
+        padding: 25px 25px 10px !important;
+        opacity: 0.8 !important;
     }
 
     .sidebar-header h2 {
-        font-size: 22px !important;
+        font-size: 24px !important;
+        padding: 10px 0 !important;
     }
 
-    /* GALVENAIS SATURS */
-    header {
-        padding: 10px 20px;
-        height: auto;
-        min-height: 80px;
+    /* 3. GALVENAIS SATURS UN VIRSRAKSTI */
+    .main-content {
+        margin-left: 0 !important; /* Mobilajā saturs nevar bīdīties */
+        width: 100% !important;
     }
 
     .current-view-title {
-        font-size: 24px !important;
-        margin-left: 10px;
+        font-size: 28px !important; /* Ļoti liels virsraksts */
+        margin-left: 60px !important; /* Vieta burgera pogai */
     }
 
-    /* KARTES UN TABULAS */
-    .view-section {
-        padding: 15px; /* Mazāk tukšuma sānos uz maza ekrāna */
+    header {
+        height: 80px !important;
     }
 
-    .card {
-        padding: 20px;
-        border-radius: 15px;
-    }
-
-    /* TABULAS KONTROLES (Filtri un Badge) */
+    /* 4. TABULAS UN FILTRI */
     .table-controls {
-        flex-direction: column; /* Mobilajā liekam vienu zem otra */
-        align-items: stretch;
+        flex-direction: column !important;
+        gap: 15px !important;
     }
 
     .header-filter {
-        width: 100%; /* Filtri aizņem visu platumu */
-        font-size: 16px;
-        padding: 12px;
+        width: 100% !important;
+        height: 55px !important; /* Augstāki lauki pirkstiem */
+        font-size: 18px !important;
     }
 
     .summary-badge {
-        margin-left: 0; /* Noņemam auto-left, lai rādās pa visu platumu */
-        width: 100%;
-        justify-content: center;
-        font-size: 18px;
-        margin-top: 10px;
-        padding: 12px;
+        width: 100% !important;
+        margin-left: 0 !important;
+        font-size: 22px !important; /* Izcelta kopsumma */
+        padding: 15px !important;
+        justify-content: center !important;
     }
 
-    /* TABULAS DATI */
-    td, th {
-        padding: 15px 10px;
-        font-size: 16px;
-    }
-
-    /* POGAS */
-    .btn-add {
-        width: 100%; /* "Pievienot" poga pa visu platumu */
-        padding: 15px;
-        font-size: 18px;
-    }
-
-    .btn-all-delete {
-        padding: 15px;
-        font-size: 14px;
-    }
-
-    /* Saraksta elementi (li), ko sūtīji beigās */
+    /* 5. SARAKSTI (li) */
     li {
-        padding: 15px;
-        font-size: 18px;
+        padding: 20px !important;
+        font-size: 20px !important;
     }
 }
         
