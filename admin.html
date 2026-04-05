@@ -231,44 +231,112 @@ li{
         
         .sidebar.collapsed .btn-all-delete { background: #942525; padding: 10px 0; }
 
-        @media (pointer: coarse), (max-width: 768px) {
+        /* MOBILO IERĪČU UN PIESIENIENA EKRĀNU STILI */
+@media (pointer: coarse){
+    /* Galvenie fontu palielinājumi */
+    body { 
+        font-size: 18px; /* Palielināts bāzes fonts */
+    }
+
+    /* SĀNJOSLA (SIDEBAR) - Padarām to par "uznirstošu" no sāniem */
     .sidebar { 
         position: fixed; 
         top: 0;
-        bottom: 0;
-        /*left: -100%; /* Drošāk nekā fiksēti pikseļi, pilnībā iziet no ekrāna */
+        left: -280px; /* Sākumā paslēpts pa kreisi */
         width: 280px; 
         height: 100vh;
-        z-index: 9999; /* Obligāti, lai būtu virs visām pogām un kartēm */
-        transition: left 0.3s ease-in-out; /* Maigāka kustība */
+        z-index: 9999;
+        transition: left 0.3s ease-in-out;
+        background: var(--sidebar-bg);
         box-shadow: none;
-        background: var(--saulstari-green); /* Pārliecinies, ka krāsa sakrīt */
     }
 
     .sidebar.active { 
         left: 0; 
-        box-shadow: 5px 0 15px rgba(0,0,0,0.3); /* Vizuāls dziļums, kad atvērts */
+        box-shadow: 5px 0 15px rgba(0,0,0,0.3);
+    }
+
+    /* Sānjoslas elementi - lielāki, lai vieglāk trāpīt */
+    .nav-item {
+        padding: 18px 25px; /* Lielāka zona pirkstam */
+        font-size: 18px !important; 
     }
 
     .nav-label {
-        font-size: 22px; /* Mazliet lielāks pirkstiem */
-        padding: 15px 0;
+        font-size: 16px !important; /* Grupu nosaukumi (DARBINIEKI, ATSKAITES) */
+        padding: 20px 25px 10px;
+    }
+
+    .sidebar-header h2 {
+        font-size: 22px !important;
+    }
+
+    /* GALVENAIS SATURS */
+    header {
+        padding: 10px 20px;
+        height: auto;
+        min-height: 80px;
     }
 
     .current-view-title {
-        font-size: 28px;
-        margin-left: 50px; /* Atstāj vietu burgera pogai augšējā stūrī */
+        font-size: 24px !important;
+        margin-left: 10px;
     }
 
-    /* Ieteicams: fona aptumšojums, kad sidebar ir vaļā */
-    .sidebar-overlay {
-        display: none;
-        position: fixed;
-        top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0,0,0,0.5);
-        z-index: 9998;
+    /* KARTES UN TABULAS */
+    .view-section {
+        padding: 15px; /* Mazāk tukšuma sānos uz maza ekrāna */
     }
-    .sidebar-overlay.active { display: block; }
+
+    .card {
+        padding: 20px;
+        border-radius: 15px;
+    }
+
+    /* TABULAS KONTROLES (Filtri un Badge) */
+    .table-controls {
+        flex-direction: column; /* Mobilajā liekam vienu zem otra */
+        align-items: stretch;
+    }
+
+    .header-filter {
+        width: 100%; /* Filtri aizņem visu platumu */
+        font-size: 16px;
+        padding: 12px;
+    }
+
+    .summary-badge {
+        margin-left: 0; /* Noņemam auto-left, lai rādās pa visu platumu */
+        width: 100%;
+        justify-content: center;
+        font-size: 18px;
+        margin-top: 10px;
+        padding: 12px;
+    }
+
+    /* TABULAS DATI */
+    td, th {
+        padding: 15px 10px;
+        font-size: 16px;
+    }
+
+    /* POGAS */
+    .btn-add {
+        width: 100%; /* "Pievienot" poga pa visu platumu */
+        padding: 15px;
+        font-size: 18px;
+    }
+
+    .btn-all-delete {
+        padding: 15px;
+        font-size: 14px;
+    }
+
+    /* Saraksta elementi (li), ko sūtīji beigās */
+    li {
+        padding: 15px;
+        font-size: 18px;
+    }
 }
         
     </style>
