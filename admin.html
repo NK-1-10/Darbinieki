@@ -240,35 +240,47 @@ li{
         overflow: hidden;
         margin: 0;
     }
-          .sidebar a, .sidebar button {
-        padding: 18px 20px !important; /* Lielākas iekšējās atkāpes */
-        font-size: 24px !important;    /* Lielāks teksta izmērs */
-        margin-bottom: 8px !important;  /* Atstarpe starp pogām */
-        display: flex !important;
-        align-items: center !important;
-        min-height: 60px !important;   /* Garantēts augstums pirkstam */
-        border-radius: 8px !important;
-        transition: background 0.2s !important;
+          .sidebar .section-title, 
+    .sidebar h4, 
+    .sidebar small {
+        font-size: 16px !important; /* Padarām grupu virsrakstus nedaudz lielākus */
+        margin-top: 20px !important;
+        margin-bottom: 10px !important;
+        display: block;
+        padding-left: 15px;
+        color: #aaa !important; /* Gaišāks pelēks, lai labāk lasās */
     }
 
-    /* 2. IKONAS POGU IEKŠPUSĒ (ja Tev tādas ir, piemēram, FontAwesome) */
-    .sidebar a i, .sidebar button i {
-        font-size: 26px !important;    /* Lielākas ikonas */
-        margin-right: 15px !important; /* Lielāka atstarpe starp ikonu un tekstu */
-        width: 30px !important;        /* Noafiksējam platumu, lai teksts būtu izlīdzināts */
+    /* 2. PAŠAS IZVĒLNES POGAS (Darbinieki, Mašīnas utt.) */
+    .sidebar a, 
+    .sidebar .nav-link {
+        font-size: 20px !important;      /* Krietni lielāks teksts */
+        padding: 15px 20px !important;   /* Augstākas pogas pirkstam */
+        margin: 5px 10px !important;     /* Atstarpes starp pogām */
+        display: flex !important;
+        align-items: center !important;
+        border-radius: 8px !important;   /* Noapaļoti stūri modernākam izskatam */
+        min-height: 55px !important;     /* Garantēts minimālais augstums */
+    }
+
+    /* 3. IKONAS PIE POGĀM */
+    .sidebar a i, 
+    .sidebar a img, 
+    .sidebar a emoji {
+        font-size: 24px !important;      /* Lielākas ikonas/emodži */
+        margin-right: 15px !important;   /* Lielāka atstarpe līdz tekstam */
+        width: 30px !important;          /* Vienāds platums visām ikonām */
         text-align: center;
     }
 
-    /* 3. AKTĪVĀS POGAS IZCELŠANA */
-    .sidebar a.active, .sidebar a:active {
-        background-color: var(--accent-gold) !important;
-        color: var(--sidebar-bg) !important;
-        font-weight: bold !important;
-    }
-
-    /* 4. SIDEBAR SATURA RAKSTS (scrolling iekš sidebar) */
-    .sidebar-content {
-        padding: 80px 15px 20px 15px !important; /* Augšējā atkāpe, lai burgera poga neaizsedz pirmo pogu */
+    /* 4. APAKŠĒJĀS POGAS (Dzēst datus, Iziet) */
+    .sidebar .bottom-buttons a,
+    .btn-danger-admin,
+    #logout-btn {
+        font-size: 18px !important;
+        padding: 15px !important;
+        height: auto !important;
+        margin: 10px !important;
     }
           
           #workerList li strong {
