@@ -15,6 +15,9 @@
     --success: #27ae60;
     --error: #e74c3c;
 }
+
+        thead { cursor: pointer; user-select: none; }
+.hidden-body { display: none; }
 /* --- PAMATA STILI (Datoram) --- */
 body { 
     font-family: 'Segoe UI', Roboto, sans-serif; 
@@ -383,7 +386,7 @@ td { padding: 12px 15px; border-bottom: 1px solid #eee; text-align: center; }
                     <th>Stundas</th>
                 </tr>
             </thead>
-            <tbody>`;
+            <tbody id="tableBody">`;
 
         const filteredData = data.filter(e => {
             const darbaVeids = e.darbs || "";
@@ -408,6 +411,16 @@ td { padding: 12px 15px; border-bottom: 1px solid #eee; text-align: center; }
 
         html += `</tbody></table>`;
         container.innerHTML = html;
+
+        document.getElementById("tableHeader").onclick = function() {
+        const body = document.getElementById("tableBody");
+        if (body.classList.contains("hidden-body")) {
+            body.classList.remove("hidden-body");
+        } else {
+            body.classList.add("hidden-body");
+        }
+    };
+        
     }
 
     document.getElementById("AtWork").onclick = () => {
