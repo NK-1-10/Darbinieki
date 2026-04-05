@@ -240,6 +240,74 @@ li{
         overflow: hidden;
         margin: 0;
     }
+          .table-controls {
+        display: flex !important;
+        flex-direction: column !important; /* Uz mobila ērtāk vienu zem otra vai skrollējamu */
+        gap: 12px !important;
+        padding: 15px 0 !important;
+    }
+
+    /* Paši filtru lauki (Select un Input) */
+    .table-controls select, 
+    .table-controls input,
+    .header-filter {
+        height: 55px !important;      /* Liels, viegli spiežams lauks */
+        font-size: 18px !important;    /* Skaidri salasāms teksts */
+        padding: 0 15px !important;
+        width: 100% !important;        /* Aizņem pilnu platumu */
+        border-radius: 8px !important;
+        border: 1px solid #ccc !important;
+        background-color: #f9f9f9 !important;
+    }
+
+    /* 2. PAŠA TABULA */
+    .report-table, table {
+        min-width: 800px !important;   /* Piespiežam tabulai būt platai, lai tā būtu skrollējama */
+        border-collapse: separate !important;
+        border-spacing: 0 5px !important; /* Atstarpes starp rindām vizuālai tīrībai */
+    }
+
+    /* Tabulas galvene (Th) */
+    table th {
+        font-size: 18px !important;
+        padding: 15px 10px !important;
+        background: #f2f2f2 !important;
+        position: sticky;
+        top: 0;
+    }
+
+    /* Tabulas šūnas (Td) */
+    table td {
+        font-size: 17px !important;    /* Palielināts datu izmērs */
+        padding: 15px 10px !important; /* Vairāk vietas ap tekstu */
+        vertical-align: middle !important;
+        border-bottom: 1px solid #eee !important;
+    }
+
+    /* 3. SUMMAS UN KOPSAVILKUMI */
+    .total-row, .summary-box {
+        font-size: 22px !important;    /* Izceļam kopsummas */
+        font-weight: bold !important;
+        padding: 20px !important;
+        margin-top: 15px !important;
+        background: #fff9e6 !important; /* Viegli iekrāsojam, lai izceļas */
+        border: 1px solid var(--accent-gold) !important;
+        border-radius: 8px;
+    }
+
+    /* 4. SKROLLĒŠANAS KONTEINERS */
+    /* Pārliecinies, ka tabula atrodas elementā ar šādu klasi vai ID */
+    .table-wrapper {
+        overflow-x: auto !important;   /* Iespējo horizontālo skrollu */
+        -webkit-overflow-scrolling: touch;
+        margin-top: 10px;
+        border: 1px solid #eee;
+        border-radius: 8px;
+    }
+
+
+
+          
           .sidebar .section-title, 
     .sidebar h4, 
     .sidebar small {
