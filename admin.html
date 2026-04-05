@@ -231,7 +231,19 @@
     align-items: center;
 }
 
-        .btn-add { background: var(--success); color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; margin-bottom: 15px; }
+.btn-add {
+        position: sticky;
+        left: 0;
+        width: 100% !important;
+        max-width: calc(100vw - 40px); /* Pielāgojas ekrānam */
+        height: 60px !important;
+        font-size: 18px !important;
+        z-index: 10;
+        margin-bottom: 20px !important;
+        background-color: var(--sidebar-bg);
+    color: var(--accent-gold)
+    }
+        
         .btn-del { color: var(--danger); background: none; border: none; font-size: 1.2em; cursor: pointer; }
 
         .sidebar-footer {
