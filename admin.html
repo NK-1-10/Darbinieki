@@ -239,136 +239,119 @@ li{
         top: 10px !important;
         z-index: 100001 !important;
         display: flex !important;
-        width: 65px !important; /* Lielāka poga */
+        width: 65px !important;
         height: 65px !important;
         font-size: 30px !important;
         background: var(--sidebar-bg) !important;
         border: 2px solid var(--accent-gold) !important;
     }
 
-    /* 2. SIDEBAR - TEKSTS UN IZMĒRI */
+    /* 2. SIDEBAR */
     .sidebar {
         position: fixed !important;
-        left: -320px; /* Platāks sidebar */
+        left: -320px;
         top: 0;
         bottom: 0;
         width: 320px !important;
         z-index: 100000 !important;
+        transition: left 0.3s ease !important;
     }
 
     .sidebar:not(.collapsed) {
         left: 0 !important;
     }
 
-    .sidebar-header h2 {
-        font-size: 26px !important; /* Lielāks virsraksts sidebarā */
-        padding-top: 10px;
-    }
-
-    .nav-label {
-        font-size: 16px !important; /* Grupu nosaukumi (Iestatījumi/Atskaites) */
-        margin-top: 20px;
-    }
-
-    .nav-item {
-        padding: 20px 25px !important; /* Augstākas izvēlnes rindas */
-        font-size: 22px !important; /* Milzīgs teksts izvēlnē */
-    }
-
-    .nav-item i {
-        font-size: 26px !important;
-        margin-right: 20px !important;
-    }
-
-    /* 3. SATURA BĪDĪŠANA UN FONS */
+    /* 3. SATURA BĪDĪŠANA */
     .main-content {
         margin-left: 0 !important;
         width: 100% !important;
         height: 100vh !important;
-        overflow: hidden !important; /* Nofiksējam fonu (mašīnu) */
-        transition: transform 0.3s ease;
-    }
-
-    /* Nobīdām tikai view-section, nevis visu body */
-    .sidebar:not(.collapsed) ~ .main-content .view-section {
-        transform: translateX(320px) !important;
+        overflow-x: hidden !important; /* Novērš visas lapas horizontālo skrollu */
     }
 
     header {
-        height: 100px !important; /* Augstāks headers */
+        height: 100px !important;
         padding-left: 85px !important;
         display: flex;
         align-items: center;
     }
 
     #current-view-title {
-        font-size: 32px !important; /* Lielais virsraksts augšā */
-        font-weight: bold;
+        font-size: 28px !important;
     }
 
-    /* 4. POGAS UN KARTĪTES */
+    /* 4. SEKCIJAS UN KARTĪTES (Scroll risinājums šeit) */
     .view-section {
-        padding: 10px !important;
-        margin-top: 0 !important;
-        height: calc(100vh - 100px) !important;
-        overflow-x: auto !important; /* Atļauj skrollēt sarakstu */
+        padding: 15px !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        overflow-y: auto !important;
     }
 
     .card {
-        min-width: 800px !important; /* Saturs nevar saspiesties */
-        padding: 25px !important;
+        /* Šis nodrošina, ka pati kartīte kļūst horizontāli skrollējama */
+        overflow-x: auto !important; 
+        -webkit-overflow-scrolling: touch; /* Gludāks skrolls uz iPhone */
+        padding: 20px !important;
+        display: block !important;
     }
 
-    /* VISAS PIEVIENOŠANAS POGAS */
+    /* Nodrošinām, ka saraksts iekšpusē netiek saspiests */
+    #workerList, #carList, #workList, #objectList, #resourceList {
+        min-width: 500px !important; /* Minimālais platums, lai parādītos skrolls */
+    }
+
     .btn-add {
-        height: 70px !important; /* Ļoti augstas pogas pirkstam */
-        font-size: 24px !important;
+        height: 60px !important;
+        font-size: 20px !important;
         width: 100% !important;
-        margin-bottom: 25px !important;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        margin-bottom: 20px !important;
+        position: sticky; /* Poga paliek redzama pat ja skrollē sarakstu */
+        left: 0;
     }
 
     /* 5. SARAKSTA ELEMENTI (LI) */
     li {
-        min-height: 110px !important; /* Katra rinda ir liela */
+        min-height: 80px !important;
         padding: 15px !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        white-space: nowrap !important; /* Neļauj tekstam pārlēkt jaunā rindā */
     }
 
     li strong {
-        font-size: 28px !important; /* Darbinieka vārds */
+        font-size: 22px !important;
     }
 
     li span {
-        font-size: 20px !important; /* Paroles un apraksti */
+        font-size: 18px !important;
     }
 
     .btn-del {
-        font-size: 40px !important; /* Krustiņi milzīgi */
-        padding: 10px 25px !important;
+        font-size: 30px !important;
+        padding: 10px 20px !important;
     }
 
     /* 6. TABULAS FILTRI (ATSKAITĒS) */
     .table-controls {
-        gap: 15px !important;
+        display: flex !important;
+        flex-wrap: nowrap !important; /* Filtri vienā rindā */
+        overflow-x: auto !important; /* Filtri skrollējami horizontāli */
+        padding-bottom: 10px;
+        gap: 10px !important;
     }
 
     .header-filter {
-        height: 60px !important; /* Filtru izvēlnes augstas */
-        font-size: 18px !important;
-        min-width: 160px !important;
+        height: 50px !important;
+        font-size: 16px !important;
+        flex-shrink: 0 !important; /* Neļauj filtriem sarauties */
     }
 
     .summary-badge {
-        font-size: 22px !important;
-        padding: 15px !important;
-    }
-
-    /* DZĒST VISUS DATUS POGA */
-    .btn-all-delete {
-        height: 60px !important;
-        font-size: 16px !important;
+        font-size: 18px !important;
+        flex-shrink: 0 !important;
+        margin-left: 10px !important;
     }
 }
         
