@@ -128,84 +128,89 @@ body {
 }
         .modal-content { background: white; padding: 25px; border-radius: 12px; width: 90%; max-width: 400px; text-align: left; }
 
-        @media (pointer: coarse) { /* --------------------------------------------------------------------------------------------------------------------*/
-    /* 1. KARTĪTE - Tagad tā ir stabila un nešūpojas */
+        /* -----------------------------------------------------------------------------------------------------------------------------------------*/
+        @media (pointer: coarse) {
+    /* 1. PAMATA LAPAS IESTATĪJUMI */
+    body {
+        padding: 5px !important; /* Mazāk tukšuma malu malās */
+    }
+
+    /* 2. KARTĪTE (Galvenais rāmis pogām) */
     .card {
-        width: 92vw !important; /* Mazliet šaurāka par ekrānu, lai izskatās pēc kartītes */
+        width: 96vw !important;
         height: auto !important;
-        margin: 10px auto !important;
-        padding: 20px 15px !important;
+        min-height: auto !important;
+        margin: 5px auto !important;
+        padding: 20px 10px !important;
+        box-sizing: border-box !important;
         display: block !important;
-        overflow: visible !important; /* Atļaujam iekšējam konteineram darboties */
     }
 
-    /* 2. TABULAS KONTEINERS - Šis ir "logs", kurā redzēs tabulu */
-    #tableContainer {
-        width: 100% !important;
-        overflow-x: auto !important; /* Iespējo horizontālo scrollu */
-        display: block !important;
-        -webkit-overflow-scrolling: touch; /* Gluda skrollēšana iOS */
-        margin-top: 25px !important;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-    }
-
-    /* 3. PATI TABULA - Šeit mēs ieliekam lielu platumu */
-    table {
-        /* Piespiežam tabulu būt platāku par ekrānu (1000px vai pat vairāk) */
-        min-width: 1100px !important; 
-        width: 1100px !important;
-        table-layout: fixed !important; /* Fiksē kolonnu platumu */
-        border-collapse: collapse;
-    }
-
-    /* Tabulas šūnas - padarām tās lielas un viegli lasāmas */
-    th, td {
-        padding: 15px 10px !important;
-        font-size: 18px !important;
-        text-align: left;
-        border-bottom: 1px solid #eee;
-    }
-
-    /* 4. POGAS UN TEKSTS (Milzīgas pogas, lai viegli trāpīt ar pirkstu) */
-    button {
-        height: 80px !important;
-        font-size: 24px !important;
-        margin: 10px 0 !important;
-        border-radius: 15px !important;
-    }
-
+    /* 3. MILZĪGAS POGAS UN SELEKTI */
     #AtWork, #LeaveWork, #startBtn, #stopBtn, #OpenResourceBtn {
-        height: 100px !important;
-        font-size: 28px !important;
+        height: 110px !important; /* Ļoti augstas pogas */
+        font-size: 32px !important; /* Liels teksts */
+        border-radius: 20px !important;
+        margin-bottom: 15px !important;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2) !important;
     }
 
     select {
-        height: 70px !important;
-        font-size: 22px !important;
-        margin-bottom: 15px !important;
+        height: 80px !important;
+        font-size: 26px !important;
+        margin: 10px 0 !important;
     }
 
     #welcome {
-        font-size: 32px !important;
-        margin-bottom: 20px !important;
+        font-size: 36px !important;
+        margin-bottom: 25px !important;
     }
 
     #status {
-        font-size: 24px !important;
-        padding: 15px !important;
-    }
-
-    #ieraksti {
-        font-size: 30px !important;
-        margin-top: 30px !important;
-        padding: 0 10px;
+        font-size: 28px !important;
+        padding: 20px !important;
     }
 
     #logoutBtn {
-        height: 60px !important;
-        font-size: 20px !important;
-        margin-top: 30px !important;
+        height: 70px !important;
+        font-size: 22px !important;
+        margin-top: 40px !important;
+    }
+
+    /* 4. TABULAS SEKCIJA - "IZIET ĀRĀ" NO EKRĀNA */
+    #ieraksti {
+        font-size: 34px !important;
+        margin: 40px 0 20px 0 !important;
+    }
+
+    #tableContainer {
+        width: 100vw !important; /* Izmanto visu ekrāna platumu */
+        margin-left: -5px !important; /* Kompensē body padding */
+        overflow-x: auto !important; /* Aktivizē bīdīšanu sānis */
+        display: block !important;
+        -webkit-overflow-scrolling: touch;
+        background: white;
+    }
+
+    table {
+        /* Šis piespiež tabulu būt ļoti platai */
+        min-width: 1200px !important; 
+        width: 1200px !important;
+        table-layout: fixed !important;
+        border-collapse: collapse !important;
+    }
+
+    /* Tabulas ierakstu izmēri */
+    th, td {
+        padding: 25px 15px !important; /* Milzīgas šūnas, kur viegli trāpīt */
+        font-size: 22px !important;
+        border: 1px solid #eee !important;
+    }
+
+    thead th {
+        background-color: var(--saulstari-green) !important;
+        color: white !important;
+        height: 80px !important;
     }
 }
     </style>
