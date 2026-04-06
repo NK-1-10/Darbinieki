@@ -182,9 +182,10 @@ body {
 
     #tableContainer {
         width: 100vw !important; /* Pilns ekrāna platums */
-        margin-left: 15px !important; /* Centrēšanas triks, lai izietu ārpus card padding */
+        margin-left: 20px !important; /* Centrēšanas triks, lai izietu ārpus card padding */
         margin-right: calc(-50vw + 50%) !important; /* Centrēšanas triks, lai izietu ārpus card padding */
         overflow-x: auto !important;
+        text-align: left !important;
         display: block !important;
         -webkit-overflow-scrolling: touch;
         background: #fff;
@@ -195,18 +196,18 @@ body {
     table {
         min-width: 1000px !important; /* Piespiežam būt milzīgai */
         width: 1000px !important;
-        table-layout: fixed !important;
+        table-layout: auto !important;
         border-collapse: collapse !important;
         margin: 0 !important;
     }
 
     /* Tabulas galva un šūnas */
     th, td {
+        white-space: nowrap !important;
         padding: 15px 10px !important;
         font-size: 30px !important;
         text-align: center !important;
         border: 1px solid #eee !important;
-        white-space: nowrap !important; /* Neļauj tekstam lēkt jaunā rindā */
     }
 
     thead th {
