@@ -18,6 +18,9 @@
         #welcome:{
             font-size: 30px;
         }
+        #ieraksti{
+                text-align: center;
+            }
 
         thead { cursor: pointer; user-select: none; }
 .hidden-body { display: none; }
@@ -134,6 +137,17 @@ td { padding: 12px 15px; border-bottom: 1px solid #eee; text-align: center; }
         background: var(--sidebar-bg) !important;
         border: 2px solid var(--accent-gold) !important;
     }
+    #tableContainer {
+        width: 100% !important;
+        overflow-x: auto !important; /* Iespējo horizontālo scrollu tikai šeit */
+        -webkit-overflow-scrolling: touch; /* Gluda scrollēšana iOS */
+        margin-top: 20px;
+        border: 1px solid #eee;
+        border-radius: 10px;
+    }
+    table {
+        min-width: 800px !important; /* Piespiežam tabulu būt platu, lai rastos scroll */
+    }
 
     /* 2. SIDEBAR - Fiksēts un nekustīgs */
     .sidebar {
@@ -196,12 +210,13 @@ td { padding: 12px 15px; border-bottom: 1px solid #eee; text-align: center; }
     .card {
         background: #fff;
         padding: 15px !important;
-        width: 900px !important;
-        height: 900px !important;
+        width: 95vw !important;
+        height: auto !important;
         box-sizing: border-box !important;
         overflow-x: auto !important; /* Tikai šeit notiek horizontālais skrolls */
         -webkit-overflow-scrolling: touch; /* Gluda skrollēšana iOS */
         display: block !important;
+        margin: 10px auto !important;
     }
 
     /* Piespiežam sarakstus būt platiem (tava "tabula") */
