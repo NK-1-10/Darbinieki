@@ -22,7 +22,7 @@
         thead { cursor: pointer; user-select: none; }
 .hidden-body { display: none; }
 
-        /* Kursors uz virsraksta, lai saprastu, ka var spiest */
+        /* Kursors uz virsraksta, lai saprastu, ka var spiest */ta
 #tableContainer thead {
     cursor: pointer;
     user-select: none;
@@ -282,7 +282,10 @@ td { padding: 12px 15px; border-bottom: 1px solid #eee; text-align: center; }
                 height: 120px !important;
                 font-size: 50px !important;
             }
-}
+            #ieraksti{
+                font-size: 40px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -331,7 +334,7 @@ td { padding: 12px 15px; border-bottom: 1px solid #eee; text-align: center; }
         </div>
     </div>
 
-    <h3 style="text-align: center;">Tavi pēdējie darba ieraksti:</h3>
+    <h3 id="ieraksti" tyle="text-align: center;">Tavi pēdējie darba ieraksti:</h3>
     <div id="tableContainer"></div>
 
 <script>
