@@ -143,6 +143,7 @@ body {
         margin: 5px auto !important;
         padding: 20px 10px !important;
         box-sizing: border-box !important;
+        overflow: visible !important;
         display: block !important;
     }
 
@@ -184,27 +185,31 @@ body {
     }
 
     #tableContainer {
-        width: 100vw !important; /* Izmanto visu ekrāna platumu */
-        margin-left: -5px !important; /* Kompensē body padding */
-        overflow-x: auto !important; /* Aktivizē bīdīšanu sānis */
+        width: 100vw !important; /* Pilns ekrāna platums */
+        margin-left: calc(-50vw + 50%) !important; /* Centrēšanas triks, lai izietu ārpus card padding */
+        overflow-x: auto !important;
         display: block !important;
         -webkit-overflow-scrolling: touch;
-        background: white;
+        background: #fff;
+        border-top: 1px solid #ddd;
+        border-bottom: 1px solid #ddd;
     }
 
     table {
-        /* Šis piespiež tabulu būt ļoti platai */
-        min-width: 1500px !important; 
-        width: 1500px !important;
+        min-width: 1000px !important; /* Piespiežam būt milzīgai */
+        width: 1000px !important;
         table-layout: fixed !important;
         border-collapse: collapse !important;
+        margin: 0 !important;
     }
 
-    /* Tabulas ierakstu izmēri */
+    /* Tabulas galva un šūnas */
     th, td {
-        padding: 25px 15px !important; /* Milzīgas šūnas, kur viegli trāpīt */
-        font-size: 40px !important;
+        padding: 15px 10px !important;
+        font-size: 18px !important;
+        text-align: center !important;
         border: 1px solid #eee !important;
+        white-space: nowrap !important; /* Neļauj tekstam lēkt jaunā rindā */
     }
 
     thead th {
