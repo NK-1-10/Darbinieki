@@ -40,10 +40,10 @@
 
 #workerList li {
     display: flex;
-    justify-content: flex-start; /* Sākumā viss pa kreisi */
     align-items: center;
-    gap: 15px;
-    padding: 10px 15px;
+    width: 100%; /* Lai aizņem visu pieejamo vietu */
+    padding: 12px 15px;
+    border-bottom: 1px solid #eee;
 }
 
 .add:hover{
