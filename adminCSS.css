@@ -10,6 +10,25 @@
             --sidebar-collapsed: 60px;
         }
 
+.pencil{    /* try of a lifetime */
+       cursor: pointer;     
+}
+.Tpencil{
+  width: 130px;
+  bottom: 100%;
+  left: 65%;
+  margin-left: -65px;
+}
+.x{
+    cursor: pointer;        
+}
+.Tx{
+  width: 130px;
+  bottom: 100%;
+  left: 65%;
+  margin-left: -65px;    
+}
+
 .worker-actions {
     margin-left: auto; /* Šis maģiski aizstumj pogas uz labo pusi */
     display: flex;
