@@ -120,27 +120,32 @@
             font-weight: bold; 
         }
 
-        .main-content { 
-            flex-grow: 1; 
-            overflow-y: auto; 
-            display: flex; 
-            flex-direction: column;
-            min-width: 0;
-        }
-
-        header {
-    position: sticky;
-    top: 0;
-    background: #fff;
-    z-index: 1001; /* Jābūt virs sānjoslas un tabulas */
-    height: 60px;
+        .main-content {
+    flex-grow: 1;
+    overflow-y: auto; /* Skrollēšana notiek šeit */
     display: flex;
-    align-items: center;
-    padding: 0 30px;
-    border-bottom: 1px solid #eee;
+    flex-direction: column;
+    height: 100vh;
+    position: relative;
 }
 
-        .view-section { padding: 30px; display: none; }
+     header {
+    background: #fff;
+    padding: 0 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    height: 75px; /* Fiksēts augstums */
+    position: sticky;
+    top: 0; /* Pielīp pašā augšā */
+    z-index: 1100; /* Visaugstākais līmenis */
+}
+
+       .view-section, .card {
+    overflow: visible !important;
+    position: relative;
+}
         .view-section.active { display: block; }
 
         .card { 
@@ -152,23 +157,22 @@
 
         .table-controls {
     position: sticky;
-    top: -20px; /* Atkarīgs no .card padding, parasti sakrīt, lai nosegtu skrolli */
-    background: white; /* Obligāti balts fons, lai dati nepeldētu apakšā */
-    z-index: 100; /* Lai filtri būtu virs tabulas rindām */
-    padding: 15px 0;
-    margin-bottom: 10px;
-    border-bottom: 1px solid #eee; /* Vizuāla robeža, kad skrollē */
+    top: 75px; /* Pielīp tieši zem header (header augstums ir 75px) */
+    background: white;
+    z-index: 1050; /* Zem header, bet virs tabulas */
+    padding: 15px 20px;
+    margin: -25px -25px 20px -25px; /* Izlīdzinām kartītes iekšpusi */
+    border-bottom: 2px solid #f4f7f6;
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
-    align-items: center;
 }
-        table thead th {
+       table thead th {
     position: sticky;
-    top: 55px; /* Jābūt tieši zem .table-controls */
+    top: 145px; /* header (75px) + filtru josla (apmēram 70px) */
     background: #f8f9fa;
-    z-index: 90;
-    box-shadow: inset 0 -1px 0 #eee; /* Apakšējā līnija */
+    z-index: 1000;
+    box-shadow: inset 0 -1px 0 #eee;
 }
 
         
