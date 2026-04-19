@@ -198,15 +198,14 @@ if(workerEl) {
 
         return `
             <li>
-                <div>
-                    <strong>${w.name}</strong> 
-                    <span style="color: #888; font-size: 12px; margin-left: 10px;">
-                        ${label} <code style="${codeStyle}">${displayPass}</code>
-                    </span>
-                </div>
-                <button class="btn-del" onclick="deleteItem('/api/workers', '${w.name}')">✖</button>
-            </li>
-        `;
+        <div class="worker-info-row">
+            <span class="worker-name">${w.name}</span> 
+            <span class="password-label">${label}</span>
+            <code style="${codeStyle}">${displayPass}</code>
+        </div>
+        <button class="btn-del" onclick="deleteItem('/api/workers', '${w.name}')">✖</button>
+    </li>
+`;
     }).join("");
 }
             draw('carList', cars, '/api/cars');
