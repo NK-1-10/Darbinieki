@@ -17,6 +17,38 @@
     gap: 10px; /* Atstarpe starp zīmuli un X */
 }
 
+#tableContainer, #fuelTableContainer, #daySummaryContainer {
+    max-height: 70vh; /* Ierobežo augstumu, lai parādītos scrollbar */
+    overflow-y: auto;
+    position: relative;
+}
+
+/* Stils visām tabulu galvenēm */
+.sticky-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: #ffffff; /* Svarīgi: fons, lai dati neputētu */
+}
+
+/* Papildus stils pašām šūnām galvenē, lai tām būtu līnija vai ēna apakšā */
+.sticky-table thead th {
+    background-color: #f8f9fa; /* Var būt nedaudz pelēcīgs fons */
+    border-bottom: 2px solid #dee2e6;
+    padding: 12px 8px;
+}
+
+/* Izvēles: ēna, kas parādās zem galvenes, kad skritulē */
+.sticky-table thead::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    border-bottom: 1px solid #ccc;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
 .worker-info-row {
     display: grid;
     align-items: center;
