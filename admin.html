@@ -778,16 +778,19 @@ li{
             </section>
 
             <section id="v-report-fuel" class="view-section">
-                <div class="card">
-                    <div class="table-controls">
-                        <select class="year-sel header-filter" onchange="renderTables()"></select>
-                        <select class="month-sel header-filter" onchange="renderTables()"></select>
-                        <select class="res-sel header-filter" onchange="renderTables()"></select>
-                        <div class="summary-badge">Kopā: <span id="totalFuelValue">0</span></div>
-                    </div>
-                    <div id="fuelTableContainer" class="table-wrapper"></div>
-                </div>
-            </section>
+    <div class="card">
+        <div class="table-controls">
+            <select class="year-sel header-filter" onchange="renderTables()"></select>
+            <select class="month-sel header-filter" onchange="renderTables()"></select>
+            <select class="res-sel header-filter" onchange="renderTables()"></select>
+            <select class="car-sel header-filter" onchange="renderTables()"></select>
+            <select class="worker-sel header-filter" onchange="renderTables()"></select>
+            
+            <div class="summary-badge">Kopā: <span id="totalFuelValue">0</span></div>
+        </div>
+        <div id="fuelTableContainer" class="table-wrapper"></div>
+    </div>
+</section>
 
             <section id="v-report-hours" class="view-section">
                 <div class="card">
@@ -950,42 +953,51 @@ if(workerEl) {
                     </table>`;
             }
 
-            // Patēriņš
-            const fuelSec = document.getElementById('v-report-fuel');
-            if (fuelSec) {
-                const yearVal = fuelSec.querySelector('.year-sel')?.value;
-                const monthVal = fuelSec.querySelector('.month-sel')?.value;
-                const resVal = fuelSec.querySelector('.res-sel')?.value;
+            // Patēriņš (Fuel Report)
+const fuelSec = document.getElementById('v-report-fuel');
+if (fuelSec) {
+    const yearVal = fuelSec.querySelector('.year-sel')?.value;
+    const monthVal = fuelSec.querySelector('.month-sel')?.value;
+    const resVal = fuelSec.querySelector('.res-sel')?.value;
+    const carVal = fuelSec.querySelector('.car-sel')?.value;     // Jauns
+    const workerVal = fuelSec.querySelector('.worker-sel')?.value; // Jauns
 
-                let fFuel = schedule.filter(e => 
-                    e.resource_amount && 
-                    (!yearVal || (e.date && e.date.includes(yearVal))) &&
-                    (!monthVal || e.month === monthVal) &&
-                    (!resVal || e.resource_name === resVal)
-                );
-                
-                document.getElementById('totalFuelValue').innerText = fFuel.reduce((s,i) => s + parseFloat(i.resource_amount || 0), 0).toFixed(2) + " L";
-                document.getElementById('fuelTableContainer').innerHTML = `
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Datums</th>
-                                <th>Resurss</th>
-                                <th style="text-align: center;">Litri</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${fFuel.map(e => `
-                                <tr>
-                                    <td>${e.date}</td>
-                                    <td>${e.resource_name}</td>
-                                    <td style="text-align: center;" class="gold-val">${e.resource_amount} L</td>
-                                    <td><button class="btn-del" onclick="deleteScheduleItem(${e.id})">✖</button></td>
-                                </tr>`).join("")}
-                        </tbody>
-                    </table>`;
-            }
+    let fFuel = schedule.filter(e => 
+        e.resource_amount && 
+        (!yearVal || (e.date && e.date.includes(yearVal))) &&
+        (!monthVal || e.month === monthVal) &&
+        (!resVal || e.resource_name === resVal) &&
+        (!carVal || e.car === carVal) &&               // Filtrē pēc auto
+        (!workerVal || e.worker_name === workerVal)     // Filtrē pēc darbinieka
+    );
+    
+    document.getElementById('totalFuelValue').innerText = fFuel.reduce((s,i) => s + parseFloat(i.resource_amount || 0), 0).toFixed(2) + " L";
+    
+    document.getElementById('fuelTableContainer').innerHTML = `
+        <table>
+            <thead>
+                <tr>
+                    <th>Datums</th>
+                    <th>Resurss</th>
+                    <th>Tehnika</th>
+                    <th>Darbinieks</th>
+                    <th style="text-align: center;">Litri</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                ${fFuel.map(e => `
+                    <tr>
+                        <td>${e.date}</td>
+                        <td>${e.resource_name}</td>
+                        <td>${e.car || '-'}</td>
+                        <td>${e.worker_name || '-'}</td>
+                        <td style="text-align: center;" class="gold-val">${e.resource_amount} L</td>
+                        <td><button class="btn-del" onclick="deleteScheduleItem(${e.id})">✖</button></td>
+                    </tr>`).join("")}
+            </tbody>
+        </table>`;
+}
 
             // Darba stundas
             const hoursSec = document.getElementById('v-report-hours');
