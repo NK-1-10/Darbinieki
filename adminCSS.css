@@ -162,7 +162,7 @@ thead{
     align-items: center;
     width: 100%; /* Pievieno šo, lai konteiners aizņemtu visu platumu */
     position: sticky;
-    top: 20px; /* ŠEITTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT*/
+    top: 100px; /* ŠEITTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT*/
     background: #fff; /* Obligāti vajag fonu, citādi tabula spīdēs cauri */
     z-index: 100;    /* Nodrošina, ka filtri ir virs tabulas satura */
     padding: 15px 0;  /* Atstarpes ērtākai lietošanai */
