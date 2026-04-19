@@ -141,11 +141,6 @@
             box-sizing: border-box;
         }
 
-thead{
-    position: sticky;
-    top: 100px;      
-}
-
         .view-section { padding: 30px; display: none; }
         .view-section.active { display: block; }
 
