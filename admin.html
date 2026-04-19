@@ -139,16 +139,17 @@
             min-width: 0;
         }
 
-        header { 
-            background: #fff; 
-            padding: 15px 30px;
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            height: 75px;
-            box-sizing: border-box;
-        }
+        header {
+    position: sticky;
+    top: 0;
+    background: #fff;
+    z-index: 1001; /* Jābūt virs sānjoslas un tabulas */
+    height: 60px;
+    display: flex;
+    align-items: center;
+    padding: 0 30px;
+    border-bottom: 1px solid #eee;
+}
 
         .view-section { padding: 30px; display: none; }
         .view-section.active { display: block; }
@@ -615,15 +616,19 @@ li{
     .sidebar:not(.collapsed) ~ .main-content {
         padding-left: 280px !important;
     }
-
-    header {
-        height: 80px !important;
-        padding-left: 80px !important;
-        background: #fff;
-        flex-shrink: 0;
-        display: flex;
-        align-items: center;
-    }
+          header {
+    position: sticky;
+    padding-left: 80px !important;
+    top: 0;
+    background: #fff;
+    z-index: 1001; /* Jābūt virs sānjoslas un tabulas */
+    height: 80px !important;
+    display: flex;
+    align-items: center;
+    padding: 0 30px;
+    border-bottom: 1px solid #eee;
+    flex-shrink: 0;
+}
 
     /* 5. SKROLLĒJAMĀ DAĻA */
     .view-section {
