@@ -154,6 +154,12 @@
     gap: 10px;       
     align-items: center;
     width: 100%; /* Pievieno šo, lai konteiners aizņemtu visu platumu */
+    position: sticky;
+    top: 0;
+    background: #fff; /* Obligāti vajag fonu, citādi tabula spīdēs cauri */
+    z-index: 100;    /* Nodrošina, ka filtri ir virs tabulas satura */
+    padding: 15px 0;  /* Atstarpes ērtākai lietošanai */
+    border-bottom: 2px solid var(--accent-gold);
 }
         #current-view-title{
               font-size: 20px;
@@ -637,12 +643,13 @@ li{
     }
 
     /* Atskaišu filtru skrolls */
-    .table-controls {
-        display: flex !important;
-        flex-wrap: nowrap !important;
-        overflow-x: auto !important;
-        gap: 10px !important;
-        padding-bottom: 10px;
+   .table-controls {
+        position: sticky;
+        top: 0;
+        background: #fff;
+        z-index: 1100; /* Augstāks, lai būtu virs citiem mobiliem elementiem */
+        padding: 10px 0 !important;
+        margin-bottom: 10px;
     }
           #current-view-title{
               font-size: 50px;
