@@ -1,508 +1,238 @@
- :root {
-            --sidebar-bg: #1a3025;
-            --sidebar-text: #ffffff;
-            --accent-gold: #c5a059;
-            --bg-light: #f4f7f6;
-            --active-item: rgba(197, 160, 89, 0.2);
-            --danger: #dc3545;
-            --success: #28a745;
-            --sidebar-wide: 280px;
-            --sidebar-collapsed: 60px;
-        }
+:root {
+    --sidebar-bg: #1a3025;
+    --sidebar-text: #ffffff;
+    --accent-gold: #c5a059;
+    --bg-light: #f4f7f6;
+    --active-item: rgba(197, 160, 89, 0.2);
+    --danger: #dc3545;
+    --success: #28a745;
+    --sidebar-wide: 280px;
+    --sidebar-collapsed: 60px;
+}
 
-        body { 
+/* 1. PAMATA STRUKTŪRA */
+body { 
     font-family: 'Segoe UI', sans-serif; 
     margin: 0; 
     display: flex; 
     height: 100vh; 
     background: var(--bg-light); 
     color: #333;
-    overflow: hidden; /* Šis paliek, lai neparādās dubultais skrolls */
+    overflow: hidden; /* Neļauj visam body skrollēties, lai nebūtu dubulto skrollu */
 }
 
-        /* SĀNJOSLA */
-        .sidebar {
-            width: var(--sidebar-wide);
-            background: var(--sidebar-bg);
-            color: var(--sidebar-text);
-            display: flex;
-            flex-direction: column;
-            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 1000;
-            position: relative;
-            flex-shrink: 0;
-        }
+/* 2. SĀNJOSLA */
+.sidebar {
+    width: var(--sidebar-wide);
+    background: var(--sidebar-bg);
+    color: var(--sidebar-text);
+    display: flex;
+    flex-direction: column;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1000;
+    position: relative;
+    flex-shrink: 0;
+}
 
-        .sidebar.collapsed {
-            width: var(--sidebar-collapsed);
-        }
+.sidebar.collapsed { width: var(--sidebar-collapsed); }
 
-        #toggle-btn {
-            position: absolute;
-            right: 5px; 
-            top: 15px;
-            width: 50px;
-            height: 45px;
-            z-index: 1100;
-            background: var(--sidebar-bg);
-            color: var(--accent-gold);
-            border: 1px solid var(--accent-gold);
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background 0.2s;
-        }
+#toggle-btn {
+    position: absolute;
+    right: 5px; top: 15px;
+    width: 50px; height: 45px;
+    z-index: 1100;
+    background: var(--sidebar-bg);
+    color: var(--accent-gold);
+    border: 1px solid var(--accent-gold);
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 20px;
+    display: flex; align-items: center; justify-content: center;
+}
 
-        #toggle-btn:hover {
-            background: var(--active-item);
-        }
+.sidebar-header { 
+    padding: 25px; 
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    height: 75px;
+    box-sizing: border-box;
+    overflow: hidden;
+}
 
-        .sidebar.collapsed .nav-item span,
-        .sidebar.collapsed .nav-label,
-        .sidebar.collapsed .sidebar-header h2,
-        .sidebar.collapsed .btn-all-delete span,
-        .sidebar.collapsed .logout-text {
-            display: none;
-        }
+.sidebar-header h2 { 
+    margin: 0; font-size: 18px; color: var(--accent-gold); text-transform: uppercase; 
+}
 
-        .sidebar-header { 
-            padding: 25px; 
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            height: 75px;
-            box-sizing: border-box;
-            overflow: hidden;
-            white-space: nowrap;
-        }
+.nav-item {
+    padding: 12px 20px; 
+    cursor: pointer; display: flex; align-items: center;
+    transition: 0.2s; font-size: 14px; color: inherit; text-decoration: none; white-space: nowrap;
+}
 
-        .sidebar-header h2 { 
-            margin: 0; 
-            font-size: 18px; 
-            color: var(--accent-gold); 
-            text-transform: uppercase; 
-        }
+.nav-item:hover, .nav-item.active { background: var(--active-item); color: var(--accent-gold); }
 
-        .nav-group { padding: 15px 0; overflow: hidden; }
-        .nav-label { padding: 0 25px 10px; font-size: 11px; text-transform: uppercase; opacity: 0.5; letter-spacing: 1px; white-space: nowrap; }
-
-        .nav-item {
-            padding: 12px 20px; 
-            cursor: pointer; 
-            display: flex; 
-            align-items: center;
-            transition: 0.2s; 
-            font-size: 14px;
-            color: inherit;
-            text-decoration: none;
-            white-space: nowrap;
-        }
-
-        .nav-item i {
-            width: 20px;
-            text-align: center;
-            margin-right: 15px;
-            font-style: normal;
-        }
-
-        .sidebar.collapsed .nav-item i {
-            margin-right: 0;
-            width: 100%;
-            font-size: 18px;
-        }
-
-        .nav-item:hover { background: var(--active-item); color: var(--accent-gold); }
-        .nav-item.active { 
-            border-left: 4px solid var(--accent-gold); 
-            background: var(--active-item); 
-            color: var(--accent-gold); 
-            font-weight: bold; 
-        }
-
-        .main-content { 
+/* 3. GALVENAIS SATURS UN SKROLLĒŠANA */
+.main-content { 
     flex-grow: 1; 
     display: flex; 
     flex-direction: column;
     height: 100vh;
-    overflow: hidden; /* Saturs pats neskrollējas, skrollēsies sekcija */
+    overflow: hidden;
     position: relative;
     min-width: 0;
 }
 
-     header {
-    position: sticky;
-    top: 0;
-    background: #fff;
-    z-index: 1001;
-    height: 75px; /* Konkrēts augstums palīdz aprēķināt filtrus */
-    display: flex;
-    align-items: center;
-    padding: 0 30px;
-    border-bottom: 1px solid #eee;
-    flex-shrink: 0;
+header {
+    position: sticky; top: 0;
+    background: #fff; z-index: 1001;
+    height: 75px; display: flex; align-items: center;
+    padding: 0 30px; border-bottom: 1px solid #eee; flex-shrink: 0;
 }
 
-     .view-section { 
+/* ŠĪ IR SVARĪGĀKĀ DAĻA SKROLLĒŠANAI */
+.view-section { 
     flex: 1;
-    overflow-y: auto !important; /* Šeit mēs atļaujam skrollēšanu */
+    overflow-y: auto !important; 
     padding: 30px; 
     display: none; 
-    -webkit-overflow-scrolling: touch;
-}
-        .view-section.active { 
-    display: block; 
+    -webkit-overflow-scrolling: touch; /* Gluda skrollēšana iPhone */
 }
 
-        .card { 
-            overflow: visible !important; /* Sticky nestrādā, ja tēvam ir overflow: hidden vai auto */
-            background: #fff; border-radius: 12px; padding: 25px; 
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-        }
+.view-section.active { display: block; }
 
+.card { 
+    background: #fff; border-radius: 12px; padding: 25px; 
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    margin-bottom: 20px;
+}
 
-        .table-controls {
+/* 4. FILTRI UN TABULAS GALVENE (STICKY) */
+.table-controls {
     position: sticky;
-    top: -30px; /* Šis pielips pie Header apakšas */
+    top: -30px;
     background: white;
     z-index: 100;
     padding: 15px 0;
     margin-bottom: 10px;
     border-bottom: 1px solid #eee;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
+    display: flex; flex-wrap: wrap; gap: 10px;
 }
-       table thead th {
+
+table thead th {
     position: sticky;
-    top: 145px; /* header (75px) + filtru josla (apmēram 70px) */
+    top: 0; /* Tabulas galvene pielīp pie filtriem */
     background: #f8f9fa;
-    z-index: 1000;
+    z-index: 90;
     box-shadow: inset 0 -1px 0 #eee;
+    padding: 12px;
 }
 
-        
-        #current-view-title{
-              font-size: 20px;
-              text-align: center;
-          }
-
-        .nav-item,.nav-item active{
-            font-size: 18px;
-        } 
-        .nav-label{
-            font-size: 18px;
-        }
-        .sidebar-header{
-            font-size: 20px !;
-            text-align: right;
-        }
-        .Admin-head{
-            font-size: 20px ;
-            text-align: left;
-            margin-left: 5px;
-        }
-        .btn-all-delete{
-            height: 60px ;
-            font-size: 10px ;
-        }
-        .btn-logout{
-            height: 60px ;
-            font-size: 10px;
-        }
-        .summary-badge{
-            height: 30px !important;
-            font-size: 20px !important;
-        }
-
-/* VIENĪGAIS summary-badge stils */
+/* 5. ELEMENTU STILI */
 .summary-badge {
     background: var(--sidebar-bg);
     color: var(--accent-gold);
-    padding: 8px 15px; /* Nedaudz palielināju padding labākam skatam */
+    padding: 8px 15px;
     border-radius: 5px;
     font-weight: bold;
-    
-    /* Šīs divas rindiņas "izstums" elementu uz labo malu */
     margin-left: auto;
-    display: flex;
-    align-items: center;
-}
-        .header-filter { padding: 8px; border: 1px solid #ddd; border-radius: 5px; background: white; min-width: 120px; }
-
-        .table-wrapper { overflow-x: auto; margin-top: 10px; }
-        table { width: 100%; border-collapse: collapse; min-width: 800px; }
-        th { text-align: left; padding: 12px; border-bottom: 2px solid #eee; background: #fafafa; font-size: 13px; }
-        td { padding: 12px; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
-
-        .gold-val { color: #b8860b; font-weight: bold; }
-        .summary-badge {
-    background: var(--sidebar-bg);
-    color: var(--accent-gold);
-    padding: 8px 15px; /* Nedaudz palielināju padding labākam skatam */
-    border-radius: 5px;
-    font-weight: bold;
-            height: 30px;
-            font-size: 18px;
-    
-    /* Šīs divas rindiņas "izstums" elementu uz labo malu */
-    margin-left: auto;
-    display: flex;
-    align-items: center;
+    display: flex; align-items: center;
 }
 
 .btn-add {
-        position: sticky;
-        left: 0;
-        width: 100% !important;
-        max-width: calc(100vw - 40px); /* Pielāgojas ekrānam */
-        height: 60px !important;
-        font-size: 18px !important;
-        z-index: 10;
-        margin-bottom: 20px !important;
-        background-color: var(--sidebar-bg);
-        color: var(--accent-gold)
-    }
-        
-        .btn-del { color: var(--danger); background: none; border: none; font-size: 1.2em; cursor: pointer; }
-
-        .sidebar-footer {
-            margin-top: auto;
-            padding: 20px;
-        }
-
-        .btn-all-delete {
-            width: 100%; background: #942525; color: white; border: none; 
-            padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 12px; margin-bottom: 10px;
-            white-space: nowrap;
-        }
-
-ul {
-    list-style: none;
-    padding: 0;
+    width: 100%; height: 60px; font-size: 18px;
+    background-color: var(--sidebar-bg); color: var(--accent-gold);
+    border: none; border-radius: 8px; cursor: pointer; margin-bottom: 20px;
 }
 
-li{
-    display: flex;
-    justify-content: space-between; /* Izstumj tekstu pa kreisi, pogu pa labi */
-    align-items: center;
-    padding: 8px 12px;
-    border-bottom: 1px solid #eee;
-    max-width: 90%x; /* Vari pielāgot platumu pēc vajadzības */
+li {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px; border-bottom: 1px solid #eee;
 }
-        
-        .sidebar.collapsed .btn-all-delete { background: #942525; padding: 10px 0; }
 
-     @media (pointer: coarse) { /* soooooooooooooooooooooooooooooooooooooooooooooooooooooooooo - media -----------------------------*/
-    /* 1. PAMATA LABOJUMS SKROLLĒŠANAI */
+/* ------------------------------------------------------------- */
+/* MOBILĀS IEKĀRTAS (POINTER: COARSE) */
+/* ------------------------------------------------------------- */
+@media (pointer: coarse) {
     body {
-        /* Noņemam position: fixed, lai atļautu pārlūkam kustēties */
         position: relative; 
-        width: 100%;
-        height: 100vh;
-        overflow: hidden; /* Saturs kontrolēs savu skrollu */
-        margin: 0;
+        overflow: auto !important; /* Atļaujam pamatam kustēties, ja nepieciešams */
     }
 
-    /* 2. SIDEBAR - Fiksēts un vienmēr pa virsu */
     .sidebar {
         position: fixed !important;
         left: -280px;
-        top: 0;
-        bottom: 0;
-        width: 280px !important;
+        top: 0; bottom: 0;
         z-index: 2000 !important;
         transition: left 0.3s ease-out !important;
-        overflow-y: auto; /* Ja sānjosla gara, to varēs skrollēt */
     }
 
-    .sidebar:not(.collapsed) {
-        left: 0 !important;
-    }
+    .sidebar:not(.collapsed) { left: 0 !important; }
 
-    /* 3. BURGERA POGA */
     #toggle-btn {
         position: fixed !important;
-        left: 10px !important;
-        top: 10px !important;
+        left: 10px !important; top: 10px !important;
         z-index: 2100 !important;
-        width: 60px !important;
-        height: 60px !important;
-        background: var(--sidebar-bg) !important;
+        width: 60px !important; height: 60px !important;
     }
 
-    /* 4. GALVENAIS SATURS */
     .main-content {
-        /* Noņemam absolute, izmantojam flex augstumu */
-        position: relative;
-        width: 100%;
-        height: 100vh;
-        display: flex;
-        flex-direction: column;
-        transition: padding-left 0.3s ease-out !important;
-        box-sizing: border-box;
-    }
-
-    /* Ja sidebar ir vaļā, pabīdām saturu */
-    .sidebar:not(.collapsed) ~ .main-content {
-        padding-left: 280px !important;
+        height: auto !important;
+        min-height: 100vh;
+        overflow: visible !important;
     }
 
     header {
-        position: sticky;
         padding-left: 80px !important;
-        top: 0;
-        background: #fff;
-        z-index: 1001;
         height: 80px !important;
-        display: flex;
-        align-items: center;
-        padding: 0 30px;
-        border-bottom: 1px solid #eee;
-        flex-shrink: 0;
     }
 
-    /* 5. SKROLLĒJAMĀ DAĻA - ŠEIT NOTIEK MAĢIJA */
     .view-section {
-        flex: 1;
-        overflow-y: auto !important; /* Šis atļauj vertikālo skrollu */
-        overflow-x: hidden !important;
+        overflow-y: visible !important; /* Atļaujam saturam "izstiept" lapu */
         padding: 15px !important;
-        -webkit-overflow-scrolling: touch; /* Gluda skrollēšana iOS */
     }
 
-    /* 6. KARTĪTE UN TABULAS */
-    .card {
-        margin-top: 20px; 
-        background: #fff;
-        width: 100% !important;
-        overflow-x: auto !important; /* Horizontālais skrolls tabulai */
-        display: block !important;
-        -webkit-overflow-scrolling: touch;
-        padding: 15px !important;
-        box-sizing: border-box;
-    }
-
-    /* Atskaišu filtru skrolls */
+    /* FILTRU SKROLLS SĀNISKI */
     .table-controls {
-        display: flex !important;
-        flex-direction: row !important; /* Atstājam rindu, bet ļaujam skrollēt sānus */
         flex-wrap: nowrap !important;
         overflow-x: auto !important;
-        gap: 10px !important;
-        padding: 15px 0 !important;
-        position: relative;
+        -webkit-overflow-scrolling: touch;
         top: 0;
+        padding: 15px 5px !important;
     }
 
-    .table-controls select, 
-    .table-controls input,
-    .header-filter {
+    .table-controls select, .table-controls input, .header-filter {
         height: 65px !important;
-        font-size: 24px !important;
-        padding: 0 15px !important;
-        min-width: 200px !important; /* Lai filtri nesaspiežas rindiņā */
-        border-radius: 8px !important;
+        font-size: 22px !important;
+        min-width: 180px !important;
     }
 
-    /* Tabulas izmēri */
-    .report-table, table {
-        min-width: 900px !important;
-        border-collapse: separate !important;
-        border-spacing: 0 5px !important;
+    /* TABULAS HORIZONTĀLAIS SKROLLS */
+    .card {
+        overflow-x: auto !important;
+        display: block !important;
+        padding: 10px !important;
     }
 
-    table th {
-        font-size: 25px !important;
-        padding: 15px 10px !important;
-        background: #f2f2f2 !important;
-        position: sticky;
-        top: 0;
-        z-index: 10;
-    }
+    table { min-width: 1000px !important; } /* Dodam vietu jaunajām kolonnām */
 
-    table td {
-        font-size: 20px !important;
-        padding: 15px 10px !important;
-        vertical-align: middle !important;
-    }
+    table th { font-size: 22px !important; padding: 15px !important; }
+    table td { font-size: 20px !important; padding: 15px !important; }
 
-    /* 7. SARAKSTU ELEMENTI (Lielie teksti) */
+    /* LIELIE TEKSTI SARAKSTOS */
     #workerList li strong, #carList li strong, #workList li strong, #objectList li strong {
-        font-size: 40px !important; 
-        color: #1a3025;
-        font-weight: 700;
+        font-size: 35px !important;
     }
 
     #workerList li span, #carList li span, #workList li span, #objectList li span {
-        font-size: 30px !important;
-    }
-
-    #workerList li code {
-        font-size: 24px;
-        padding: 4px 8px;
-    }
-
-    /* Pogas sarakstos */
-    .btn-del, #resourceList li button[onclick*="adjustRes"] {
-        width: 100px !important;
-        height: 100px !important;
-        font-size: 30px !important;
-    }
-
-    #resourceList li input[type="number"] {
-        height: 100px !important;
-        font-size: 40px !important;
-    }
-
-    /* 8. SIDEBAR TEKSTI UN POGAS */
-    .sidebar .section-title, .sidebar h4 {
         font-size: 25px !important;
-        margin-top: 20px !important;
-    }
-
-    .sidebar a, .nav-item {
-        font-size: 30px !important;
-        padding: 20px !important;
-        min-height: 60px !important;
-    }
-
-    .sidebar-header {
-        font-size: 40px !important;
-        height: auto !important;
-        padding: 20px !important;
-    }
-
-    .Admin-head {
-        font-size: 30px !important;
-    }
-
-    .btn-all-delete, .btn-logout {
-        height: 100px !important;
-        font-size: 22px !important;
     }
 
     .btn-add {
-        position: sticky;
-        left: 0;
-        width: 100% !important;
         height: 100px !important;
         font-size: 24px !important;
-        z-index: 100;
-        margin-bottom: 20px !important;
     }
 
-    #current-view-title {
-        font-size: 45px;
-    }
-
-    .summary-badge {
-        height: 60px !important;
-        font-size: 28px !important;
-    }
-
-    li {
-        min-height: 100px !important;
-        padding: 15px !important;
+    .btn-del, .btn-all-delete, .btn-logout {
+        min-width: 80px; min-height: 80px;
+        font-size: 24px !important;
     }
 }
