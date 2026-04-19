@@ -27,7 +27,6 @@
 
 #workerList li {
     display: flex;
-    justify-content: flex-start; /* Visu bīdam pa kreisi */
     align-items: center;
     gap: 30px; /* Atstarpe starp datiem un sarkano X pogu */
     padding: 8px 15px;
