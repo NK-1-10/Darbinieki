@@ -154,18 +154,34 @@
         .view-section.active { display: block; }
 
         .card { 
+            overflow: visible !important; /* Sticky nestrādā, ja tēvam ir overflow: hidden vai auto */
             background: #fff; border-radius: 12px; padding: 25px; 
             box-shadow: 0 4px 20px rgba(0,0,0,0.05);
         }
 
-        /* Atrodas ap rindu 116 tavā failā */
-.table-controls {
+
+        .table-controls {
+    position: sticky;
+    top: -20px; /* Atkarīgs no .card padding, parasti sakrīt, lai nosegtu skrolli */
+    background: white; /* Obligāti balts fons, lai dati nepeldētu apakšā */
+    z-index: 100; /* Lai filtri būtu virs tabulas rindām */
+    padding: 15px 0;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #eee; /* Vizuāla robeža, kad skrollē */
     display: flex;
-    flex-wrap: wrap; 
-    gap: 10px;       
+    flex-wrap: wrap;
+    gap: 10px;
     align-items: center;
-    width: 100%; /* Pievieno šo, lai konteiners aizņemtu visu platumu */
 }
+        table thead th {
+    position: sticky;
+    top: 55px; /* Jābūt tieši zem .table-controls */
+    background: #f8f9fa;
+    z-index: 90;
+    box-shadow: inset 0 -1px 0 #eee; /* Apakšējā līnija */
+}
+
+        
         #current-view-title{
               font-size: 20px;
               text-align: center;
@@ -287,6 +303,8 @@ li{
         margin: 0;
     }
           .table-controls {
+        position: relative; /* Izslēdzam sticky telefonos */
+        top: 0;
         display: flex !important;
         flex-direction: column !important; /* Uz mobila ērtāk vienu zem otra vai skrollējamu */
         gap: 12px !important;
@@ -311,6 +329,11 @@ li{
         min-width: 900px !important;   /* Piespiežam tabulai būt platai, lai tā būtu skrollējama */
         border-collapse: separate !important;
         border-spacing: 0 5px !important; /* Atstarpes starp rindām vizuālai tīrībai */
+    }
+
+          table thead th {
+        position: relative;
+        top: 0;
     }
 
     /* Tabulas galvene (Th) */
