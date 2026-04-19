@@ -223,7 +223,7 @@ if(workerEl) {
                         <div style="display:flex; gap:10px;">
                             <input type="number" id="in-${r.id}" placeholder="Daudzums" style="flex:1">
                             <button onclick="adjustRes(${r.id}, 'add')" style="background:var(--success); color:white; border:none; border-radius:4px; padding:8px 15px;" class="add">+</button>
-                            <button onclick="adjustRes(${r.id}, 'sub')" style="background:var(--danger); color:white; border:none; border-radius:4px; padding:8px 15px;" class="add">-</button>
+                            <button onclick="adjustRes(${r.id}, 'sub')" style="background:var(--danger); color:white; border:none; border-radius:4px; padding:8px 15px;" class="remove">-</button>
                             <button class="btn-del" onclick="deleteItem('/api/resource-types', '${r.name}')">✖</button>
                         </div>
                     </li>`).join("");
