@@ -11,14 +11,14 @@
         }
 
         body { 
-            font-family: 'Segoe UI', sans-serif; 
-            margin: 0; 
-            display: flex; 
-            height: 100vh; 
-            background: var(--bg-light); 
-            color: #333;
-            overflow: hidden;
-        }
+    font-family: 'Segoe UI', sans-serif; 
+    margin: 0; 
+    display: flex; 
+    height: 100vh; 
+    background: var(--bg-light); 
+    color: #333;
+    overflow: hidden; /* Šis paliek, lai neparādās dubultais skrolls */
+}
 
         /* SĀNJOSLA */
         .sidebar {
@@ -125,8 +125,9 @@
     display: flex; 
     flex-direction: column;
     height: 100vh;
-    overflow: hidden; /* Lai skrollētos tikai sekcija, nevis visa lapa */
+    overflow: hidden; /* Saturs pats neskrollējas, skrollēsies sekcija */
     position: relative;
+    min-width: 0;
 }
 
      header {
@@ -142,11 +143,12 @@
     flex-shrink: 0;
 }
 
-       .view-section { 
+     .view-section { 
     flex: 1;
-    overflow-y: auto; 
+    overflow-y: auto !important; /* Šeit mēs atļaujam skrollēšanu */
     padding: 30px; 
     display: none; 
+    -webkit-overflow-scrolling: touch;
 }
         .view-section.active { 
     display: block; 
@@ -291,283 +293,16 @@ li{
         
         .sidebar.collapsed .btn-all-delete { background: #942525; padding: 10px 0; }
 
-      @media (pointer: coarse) {
-    /* 1. FIKSĒJAM PAMATU */
+     @media (pointer: coarse) { /* soooooooooooooooooooooooooooooooooooooooooooooooooooooooooo - media -----------------------------*/
+    /* 1. PAMATA LABOJUMS SKROLLĒŠANAI */
     body {
-        position: fixed;
+        /* Noņemam position: fixed, lai atļautu pārlūkam kustēties */
+        position: relative; 
         width: 100%;
-        height: 100%;
-        overflow: hidden;
+        height: 100vh;
+        overflow: hidden; /* Saturs kontrolēs savu skrollu */
         margin: 0;
     }
-          .table-controls {
-        position: relative; /* Izslēdzam sticky telefonos */
-        top: 0;
-        display: flex !important;
-        flex-direction: column !important; /* Uz mobila ērtāk vienu zem otra vai skrollējamu */
-        gap: 12px !important;
-        padding: 15px 0 !important;
-    }
-
-    /* Paši filtru lauki (Select un Input) */
-    .table-controls select, 
-    .table-controls input,
-    .header-filter {
-        height: 65px !important;      /* Liels, viegli spiežams lauks */
-        font-size: 24px !important;    /* Skaidri salasāms teksts */
-        padding: 0 15px !important;
-        width: 100% !important;        /* Aizņem pilnu platumu */
-        border-radius: 8px !important;
-        border: 1px solid #ccc !important;
-        background-color: #f9f9f9 !important;
-    }
-
-    /* 2. PAŠA TABULA */
-    .report-table, table {
-        min-width: 900px !important;   /* Piespiežam tabulai būt platai, lai tā būtu skrollējama */
-        border-collapse: separate !important;
-        border-spacing: 0 5px !important; /* Atstarpes starp rindām vizuālai tīrībai */
-    }
-
-          table thead th {
-        position: relative;
-        top: 0;
-    }
-
-    /* Tabulas galvene (Th) */
-    table th {
-        font-size: 25px !important;
-        padding: 15px 10px !important;
-        background: #f2f2f2 !important;
-        position: sticky;
-        top: 0;
-    }
-
-    /* Tabulas šūnas (Td) */
-    table td {
-        font-size: 20px !important;    /* Palielināts datu izmērs */
-        padding: 15px 10px !important; /* Vairāk vietas ap tekstu */
-        vertical-align: middle !important;
-        border-bottom: 1px solid #eee !important;
-    }
-
-    /* 3. SUMMAS UN KOPSAVILKUMI */
-    .total-row, .summary-box {
-        font-size: 20px !important;    /* Izceļam kopsummas */
-        font-weight: bold !important;
-        padding: 20px !important;
-        margin-top: 15px !important;
-        background: #fff9e6 !important; /* Viegli iekrāsojam, lai izceļas */
-        border: 1px solid var(--accent-gold) !important;
-        border-radius: 8px;
-    }
-
-    /* 4. SKROLLĒŠANAS KONTEINERS */
-    /* Pārliecinies, ka tabula atrodas elementā ar šādu klasi vai ID */
-    .table-wrapper {
-        overflow-x: auto !important;   /* Iespējo horizontālo skrollu */
-        -webkit-overflow-scrolling: touch;
-        margin-top: 10px;
-        border: 1px solid #eee;
-        border-radius: 8px;
-    }    
-    .sidebar .section-title, 
-    .sidebar h4, 
-    .sidebar small {
-        font-size: 25px !important; /* Padarām grupu virsrakstus nedaudz lielākus */
-        margin-top: 20px !important;
-        margin-bottom: 10px !important;
-        display: block;
-        padding-left: 15px;
-        color: #aaa !important; /* Gaišāks pelēks, lai labāk lasās */
-    }
-
-    /* 2. PAŠAS IZVĒLNES POGAS (Darbinieki, Mašīnas utt.) */
-    .sidebar a, 
-    .sidebar .nav-link {
-        font-size: 30px !important;      /* Krietni lielāks teksts */
-        padding: 15px 20px !important;   /* Augstākas pogas pirkstam */
-        margin: 5px 10px !important;     /* Atstarpes starp pogām */
-        display: flex !important;
-        align-items: center !important;
-        border-radius: 8px !important;   /* Noapaļoti stūri modernākam izskatam */
-        min-height: 55px !important;     /* Garantēts minimālais augstums */
-    }
-
-    /* 3. IKONAS PIE POGĀM */
-    .sidebar a i, 
-    .sidebar a img, 
-    .sidebar a emoji {
-        font-size: 28px !important;      /* Lielākas ikonas/emodži */
-        margin-right: 15px !important;   /* Lielāka atstarpe līdz tekstam */
-        width: 30px !important;          /* Vienāds platums visām ikonām */
-        text-align: center;
-    }
-
-    /* 4. APAKŠĒJĀS POGAS (Dzēst datus, Iziet) */
-    .sidebar .bottom-buttons a,
-    .btn-danger-admin,
-    #logout-btn {
-        font-size: 19px !important;
-        padding: 15px !important;
-        height: auto !important;
-        margin: 10px !important;
-    }
-          
-          #workerList li strong {
-    font-size: 30px;        /* Palielinām izmēru */
-    font-weight: 700;       /* Padarām treknāku */
-    display: inline-block;  /* Ļauj labāk kontrolēt atkāpes */
-    margin-bottom: 2px;
-    text-transform: capitalize; /* Katrs vārds ar lielo burtu */
-}
-
-          #workerList li code {
-    font-family: 'Courier New', monospace; /* Programmētāju stila fonts */
-    font-size: 20px;
-    font-weight: bold;
-    padding: 4px 8px;
-    border-radius: 2px;
-    letter-spacing: 1px; /* Vieglāk izlasīt simbolus */
-}
-          #workerList li span {
-    font-size: 20px !important; /* Palielinām tekstu */
-    color: #555 !important;      /* Padarām nedaudz tumšāku, lai labāk redzams */
-    display: inline-block;
-    margin-top: 5px;            /* Atstarpe no vārda, ja vajag */
-}
-          /* Specifisks efekts, ja tā ir pagaidu parole (sarkanais stils) */
-#workerList li span code[style*="color: #d63384"] {
-    border: 1px dashed #d63384; /* Pārtraukta līnija uzsver pagaidāmību */
-    box-shadow: 0 0 5px rgba(214, 51, 132, 0.1);
-}
-          #workerList li .btn-del {
-        width: 100px !important;
-        height: 100px !important;
-        font-size: 24px !important;
-        display: flex !important;
-        align-items: center;
-        justify-content: center;
-        margin-left: 5px !important;
-        border-radius: 8px !important;
-    }
-
-         #carList li strong {
-    font-size: 50px !important; /* Šeit maini skaitli, lai palielinātu/samazinātu */
-    color: #1a3025;            /* Tumši zaļais tonis */
-    display: block;            /* Novieto nosaukumu atsevišķā rindā */
-    margin-bottom: 5px;        /* Atstarpe līdz valsts numuram */
-    font-weight: 700; 
-         }/* Padarām treknāku */
-
-/* Automašīnas numurzīme vai apraksts (span) */
-#carList li span {
-    font-size: 50px !important;
-    font-weight: 700;       /* Padarām treknāku */
-}  
-          #carList li .btn-del {
-        width: 100px !important;
-        height: 100px !important;
-        font-size: 24px !important;
-        display: flex !important;
-        align-items: center;
-        justify-content: center;
-        margin-left: 5px !important;
-        border-radius: 8px !important;
-    }
-    #workList li strong {
-    font-size: 50px !important; /* Šeit maini skaitli, lai palielinātu/samazinātu */
-    color: #1a3025;            /* Tumši zaļais tonis */
-    display: block;            /* Novieto nosaukumu atsevišķā rindā */
-    margin-bottom: 5px;        /* Atstarpe līdz valsts numuram */
-    font-weight: 700;   
-    }/* Padarām treknāku */
-
-/* Automašīnas numurzīme vai apraksts (span) */
-#workList li span {
-    font-size: 50px !important;
-    font-weight: 700;       /* Padarām treknāku */
-}  
-          #workList li .btn-del {
-        width: 100px !important;
-        height: 100px !important;
-        font-size: 24px !important;
-        display: flex !important;
-        align-items: center;
-        justify-content: center;
-        margin-left: 5px !important;
-        border-radius: 8px !important;
-    }
-          
-           #objectList li strong {
-    font-size: 50px !important; /* Šeit maini skaitli, lai palielinātu/samazinātu */
-    color: #1a3025;            /* Tumši zaļais tonis */
-    display: block;            /* Novieto nosaukumu atsevišķā rindā */
-    margin-bottom: 5px;        /* Atstarpe līdz valsts numuram */
-    font-weight: 700;   
-    }/* Padarām treknāku */
-
-/* Automašīnas numurzīme vai apraksts (span) */
-#objectList li span {
-    font-size: 50px !important;
-    font-weight: 700;       /* Padarām treknāku */
-}  
-          #objectList li .btn-del {
-        width: 100px !important;
-        height: 100px !important;
-        font-size: 24px !important;
-        display: flex !important;
-        align-items: center;
-        justify-content: center;
-        margin-left: 5px !important;
-        border-radius: 8px !important;
-    }
-           #resourceList li {
-        padding: 20px 0 !important;
-        border-bottom: 2px solid #eee !important;
-    }
-
-    /* 2. NOSAUKUMS UN DAUDZUMS (Augšējā rinda) */
-    #resourceList li strong, 
-    #resourceList li .gold-val {
-        font-size: 50px !important;
-        margin-bottom: 10px;
-    }
-
-    /* 3. IEVADES LAUKS (Input) */
-    #resourceList li input[type="number"] {
-        height: 120px !important;    /* Krietni augstāks */
-        font-size: 40px !important;  /* Lielāks teksts iekšā */
-        padding: 0 15px !important;
-        border-radius: 8px !important;
-        border: 1px solid #ccc !important;
-    }
-
-    /* 4. KONTROLES POGAS (+ un -) */
-    #resourceList li button[onclick*="adjustRes"] {
-        width: 100px !important;     /* Platākas pogas pirkstam */
-        height: 120px !important;    /* Vienādā augstumā ar input */
-        font-size: 28px !important;  /* Lieli + un - simboli */
-        font-weight: bold !important;
-        border-radius: 8px !important;
-    }
-
-    /* 5. DZĒŠANAS POGA (X) */
-    #resourceList li .btn-del {
-        width: 100px !important;
-        height: 100px !important;
-        font-size: 24px !important;
-        display: flex !important;
-        align-items: center;
-        justify-content: center;
-        margin-left: 5px !important;
-        border-radius: 8px !important;
-    }
-
-    /* 6. Izkārtojuma labojums pogu rindai */
-    #resourceList li div:last-child {
-        gap: 12px !important; /* Lielāka atstarpe starp pogām */
-    }     
 
     /* 2. SIDEBAR - Fiksēts un vienmēr pa virsu */
     .sidebar {
@@ -578,9 +313,9 @@ li{
         width: 280px !important;
         z-index: 2000 !important;
         transition: left 0.3s ease-out !important;
+        overflow-y: auto; /* Ja sānjosla gara, to varēs skrollēt */
     }
 
-    /* Kad sidebar ir atvērts */
     .sidebar:not(.collapsed) {
         left: 0 !important;
     }
@@ -598,118 +333,176 @@ li{
 
     /* 4. GALVENAIS SATURS */
     .main-content {
-        position: absolute;
-        top: 0;
-        left: 0;
+        /* Noņemam absolute, izmantojam flex augstumu */
+        position: relative;
         width: 100%;
-        height: 100%;
+        height: 100vh;
         display: flex;
         flex-direction: column;
         transition: padding-left 0.3s ease-out !important;
         box-sizing: border-box;
     }
 
-    /* !!! ŠIS IR SVARĪGI: Ja sidebar ir vaļā, pabīdām visu saturu, lai to neaizsedz */
+    /* Ja sidebar ir vaļā, pabīdām saturu */
     .sidebar:not(.collapsed) ~ .main-content {
         padding-left: 280px !important;
     }
-          header {
-    position: sticky;
-    padding-left: 80px !important;
-    top: 0;
-    background: #fff;
-    z-index: 1001; /* Jābūt virs sānjoslas un tabulas */
-    height: 80px !important;
-    display: flex;
-    align-items: center;
-    padding: 0 30px;
-    border-bottom: 1px solid #eee;
-    flex-shrink: 0;
-}
 
-    /* 5. SKROLLĒJAMĀ DAĻA */
-    .view-section {
-        flex: 1;
-        overflow-y: auto !important;
-        overflow-x: hidden !important;
-        padding: 15px !important;
-        -webkit-overflow-scrolling: touch;
+    header {
+        position: sticky;
+        padding-left: 80px !important;
+        top: 0;
+        background: #fff;
+        z-index: 1001;
+        height: 80px !important;
+        display: flex;
+        align-items: center;
+        padding: 0 30px;
+        border-bottom: 1px solid #eee;
+        flex-shrink: 0;
     }
 
-    /* 6. KARTĪTE (ABULA) */
+    /* 5. SKROLLĒJAMĀ DAĻA - ŠEIT NOTIEK MAĢIJA */
+    .view-section {
+        flex: 1;
+        overflow-y: auto !important; /* Šis atļauj vertikālo skrollu */
+        overflow-x: hidden !important;
+        padding: 15px !important;
+        -webkit-overflow-scrolling: touch; /* Gluda skrollēšana iOS */
+    }
+
+    /* 6. KARTĪTE UN TABULAS */
     .card {
-        margin-tpo: 50px; 
+        margin-top: 20px; 
         background: #fff;
         width: 100% !important;
-        overflow-x: auto !important; /* Horizontālais skrolls šeit */
+        overflow-x: auto !important; /* Horizontālais skrolls tabulai */
         display: block !important;
         -webkit-overflow-scrolling: touch;
         padding: 15px !important;
         box-sizing: border-box;
     }
 
-    /* Saraksta minimālais platums, lai parādītos skrolls */
-    #workerList, #carList, #workList, #objectList, #resourceList, .table-wrapper {
-        min-width: 650px !important; 
-        display: block !important;
-    }
-
-    /* 7. ELEMENTI */
-    .btn-add { /*aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa*/
-        position: sticky;
-        left: 0;
-        width: 100% !important;
-        max-width: calc(100vw - 40px); /* Pielāgojas ekrānam */
-        height: 110px ;
-        font-size: 18px !important;
-        z-index: 10;
-        margin-bottom: 20px !important;
-    }
-
-    li {
-        min-height: 70px !important;
-        white-space: nowrap !important;
-        border-bottom: 1px solid #eee;
-    }
-
     /* Atskaišu filtru skrolls */
     .table-controls {
         display: flex !important;
+        flex-direction: row !important; /* Atstājam rindu, bet ļaujam skrollēt sānus */
         flex-wrap: nowrap !important;
         overflow-x: auto !important;
         gap: 10px !important;
-        padding-bottom: 10px;
+        padding: 15px 0 !important;
+        position: relative;
+        top: 0;
     }
-          #current-view-title{
-              font-size: 50px;
-              text-align: center;
-          }
 
-        .nav-item,.nav-item active{
-            font-size: 30px;
-        } 
-        .nav-label{
-            font-size: 25px;
-        }
-        .sidebar-header{
-            font-size: 50px !important;
-            text-align: right !important;
-        }
-        .Admin-head{
-            font-size: 30px !important;
-            text-align: right !important;
-        }
-        .btn-all-delete{
-            height: 120px !important;
-            font-size: 20px !important;
-        }
-        .btn-logout{
-            height: 120px !important;
-            font-size: 20px !important;
-        }
-        .summary-badge{
-            height: 60px !important;
-            font-size: 30px !important;
-        }
+    .table-controls select, 
+    .table-controls input,
+    .header-filter {
+        height: 65px !important;
+        font-size: 24px !important;
+        padding: 0 15px !important;
+        min-width: 200px !important; /* Lai filtri nesaspiežas rindiņā */
+        border-radius: 8px !important;
+    }
+
+    /* Tabulas izmēri */
+    .report-table, table {
+        min-width: 900px !important;
+        border-collapse: separate !important;
+        border-spacing: 0 5px !important;
+    }
+
+    table th {
+        font-size: 25px !important;
+        padding: 15px 10px !important;
+        background: #f2f2f2 !important;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+
+    table td {
+        font-size: 20px !important;
+        padding: 15px 10px !important;
+        vertical-align: middle !important;
+    }
+
+    /* 7. SARAKSTU ELEMENTI (Lielie teksti) */
+    #workerList li strong, #carList li strong, #workList li strong, #objectList li strong {
+        font-size: 40px !important; 
+        color: #1a3025;
+        font-weight: 700;
+    }
+
+    #workerList li span, #carList li span, #workList li span, #objectList li span {
+        font-size: 30px !important;
+    }
+
+    #workerList li code {
+        font-size: 24px;
+        padding: 4px 8px;
+    }
+
+    /* Pogas sarakstos */
+    .btn-del, #resourceList li button[onclick*="adjustRes"] {
+        width: 100px !important;
+        height: 100px !important;
+        font-size: 30px !important;
+    }
+
+    #resourceList li input[type="number"] {
+        height: 100px !important;
+        font-size: 40px !important;
+    }
+
+    /* 8. SIDEBAR TEKSTI UN POGAS */
+    .sidebar .section-title, .sidebar h4 {
+        font-size: 25px !important;
+        margin-top: 20px !important;
+    }
+
+    .sidebar a, .nav-item {
+        font-size: 30px !important;
+        padding: 20px !important;
+        min-height: 60px !important;
+    }
+
+    .sidebar-header {
+        font-size: 40px !important;
+        height: auto !important;
+        padding: 20px !important;
+    }
+
+    .Admin-head {
+        font-size: 30px !important;
+    }
+
+    .btn-all-delete, .btn-logout {
+        height: 100px !important;
+        font-size: 22px !important;
+    }
+
+    .btn-add {
+        position: sticky;
+        left: 0;
+        width: 100% !important;
+        height: 100px !important;
+        font-size: 24px !important;
+        z-index: 100;
+        margin-bottom: 20px !important;
+    }
+
+    #current-view-title {
+        font-size: 45px;
+    }
+
+    .summary-badge {
+        height: 60px !important;
+        font-size: 28px !important;
+    }
+
+    li {
+        min-height: 100px !important;
+        padding: 15px !important;
+    }
 }
-        
