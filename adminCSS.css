@@ -27,8 +27,8 @@
 .sticky-table thead {
     position: sticky;
     top: 0;
-    z-index: 10;
-    background-color: #ffffff; /* Svarīgi: fons, lai dati neputētu */
+    z-index: 100; /* Palielināts no 10 uz 100 */
+    background-color: #ffffff;
 }
 
 /* Papildus stils pašām šūnām galvenē, lai tām būtu līnija vai ēna apakšā */
@@ -349,13 +349,13 @@
 }
 
 .btn-add {
-        position: sticky;
+        position: relative;
         left: 0;
         width: 100% !important;
         max-width: calc(100vw - 40px); /* Pielāgojas ekrānam */
         height: 60px !important;
         font-size: 18px !important;
-        z-index: 10;
+        z-index: 5;
         margin-bottom: 20px !important;
         background-color: var(--sidebar-bg);
         color: var(--accent-gold)
