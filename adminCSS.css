@@ -10,6 +10,32 @@
             --sidebar-collapsed: 60px;
         }
 
+.worker-info-row {
+    display: grid;
+    /* 1. kolonna vārdam (150px), 2. kolonna tekstam (120px), 3. kolonna parolei */
+    grid-template-columns: 150px 120px 1fr; 
+    align-items: center;
+    width: 100%;
+    gap: 10px;
+}
+
+.worker-name {
+    font-weight: bold;
+}
+
+.password-label {
+    color: #888;
+    font-size: 12px;
+}
+
+#workerList li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+}
+
 .add:hover{
          background-color: #208436;
 }
