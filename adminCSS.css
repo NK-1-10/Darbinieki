@@ -25,18 +25,21 @@
 
 .tooltip {
     position: absolute;
-    bottom: 125%; /* Novieto virs pogas */
+    bottom: 110%; /* Novieto virs pogas */
     left: 50%;
-    transform: translateX(-50%);
+    transform: translateX(-50%) translateY(10px); /* Nobīde uz leju priekš animācijas */
     background: #333;
     color: white;
-    padding: 5px 10px;
-    border-radius: 4px;
+    padding: 6px 12px;
+    border-radius: 6px;
     white-space: nowrap;
-    z-index: 1000;
-    visibility: hidden; /* Sākumā paslēpts */
+    font-size: 14px;
+    z-index: 9999;
+    
+    visibility: hidden;
     opacity: 0;
-    transition: opacity 0.3s;
+    transition: all 0.2s ease; /* Smuka parādīšanās */
+    pointer-events: none; /* Lai tooltip netraucētu peles klikšķiem */
 }
 
 .tooltip::after {
@@ -44,8 +47,8 @@
     position: absolute;
     top: 100%;
     left: 50%;
-    margin-left: -5px;
-    border-width: 5px;
+    transform: translateX(-50%);
+    border-width: 6px;
     border-style: solid;
     border-color: #333 transparent transparent transparent;
 }
@@ -63,9 +66,11 @@
     position: relative;
 }
 
-.btn-container:hover .tooltip {
-    visibility: visible !important;
-    opacity: 1 !important;
+.btn-container {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 /* Stils visām tabulu galvenēm */
@@ -97,6 +102,11 @@
 .btn-container {
     position: relative;
     display: inline-block;
+}
+.btn-container:hover .tooltip {
+    visibility: visible !important;
+    opacity: 1 !important;
+    transform: translateX(-50%) translateY(0); /* Atgriežas savā vietā */
 }
 
 .worker-info-row {
