@@ -211,20 +211,22 @@
             const workerEl = document.getElementById('workerList');
 if(workerEl) {
     workerEl.innerHTML = workers.map(w => {
-        const label = w.temp_password ? 'Pagaidu parole:' : 'Parole:';
-        const displayPass = w.temp_password || w.password || ''; // ------------------------------------- šeit notika izmaiņas!!!
+        // Pārbaudām, vai vispār ir pagaidu parole
+        const hasTempPass = !!w.temp_password;
+        const displayPass = w.temp_password || ""; 
         
-        const codeStyle = w.temp_password 
-            ? "background: #fff0f0; color: #d63384; padding: 2px 5px; border-radius: 3px; border: 1px solid #ffcccc;" 
-            : "background: #eee; padding: 2px 5px; border-radius: 3px;";
+        const codeStyle = "background: #fff0f0; color: #d63384; padding: 2px 5px; border-radius: 3px; border: 1px solid #ffcccc;";
 
         return `
             <li>
                 <div class="worker-info-container" style="display: flex; flex-direction: column;">
                     <strong class="worker-name" style="font-size: 1.1em;">${w.name}</strong>
-                    <span class="password-label" style="font-size: 14px; color: #666;">
-                        ${label} <code style="${codeStyle}">${displayPass}</code>
-                    </span>
+                    
+                    ${hasTempPass ? `
+                        <span class="password-label" style="font-size: 14px; color: #666;">
+                            Pagaidu parole: <code style="${codeStyle}">${displayPass}</code>
+                        </span>
+                    ` : ''} 
                 </div>
 
                 <div class="worker-actions" style="margin-left: auto; display: flex; align-items: center; gap: 15px;">
