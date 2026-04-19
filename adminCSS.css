@@ -12,11 +12,7 @@
 
 .worker-info-row {
     display: grid;
-    /* Uzliekam fiksētus izmērus kolonnām, lai nekas neizplešas */
-    grid-template-columns: 120px 100px 120px; 
     align-items: center;
-    gap: 15px;
-    /* Šis neļaus rindiņai aiziet līdz ekrāna malai */
     width: fit-content; 
 }
 
