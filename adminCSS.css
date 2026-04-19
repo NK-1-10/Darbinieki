@@ -10,10 +10,23 @@
             --sidebar-collapsed: 60px;
         }
 
+.worker-actions {
+    margin-left: auto; /* Šis maģiski aizstumj pogas uz labo pusi */
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Atstarpe starp zīmuli un X */
+}
+
 .worker-info-row {
     display: grid;
     align-items: center;
     width: fit-content; 
+}
+
+.worker-info-container {
+    display: flex;
+    flex-direction: column; /* Vārds virs paroles */
+    align-items: flex-start;
 }
 
 .worker-name {
@@ -27,11 +40,10 @@
 
 #workerList li {
     display: flex;
+    justify-content: flex-start; /* Sākumā viss pa kreisi */
     align-items: center;
-    gap: 30px; /* Atstarpe starp datiem un sarkano X pogu */
-    padding: 8px 15px;
-    max-width: 600px; /* Kopējais saraksta platums būs īsāks */
-    border-bottom: 1px solid #eee;
+    gap: 15px;
+    padding: 10px 15px;
 }
 
 .add:hover{
@@ -347,7 +359,6 @@ li{
         .sidebar.collapsed .btn-all-delete { background: #942525; padding: 10px 0; }
 
       @media (pointer: coarse) {
-    /* 1. FIKSĒJAM PAMATU */
     body {
         position: fixed;
         width: 100%;
@@ -355,6 +366,19 @@ li{
         overflow: hidden;
         margin: 0;
     }
+
+    .worker-actions {
+        gap: 20px;
+    }
+    
+    .worker-actions button {
+        min-width: 60px;
+        min-height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+                  
           .table-controls {
         display: flex !important;
         flex-direction: column !important; /* Uz mobila ērtāk vienu zem otra vai skrollējamu */
