@@ -10,6 +10,13 @@
             --sidebar-collapsed: 60px;
         }
 
+.add:hover{
+         background-color: #208436;
+}
+            .remove:hover{
+                      background-color: #b61f2e;   
+            }
+
         body { 
             font-family: 'Segoe UI', sans-serif; 
             margin: 0; 
