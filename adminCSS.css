@@ -208,6 +208,7 @@
             top : 0;
             background: #fff; 
             padding: 15px 30px;
+            margin-bottom: 20px;
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
@@ -222,6 +223,9 @@
         .card { 
             background: #fff; border-radius: 12px; padding: 25px; 
             box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            display: flex;
+    flex-direction: column; /* Poga būs virs saraksta, abi zem virsraksta */
+    gap: 15px;
         }
 
 /* Popup fons */
