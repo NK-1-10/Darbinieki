@@ -12,11 +12,12 @@
 
 .worker-info-row {
     display: grid;
-    /* 1. kolonna vārdam (150px), 2. kolonna tekstam (120px), 3. kolonna parolei */
-    grid-template-columns: 150px 120px 1fr; 
+    /* Uzliekam fiksētus izmērus kolonnām, lai nekas neizplešas */
+    grid-template-columns: 120px 100px 120px; 
     align-items: center;
-    width: 100%;
-    gap: 10px;
+    gap: 15px;
+    /* Šis neļaus rindiņai aiziet līdz ekrāna malai */
+    width: fit-content; 
 }
 
 .worker-name {
@@ -30,9 +31,11 @@
 
 #workerList li {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start; /* Visu bīdam pa kreisi */
     align-items: center;
-    padding: 10px;
+    gap: 30px; /* Atstarpe starp datiem un sarkano X pogu */
+    padding: 8px 15px;
+    max-width: 600px; /* Kopējais saraksta platums būs īsāks */
     border-bottom: 1px solid #eee;
 }
 
