@@ -122,6 +122,33 @@
         </main>
     </div>
 
+    <div id="editModal" class="modal">
+    <div class="modal-content">
+        <h3>Rediģēt darbinieku</h3>
+        
+        <div class="input-group">
+            <label>Vārds Uzvārds:</label>
+            <input type="text" id="editName">
+        </div>
+
+        <div class="input-group">
+            <label>Pagaidu parole:</label>
+            <input type="text" id="editTempPass" placeholder="Jauna pagaidu parole">
+        </div>
+
+        <div class="input-group">
+            <label>Jauna pastāvīgā parole:</label>
+            <input type="password" id="editPass" placeholder="Ievadiet, lai mainītu">
+        </div>
+
+        <div class="modal-buttons">
+            <button onclick="closeEditModal()" class="btn-cancel">Atcelt</button>
+            <button onclick="saveWorkerEdit()" class="btn-save">Saglabāt</button>
+        </div>
+    </div>
+</div>
+    
+
     <script>
         let workers = [], cars = [], schedule = [], workTypes = [], objects = [], daySummary = [], resourceTypes = [];
         const LV_MONTHS = ["Janvāris", "Februāris", "Marts", "Aprīlis", "Maijs", "Jūnijs", "Jūlijs", "Augusts", "Septembris", "Oktobris", "Novembris", "Decembris"];
@@ -196,14 +223,17 @@ if(workerEl) {
             ? "background: #fff0f0; color: #d63384; padding: 2px 5px; border-radius: 3px; border: 1px solid #ffcccc;" 
             : "background: #eee; padding: 2px 5px; border-radius: 3px;";
 
-        return `
+       return `
     <li>
+        <button class="btn-del" onclick="deleteItem('/api/workers', '${w.name}')">✖</button>
+        
+        <button class="btn-edit-pencil" onclick="openEditModal('${w.name}', '${w.temp_password || ''}')">✏️</button>
+        
         <div class="worker-info-row">
             <span class="worker-name">${w.name}</span> 
             <span class="password-label">${label}</span>
             <code style="${codeStyle}">${displayPass}</code>
         </div>
-        <button class="btn-del" onclick="deleteItem('/api/workers', '${w.name}')">✖</button>
     </li>
 `;
     }).join("");
@@ -382,6 +412,47 @@ if(workerEl) {
         }
     } catch (err) {
         console.error("Servera kļūda:", err);
+    }
+}
+
+        let editingWorkerOriginalName = "";
+
+// Šī funkcija atver logu un aizpilda datus
+function openEditModal(name, tempPass) {
+    editingWorkerOriginalName = name;
+    document.getElementById('editName').value = name;
+    document.getElementById('editTempPass').value = tempPass || "";
+    document.getElementById('editPass').value = ""; // Pastāvīgo paroli nerādām drošībai
+    document.getElementById('editModal').style.display = 'flex';
+}
+
+function closeEditModal() {
+    document.getElementById('editModal').style.display = 'none';
+}
+
+// Šī funkcija sūta datus uz serveri
+async function saveWorkerEdit() {
+    const updatedData = {
+        newName: document.getElementById('editName').value,
+        temp_password: document.getElementById('editTempPass').value,
+        password: document.getElementById('editPass').value
+    };
+
+    try {
+        const response = await fetch(`/api/workers/${encodeURIComponent(editingWorkerOriginalName)}`, {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(updatedData)
+        });
+
+        if (response.ok) {
+            closeEditModal();
+            loadData();
+        } else {
+            alert("Kļūda saglabājot!");
+        }
+    } catch (err) {
+        console.error(err);
     }
 }
         
