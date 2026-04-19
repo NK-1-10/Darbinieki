@@ -204,19 +204,18 @@
         }
 
         header { 
-            position: sticky;
-            top : 0;
-            background: #fff; 
-            padding: 15px 30px;
-            margin-bottom: 20px;
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            height: 75px;
-            box-sizing: border-box;
-        }
-
+    position: sticky;
+    top: 0;
+    background: #fff; 
+    padding: 15px 30px;
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    height: 75px; /* Standarta augstums */
+    z-index: 1500 !important; /* Augstāks par pogu (kas ir 10 vai 1100) */
+    flex-shrink: 0;
+}
         .view-section { padding: 30px; display: none; }
         .view-section.active { display: block; }
 
@@ -723,14 +722,8 @@ li{
     }
 
     header {
-            position: sticky;
-        top : 0;
-        height: 80px !important;
-        padding-left: 80px !important;
-        background: #fff;
-        flex-shrink: 0;
-        display: flex;
-        align-items: center;
+        height: 100px !important; /* Nedaudz lielāks mobilajiem */
+        z-index: 2500 !important; /* Virs visa pārējā */
     }
 
     /* 5. SKROLLĒJAMĀ DAĻA */
@@ -744,15 +737,13 @@ li{
 
     /* 6. KARTĪTE (ABULA) */
     .card {
-        margin-tpo: 50px; 
-        background: #fff;
-        width: 100% !important;
-        overflow-x: auto !important; /* Horizontālais skrolls šeit */
-        display: block !important;
-        -webkit-overflow-scrolling: touch;
-        padding: 15px !important;
-        box-sizing: border-box;
-    }
+    margin-top: 10px !important; /* Samazinām lielo margin-tpo: 50px */
+    background: #fff;
+    width: 100% !important;
+    display: flex !important; /* Mainām atpakaļ uz flex, lai saturs būtu secīgs */
+    flex-direction: column !important;
+    padding: 15px !important;
+}
 
     /* Saraksta minimālais platums, lai parādītos skrolls */
     #workerList, #carList, #workList, #objectList, #resourceList, .table-wrapper {
@@ -760,17 +751,15 @@ li{
         display: block !important;
     }
 
-    /* 7. ELEMENTI */
-    .btn-add { /*aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa*/
-        position: sticky;
-        left: 0;
-        width: 100% !important;
-        max-width: calc(100vw - 40px); /* Pielāgojas ekrānam */
-        height: 110px ;
-        font-size: 18px !important;
-        z-index: 10;
-        margin-bottom: 20px !important;
-    }
+    .btn-add { 
+    position: relative; /* Nomainām no sticky uz relative */
+    width: 100% !important;
+    height: 110px;
+    font-size: 18px !important;
+    z-index: 10;
+    margin-top: 10px !important; /* Pievienojam atkapi no augšas */
+    margin-bottom: 20px !important;
+}
 
     li {
         min-height: 70px !important;
