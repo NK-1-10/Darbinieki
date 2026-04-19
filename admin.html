@@ -231,10 +231,17 @@ if(workerEl) {
             ` : ''}
         </div>
 
-        <div style="display: flex; gap: 10px;">
-            <button class="pencil" onclick="openEditModal('${w.name}', '${w.temp_password || ''}')">✏️ <span class="Tpencil">Rediģēt</span></button> 
-            <button class="x" onclick="deleteWorker('${w.name}')">✖ <span class="Tx">Izdzēst</span></button>
-        </div>
+        <div class="worker-actions" style="display: flex; gap: 10px;">
+    <div class="btn-container">
+        <button class="pencil" onclick="openEditModal('${w.name}', '${w.temp_password || ''}')">✏️</button> 
+        <span class="tooltip Tpencil">Rediģēt</span>
+    </div> 
+    
+    <div class="btn-container">
+        <button class="x" onclick="deleteWorker('${w.name}')">✖</button>
+        <span class="tooltip Tx">Izdzēst</span>
+    </div>
+</div>
     </li>
 `;
 
