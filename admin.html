@@ -225,15 +225,14 @@ if(workerEl) {
 
        return `
     <li>
-        <button class="btn-del" onclick="deleteItem('/api/workers', '${w.name}')">✖</button>
-        
-        <button class="btn-edit-pencil" onclick="openEditModal('${w.name}', '${w.temp_password || ''}')">✏️</button>
         
         <div class="worker-info-row">
             <span class="worker-name">${w.name}</span> 
             <span class="password-label">${label}</span>
             <code style="${codeStyle}">${displayPass}</code>
         </div>
+        <button class="btn-del" onclick="deleteItem('/api/workers', '${w.name}')">✖</button>
+        <button class="btn-edit-pencil" onclick="openEditModal('${w.name}', '${w.temp_password || ''}')">✏️</button>
     </li>
 `;
     }).join("");
