@@ -13,6 +13,35 @@ const pool = new Pool({
     ssl: { rejectUnauthorized: false }
 });
 
+// Atjaunināt darbinieka datus (Vārdu un paroles)
+app.put('/api/workers/:originalName', async (req, res) => {
+    const { originalName } = req.params; // Vecais vārds, pēc kura atrodam ierakstu
+    const { newName, temp_password, password } = req.body;
+
+    try {
+        // SQL pieprasījums: atjaunojam vārdu, pagaidu paroli un īsto paroli (ja tāda ir)
+        // Ja jauna pastāvīgā parole nav ievadīta, atstājam veco
+        const query = `
+            UPDATE users 
+            SET name = $1, 
+                temp_password = $2, 
+                password = COALESCE(NULLIF($3, ''), password)
+            WHERE name = $4
+            RETURNING *`;
+
+        const result = await pool.query(query, [newName, temp_password, password, originalName]);
+
+        if (result.rowCount > 0) {
+            res.json({ success: true, message: "Darbinieka dati atjaunoti" });
+        } else {
+            res.status(404).json({ error: "Darbinieks netika atrasts" });
+        }
+    } catch (err) {
+        console.error("Servera kļūda:", err);
+        res.status(500).json({ error: "Neizdevās saglabāt izmaiņas: " + err.message });
+    }
+});
+
 // --- PALĪGFUNKCIJA LAIKA STARPĪBAI ---
 function calculateHours(start, end) {
     const [sh, sm, ss] = start.split(':').map(Number);
