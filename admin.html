@@ -232,8 +232,8 @@ if(workerEl) {
         </div>
 
         <div style="display: flex; gap: 10px;">
-            <button onclick="openEditModal('${w.name}', '${w.temp_password || ''}')">✏️</button>
-            <button onclick="deleteWorker('${w.name}')">✖</button>
+            <button class="pencil" onclick="openEditModal('${w.name}', '${w.temp_password || ''}')">✏️ <span class="Tpencil">Rediģēt</span></button> // ZĪMULIS UN XXXXXXXXXXXXXXXXXXXXXXXX
+            <button class="x" onclick="deleteWorker('${w.name}')">✖ <span class="Tx">Izdzēst</span></button>
         </div>
     </li>
 `;
