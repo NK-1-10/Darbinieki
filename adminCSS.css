@@ -24,21 +24,19 @@
 .x:hover { background-color: #ffebee; color: red; border-color: red; }
 
 .tooltip {
-    visibility: hidden;
-    width: 100px;
-    background-color: #333;
-    color: #fff;
-    text-align: center;
-    border-radius: 6px;
-    padding: 5px 0;
     position: absolute;
-    z-index: 100;
     bottom: 125%; /* Novieto virs pogas */
     left: 50%;
-    margin-left: -50px; /* Centrizēšana */
+    transform: translateX(-50%);
+    background: #333;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    white-space: nowrap;
+    z-index: 1000;
+    visibility: hidden; /* Sākumā paslēpts */
     opacity: 0;
     transition: opacity 0.3s;
-    font-size: 14px;
 }
 
 .tooltip::after {
@@ -66,8 +64,8 @@
 }
 
 .btn-container:hover .tooltip {
-    visibility: visible;
-    opacity: 1;
+    visibility: visible !important;
+    opacity: 1 !important;
 }
 
 /* Stils visām tabulu galvenēm */
