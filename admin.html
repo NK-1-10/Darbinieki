@@ -212,7 +212,7 @@
 if(workerEl) {
     workerEl.innerHTML = workers.map(w => {
         const label = w.temp_password ? 'Pagaidu parole:' : 'Parole:';
-        const displayPass = w.temp_password || w.password || 'nav pagaidu paroles';
+        const displayPass = w.temp_password || w.password || ''; // ------------------------------------- šeit notika izmaiņas!!!
         
         const codeStyle = w.temp_password 
             ? "background: #fff0f0; color: #d63384; padding: 2px 5px; border-radius: 3px; border: 1px solid #ffcccc;" 
