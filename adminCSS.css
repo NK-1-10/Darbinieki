@@ -129,6 +129,8 @@
         }
 
         header { 
+            position: sticky;
+            top : 0;
             background: #fff; 
             padding: 15px 30px;
             display: flex; 
@@ -589,6 +591,8 @@ li{
     }
 
     header {
+            position: sticky;
+        top : 0;
         height: 80px !important;
         padding-left: 80px !important;
         background: #fff;
