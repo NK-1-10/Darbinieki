@@ -8,6 +8,43 @@ app.use(express.json());
 app.use(cors());
 app.use(express.static(path.join(__dirname, '.')));
 
+// Atjaunināt administratora datus (Vārdu un/vai paroli ar pārbaudi)
+app.put('/api/admin/update-profile', async (req, res) => {
+    const { currentPassword, newName, newPassword } = req.body;
+
+    try {
+        // 1. Atrodam administratoru (pieņemot, ka datubāzē ir tikai viens vai mēs zinām vārdu)
+        // Šajā piemērā mēs meklējam pēc role = 'admin'
+        const adminCheck = await pool.query("SELECT * FROM users WHERE role = 'admin' LIMIT 1");
+        
+        if (adminCheck.rows.length === 0) {
+            return res.status(404).json({ error: "Administrators netika atrasts" });
+        }
+
+        const admin = adminCheck.rows[0];
+
+        // 2. Pārbaudām pašreizējo paroli
+        if (admin.password !== currentPassword && admin.temp_password !== currentPassword) {
+            return res.status(401).json({ error: "Nepareiza pašreizējā parole" });
+        }
+
+        // 3. Sagatavojam jaunos datus
+        const finalName = newName || admin.name;
+        const finalPassword = newPassword || admin.password;
+
+        // 4. Veicam atjaunināšanu
+        await pool.query(
+            "UPDATE users SET name = $1, password = $2, temp_password = NULL WHERE id = $3",
+            [finalName, finalPassword, admin.id]
+        );
+
+        res.json({ success: true, message: "Profils atjaunots" });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Servera kļūda: " + err.message });
+    }
+});
+
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false }
