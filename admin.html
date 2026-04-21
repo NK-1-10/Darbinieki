@@ -201,19 +201,30 @@
         }
 
         async function loadData() {
-            try {
-                const res = await Promise.all([
-                    fetch('/api/workers'), fetch('/api/cars'), fetch('/api/schedule'),
-                    fetch('/api/work-types'), fetch('/api/objects'), fetch('/api/darbastundas'),
-                    fetch('/api/resource-types')
-                ]);
-                [workers, cars, schedule, workTypes, objects, daySummary, resourceTypes] = await Promise.all(res.map(r => r.json()));
-                
-                updateFilterOptions();
-                renderLists();
-                renderTables();
-            } catch (err) { console.error(err); }
-        }
+    try {
+        const endpoints = [
+            '/api/workers', '/api/cars', '/api/schedule',
+            '/api/work-types', '/api/objects', '/api/darbastundas',
+            '/api/resource-types'
+        ];
+        
+        const responses = await Promise.all(endpoints.map(url => fetch(url)));
+        
+        const results = await Promise.all(responses.map(async (r, index) => {
+            if (!r.ok) {
+                console.error(`Kļūda pieprasījumā: ${endpoints[index]}`);
+                return []; // Atgriežam tukšu masīvu kļūdas gadījumā
+            }
+            return r.json();
+        }));
+
+        [workers, cars, schedule, workTypes, objects, daySummary, resourceTypes] = results;
+        
+        updateFilterOptions();
+        renderLists();
+        renderTables();
+    } catch (err) { console.error("Datu ielādes kļūda:", err); }
+}
 
         async function saveAdminChanges() {
     const originalName = "Nikola"; // Šeit jābūt pašreizējam vārdam no sistēmas
