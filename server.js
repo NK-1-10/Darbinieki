@@ -165,7 +165,7 @@ app.get('/api/objects', simpleGet('objects'));
 app.post('/api/objects', simplePost('objects'));
 app.delete('/api/objects/:name', simpleDelete('objects'));
 
-// Nomaini šīs rindas ap 125. rindu:
+// Nomaini šos maršrutus savā server.js failā:
 app.get('/api/work-types', async (req, res) => {
     try {
         const r = await pool.query('SELECT name FROM "work-types" ORDER BY name ASC');
