@@ -165,9 +165,27 @@ app.get('/api/objects', simpleGet('objects'));
 app.post('/api/objects', simplePost('objects'));
 app.delete('/api/objects/:name', simpleDelete('objects'));
 
-app.get('/api/work-types', simpleGet('work-types'));
-app.post('/api/work-types', simplePost('work-types'));
-app.delete('/api/work-types/:name', simpleDelete('work-types'));
+// Nomaini šīs rindas ap 125. rindu:
+app.get('/api/work-types', async (req, res) => {
+    try {
+        const r = await pool.query('SELECT name FROM "work-types" ORDER BY name ASC');
+        res.json(r.rows.map(row => row.name));
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/work-types', async (req, res) => {
+    try {
+        await pool.query('INSERT INTO "work-types" (name) VALUES ($1)', [req.body.name]);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.delete('/api/work-types/:name', async (req, res) => {
+    try {
+        await pool.query('DELETE FROM "work-types" WHERE name = $1', [req.params.name]);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
 
 // --- 4. DARBA GAITA (SCHEDULE) ---
 
