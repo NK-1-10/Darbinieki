@@ -262,13 +262,11 @@ async function saveAdminSettings() {
     const newName = document.getElementById('adminNewName').value;
     const newPass = document.getElementById('adminNewPass').value;
 
-    // Tā kā mēs šobrīd nezinām precīzu admina vārdu (tas var būt 'Nikola' vai cits), 
-    // vislabāk ir to paņemt no localStorage vai izmantot esošo, ja tas nav mainīts.
-    const originalName = "Nikola"; 
+    const originalName = "admin"; 
 
     const bodyData = {
         newName: newName || originalName,
-        password: newPass || "" // Jauna parole vai tukšs
+        password: newPass || "" 
     };
 
     try {
@@ -283,7 +281,8 @@ async function saveAdminSettings() {
             closeAdminModal();
             location.reload(); 
         } else {
-            alert("Kļūda saglabājot datus.");
+            const errResult = await response.json();
+            alert("Kļūda: " + (errResult.error || "Neizdevās saglabāt"));
         }
     } catch (err) {
         console.error("Servera kļūda:", err);
