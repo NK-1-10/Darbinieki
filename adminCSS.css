@@ -275,6 +275,7 @@
     height: 75px; /* Standarta augstums */
     z-index: 1500 !important; /* Augstāks par pogu (kas ir 10 vai 1100) */
     flex-shrink: 0;
+font-size : 30px;
 }
         .view-section { padding: 30px; display: none; }
         .view-section.active { display: block; }
