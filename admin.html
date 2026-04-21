@@ -262,20 +262,19 @@ async function saveAdminSettings() {
     const newName = document.getElementById('adminNewName').value;
     const newPass = document.getElementById('adminNewPass').value;
 
-    if (!currentPass) {
-        alert("Lai veiktu izmaiņas, jāievada pašreizējā parole!");
-        return;
-    }
+    // NOŅEMTS: Pārbaude 'if (!currentPass)', kas neļāva saglabāt bez paroles
+
+    const bodyData = {
+        currentPassword: currentPass || null, // Sūtam null, ja nav ierakstīta
+        newName: newName || null,
+        newPassword: newPass || null
+    };
 
     try {
         const response = await fetch('/api/admin/update-profile', {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                currentPassword: currentPass,
-                newName: newName || null,
-                newPassword: newPass || null
-            })
+            body: JSON.stringify(bodyData)
         });
 
         const result = await response.json();
@@ -283,12 +282,14 @@ async function saveAdminSettings() {
         if (response.ok) {
             alert("Dati veiksmīgi atjaunoti!");
             closeAdminModal();
-            if (newName) location.reload(); // Pārlādē, ja mainījās vārds
+            // Pārlādējam lapu tikai tad, ja tiešām kaut kas tika mainīts
+            if (newName || newPass) location.reload(); 
         } else {
             alert("Kļūda: " + (result.error || "Neizdevās saglabāt"));
         }
     } catch (err) {
         console.error("Servera kļūda:", err);
+        alert("Servera kļūda, mēģiniet vēlreiz.");
     }
 }
 
