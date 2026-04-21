@@ -215,6 +215,35 @@
             } catch (err) { console.error(err); }
         }
 
+        async function saveAdminChanges() {
+    const originalName = "Nikola"; // Šeit jābūt pašreizējam vārdam no sistēmas
+    const newName = document.getElementById('newNameInput').value;
+    const currentPass = document.getElementById('currentPassInput').value;
+    const newPass = document.getElementById('newPassInput').value;
+
+    const bodyData = {
+        newName: newName,
+        // Sūta paroli tikai tad, ja tajā kaut kas ir ierakstīts
+        password: newPass || "" 
+    };
+
+    try {
+        const response = await fetch(`/api/workers/${originalName}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(bodyData)
+        });
+
+        const result = await response.json();
+        if (result.success) {
+            alert("Izmaiņas saglabātas!");
+            location.reload();
+        }
+    } catch (err) {
+        console.error("Kļūda:", err);
+    }
+}
+
         function EditAdmin() {
     document.getElementById('adminEditModal').style.display = 'flex';
 }
