@@ -34,6 +34,7 @@
         </div>
 
         <div class="sidebar-footer">
+            <button class="editadmin" onclick="EditAdmin()"><span>Redigēt admin</span></button>
             <button class="btn-all-delete" onclick="deleteAllData()">⚠️ <span>DZĒST VISUS DATUS</span></button>
             <button class="btn-logout" onclick="logout()" style="width: 100%; background: #444; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">
                 <i>🚪</i><span class="logout-text">Iziet</span>
@@ -122,6 +123,39 @@
         </main>
     </div>
 
+    <div id="adminEditModal" class="modal">
+    <div class="modal-content">
+        <h3>Admin iestatījumi</h3>
+        
+        <div class="input-group">
+            <label>Jaunais lietotājvārds:</label>
+            <input type="text" id="adminNewName" placeholder="Atstāj tukšu, ja nemaini">
+        </div>
+
+        <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
+        
+        <div class="input-group">
+            <label>Pašreizējā parole (obligāta maiņai):</label>
+            <input type="password" id="adminCurrentPass" placeholder="Esošā parole">
+        </div>
+
+        <div class="input-group">
+            <label>Jaunā parole:</label>
+            <input type="password" id="adminNewPass" placeholder="Jaunā parole">
+        </div>
+
+        <div class="modal-buttons">
+            <button onclick="closeAdminModal()" class="btn-cancel">Atcelt</button>
+            <button onclick="saveAdminSettings()" class="btn-save">Saglabāt izmaiņas</button>
+        </div>
+
+        <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
+        
+        <h4>Pievienot jaunu Adminu</h4>
+        <button onclick="addNewAdmin()" class="btn-add" style="width: 100%;">+ Izveidot citu administratoru</button>
+    </div>
+</div>
+
     <div id="editModal" class="modal">
     <div class="modal-content">
         <h3>Rediģēt darbinieku</h3>
@@ -180,6 +214,83 @@
                 renderTables();
             } catch (err) { console.error(err); }
         }
+
+        function EditAdmin() {
+    document.getElementById('adminEditModal').style.display = 'flex';
+}
+
+        function closeAdminModal() {
+    document.getElementById('adminEditModal').style.display = 'none';
+    // Notīra laukus
+    document.getElementById('adminNewName').value = "";
+    document.getElementById('adminCurrentPass').value = "";
+    document.getElementById('adminNewPass').value = "";
+}
+
+// Saglabā admina izmaiņas (Vārds un/vai Parole)
+async function saveAdminSettings() {
+    const currentPass = document.getElementById('adminCurrentPass').value;
+    const newName = document.getElementById('adminNewName').value;
+    const newPass = document.getElementById('adminNewPass').value;
+
+    if (!currentPass) {
+        alert("Lai veiktu izmaiņas, jāievada pašreizējā parole!");
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/admin/update-profile', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                currentPassword: currentPass,
+                newName: newName || null,
+                newPassword: newPass || null
+            })
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            alert("Dati veiksmīgi atjaunoti!");
+            closeAdminModal();
+            if (newName) location.reload(); // Pārlādē, ja mainījās vārds
+        } else {
+            alert("Kļūda: " + (result.error || "Neizdevās saglabāt"));
+        }
+    } catch (err) {
+        console.error("Servera kļūda:", err);
+    }
+}
+
+// Pievieno jaunu adminu
+async function addNewAdmin() {
+    const name = prompt("Jaunā admina lietotājvārds:");
+    if (!name) return;
+    const pass = prompt("Jaunā admina parole:");
+    if (!pass) return;
+
+    try {
+        const response = await fetch('/api/workers', { // Izmantojam esošo workers endpoint, bet ar role: admin
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name: name,
+                temp_password: pass,
+                role: 'admin'
+            })
+        });
+
+        if (response.ok) {
+            alert("Jauns administrators izveidots!");
+        } else {
+            const errData = await response.json();
+            alert("Kļūda: " + (errData.error || "neizdevās izveidot"));
+        }
+    } catch (err) {
+        console.error(err);
+    }
+}
 
         function updateFilterOptions() {
             const years = [...new Set([...schedule, ...daySummary].map(d => (d.date || d.datums || "").split('.')[2]))].filter(Boolean).sort();
