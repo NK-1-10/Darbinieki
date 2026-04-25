@@ -737,13 +737,17 @@ li{
 
     /* 2. SIDEBAR - Fiksēts un vienmēr pa virsu */
     .sidebar {
-        position: fixed;
+        position: fixed !important; /* Obligāti fixed */
         left: 0;
         top: 0;
         height: 100vh;
-        width: 18% !important;
+        width: 280px !important; 
+        transform: translateX(-100%); 
+        transition: transform 0.3s ease-in-out; 
         z-index: 2000;
-        transition: transform 0.3s ease;
+    }
+                  .sidebar:not(.collapsed) {
+        transform: translateX(0); /* Iebrauc ekrānā */
     }
 
        .sidebar.collapsed {
@@ -763,6 +767,7 @@ li{
 
     /* 4. GALVENAIS SATURS */
     .main-content {
+            margin-left: 0 !important; /* Nekādu atkāpju, saturs pa visu ekrānu */
         width: 100% !important;
         padding-top: 70px; /* Atstājam vietu augšējai pogai */
             transition: margin-left 0.3s ease;
@@ -860,6 +865,6 @@ li{
         }
 
                   .sidebar-header h2 { 
-                              margin-left : 0px;
+                              left:0px;
                   }
 }
