@@ -183,7 +183,8 @@
     z-index: 2147483647 !important; 
     
     /* Padarām to redzamu - koša krāsa pārbaudei */
-    background-color: #ff4757 !important; 
+        background-color: var(--sidebar-bg)!important; 
+
     display: flex !important;
     visibility: visible !important;
     opacity: 1 !important;
@@ -466,7 +467,7 @@ li{
         
         .sidebar.collapsed .btn-all-delete { background: #942525; padding: 10px 0; }
 
-    @media (pointer: coarse) {
+    @media (pointer: coarse) { /* -------------------------------------------------------------------MEDIA */
     /* 1. PAMATS - Atļaujam lapai skrollēties uz leju */
     html, body {
         width: 100%;
@@ -509,24 +510,26 @@ li{
 
     /* 3. BURGERA POGA - Pašā augšā */
     #toggle-btn {
-        position: fixed !important;
-        left: 15px !important;
-        top: 15px !important;
-        width: 50px !important;
-        height: 50px !important;
-        z-index: 100000 !important; /* Augstākais slānis visā lapā */
-        
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        background-color: var(--sidebar-bg) !important;
-        border-radius: 50% !important;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.4) !important;
-        cursor: pointer !important;
-        
-        /* Nodrošina, ka poga nekustas, kad atveras sidebar */
-        transform: none !important; 
-    }
+    position: fixed !important;
+    left: 15px !important;
+    top: 15px !important;
+    width: 50px !important;
+    height: 50px !important;
+    
+    z-index: 2147483647 !important; 
+    
+    background-color: var(--sidebar-bg)!important; 
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 50% !important; /* Apaļa poga, lai izceļas */
+    box-shadow: 0 4px 15px rgba(0,0,0,0.4) !important;
+    cursor: pointer !important;
+    pointer-events: auto !important;
+}
 
     #toggle-btn i, #toggle-btn span {
         color: var(--accent-gold) !important;
