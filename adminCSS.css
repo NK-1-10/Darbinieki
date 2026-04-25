@@ -457,30 +457,31 @@ li{
     /* 1. PAMATA IZKĀRTOJUMS */
     body {
         position: fixed;
-        width: 100%;
-        height: 100%;
+        width: 100vw;
+        height: 100vh;
         overflow: hidden;
-        margin: 0;
-        background-color: #f4f7f6; /* Gaiši pelēks fons labākam kontrastam */
+        display: flex; /* Izmantojam flex, lai blakus būtu sidebar un saturs */
     }
 
     /* 2. SIDEBAR (SĀNU IZVĒLNE) */
     .sidebar {
-        position: fixed !important;
-        left: -300px; /* Nedaudz platāks modernākam izskatam */
-        top: 0;
-        bottom: 0;
+        position: relative !important; /* Mainām no fixed uz relative, lai tas fiziski aizņemtu vietu */
+        flex-shrink: 0; /* Neļaujam sidebaram sarauties */
         width: 300px !important;
-        z-index: 2000 !important;
-        background: #1a1c1e !important; /* Tumšs, premium tonis */
-        box-shadow: 5px 0 15px rgba(0,0,0,0.3);
-        transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        height: 100vh !important;
+        margin-left: -300px; /* Sākumā nobīdām ārpus ekrāna */
+        transition: margin-left 0.3s ease-out !important;
+        
+        /* ŠIS IR SVARĪGI: Iespējo skrollēšanu pašā sidebarā */
+        overflow-y: auto !important; 
+        -webkit-overflow-scrolling: touch;
         display: flex;
         flex-direction: column;
+        z-index: 2000;
     }
 
     .sidebar:not(.collapsed) {
-        left: 0 !important;
+        margin-left: 0 !important;
     }
 
     .sidebar-header {
@@ -498,7 +499,8 @@ li{
 
     /* 3. NAVIGĀCIJAS ELEMENTI */
     .nav-group {
-        margin-top: 20px;
+        flex-shrink: 0; /* Neļauj grupām saspiesties */
+        padding-bottom: 20px;
     }
 
     .nav-label {
@@ -537,11 +539,14 @@ li{
 
     /* 4. GALVENAIS SATURS */
     .main-content {
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        background: #f4f7f6;
-        transition: transform 0.3s ease-out;
+        position: relative !important;
+        flex-grow: 1; /* Aizņem visu atlikušo vietu */
+        width: 100vw; /* Pamata platums ir pilns ekrāns */
+        min-width: 100vw; /* Nodrošina, ka saturs nesaspiežas */
+        height: 100vh;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
     }
 
     header {
@@ -563,25 +568,17 @@ li{
 
     /* 5. BURGERA POGA */
     #toggle-btn {
-        position: fixed !important;
-        left: 20px !important;
-        top: 25px !important;
-        z-index: 2100 !important;
-        width: 70px !important;
-        height: 70px !important;
-        border-radius: 15px !important;
-        background: #1a1c1e !important;
-        color: white !important;
-        font-size: 35px !important;
-        border: none;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        position: fixed !important; 
+        left: 20px;
+        top: 20px;
+        z-index: 2500; /* Virs visiem */
     }
 
     /* 6. KARTĪTES UN SARAKSTI */
     .view-section {
-        padding: 20px !important;
-        height: calc(100% - 120px);
-        overflow-y: auto;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch;
+        padding-top: 100px !important; /* Vieta burgera pogai/headerim */
     }
 
     .card {
@@ -673,11 +670,9 @@ li{
 
     /* 10. FOOTER POGAS */
     .sidebar-footer {
-        margin-top: auto;
-        padding: 20px;
-        gap: 10px;
-        display: flex;
-        flex-direction: column;
+        margin-top: auto; /* Pārvieto uz leju */
+        padding-bottom: 40px; /* Atstarpe no ekrāna apakšas */
+        flex-shrink: 0;
     }
 
     .btn-all-delete {
