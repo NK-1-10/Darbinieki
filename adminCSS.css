@@ -6,15 +6,15 @@
             --active-item: rgba(197, 160, 89, 0.2);
             --danger: #dc3545;
             --success: #28a745;
-            --sidebar-wide: 30%;
-            --sidebar-collapsed: 10%;
+            --sidebar-wide: 10%;
+            --sidebar-collapsed: 5%;
         }
 
 
 
 .pencil, .x {
     cursor: pointer;
-    padding: 5%;
+    padding: 10px;
     border: 1px solid #ddd;
     border-radius: 5px;
     background: white;
@@ -57,7 +57,7 @@
     margin-left: auto; /* Šis maģiski aizstumj pogas uz labo pusi */
     display: flex;
     align-items: center;
-    gap: 4%; /* Atstarpe starp zīmuli un X ``````````````````````````````````````````````````*/
+    gap: 5px; /* Atstarpe starp zīmuli un X ``````````````````````````````````````````````````*/
 }
 
 #tableContainer, #fuelTableContainer, #daySummaryContainer {
@@ -73,7 +73,6 @@
     justify-content: center;
 }
 
-/* Stils visām tabulu galvenēm */
 .sticky-table thead {
     position: sticky;
     top: 0;
@@ -81,14 +80,12 @@
     background-color: #ffffff;
 }
 
-/* Papildus stils pašām šūnām galvenē, lai tām būtu līnija vai ēna apakšā */
 .sticky-table thead th {
     background-color: #f8f9fa; /* Var būt nedaudz pelēcīgs fons */
     border-bottom: 2px solid #dee2e6;
     padding: 12px 8px;
 }
 
-/* Izvēles: ēna, kas parādās zem galvenes, kad skritulē */
 .sticky-table thead::after {
     content: '';
     position: absolute;
@@ -106,7 +103,7 @@
 .btn-container:hover .tooltip {
     visibility: visible !important;
     opacity: 1 !important;
-    transform: translateX(-50%) translateY(0); /* Atgriežas savā vietā */
+    transform: translateX(-50%) translateY(0); 
 }
 
 .worker-info-row {
@@ -133,7 +130,7 @@
 #workerList li {
     display: flex;
     align-items: center;
-    width: 100%; /* Lai aizņem visu pieejamo vietu */
+    width: 100%;
     padding: 12px 15px;
     border-bottom: 1px solid #eee;
 }
@@ -149,13 +146,12 @@
             font-family: 'Segoe UI', sans-serif; 
             margin: 0; 
             display: flex; 
-            height: 100vh; 
+            height: 100%; 
             background: var(--bg-light); 
             color: #333;
             overflow: auto;
         }
 
-        /* SĀNJOSLA */
         .sidebar {
             width: var(--sidebar-wide);
             background: var(--sidebar-bg);
@@ -176,8 +172,8 @@
             position: absolute;
             right: 5px; 
             top: 15px;
-            width: 50px;
-            height: 45px;
+            width: 10%;
+            height: 8%;
             z-index: 1100;
             background: var(--sidebar-bg);
             color: var(--accent-gold);
@@ -206,7 +202,7 @@
         .sidebar-header { 
             padding: 24px; 
             border-bottom: 1px solid rgba(255,255,255,0.1);
-            height: 75px;
+            height: 20%px;
             box-sizing: border-box;
             overflow: hidden;
             white-space: nowrap;
@@ -235,7 +231,7 @@
         }
 
         .nav-item i {
-            width: 20px;
+            width: 10%;
             text-align: center;
             margin-right: 15px;
             font-style: normal;
