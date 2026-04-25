@@ -453,7 +453,7 @@ li{
         
         .sidebar.collapsed .btn-all-delete { background: #942525; padding: 10px 0; }
 
-      @media (pointer: coarse) {
+      @media (pointer: coarse) { /* SĀKUMS MEDIA FILES ----------------------------------------------------------------------------------------*/
     body {
         position: fixed;
         width: 100%;
@@ -582,7 +582,7 @@ li{
     }
           
           #workerList li strong {
-    font-size: 30px;        /* Palielinām izmēru */
+    font-size: 24px;        /* Palielinām izmēru */
     font-weight: 700;       /* Padarām treknāku */
     display: inline-block;  /* Ļauj labāk kontrolēt atkāpes */
     margin-bottom: 2px;
@@ -609,9 +609,9 @@ li{
     box-shadow: 0 0 5px rgba(214, 51, 132, 0.1);
 }
           #workerList li .btn-del {
-        width: 100px !important;
-        height: 100px !important;
-        font-size: 24px !important;
+        width: 50px !important;  /* No 100px uz 50px */
+        height: 50px !important;
+        font-size: 18px !important;
         display: flex !important;
         align-items: center;
         justify-content: center;
@@ -620,7 +620,7 @@ li{
     }
 
          #carList li strong {
-    font-size: 50px !important; /* Šeit maini skaitli, lai palielinātu/samazinātu */
+    font-size: 24px !important; /* Šeit maini skaitli, lai palielinātu/samazinātu */
     color: #1a3025;            /* Tumši zaļais tonis */
     display: block;            /* Novieto nosaukumu atsevišķā rindā */
     margin-bottom: 5px;        /* Atstarpe līdz valsts numuram */
@@ -633,9 +633,9 @@ li{
     font-weight: 700;       /* Padarām treknāku */
 }  
           #carList li .btn-del {
-        width: 100px !important;
-        height: 100px !important;
-        font-size: 24px !important;
+        width: 50px !important;  /* No 100px uz 50px */
+        height: 50px !important;
+        font-size: 18px !important;
         display: flex !important;
         align-items: center;
         justify-content: center;
@@ -643,7 +643,7 @@ li{
         border-radius: 8px !important;
     }
     #workList li strong {
-    font-size: 50px !important; /* Šeit maini skaitli, lai palielinātu/samazinātu */
+    font-size: 24px !important; /* Šeit maini skaitli, lai palielinātu/samazinātu */
     color: #1a3025;            /* Tumši zaļais tonis */
     display: block;            /* Novieto nosaukumu atsevišķā rindā */
     margin-bottom: 5px;        /* Atstarpe līdz valsts numuram */
@@ -656,9 +656,9 @@ li{
     font-weight: 700;       /* Padarām treknāku */
 }  
           #workList li .btn-del {
-        width: 100px !important;
-        height: 100px !important;
-        font-size: 24px !important;
+       width: 50px !important;  /* No 100px uz 50px */
+        height: 50px !important;
+        font-size: 18px !important;
         display: flex !important;
         align-items: center;
         justify-content: center;
@@ -667,7 +667,7 @@ li{
     }
           
            #objectList li strong {
-    font-size: 50px !important; /* Šeit maini skaitli, lai palielinātu/samazinātu */
+    font-size: 24px !important; /* Šeit maini skaitli, lai palielinātu/samazinātu */
     color: #1a3025;            /* Tumši zaļais tonis */
     display: block;            /* Novieto nosaukumu atsevišķā rindā */
     margin-bottom: 5px;        /* Atstarpe līdz valsts numuram */
@@ -680,9 +680,9 @@ li{
     font-weight: 700;       /* Padarām treknāku */
 }  
           #objectList li .btn-del {
-        width: 100px !important;
-        height: 100px !important;
-        font-size: 24px !important;
+        width: 50px !important;  /* No 100px uz 50px */
+        height: 50px !important;
+        font-size: 18px !important;
         display: flex !important;
         align-items: center;
         justify-content: center;
@@ -697,7 +697,7 @@ li{
     /* 2. NOSAUKUMS UN DAUDZUMS (Augšējā rinda) */
     #resourceList li strong, 
     #resourceList li .gold-val {
-        font-size: 50px !important;
+        font-size: 24px !important;
         margin-bottom: 10px;
     }
 
@@ -721,9 +721,9 @@ li{
 
     /* 5. DZĒŠANAS POGA (X) */
     #resourceList li .btn-del {
-        width: 100px !important;
-        height: 100px !important;
-        font-size: 24px !important;
+        width: 50px !important;  /* No 100px uz 50px */
+        height: 50px !important;
+        font-size: 18px !important;
         display: flex !important;
         align-items: center;
         justify-content: center;
@@ -807,8 +807,9 @@ li{
 
     /* Saraksta minimālais platums, lai parādītos skrolls */
     #workerList, #carList, #workList, #objectList, #resourceList, .table-wrapper {
-        min-width: 650px !important; 
-        display: block !important;
+        min-width: 0 !important; /* Noņemam fiksēto platumu */
+    width: 100% !important;
+    display: block !important;
     }
 
     .btn-add { 
@@ -822,9 +823,10 @@ li{
 }
 
     li {
-        min-height: 70px !important;
-        white-space: nowrap !important;
-        border-bottom: 1px solid #eee;
+        min-height: 50px !important; /* Mazāks augstums */
+        white-space: normal !important; /* Atļaujam tekstam pārcelties rindā, ja par šauru */
+        padding: 10px !important;
+        flex-wrap: nowrap; /* Pogu un tekstu paturēt vienā līnijā */
     }
 
     /* Atskaišu filtru skrolls */
