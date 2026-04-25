@@ -472,8 +472,7 @@ li{
     html, body {
         margin: 0;
         padding: 0;
-        width: 100%;
-        height: 100%;
+        width: 100%
         overflow-x: hidden;
         overflow-y: auto;
     }
@@ -484,41 +483,45 @@ li{
     }
 
     /* 2. SIDEBAR - Izmēri rediģēti mobilajam */
-    .sidebar {
-        width: 280px !important; /* Fixēts platums kā datoram, bet max 280px */
-        max-width: 80vw !important;
-        height: 100vh !important;
-        position: fixed !important;
-        top: 0;
-        left: 0;
-        z-index: 1000;
-        transition: transform 0.3s ease;
-        /* Mobilajā mēs izmantojam transform, lai paslēptu, nevis width */
-        transform: translateX(-100%); 
-    }
-
-    /* Kad sidebar NAV collapsed (tātad ir VAĻĀ) */
-    .sidebar:not(.collapsed) {
-        transform: translateX(0) !important;
-    }
+.sidebar {
+            width: var(--sidebar-wide);
+            background: var(--sidebar-bg);
+            color: var(--sidebar-text);
+            display: flex;
+            flex-direction: column;
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            position: relative;
+            flex-shrink: 0;
+        }
+                 .sidebar.collapsed {
+            width: var(--sidebar-collapsed);
+        }
 
     /* 3. BURGERA POGA - Precīzi kā datoram, bet mazāka */
     #toggle-btn {
-        position: fixed !important; /* Svarīgi: Fixed, lai nebrauc līdzi sidebar */
-        left: 10px !important;
-        top: 10px !important;
-        width: 45px !important;
-        height: 45px !important;
-        z-index: 2147483647 !important; /* Virs visa */
-        
-        /* Izmēri ikonai */
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        background-color: var(--sidebar-bg) !important;
-        color: var(--accent-gold) !important;
-        border-radius: 5px;
-    }
+    position: fixed !important;
+    left: 15px !important;
+    top: 15px !important;
+    width: 50px !important;
+    height: 50px !important;
+    
+    /* Vissvarīgākā daļa: z-index jābūt lielākam par jebko citu */
+    z-index: 2147483647 !important; 
+    
+    /* Padarām to redzamu - koša krāsa pārbaudei */
+    background-color: #ff4757 !important; 
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 50% !important; /* Apaļa poga, lai izceļas */
+    box-shadow: 0 4px 15px rgba(0,0,0,0.4) !important;
+    cursor: pointer !important;
+    pointer-events: auto !important;
+}
 
     /* 4. MAIN CONTENT - Rediģēti izmēri */
     .main-content {
@@ -527,6 +530,13 @@ li{
         margin: 0 !important;
         padding: 0 !important;
     }
+
+                 #toggle-btn i, #toggle-btn span {
+    color: white !important;
+    font-size: 24px !important;
+    display: block !important;
+}
+
 
     header {
         height: 65px !important;
