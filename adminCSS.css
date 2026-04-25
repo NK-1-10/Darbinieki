@@ -6,8 +6,8 @@
             --active-item: rgba(197, 160, 89, 0.2);
             --danger: #dc3545;
             --success: #28a745;
-            --sidebar-wide: 6%;
-            --sidebar-collapsed: 3%;
+            --sidebar-wide: 15%;
+            --sidebar-collapsed: 10%;
         }
 
 
@@ -172,8 +172,8 @@
             position: absolute;
             right: 5px; 
             top: 15px;
-            width: 10%;
-            height: 8%;
+            width: 30%;
+            height: 5%;
             z-index: 1100;
             background: var(--sidebar-bg);
             color: var(--accent-gold);
