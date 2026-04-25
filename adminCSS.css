@@ -741,13 +741,13 @@ li{
         left: 0;
         top: 0;
         height: 100vh;
-                width: var(--sidebar-wide);
+        width: 18% !important;
         z-index: 2000;
         transition: transform 0.3s ease;
     }
 
        .sidebar.collapsed {
-        width: 10% !important; /* mēģinu skatos 10% no ekrāna. atkarīgs, kā sanāks */
+        width: 6% !important; /* mēģinu skatos 10% no ekrāna. atkarīgs, kā sanāks */
     }
 
     /* 3. BURGERA POGA */
@@ -859,4 +859,8 @@ li{
             height: 60px !important;
             font-size: 30px !important;
         }
+
+                  .sidebar-header h2 { 
+                              margin-left : 5px;
+                  }
 }
