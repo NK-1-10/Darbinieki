@@ -747,7 +747,7 @@ li{
     }
 
        .sidebar.collapsed {
-        width: var(--sidebar-collapsed) !important;
+        width: 10% !important; /* mēģinu skatos 10% no ekrāna. atkarīgs, kā sanāks */
     }
 
     /* 3. BURGERA POGA */
