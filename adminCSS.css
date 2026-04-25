@@ -7,7 +7,7 @@
             --danger: #dc3545;
             --success: #28a745;
             --sidebar-wide: 15%;
-            --sidebar-collapsed: 10%;
+            --sidebar-collapsed: 6%;
         }
 
 
@@ -173,7 +173,7 @@
             right: 5px; 
             top: 15px;
             width: 30%;
-            height: 5%;
+            height: 3%;
             z-index: 1100;
             background: var(--sidebar-bg);
             color: var(--accent-gold);
