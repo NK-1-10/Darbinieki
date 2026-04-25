@@ -738,9 +738,7 @@ li{
 
     /* 2. SIDEBAR*/
     .sidebar {
-        position: fixed !important; /* Obligāti fixed */
-        left: 0;
-        top: 0;
+        position: relative !important; /* Obligāti fixed */
         height: 100vh;
         width: 220px !important; 
         transform: translateX(-100%); 
@@ -756,7 +754,6 @@ li{
     }
        .sidebar.collapsed {
         width: 6% !important; /* mēģinu skatos 10% no ekrāna. atkarīgs, kā sanāks 
-        transform: translateX(-100%); 
     }
 
     /* 3. BURGERA POGA */
