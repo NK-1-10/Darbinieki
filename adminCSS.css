@@ -749,7 +749,7 @@ li{
     .sidebar:not(.collapsed) {
         transform: translateX(0);
     }
-                  .sidebar.collapsed {
+       .sidebar.collapsed {
         width: var(--sidebar-collapsed) !important;
     }
 
