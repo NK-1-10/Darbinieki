@@ -767,7 +767,6 @@ li{
 
     /* 4. GALVENAIS SATURS */
     .main-content {
-        margin-left: var(--sidebar-wide); 
         width: 100% !important;
         padding-top: 70px; /* Atstājam vietu augšējai pogai */
     }
