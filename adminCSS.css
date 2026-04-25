@@ -173,28 +173,23 @@
         }
 
         #toggle-btn {
-    position: fixed !important;
-    left: 15px !important;
-    top: 15px !important;
-    width: 50px !important;
-    height: 50px !important;
-    
-    /* Vissvarīgākā daļa: z-index jābūt lielākam par jebko citu */
-    z-index: 2147483647 !important; 
-    
-    /* Padarām to redzamu - koša krāsa pārbaudei */
-        background-color: var(--sidebar-bg)!important; 
-
-    display: flex !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    
-    align-items: center !important;
-    justify-content: center !important;
-    border-radius: 50% !important; /* Apaļa poga, lai izceļas */
-    box-shadow: 0 4px 15px rgba(0,0,0,0.4) !important;
-    cursor: pointer !important;
-    pointer-events: auto !important;
+    position: fixed;
+    left: 15px;
+    top: 15px;
+    width: 46px;
+    height: 46px;
+    z-index: 2147483647;
+    background-color: var(--sidebar-bg);
+    border: none;
+    border-radius: 50%;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.35);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent-gold);
+    font-size: 22px;
+    transition: background 0.2s;
 }
 
 #toggle-btn i, #toggle-btn span {
@@ -204,8 +199,8 @@
 }
 
         #toggle-btn:hover {
-            background: var(--active-item);
-        }
+    background: #25422f;
+}
 
         .sidebar.collapsed .nav-item span,
         .sidebar.collapsed .nav-label,
@@ -495,6 +490,9 @@ li{
         display: flex;
         flex-direction: column;
     }
+                #toggle-btn:hover {
+    background: #25422f;
+}
 
     /* Kad sidebar ir VAĻĀ (klase .collapsed ir NOŅEMTA) */
     .sidebar:not(.collapsed) {
@@ -509,26 +507,24 @@ li{
     }
 
     /* 3. BURGERA POGA - Pašā augšā */
-    #toggle-btn {
-    position: fixed !important;
-    left: 15px !important;
-    top: 15px !important;
-    width: 50px !important;
-    height: 50px !important;
-    
-    z-index: 2147483647 !important; 
-    
-    background-color: var(--sidebar-bg)!important; 
-    display: flex !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    
-    align-items: center !important;
-    justify-content: center !important;
-    border-radius: 50% !important; /* Apaļa poga, lai izceļas */
-    box-shadow: 0 4px 15px rgba(0,0,0,0.4) !important;
-    cursor: pointer !important;
-    pointer-events: auto !important;
+   #toggle-btn {
+    position: fixed;
+    left: 15px;
+    top: 15px;
+    width: 46px;
+    height: 46px;
+    z-index: 2147483647;
+    background-color: var(--sidebar-bg);
+    border: none;
+    border-radius: 50%;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.35);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent-gold);
+    font-size: 22px;
+    transition: background 0.2s;
 }
 
     #toggle-btn i, #toggle-btn span {
