@@ -257,7 +257,6 @@
 
         .main-content {
     flex-grow: 1;
-    margin-left: var(--sidebar-wide); /* Datorā saturs sākas pēc sidebar */
     transition: margin-left 0.3s ease;
     width: auto;
     min-width: 0;
@@ -768,7 +767,7 @@ li{
 
     /* 4. GALVENAIS SATURS */
     .main-content {
-        margin-left: var(--sidebar-wide); /* Mobilajā nav atkāpes, jo sidebar ir "pāri" visam */
+        margin-left: var(--sidebar-wide); 
         width: 100% !important;
         padding-top: 70px; /* Atstājam vietu augšējai pogai */
     }
