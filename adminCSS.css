@@ -753,7 +753,6 @@ li{
     /* 3. BURGERA POGA */
     #toggle-btn {
         position: absolute !important;
-        right: -25px; /* Nedaudz izvirzīta uz āru, lai vieglāk trāpīt */
         top: 20px;
         width: 50px !important;
         height: 50px !important;
@@ -861,6 +860,6 @@ li{
         }
 
                   .sidebar-header h2 { 
-                              margin-left : 4px;
+                              margin-left : 0px;
                   }
 }
