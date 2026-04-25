@@ -483,93 +483,101 @@ li{
 
     /* 2. SIDEBAR - Izmēri rediģēti mobilajam */
 .sidebar {
-        position: fixed !important;
-        top: 0;
-        left: 0;
-        height: 100vh !important;
-        width: 280px !important;
-        z-index: 9999 !important; /* Ļoti augsts, bet zem pogas */
-        background: var(--sidebar-bg) !important;
-        transition: transform 0.3s ease-in-out !important;
-        transform: translateX(-100%); /* Paslēpts */
-        overflow-y: auto !important;
-    }
-      /* Kad sidebar ir atvērts (noņemta .collapsed klase) */
-    .sidebar:not(.collapsed) {
-        transform: translateX(0) !important;
-    }
+            width: var(--sidebar-wide);
+            background: var(--sidebar-bg);
+            color: var(--sidebar-text);
+            display: flex;
+            flex-direction: column;
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            position: relative;
+            flex-shrink: 0;
+        }
 
-    /* NOŅEMAM datora "collapsed" platuma loģiku mobilajā versijā */
     .sidebar.collapsed {
-        width: 280px !important; /* Paturam platumu, bet aizbīdām aiz ekrāna */
-        transform: translateX(-100%) !important;
-    }
+            width: var(--sidebar-collapsed);
+        }
 
     /* 3. BURGERA POGA - Precīzi kā datoram, bet mazāka */
     #toggle-btn {
-        position: fixed !important;
-        left: 15px !important;
-        top: 15px !important;
-        width: 50px !important;
-        height: 50px !important;
-        z-index: 10000 !important; /* Pašā augšā - poga būs redzama VIRS atvērta sidebar */
-        
-        background-color: var(--sidebar-bg) !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        border-radius: 50% !important;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.4) !important;
-        cursor: pointer !important;
-        pointer-events: auto !important;
-        
-        /* Nodrošinām, ka poga nepeld prom */
-        transform: none !important;
-    }
+    position: fixed !important;
+    left: 15px !important;
+    top: 15px !important;
+    width: 50px !important;
+    height: 50px !important;
+    
+    /* Vissvarīgākā daļa: z-index jābūt lielākam par jebko citu */
+    z-index: 2147483647 !important; 
+    
+    /* Padarām to redzamu - koša krāsa pārbaudei */
+    background-color: var(--sidebar-bg) !important;
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 50% !important; /* Apaļa poga, lai izceļas */
+    box-shadow: 0 4px 15px rgba(0,0,0,0.4) !important;
+    cursor: pointer !important;
+    pointer-events: auto !important;
+}
 
-                 #toggle-btn i {
-        color: var(--accent-gold) !important;
-        font-size: 24px !important;
-    }
-
-    .main-content {
-        width: 100% !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        min-height: 100vh;
-        position: relative;
-    }
-
-                 #toggle-btn i, #toggle-btn span {
+       #toggle-btn i, #toggle-btn span {
     color: white !important;
     font-size: 24px !important;
     display: block !important;
 }
 
-header {
-        position: sticky;
-        top: 0;
-        z-index: 1000;
-        padding-left: 75px !important;
-        background: white;
-        height: 70px !important;
-        display: flex;
-        align-items: center;
-    }
+    .main-content { 
+            flex-grow: 1; 
+            overflow-y: auto; 
+            display: flex; 
+            flex-direction: column;
+            min-width: 0;
+            z-index: 1 !important;
+        }
+
+        
+
+        header { 
+    position: sticky;
+    padding-left: 80px !important;
+    top: 0;
+    background: #fff; 
+    padding: 15px 30px;
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    height: 75px; /* Standarta augstums */
+    z-index: 100 !important; /* Augstāks par pogu (kas ir 10 vai 1100) */
+    flex-shrink: 0;
+}
 
     /* 5. SARAKSTI - Kompakti izmēri */
-    .view-section {
-        padding: 15px !important;
-    }
+    .view-section { padding: 30px; display: none; }
 
-    li {
-        padding: 12px !important;
-        font-size: 16px !important;
-    }
+    li{
+    display: flex;
+    justify-content: space-between; /* Izstumj tekstu pa kreisi, pogu pa labi */
+    align-items: center;
+    padding: 8px 12px;
+    border-bottom: 1px solid #eee;
+    max-width: 90%x; /* Vari pielāgot platumu pēc vajadzības */
+}
 
     .btn-add {
+        position: relative;
+        left: 0;
+        width: 100% !important;
+        max-width: calc(100vw - 40px); /* Pielāgojas ekrānam */
         height: 60px !important;
-        font-size: 20px !important;
+        font-size: 18px !important;
+        z-index: 5;
+        margin-bottom: 20px !important;
+        background-color: var(--sidebar-bg);
+        color: var(--accent-gold)
     }
 }
         
