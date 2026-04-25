@@ -152,7 +152,7 @@
             height: 100vh; 
             background: var(--bg-light); 
             color: #333;
-            overflow: hidden;
+            overflow: auto;
         }
 
         /* SĀNJOSLA */
@@ -738,19 +738,18 @@ li{
 
     /* 2. SIDEBAR - Fiksēts un vienmēr pa virsu */
     .sidebar {
-        position: fixed; /* OBLIGĀTI */
-        transform: none !important;    /* Nekādas nobīdes */
-        display: flex !important;
-        width: var(--sidebar-wide) !important;
-        flex-shrink: 0;
-        transition: width 0.3s ease;
-                height: 100% !important;
-                
+        position: fixed;
+        left: 0;
+        top: 0;
+        height: 100%;
+        z-index: 2000;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
     }
 
     .sidebar:not(.collapsed) {
-    transform: translateX(0) !important; /* Šis iebīda atpakaļ ekrānā */
-}
+        transform: translateX(0);
+    }
                   .sidebar.collapsed {
         width: var(--sidebar-collapsed) !important;
     }
@@ -769,14 +768,9 @@ li{
 
     /* 4. GALVENAIS SATURS */
     .main-content {
-        margin-left: 0 !important; /* Mobilajā nav atkāpes, jo sidebar ir "pāri" visam */
+        margin-left: var(--sidebar-wide); /* Mobilajā nav atkāpes, jo sidebar ir "pāri" visam */
         width: 100% !important;
         padding-top: 70px; /* Atstājam vietu augšējai pogai */
-    }
-
-    /* !!! ŠIS IR SVARĪGI: Ja sidebar ir vaļā, pabīdām visu saturu, lai to neaizsedz */
-    .sidebar:not(.collapsed) ~ .main-content {
-        padding-left: 280px !important;
     }
 
     header {
