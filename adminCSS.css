@@ -6,15 +6,15 @@
             --active-item: rgba(197, 160, 89, 0.2);
             --danger: #dc3545;
             --success: #28a745;
-            --sidebar-wide: 30%px;
-            --sidebar-collapsed: 10%px;
+            --sidebar-wide: 30%;
+            --sidebar-collapsed: 10%;
         }
 
 
 
 .pencil, .x {
     cursor: pointer;
-    padding: 10px;
+    padding: 5%;
     border: 1px solid #ddd;
     border-radius: 5px;
     background: white;
@@ -57,7 +57,7 @@
     margin-left: auto; /* Šis maģiski aizstumj pogas uz labo pusi */
     display: flex;
     align-items: center;
-    gap: 10px; /* Atstarpe starp zīmuli un X */
+    gap: 4%; /* Atstarpe starp zīmuli un X ``````````````````````````````````````````````````*/
 }
 
 #tableContainer, #fuelTableContainer, #daySummaryContainer {
