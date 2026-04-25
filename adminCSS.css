@@ -1,87 +1,291 @@
+/* 1. MAINĪGIE UN PAMATA STILI */
 :root {
-            --sidebar-bg: #1a3025;
-            --sidebar-text: #ffffff;
-            --accent-gold: #c5a059;
-            --bg-light: #f4f7f6;
-            --active-item: rgba(197, 160, 89, 0.2);
-            --danger: #dc3545;
-            --success: #28a745;
-            --sidebar-wide: 15%;
-            --sidebar-collapsed: 6%;
-        }
-
-
-
-.pencil, .x {
-    cursor: pointer;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    background: white;
+    --sidebar-bg: #1a3025;
+    --sidebar-text: #ffffff;
+    --accent-gold: #c5a059;
+    --bg-light: #f4f7f6;
+    --active-item: rgba(197, 160, 89, 0.2);
+    --danger: #dc3545;
+    --success: #28a745;
+    --sidebar-wide: 15%;
+    --sidebar-collapsed: 6%;
 }
 
-.pencil:hover { background-color: #f0f0f0; }
-.x:hover { background-color: #ffebee; color: red; border-color: red; }
+body { 
+    font-family: 'Segoe UI', sans-serif; 
+    margin: 0; 
+    display: flex; 
+    height: 100%; 
+    background: var(--bg-light); 
+    color: #333;
+    overflow: auto;
+}
 
-.tooltip {
-    position: absolute;
-    bottom: 110%; /* Novieto virs pogas */
-    left: 50%;
-    transform: translateX(-50%) translateY(10px); /* Nobīde uz leju priekš animācijas */
-    background: #333;
-    color: white;
-    padding: 6px 12px;
-    border-radius: 6px;
+/* 2. SĀNJOSLA (SIDEBAR) */
+.sidebar {
+    height: 100%;
+    width: var(--sidebar-wide);
+    background: var(--sidebar-bg);
+    color: var(--sidebar-text);
+    display: flex;
+    flex-direction: column;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1000;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.sidebar.collapsed {
+    width: var(--sidebar-collapsed);
+}
+
+.sidebar-header { 
+    padding: 24px; 
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    height: 10%; /* Pārvērsts no px uz % */
+    box-sizing: border-box;
+    overflow: hidden;
     white-space: nowrap;
-    font-size: 14px;
-    z-index: 9999;
-    
-    visibility: hidden;
-    opacity: 0;
-    transition: all 0.2s ease; /* Smuka parādīšanās */
-    pointer-events: none; /* Lai tooltip netraucētu peles klikšķiem */
+    text-align: right;
 }
 
-.tooltip::after {
-    content: "";
+.sidebar-header h2 { 
+    margin: 0; 
+    font-size: 18px !important; 
+    color: var(--accent-gold); 
+    text-transform: uppercase; 
+}
+
+#toggle-btn {
     position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    border-width: 6px;
-    border-style: solid;
-    border-color: #333 transparent transparent transparent;
-}
-
-.worker-actions {
-    margin-left: auto; /* Šis maģiski aizstumj pogas uz labo pusi */
+    right: 5px; 
+    top: 15px;
+    width: 30%;
+    height: 5%;
+    z-index: 1100;
+    background: var(--sidebar-bg);
+    color: var(--accent-gold);
+    border: 1px solid var(--accent-gold);
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 20px;
     display: flex;
     align-items: center;
-    gap: 5px; /* Atstarpe starp zīmuli un X ``````````````````````````````````````````````````*/
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+#toggle-btn:hover { background: var(--active-item); }
+
+/* Navigācija sānjoslā */
+.nav-group { padding: 15px 0; overflow: hidden; }
+
+.nav-label { 
+    padding: 0 25px 10px; 
+    font-size: 18px; 
+    text-transform: uppercase; 
+    opacity: 0.5; 
+    letter-spacing: 1px; 
+    white-space: nowrap; 
+}
+
+.nav-item {
+    padding: 12px 20px; 
+    cursor: pointer; 
+    display: flex; 
+    align-items: center;
+    transition: 0.2s; 
+    font-size: 18px;
+    color: inherit;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.nav-item i {
+    width: 10%;
+    text-align: center;
+    margin-right: 15px;
+    font-style: normal;
+}
+
+.nav-item:hover { background: var(--active-item); color: var(--accent-gold); }
+
+.nav-item.active { 
+    border-left: 4px solid var(--accent-gold); 
+    background: var(--active-item); 
+    color: var(--accent-gold); 
+    font-weight: bold; 
+}
+
+/* Sānjoslas footeris */
+.sidebar-footer {
+    margin-top: auto;
+    padding: 20px;
+}
+
+.btn-all-delete {
+    width: 100%; 
+    background: #942525; 
+    color: white; 
+    border: none; 
+    padding: 10px; 
+    border-radius: 6px; 
+    cursor: pointer; 
+    font-weight: bold; 
+    font-size: 10px; 
+    margin-bottom: 10px;
+    white-space: nowrap;
+    height: 60px;
+}
+
+.btn-logout {
+    height: 60px;
+    font-size: 10px;
+}
+
+/* Sānjoslas sakļautais stāvoklis */
+.sidebar.collapsed .nav-item span,
+.sidebar.collapsed .nav-label,
+.sidebar.collapsed .sidebar-header h2,
+.sidebar.collapsed .btn-all-delete span,
+.sidebar.collapsed .logout-text {
+    display: none;
+}
+
+.sidebar.collapsed .nav-item i {
+    margin-right: 0;
+    width: 100%;
+    font-size: 18px;
+}
+
+.sidebar.collapsed .btn-all-delete { background: #942525; padding: 10px 0; }
+
+/* 3. GALVENAIS SATURS (MAIN CONTENT) */
+.main-content {
+    flex-grow: 1;
+    transition: margin-left 0.3s ease;
+    width: auto;
+    min-width: 0;
+}
+
+header { 
+    position: sticky;
+    top: 0;
+    background: #fff; 
+    padding: 15px 30px;
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    height: 20%; 
+    z-index: 1500 !important;
+    flex-shrink: 0;
+}
+
+.Admin-head {
+    font-size: 20px;
+    text-align: left;
+    margin-left: 5px;
+}
+
+#current-view-title {
+    font-size: 20px;
+    text-align: center;
+}
+
+.view-section { padding: 30px; display: none; }
+.view-section.active { display: block; }
+
+/* 4. KARTĪTES UN SARAKSTI */
+.card { 
+    background: #fff; 
+    border-radius: 12px; 
+    padding: 25px; 
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column; 
+    gap: 15px;
+}
+
+ul { list-style: none; padding: 0; }
+
+#workerList li {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 12px 15px;
+    border-bottom: 1px solid #eee;
+}
+
+li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    border-bottom: 1px solid #eee;
+    max-width: 90%; /* Pārvērsts no px uz % */
+}
+
+.worker-info-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.worker-name { font-weight: bold; }
+.password-label { color: #888; font-size: 12px; }
+
+.worker-actions {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* 5. TABULAS */
+.table-controls {
+    display: flex;
+    flex-wrap: wrap; 
+    gap: 10px;       
+    align-items: center;
+    width: 100%;
+    position: sticky;
+    top: 80px; 
+    background: #fff;
+    z-index: 100;    
+    padding: 15px 0; 
+    border-bottom: 2px solid var(--accent-gold);
 }
 
 #tableContainer, #fuelTableContainer, #daySummaryContainer {
-    max-height: 70vh; /* Ierobežo augstumu, lai parādītos scrollbar */
+    max-height: 70vh;
     overflow-y: auto;
     position: relative;
 }
 
-.btn-container {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+.table-wrapper { overflow-x: auto; margin-top: 10px; }
+
+table { width: 100%; border-collapse: collapse; min-width: 800px; }
+
+th { 
+    text-align: left; 
+    padding: 12px; 
+    border-bottom: 2px solid #eee; 
+    background: #fafafa; 
+    font-size: 13px; 
 }
+
+td { padding: 12px; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
 
 .sticky-table thead {
     position: sticky;
     top: 0;
-    z-index: 100; /* Palielināts no 10 uz 100 */
+    z-index: 100;
     background-color: #ffffff;
 }
 
 .sticky-table thead th {
-    background-color: #f8f9fa; /* Var būt nedaudz pelēcīgs fons */
+    background-color: #f8f9fa;
     border-bottom: 2px solid #dee2e6;
     padding: 12px 8px;
 }
@@ -96,211 +300,103 @@
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
+/* 6. POGAS UN ELEMENTI */
+.pencil, .x {
+    cursor: pointer;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background: white;
+}
+
+.pencil:hover { background-color: #f0f0f0; }
+.x:hover { background-color: #ffebee; color: red; border-color: red; }
+
+.btn-add {
+    position: relative;
+    left: 0;
+    width: 100% !important;
+    max-width: calc(100vw - 40px);
+    height: 60px !important;
+    font-size: 18px !important;
+    z-index: 5;
+    margin-bottom: 20px !important;
+    background-color: var(--sidebar-bg);
+    color: var(--accent-gold);
+}
+
+.btn-save { background: #28a745; color: white; border: none; flex: 1; padding: 10px; border-radius: 5px; cursor: pointer; }
+.btn-cancel { background: #ccc; border: none; flex: 1; padding: 10px; border-radius: 5px; cursor: pointer; }
+
+.add:hover { background-color: #208436; }
+.remove:hover { background-color: #b61f2e; }
+.btn-del { color: var(--danger); background: none; border: none; font-size: 1.2em; cursor: pointer; }
+
+/* Tooltip un nozīmītes */
 .btn-container {
     position: relative;
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
+
+.tooltip {
+    position: absolute;
+    bottom: 110%;
+    left: 50%;
+    transform: translateX(-50%) translateY(10px);
+    background: #333;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    white-space: nowrap;
+    font-size: 14px;
+    z-index: 9999;
+    visibility: hidden;
+    opacity: 0;
+    transition: all 0.2s ease;
+    pointer-events: none;
+}
+
 .btn-container:hover .tooltip {
     visibility: visible !important;
     opacity: 1 !important;
     transform: translateX(-50%) translateY(0); 
 }
 
-.worker-info-row {
-    display: grid;
-    align-items: center;
-    width: fit-content; 
-}
-
-.worker-info-container {
-    display: flex;
-    flex-direction: column; /* Vārds virs paroles */
-    align-items: flex-start;
-}
-
-.worker-name {
+.summary-badge {
+    background: var(--sidebar-bg);
+    color: var(--accent-gold);
+    padding: 8px 15px;
+    border-radius: 5px;
     font-weight: bold;
-}
-
-.password-label {
-    color: #888;
-    font-size: 12px;
-}
-
-#workerList li {
+    height: 30px;
+    font-size: 18px;
+    margin-left: auto;
     display: flex;
     align-items: center;
-    width: 100%;
-    padding: 12px 15px;
-    border-bottom: 1px solid #eee;
 }
 
-.add:hover{
-         background-color: #208436;
-}
-            .remove:hover{
-                      background-color: #b61f2e;   
-            }
+.gold-val { color: #b8860b; font-weight: bold; }
 
-        body { 
-            font-family: 'Segoe UI', sans-serif; 
-            margin: 0; 
-            display: flex; 
-            height: 100%; 
-            background: var(--bg-light); 
-            color: #333;
-            overflow: auto;
-        }
-
-        .sidebar {
-                    height: 100%;
-            width: var(--sidebar-wide);
-            background: var(--sidebar-bg);
-            color: var(--sidebar-text);
-            display: flex;
-            flex-direction: column;
-            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 1000;
-            position: relative;
-            flex-shrink: 0;
-        }
-
-        .sidebar.collapsed {
-            width: var(--sidebar-collapsed);
-        }
-
-        #toggle-btn {
-            position: absolute;
-            right: 5px; 
-            top: 15px;
-            width: 30%;
-            height: 4%;
-            z-index: 1100;
-            background: var(--sidebar-bg);
-            color: var(--accent-gold);
-            border: 1px solid var(--accent-gold);
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background 0.2s;
-        }
-
-        #toggle-btn:hover {
-            background: var(--active-item);
-        }
-
-        .sidebar.collapsed .nav-item span,
-        .sidebar.collapsed .nav-label,
-        .sidebar.collapsed .sidebar-header h2,
-        .sidebar.collapsed .btn-all-delete span,
-        .sidebar.collapsed .logout-text {
-            display: none;
-        }
-
-        .sidebar-header { 
-            padding: 24px; 
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            height: 20%px;
-            box-sizing: border-box;
-            overflow: hidden;
-            white-space: nowrap;
-        }
-
-        .sidebar-header h2 { 
-            margin: 0; 
-            font-size: 18px !important; 
-            color: var(--accent-gold); 
-            text-transform: uppercase; 
-        }
-
-        .nav-group { padding: 15px 0; overflow: hidden; }
-        .nav-label { padding: 0 25px 10px; font-size: 11px; text-transform: uppercase; opacity: 0.5; letter-spacing: 1px; white-space: nowrap; }
-
-        .nav-item {
-            padding: 12px 20px; 
-            cursor: pointer; 
-            display: flex; 
-            align-items: center;
-            transition: 0.2s; 
-            font-size: 14px;
-            color: inherit;
-            text-decoration: none;
-            white-space: nowrap;
-        }
-
-        .nav-item i {
-            width: 10%;
-            text-align: center;
-            margin-right: 15px;
-            font-style: normal;
-        }
-
-        .sidebar.collapsed .nav-item i {
-            margin-right: 0;
-            width: 100%;
-            font-size: 18px;
-        }
-
-        .nav-item:hover { background: var(--active-item); color: var(--accent-gold); }
-        .nav-item.active { 
-            border-left: 4px solid var(--accent-gold); 
-            background: var(--active-item); 
-            color: var(--accent-gold); 
-            font-weight: bold; 
-        }
-
-        .main-content {
-    flex-grow: 1;
-    transition: margin-left 0.3s ease;
-    width: auto;
-    min-width: 0;
-}
-
-        header { 
-    position: sticky;
-    top: 0;
-    background: #fff; 
-    padding: 15px 30px;
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    height: 75px; /* Standarta augstums */
-    z-index: 1500 !important; /* Augstāks par pogu (kas ir 10 vai 1100) */
-    flex-shrink: 0;
-}
-        .view-section { padding: 30px; display: none; }
-        .view-section.active { display: block; }
-
-        .card { 
-            background: #fff; border-radius: 12px; padding: 25px; 
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-            display: flex;
-    flex-direction: column; /* Poga būs virs saraksta, abi zem virsraksta */
-    gap: 15px;
-        }
-
-/* Popup fons */
+/* 7. MODĀLIE LOGI (MODALS) */
 .modal {
     display: none;
     position: fixed;
     z-index: 3000;
     left: 0; top: 0;
-    width: 100%; height: 100%;
+    width: 100%; 
+    height: 100%;
     background: rgba(0,0,0,0.6);
     align-items: center;
     justify-content: center;
 }
 
-/* Popup logs */
 .modal-content {
     background: white;
     padding: 20px;
     border-radius: 10px;
-    width: 320px;
+    width: 80%; /* Pārvērsts no px uz % */
     display: flex;
     flex-direction: column;
 }
@@ -308,145 +404,3 @@
 .input-group { margin-bottom: 12px; }
 .input-group label { display: block; font-size: 11px; color: #777; }
 .input-group input { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
-
-.modal-buttons { display: flex; gap: 10px; margin-top: 15px; }
-.btn-save { background: #28a745; color: white; border: none; flex: 1; padding: 10px; border-radius: 5px; cursor: pointer; }
-.btn-cancel { background: #ccc; border: none; flex: 1; padding: 10px; border-radius: 5px; cursor: pointer; }
-
-/* Zīmuļa pogas stils sarakstā */
-.btn-edit-pencil {
-    border: none;
-    background: none;
-    cursor: pointer;
-    font-size: 16px;
-    margin-right: 5px;
-    transition: transform 0.2s;
-}
-.btn-edit-pencil:hover { transform: scale(1.2); }
-
-        /* Atrodas ap rindu 116 tavā failā */
-.table-controls {
-    display: flex;
-    flex-wrap: wrap; 
-    gap: 10px;       
-    align-items: center;
-    width: 100%; /* Pievieno šo, lai konteiners aizņemtu visu platumu */
-    position: sticky;
-    top: 80px; 
-    background: #fff; /* Obligāti vajag fonu, citādi tabula spīdēs cauri */
-    z-index: 100;    /* Nodrošina, ka filtri ir virs tabulas satura */
-    padding: 15px 0;  /* Atstarpes ērtākai lietošanai */
-    border-bottom: 2px solid var(--accent-gold);
-}
-        #current-view-title{
-              font-size: 20px;
-              text-align: center;
-          }
-
-        .nav-item,.nav-item active{
-            font-size: 18px;
-        } 
-        .nav-label{
-            font-size: 18px;
-        }
-        .sidebar-header{
-            font-size: 20px !;
-            text-align: right;
-        }
-        .Admin-head{
-            font-size: 20px ;
-            text-align: left;
-            margin-left: 5px;
-        }
-        .btn-all-delete{
-            height: 60px ;
-            font-size: 10px ;
-        }
-        .btn-logout{
-            height: 60px ;
-            font-size: 10px;
-        }
-        .summary-badge{
-            height: 30px !important;
-            font-size: 20px !important;
-        }
-
-/* VIENĪGAIS summary-badge stils */
-.summary-badge {
-    background: var(--sidebar-bg);
-    color: var(--accent-gold);
-    padding: 8px 15px; /* Nedaudz palielināju padding labākam skatam */
-    border-radius: 5px;
-    font-weight: bold;
-    
-    /* Šīs divas rindiņas "izstums" elementu uz labo malu */
-    margin-left: auto;
-    display: flex;
-    align-items: center;
-}
-        .header-filter { padding: 8px; border: 1px solid #ddd; border-radius: 5px; background: white; min-width: 120px; }
-
-        .table-wrapper { overflow-x: auto; margin-top: 10px; }
-        table { width: 100%; border-collapse: collapse; min-width: 800px; }
-        th { text-align: left; padding: 12px; border-bottom: 2px solid #eee; background: #fafafa; font-size: 13px; }
-        td { padding: 12px; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
-
-        .gold-val { color: #b8860b; font-weight: bold; }
-        .summary-badge {
-    background: var(--sidebar-bg);
-    color: var(--accent-gold);
-    padding: 8px 15px; /* Nedaudz palielināju padding labākam skatam */
-    border-radius: 5px;
-    font-weight: bold;
-            height: 30px;
-            font-size: 18px;
-    
-    /* Šīs divas rindiņas "izstums" elementu uz labo malu */
-    margin-left: auto;
-    display: flex;
-    align-items: center;
-}
-
-.btn-add {
-        position: relative;
-        left: 0;
-        width: 100% !important;
-        max-width: calc(100vw - 40px); /* Pielāgojas ekrānam */
-        height: 60px !important;
-        font-size: 18px !important;
-        z-index: 5;
-        margin-bottom: 20px !important;
-        background-color: var(--sidebar-bg);
-        color: var(--accent-gold)
-    }
-        
-        .btn-del { color: var(--danger); background: none; border: none; font-size: 1.2em; cursor: pointer; }
-
-        .sidebar-footer {
-            margin-top: auto;
-            padding: 20px;
-        }
-
-        .btn-all-delete {
-            width: 100%; background: #942525; color: white; border: none; 
-            padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 12px; margin-bottom: 10px;
-            white-space: nowrap;
-        }
-
-ul {
-    list-style: none;
-    padding: 0;
-}
-
-li{
-    display: flex;
-    justify-content: space-between; /* Izstumj tekstu pa kreisi, pogu pa labi */
-    align-items: center;
-    padding: 8px 12px;
-    border-bottom: 1px solid #eee;
-    max-width: 90%x; /* Vari pielāgot platumu pēc vajadzības */
-}
-        
-        .sidebar.collapsed .btn-all-delete { background: #942525; padding: 10px 0; }
-
-      
