@@ -153,6 +153,7 @@
         }
 
         .sidebar {
+                    height: 100%;
             width: var(--sidebar-wide);
             background: var(--sidebar-bg);
             color: var(--sidebar-text);
@@ -173,7 +174,7 @@
             right: 5px; 
             top: 15px;
             width: 30%;
-            height: 3%;
+            height: 4%;
             z-index: 1100;
             background: var(--sidebar-bg);
             color: var(--accent-gold);
