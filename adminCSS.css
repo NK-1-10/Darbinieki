@@ -470,33 +470,35 @@ li{
                  
     /* 1. PAMATS - saglabājam datora loģiku */
     html, body {
-        margin: 0;
-        padding: 0;
-        width: 98%
+        width: 100%;
+        height: auto !important; /* Atļauj lapai būt garākai par ekrānu */
         overflow-x: hidden;
-        overflow-y: auto;
+        overflow-y: auto !important; /* Ieslēdz skrollēšanu */
+        position: relative;
     }
 
     body {
-        display: flex;
-        flex-direction: row;
+        display: block;
     }
 
     /* 2. SIDEBAR - Izmēri rediģēti mobilajam */
 .sidebar {
-            width: var(--sidebar-wide);
-            background: var(--sidebar-bg);
-            color: var(--sidebar-text);
-            display: flex;
-            flex-direction: column;
-            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 1000;
-            position: relative;
-            flex-shrink: 0;
-        }
+        position: fixed !important;
+        top: 0;
+        left: 0;
+        height: 100vh !important;
+        width: 280px !important;
+        z-index: 2000;
+        overflow-y: auto !important; /* Ja izvēlne gara, var skrollēt iekšā */
+        transition: transform 0.3s ease;
+        transform: translateX(-100%); 
+    }
                  .sidebar.collapsed {
             width: var(--sidebar-collapsed);
         }
+                 .sidebar:not(.collapsed) {
+        transform: translateX(0);
+    }
 
     /* 3. BURGERA POGA - Precīzi kā datoram, bet mazāka */
     #toggle-btn {
@@ -505,12 +507,11 @@ li{
     top: 15px !important;
     width: 50px !important;
     height: 50px !important;
+    background-color: var(--sidebar-bg) !important;
     
     /* Vissvarīgākā daļa: z-index jābūt lielākam par jebko citu */
     z-index: 2147483647 !important; 
-    
-    /* Padarām to redzamu - koša krāsa pārbaudei */
-    background-color: (--sidebar-bg) !important; 
+
     display: flex !important;
     visibility: visible !important;
     opacity: 1 !important;
@@ -525,10 +526,10 @@ li{
 
     /* 4. MAIN CONTENT - Rediģēti izmēri */
     .main-content {
-        width: 100vw !important;
-        min-width: 100vw !important;
+        width: 100% !important;
+        min-height: 100vh;
         margin: 0 !important;
-        padding: 0 !important;
+        overflow: visible !important; /* Ļauj saturam iziet ārpus ekrāna rāmjiem */
     }
 
                  #toggle-btn i, #toggle-btn span {
@@ -539,11 +540,11 @@ li{
 
 
     header {
-        height: 65px !important;
-        padding-left: 65px !important; /* Vieta pogai */
-        display: flex;
-        align-items: center;
-        justify-content: flex-start;
+        position: sticky;
+        top: 0;
+        background: white;
+        z-index: 1500;
+        padding-left: 75px !important;
     }
 
     /* 5. SARAKSTI - Kompakti izmēri */
