@@ -455,11 +455,11 @@ li{
 
       @media (pointer: coarse) { /* ŠEITTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT*/
     body {
-        position: fixed;
-        width: 100%;
-        height: 100%;
-        overflow: hidden;
-        margin: 0;
+        position: relative; /* Atceļam fixed */
+        display: flex;
+        flex-direction: row; /* Sidebar un saturs blakus */
+        overflow: auto; /* Atļaujam skrollēt pašu lapu */
+        height: 100vh;
     }
 
     .worker-actions {
@@ -738,38 +738,32 @@ li{
 
     /* 2. SIDEBAR - Fiksēts un vienmēr pa virsu */
     .sidebar {
-    position: fixed !important;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    width: 300px !important;
-    z-index: 99999 !important;
-    /* Ja ir klase .collapsed, tad paslēpjam */
-    transform: translateX(-100%); 
-    transition: transform 0.3s ease-in-out !important;
-    display: flex !important;
-    background: var(--sidebar-bg) !important;
-}
+        position: relative !important; /* Vairs nav fixed virsū visam */
+        transform: none !important;    /* Nekādas nobīdes */
+        display: flex !important;
+        width: var(--sidebar-wide) !important;
+        flex-shrink: 0;
+        transition: width 0.3s ease;
+    }
 
     .sidebar:not(.collapsed) {
     transform: translateX(0) !important; /* Šis iebīda atpakaļ ekrānā */
 }
+                  .sidebar.collapsed {
+        width: var(--sidebar-collapsed) !important;
+    }
 
     /* 3. BURGERA POGA */
     #toggle-btn {
-    position: fixed !important;
-    left: 15px !important;
-    top: 15px !important;
-    width: 60px !important;
-    height: 60px !important;
-    z-index: 100001 !important; 
-    background: var(--sidebar-bg) !important;
-    border: 2px solid var(--accent-gold) !important;
-    border-radius: 50% !important;
-    display: flex !important;
-    align-items: center;
-    justify-content: center;
-}
+        position: absolute !important;
+        right: -25px; /* Nedaudz izvirzīta uz āru, lai vieglāk trāpīt */
+        top: 20px;
+        width: 50px !important;
+        height: 50px !important;
+        z-index: 1000;
+        border-radius: 5px !important;
+        background: var(--sidebar-bg) !important;
+    }
 
     /* 4. GALVENAIS SATURS */
     .main-content {
