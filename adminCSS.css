@@ -336,7 +336,7 @@
     align-items: center;
     width: 100%; /* Pievieno šo, lai konteiners aizņemtu visu platumu */
     position: sticky;
-    top: 80px; /* ŠEITTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT*/
+    top: 80px; 
     background: #fff; /* Obligāti vajag fonu, citādi tabula spīdēs cauri */
     z-index: 100;    /* Nodrošina, ka filtri ir virs tabulas satura */
     padding: 15px 0;  /* Atstarpes ērtākai lietošanai */
@@ -453,7 +453,7 @@ li{
         
         .sidebar.collapsed .btn-all-delete { background: #942525; padding: 10px 0; }
 
-      @media (pointer: coarse) {
+      @media (pointer: coarse) { /* ŠEITTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT*/
     body {
         position: fixed;
         width: 100%;
@@ -739,12 +739,15 @@ li{
     /* 2. SIDEBAR - Fiksēts un vienmēr pa virsu */
     .sidebar {
         position: fixed !important;
-        left: -280px;
         top: 0;
+        left: 0;
         bottom: 0;
-        width: 280px !important;
-        z-index: 2000 !important;
-        transition: left 0.3s ease-out !important;
+        width: 300px !important; /* Konkrēts platums mobilajam */
+        z-index: 99999 !important; /* Ļoti augsts, lai nekas nepārklātu */
+        transform: translateX(-100%); /* Paslēpjam pa kreisi */
+        transition: transform 0.3s ease !important;
+        display: flex !important;
+        background: var(--sidebar-bg) !important;
     }
 
     /* Kad sidebar ir atvērts */
@@ -755,25 +758,25 @@ li{
     /* 3. BURGERA POGA */
     #toggle-btn {
         position: fixed !important;
-        left: 10px !important;
-        top: 10px !important;
-        z-index: 2100 !important;
+        left: 15px !important;
+        top: 15px !important;
         width: 60px !important;
         height: 60px !important;
+        z-index: 100000 !important; /* VIRS sidebar, lai vienmēr varētu aizvērt */
         background: var(--sidebar-bg) !important;
+        border: 2px solid var(--accent-gold) !important;
+        border-radius: 50% !important;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
     }
 
     /* 4. GALVENAIS SATURS */
     .main-content {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        transition: padding-left 0.3s ease-out !important;
-        box-sizing: border-box;
+        margin-left: 0 !important;
+        width: 100% !important;
+        padding: 0 !important;
+        display: block !important;
     }
 
     /* !!! ŠIS IR SVARĪGI: Ja sidebar ir vaļā, pabīdām visu saturu, lai to neaizsedz */
@@ -782,8 +785,11 @@ li{
     }
 
     header {
-        height: 100px !important; /* Nedaudz lielāks mobilajiem */
-        z-index: 2500 !important; /* Virs visa pārējā */
+        padding-left: 85px !important; /* Atstājam vietu pogai augšā */
+        height: 80px !important;
+        width: 100% !important;
+        position: relative !important;
+        z-index: 10 !important;
     }
 
     /* 5. SKROLLĒJAMĀ DAĻA */
