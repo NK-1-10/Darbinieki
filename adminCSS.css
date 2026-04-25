@@ -173,23 +173,34 @@
         }
 
         #toggle-btn {
-            position: absolute;
-            right: 5px; 
-            top: 15px;
-            width: 50px;
-            height: 45px;
-            z-index: 1100;
-            background: var(--sidebar-bg);
-            color: var(--accent-gold);
-            border: 1px solid var(--accent-gold);
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background 0.2s;
-        }
+    position: fixed !important;
+    left: 15px !important;
+    top: 15px !important;
+    width: 50px !important;
+    height: 50px !important;
+    
+    /* Vissvarīgākā daļa: z-index jābūt lielākam par jebko citu */
+    z-index: 2147483647 !important; 
+    
+    /* Padarām to redzamu - koša krāsa pārbaudei */
+    background-color: #ff4757 !important; 
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 50% !important; /* Apaļa poga, lai izceļas */
+    box-shadow: 0 4px 15px rgba(0,0,0,0.4) !important;
+    cursor: pointer !important;
+    pointer-events: auto !important;
+}
+
+#toggle-btn i, #toggle-btn span {
+    color: white !important;
+    font-size: 24px !important;
+    display: block !important;
+}
 
         #toggle-btn:hover {
             background: var(--active-item);
@@ -261,10 +272,12 @@
             display: flex; 
             flex-direction: column;
             min-width: 0;
+                    z-index: 1 !important;
         }
 
         header { 
     position: sticky;
+                    padding-left: 80px !important;
     top: 0;
     background: #fff; 
     padding: 15px 30px;
@@ -273,7 +286,7 @@
     align-items: center; 
     box-shadow: 0 2px 5px rgba(0,0,0,0.05);
     height: 75px; /* Standarta augstums */
-    z-index: 1500 !important; /* Augstāks par pogu (kas ir 10 vai 1100) */
+    z-index: 100 !important; /* Augstāks par pogu (kas ir 10 vai 1100) */
     flex-shrink: 0;
 }
         .view-section { padding: 30px; display: none; }
