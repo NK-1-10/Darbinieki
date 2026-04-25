@@ -455,10 +455,11 @@ li{
       @media (pointer: coarse) { /* ŠEITTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT*/
     body {
         position: relative; /* Atceļam fixed */
-        display: flex;
+        display: block;
         flex-direction: row; /* Sidebar un saturs blakus */
         overflow: auto; /* Atļaujam skrollēt pašu lapu */
         height: 100vh;
+                overflow-x: hidden;
     }
 
     .worker-actions {
@@ -735,23 +736,26 @@ li{
         gap: 12px !important; /* Lielāka atstarpe starp pogām */
     }     
 
-    /* 2. SIDEBAR - Fiksēts un vienmēr pa virsu */
+    /* 2. SIDEBAR*/
     .sidebar {
         position: fixed !important; /* Obligāti fixed */
         left: 0;
         top: 0;
         height: 100vh;
-        width: 280px !important; 
+        width: 220px !important; 
         transform: translateX(-100%); 
         transition: transform 0.3s ease-in-out; 
         z-index: 2000;
+        flex-shrink: 0;
     }
-                  .sidebar:not(.collapsed) {
-        transform: translateX(0); /* Iebrauc ekrānā */
+                  
+.sidebar:not(.collapsed) {
+        transform: translateX(0);
+        box-shadow: 10px 0 20px rgba(0,0,0,0.3);
     }
-
        .sidebar.collapsed {
-        width: 6% !important; /* mēģinu skatos 10% no ekrāna. atkarīgs, kā sanāks */
+        width: 6% !important; /* mēģinu skatos 10% no ekrāna. atkarīgs, kā sanāks 
+        transform: translateX(-100);
     }
 
     /* 3. BURGERA POGA */
