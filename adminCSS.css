@@ -457,27 +457,30 @@ li{
     /* 1. PAMATA IZKĀRTOJUMS */
     body {
         position: fixed;
-        width: 100vw;
-        height: 100vh;
-        overflow: hidden;
-        display: flex; /* Izmantojam flex, lai blakus būtu sidebar un saturs */
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow: hidden; /* Visu kontrolēsim caur iekšējiem elementiem */
+        display: flex;
+        background-color: #f4f7f6;
     }
 
-    /* 2. SIDEBAR (SĀNU IZVĒLNE) */
+    /* 2. SIDEBAR - Fiksēts platums, bet skrollējams saturs */
     .sidebar {
-        position: relative !important; /* Mainām no fixed uz relative, lai tas fiziski aizņemtu vietu */
-        flex-shrink: 0; /* Neļaujam sidebaram sarauties */
-        width: 300px !important;
-        height: 100vh !important;
-        margin-left: -300px; /* Sākumā nobīdām ārpus ekrāna */
-        transition: margin-left 0.3s ease-out !important;
-        
-        /* ŠIS IR SVARĪGI: Iespējo skrollēšanu pašā sidebarā */
-        overflow-y: auto !important; 
-        -webkit-overflow-scrolling: touch;
+        width: 80% !important; /* Mobilajiem aizņems 80% no ekrāna platuma */
+        max-width: 320px !important; /* Bet ne vairāk kā 320px */
+        height: 100% !important;
+        flex-shrink: 0; /* Neļauj main-content to saspiest */
+        background: #1a1c1e !important;
         display: flex;
         flex-direction: column;
-        z-index: 2000;
+        overflow-y: auto !important; /* Ja pogas par daudz, var skrollēt */
+        -webkit-overflow-scrolling: touch;
+        
+        /* Pāreja un stāvoklis */
+        margin-left: -80% !important; /* Sākumā paslēpts (proporcionāli) */
+        transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
     }
 
     .sidebar:not(.collapsed) {
@@ -513,16 +516,10 @@ li{
     }
 
     .nav-item {
-        font-size: 26px !important;
-        padding: 18px 25px !important;
-        margin: 4px 15px !important;
-        border-radius: 12px !important;
-        color: #ccc !important;
-        background: transparent;
-        transition: all 0.2s;
-        display: flex !important;
-        align-items: center;
-        gap: 20px;
+        padding: 5% 8% !important;
+        font-size: 5.5vw !important;
+        min-height: 70px !important;
+        margin: 1% 3% !important;
     }
 
     .nav-item i {
@@ -539,14 +536,14 @@ li{
 
     /* 4. GALVENAIS SATURS */
     .main-content {
-        position: relative !important;
-        flex-grow: 1; /* Aizņem visu atlikušo vietu */
-        width: 100vw; /* Pamata platums ir pilns ekrāns */
-        min-width: 100vw; /* Nodrošina, ka saturs nesaspiežas */
-        height: 100vh;
-        overflow: hidden;
+        width: 100vw !important; /* Vienmēr pilns ekrāna platums */
+        min-width: 100vw !important;
+        height: 100% !important;
+        flex-shrink: 0; /* Neļauj sidebaram to saspiest */
         display: flex;
         flex-direction: column;
+        overflow: hidden; /* Iekšpuse skrollēsies */
+        background: inherit;
     }
 
     header {
@@ -560,33 +557,41 @@ li{
     }
 
     #current-view-title {
-        font-size: 42px !important;
-        font-weight: 800;
-        color: #1a1c1e;
-        margin: 0;
+        font-size: 8vw !important; /* Dinamiski liels virsraksts */
+        text-align: center;
+        width: 100%;
     }
 
     /* 5. BURGERA POGA */
     #toggle-btn {
-        position: fixed !important; 
-        left: 20px;
-        top: 20px;
-        z-index: 2500; /* Virs visiem */
+        position: fixed !important;
+        left: 3% !important;
+        top: 2% !important;
+        width: 15% !important; /* Proporcionāls platums */
+        max-width: 65px !important;
+        aspect-ratio: 1 / 1; /* Vienmēr kvadrāts */
+        z-index: 3000 !important;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        font-size: 5vw !important; /* Dinamisks ikonas izmērs */
     }
 
     /* 6. KARTĪTES UN SARAKSTI */
     .view-section {
+        flex: 1;
         overflow-y: auto !important;
+        overflow-x: hidden;
+        padding: 5% !important; /* Proporcionālas atkāpes */
+        padding-top: 80px !important; /* Vieta headerim/pogai */
         -webkit-overflow-scrolling: touch;
-        padding-top: 100px !important; /* Vieta burgera pogai/headerim */
     }
 
     .card {
-        background: white !important;
-        border-radius: 20px !important;
-        padding: 20px !important;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.08) !important;
-        margin-bottom: 30px !important;
+        width: 100% !important;
+        box-sizing: border-box;
+        border-radius: 4vw !important; /* Noapaļojums proporcionāls ekrānam */
+        padding: 4% !important;
     }
 
     .btn-add {
