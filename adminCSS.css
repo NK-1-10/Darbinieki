@@ -275,7 +275,6 @@
     height: 75px; /* Standarta augstums */
     z-index: 1500 !important; /* Augstāks par pogu (kas ir 10 vai 1100) */
     flex-shrink: 0;
-font-size : 30px;
 }
         .view-section { padding: 30px; display: none; }
         .view-section.active { display: block; }
@@ -364,11 +363,11 @@ font-size : 30px;
             margin-left: 5px;
         }
         .btn-all-delete{
-            height: 45px ;
+            height: 60px ;
             font-size: 10px ;
         }
         .btn-logout{
-            height: 45px ;
+            height: 60px ;
             font-size: 10px;
         }
         .summary-badge{

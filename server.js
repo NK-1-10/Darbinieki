@@ -1,230 +1,422 @@
-<!DOCTYPE html>
-<html lang="lv">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/png" href="admin.png?v=2">
-    <title>Admin Panelis</title>
-    <link rel="stylesheet" href="adminCSS.css">
-</head>
-<body>
+const express = require('express');
+const { Pool } = require('pg');
+const path = require('path');
+const cors = require('cors');
 
-    <div class="sidebar">
-        <button id="toggle-btn" onclick="toggleSidebar()">&#9776;</button>
-        <div class="sidebar-header">
-            <h2 class="Admin-head">SIA Admin</h2>
-        </div>
+const app = express();
+app.use(express.json());
+app.use(cors());
+app.use(express.static(path.join(__dirname, '.')));
 
-        <div class="nav-group">
-            <div class="nav-label">Iestatījumi</div>
-            <div class="nav-item active" onclick="showView('v-workers', this)"><i>👷</i><span>Darbinieki</span></div>
-            <div class="nav-item" onclick="showView('v-cars', this)"><i>🚗</i><span>Mašīnas</span></div>
-            <div class="nav-item" onclick="showView('v-worktypes', this)"><i>⚒️</i><span>Darba veidi</span></div>
-            <div class="nav-item" onclick="showView('v-objects', this)"><i>📍</i><span>Objekti</span></div>
-            <div class="nav-item" onclick="showView('v-res', this)"><i>🛢️</i><span>Resursi</span></div>
-        </div>
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false }
+});
 
-        <div class="nav-group">
-            <div class="nav-label">Atskaites</div>
-            <div class="nav-item" onclick="showView('v-report-work', this)"><i>📋</i><span>Darba gaita</span></div>
-            <div class="nav-item" onclick="showView('v-report-fuel', this)"><i>⛽</i><span>Patēriņš</span></div>
-            <div class="nav-item" onclick="showView('v-report-hours', this)"><i>⏱️</i><span>Darba stundas</span></div>
-        </div>
+// Atjaunināt darbinieka datus (Vārdu un paroles)
+app.put('/api/workers/:originalName', async (req, res) => {
+    const { originalName } = req.params; // Vecais vārds, pēc kura atrodam ierakstu
+    const { newName, temp_password, password } = req.body;
 
-        <div class="sidebar-footer">
-            <button class="editadmin" onclick="openAdminModal()"><span>Rediģēt admin</span></button>
-            <button class="btn-all-delete" onclick="deleteAllData()">⚠️ <span>DZĒST VISUS DATUS</span></button>
-            <button class="btn-logout" onclick="logout()">
-                <i>🚪</i><span class="logout-text">Iziet</span>
-            </button>
-        </div>
-    </div>
+    try {
+        // SQL pieprasījums: atjaunojam vārdu, pagaidu paroli un īsto paroli (ja tāda ir)
+        // Ja jauna pastāvīgā parole nav ievadīta, atstājam veco
+        const query = `
+            UPDATE users 
+            SET name = $1, 
+                temp_password = $2, 
+                password = COALESCE(NULLIF($3, ''), password)
+            WHERE name = $4
+            RETURNING *`;
 
-    <div class="main-content">
-        <header>
-            <h3 id="current-view-title">Darbinieki</h3>
-        </header>
+        const result = await pool.query(query, [newName, temp_password, password, originalName]);
 
-        <main>
-            <section id="v-workers" class="view-section active">
-                <div class="card">
-                    <button class="btn-add" onclick="addNewWorker()">+ Pievienot darbinieku</button>
-                    <ul id="workerList"></ul>
-                </div>
-            </section>
-            
-            </main>
-    </div>
-
-    <div id="adminEditModal" class="modal" style="display:none;">
-        <div class="modal-content">
-            <h3>Admin iestatījumi</h3>
-            <div class="input-group">
-                <label>Jaunais lietotājvārds:</label>
-                <input type="text" id="adminNewName" placeholder="Atstāj tukšu, ja nemaini">
-            </div>
-            <div class="input-group">
-                <label>Jaunā parole:</label>
-                <input type="password" id="adminNewPass" placeholder="Jaunā parole">
-            </div>
-            <div class="modal-buttons">
-                <button onclick="closeAdminModal()" class="btn-cancel">Atcelt</button>
-                <button onclick="saveAdminSettings()" class="btn-save">Saglabāt</button>
-            </div>
-            <hr>
-            <h4>Pievienot jaunu Adminu</h4>
-            <button onclick="addNewAdmin()" class="btn-add" style="width: 100%;">+ Izveidot administratoru</button>
-        </div>
-    </div>
-
-    <div id="editModal" class="modal" style="display:none;">
-        <div class="modal-content">
-            <h3>Rediģēt darbinieku</h3>
-            <div class="input-group">
-                <label>Vārds Uzvārds:</label>
-                <input type="text" id="editName">
-            </div>
-            <div class="input-group">
-                <label>Pagaidu parole:</label>
-                <input type="text" id="editTempPass">
-            </div>
-            <div class="input-group">
-                <label>Jauna pastāvīgā parole:</label>
-                <input type="password" id="editPass" placeholder="Ievadiet, lai mainītu">
-            </div>
-            <div class="modal-buttons">
-                <button onclick="closeEditModal()" class="btn-cancel">Atcelt</button>
-                <button onclick="saveWorkerEdit()" class="btn-save">Saglabāt</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        let workers = [], cars = [], schedule = [], workTypes = [], objects = [], daySummary = [], resourceTypes = [];
-        const LV_MONTHS = ["Janvāris", "Februāris", "Marts", "Aprīlis", "Maijs", "Jūnijs", "Jūlijs", "Augusts", "Septembris", "Oktobris", "Novembris", "Decembris"];
-        
-        // Globālais ID administratoram, kuru rediģējam (parasti iegūst no sesijas)
-        let currentEditingAdminId = 2; 
-
-        function toggleSidebar() {
-            document.querySelector('.sidebar').classList.toggle('collapsed');
+        if (result.rowCount > 0) {
+            res.json({ success: true, message: "Darbinieka dati atjaunoti" });
+        } else {
+            res.status(404).json({ error: "Darbinieks netika atrasts" });
         }
+    } catch (err) {
+        console.error("Servera kļūda:", err);
+        res.status(500).json({ error: "Neizdevās saglabāt izmaiņas: " + err.message });
+    }
+});
 
-        function showView(viewId, el) {
-            document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-            document.getElementById(viewId).classList.add('active');
-            el.classList.add('active');
-            document.getElementById('current-view-title').innerText = el.querySelector('span').innerText;
+// --- PALĪGFUNKCIJA LAIKA STARPĪBAI ---
+function calculateHours(start, end) {
+    const [sh, sm, ss] = start.split(':').map(Number);
+    const [eh, em, es] = end.split(':').map(Number);
+    let diff = (eh * 3600 + em * 60 + es) - (sh * 3600 + sm * 60 + ss);
+    if (diff < 0) diff += 86400; 
+    return (diff / 3600).toFixed(2);
+}
+
+app.delete('/api/schedule/:id', async (req, res) => {
+    const id = req.params.id;
+    try {
+        const result = await pool.query("DELETE FROM schedule WHERE id = $1", [id]);
+        if (result.rowCount > 0) {
+            res.json({ success: true, message: "Ieraksts izdzēsts" });
+        } else {
+            res.status(404).json({ error: "Ieraksts netika atrasts" });
         }
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Servera kļūda: " + err.message });
+    }
+});
 
-        async function loadData() {
-            try {
-                const endpoints = ['/api/workers', '/api/cars', '/api/schedule', '/api/work-types', '/api/objects', '/api/darbastundas', '/api/resource-types'];
-                const responses = await Promise.all(endpoints.map(url => fetch(url)));
-                const results = await Promise.all(responses.map(r => r.ok ? r.json() : []));
-
-                [workers, cars, schedule, workTypes, objects, daySummary, resourceTypes] = results;
-                
-                updateFilterOptions();
-                renderLists();
-                renderTables();
-            } catch (err) { 
-                console.error("Datu ielādes kļūda:", err); 
-            }
+// --- JAUNS: Dzēst vienu ierakstu no DARBASTUNDAS ---
+app.delete('/api/darbastundas/:id', async (req, res) => {
+    const id = req.params.id;
+    try {
+        const result = await pool.query('DELETE FROM "darbastundas" WHERE id = $1', [id]);
+        if (result.rowCount > 0) {
+            res.json({ success: true, message: "Stundu ieraksts izdzēsts" });
+        } else {
+            res.status(404).json({ error: "Ieraksts netika atrasts" });
         }
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Servera kļūda: " + err.message });
+    }
+});
 
-        // --- ADMIN FUNKCIJAS ---
-        function openAdminModal() {
-            document.getElementById('adminEditModal').style.display = 'flex';
-        }
+// Iztīrīt visu tabulu pilnībā (salabo lielo sarkano pogu)
+app.delete('/api/schedule/all', async (req, res) => {
+    try {
+        await pool.query("DELETE FROM schedule");
+        res.json({ success: true, message: "Tabula pilnībā iztīrīta" });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Neizdevās izdzēst visu: " + err.message });
+    }
+});
 
-        function closeAdminModal() {
-            document.getElementById('adminEditModal').style.display = 'none';
-        }
+app.delete('/api/fuel-logs', async (req, res) => {
+    try { 
+        // Šis izdzēsīs tikai degvielas/eļļas ierakstus no kopējā saraksta
+        await pool.query("DELETE FROM schedule WHERE darbs IN ('Degvielas uzpilde', 'Eļļas papildināšana')"); 
+        res.json({ success: true }); 
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
 
-        async function saveAdminSettings() {
-            const newName = document.getElementById('adminNewName').value;
-            const newPass = document.getElementById('adminNewPass').value;
+// Pievieno šo pie pārējiem DELETE maršrutiem
+app.delete('/api/darbastundas', async (req, res) => {
+    try { 
+        await pool.query('DELETE FROM "darbastundas"'); 
+        res.json({ success: true }); 
+    } catch (err) { 
+        res.status(500).json({ error: err.message }); 
+    }
+});
 
-            if (!newName && !newPass) return alert("Nav ievadītas izmaiņas!");
-
-            try {
-                const response = await fetch(`/api/workers/id/${currentEditingAdminId}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ newName, password: newPass })
-                });
-
-                if (response.ok) {
-                    alert("Admin dati atjaunoti!");
-                    location.reload();
-                }
-            } catch (err) { console.error(err); }
-        }
-
-        // --- DARBINIEKU FUNKCIJAS ---
-        let editingWorkerOriginalName = "";
-
-        function openEditModal(name, tempPass) {
-            editingWorkerOriginalName = name;
-            document.getElementById('editName').value = name;
-            document.getElementById('editTempPass').value = tempPass || "";
-            document.getElementById('editPass').value = "";
-            document.getElementById('editModal').style.display = 'flex';
-        }
-
-        async function saveWorkerEdit() {
-            const updatedData = {
-                newName: document.getElementById('editName').value,
-                temp_password: document.getElementById('editTempPass').value,
-                password: document.getElementById('editPass').value
-            };
-
-            try {
-                const response = await fetch(`/api/workers/${encodeURIComponent(editingWorkerOriginalName)}`, {
-                    method: 'PUT',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify(updatedData)
-                });
-
-                if (response.ok) {
-                    closeEditModal();
-                    loadData();
-                }
-            } catch (err) { console.error(err); }
-        }
-
-        function closeEditModal() {
-            document.getElementById('editModal').style.display = 'none';
-        }
-
-        // --- STANDARTA CRUD ---
-        async function addNewItem(url, msg, extra={}) {
-            const n = prompt(msg);
-            if(!n) return;
-            await fetch(url, {
-                method:'POST', 
-                headers:{'Content-Type':'application/json'}, 
-                body:JSON.stringify({name:n, ...extra})
+// --- 1. AUTENTIFIKĀCIJA ---
+app.post('/api/login', async (req, res) => {
+    const { username, password } = req.body;
+    try {
+        const query = 'SELECT * FROM users WHERE name = $1 AND (password = $2 OR temp_password = $2)';
+        const result = await pool.query(query, [username, password]);
+        if (result.rows.length > 0) {
+            const userData = result.rows[0];
+            res.json({
+                id: userData.id,
+                name: userData.name,
+                role: userData.role || "worker",
+                needsPasswordChange: (userData.temp_password === password)
             });
-            loadData();
+        } else {
+            res.status(401).json({ success: false, error: "Nepareizs vārds vai parole" });
         }
+    } catch (err) { res.status(500).json({ error: "Servera kļūda" }); }
+});
 
-        async function deleteItem(url, name) {
-            if(confirm(`Dzēst ${name}?`)) {
-                await fetch(`${url}/${encodeURIComponent(name)}`, {method:'DELETE'});
-                loadData();
-            }
+app.post('/api/change-password', async (req, res) => {
+    const { username, newPassword } = req.body;
+    try {
+        await pool.query('UPDATE users SET password = $1, temp_password = NULL WHERE name = $2', [newPassword, username]);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// --- 2. RESURSU PĀRVALDĪBA ---
+app.get('/api/resource-types', async (req, res) => {
+    try {
+        const r = await pool.query("SELECT id, name, quantity FROM resource_types ORDER BY name ASC");
+        res.json(r.rows); 
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.patch('/api/resource-types/:id', async (req, res) => {
+    const { id } = req.params;
+    const { action, amount } = req.body;
+    const litri = parseFloat(amount) || 0;
+    try {
+        if (action === 'sub') {
+            await pool.query('UPDATE resource_types SET quantity = COALESCE(quantity, 0) - $1 WHERE id = $2', [litri, id]);
+        } else {
+            let query = action === 'add' ? 'UPDATE resource_types SET quantity = COALESCE(quantity, 0) + $1 WHERE id = $2' : 'UPDATE resource_types SET quantity = $1 WHERE id = $2';
+            await pool.query(query, [litri, id]);
         }
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
 
-        function logout() {
-            localStorage.clear();
-            window.location.href = 'index.html';
+// --- 3. DARBINIEKI, AUTO, OBJEKTI ---
+app.get('/api/workers', async (req, res) => {
+    try {
+        // Atlasām vārdu un pagaidu paroli, lai admins varētu to pateikt darbiniekam
+        const r = await pool.query("SELECT name, temp_password, role FROM users WHERE role != 'admin' OR role IS NULL ORDER BY name ASC");
+        res.json(r.rows);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.get('/api/cars', async (req, res) => {
+    try {
+        const r = await pool.query("SELECT name FROM cars ORDER BY name ASC");
+        res.json(r.rows.map(row => row.name));
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.get('/api/objects', async (req, res) => {
+    try {
+        const r = await pool.query("SELECT name FROM objects ORDER BY name ASC");
+        res.json(r.rows.map(row => row.name));
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.get('/api/work-types', async (req, res) => {
+    try {
+        const r = await pool.query("SELECT name FROM work_types ORDER BY name ASC");
+        res.json(r.rows.map(row => row.name));
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// --- 4. DARBA GAITA (SCHEDULE) ---
+app.get('/api/schedule', async (req, res) => {
+    const { worker_name } = req.query;
+    try {
+        let query = 'SELECT * FROM schedule';
+        let params = [];
+        if (worker_name) {
+            query += ' WHERE LOWER(worker_name) = LOWER($1)';
+            params.push(worker_name);
         }
+        query += ' ORDER BY id DESC';
+        const result = await pool.query(query, params);
+        res.json(result.rows);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
 
-        // Inicializācija
-        loadData();
-    </script>
-</body>
-</html>
+// --- ADMIN: JAUNU VIENĪBU PIEVIENOŠANA ---
+
+app.post('/api/workers', async (req, res) => {
+    const { name, temp_password, role } = req.body;
+    try {
+        const query = 'INSERT INTO users (name, temp_password, role) VALUES ($1, $2, $3) RETURNING *';
+        const values = [name, temp_password, role || 'worker'];
+        await pool.query(query, values);
+        res.json({ success: true });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Neizdevās pievienot darbinieku (iespējams, vārds jau eksistē)" });
+    }
+});
+
+app.post('/api/cars', async (req, res) => {
+    try {
+        await pool.query('INSERT INTO cars (name) VALUES ($1)', [req.body.name]);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/work-types', async (req, res) => {
+    try {
+        await pool.query('INSERT INTO work_types (name) VALUES ($1)', [req.body.name]);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/objects', async (req, res) => {
+    try {
+        await pool.query('INSERT INTO objects (name) VALUES ($1)', [req.body.name]);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/resource-types', async (req, res) => {
+    const { name, quantity } = req.body;
+    try {
+        await pool.query('INSERT INTO resource_types (name, quantity) VALUES ($1, $2)', [name, quantity || 0]);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// --- ADMIN: KRĀJUMU PAPILDINĀŠANA (Poga OK) ---
+
+app.post('/api/resource-stock', async (req, res) => {
+    const { name, change } = req.body; // change var būt pozitīvs (pievienot) vai negatīvs (noņemt)
+    try {
+        const result = await pool.query(
+            'UPDATE resource_types SET quantity = COALESCE(quantity, 0) + $1 WHERE name = $2 RETURNING *',
+            [parseFloat(change), name]
+        );
+        if (result.rowCount > 0) {
+            res.json({ success: true });
+        } else {
+            res.status(404).json({ error: "Resurss nav atrasts" });
+        }
+    } catch (err) { res.status(500).json({ error: "DB kļūda" }); }
+});
+
+// --- ADMIN: DZĒŠANAS FUNKCIJAS ---
+
+app.delete('/api/cars/:name', async (req, res) => {
+    try {
+        await pool.query('DELETE FROM cars WHERE name = $1', [req.params.name]);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.delete('/api/objects/:name', async (req, res) => {
+    try {
+        await pool.query('DELETE FROM objects WHERE name = $1', [req.params.name]);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.delete('/api/work-types/:name', async (req, res) => {
+    try {
+        await pool.query('DELETE FROM work_types WHERE name = $1', [req.params.name]);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.delete('/api/resource-types/:name', async (req, res) => {
+    try {
+        await pool.query('DELETE FROM resource_types WHERE name = $1', [req.params.name]);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.delete('/api/workers/:name', async (req, res) => {
+    const name = req.params.name;
+    try {
+        await pool.query("DELETE FROM users WHERE name = $1", [name]);
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// (Pievieno līdzīgus delete maršrutus cars, objects un work-types)
+
+app.post('/api/start-work', async (req, res) => {
+    const { worker_name, car, start_time, objekts, darbs } = req.body;
+    const [date, time] = start_time.split(' ');
+    try {
+        const activeCheck = await pool.query(
+            "SELECT id FROM schedule WHERE worker_name = $1 AND beigu_laiks IS NULL AND darbs NOT IN ('Degvielas uzpilde', 'Eļļas papildināšana')",
+            [worker_name]
+        );
+        if (activeCheck.rows.length > 0) return res.status(400).json({ error: "Aktīva sesija jau eksistē!" });
+
+        const tagad = new Date();
+        const monthStr = tagad.toLocaleDateString('lv-LV', { month: 'long' }).replace(/^\w/, c => c.toUpperCase());
+
+        await pool.query(
+            `INSERT INTO schedule (worker_name, car, date, sākuma_laiks, month, objekts, darbs) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+            [worker_name, car, date, time, monthStr, objekts, darbs]
+        );
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/stop-work', async (req, res) => {
+    const { worker_name, end_time } = req.body;
+    const timeOnly = end_time.split(' ')[1];
+    try {
+        const active = await pool.query(
+            "SELECT id, sākuma_laiks FROM schedule WHERE worker_name=$1 AND beigu_laiks IS NULL AND darbs NOT IN ('Degvielas uzpilde', 'Eļļas papildināšana') ORDER BY id DESC LIMIT 1",
+            [worker_name]
+        );
+        if (active.rows.length > 0) {
+            const rowId = active.rows[0].id;
+            const hoursStr = calculateHours(active.rows[0].sākuma_laiks, timeOnly);
+            await pool.query('UPDATE schedule SET beigu_laiks=$1, hours=$2 WHERE id=$3', [timeOnly, hoursStr, rowId]);
+            res.json({ success: true });
+        } else { res.status(404).json({ error: "Nav aktīva darba." }); }
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/update-resources', async (req, res) => {
+    const { worker_name, car, resource_name, resource_amount, type } = req.body;
+    
+    const tagad = new Date();
+    const opts = { timeZone: 'Europe/Riga' };
+    const datums = tagad.toLocaleDateString('lv-LV', opts);
+    const laiks = tagad.toLocaleTimeString('lv-LV', { ...opts, hour12: false });
+    const monthStr = tagad.toLocaleDateString('lv-LV', { ...opts, month: 'long' }).replace(/^\w/, c => c.toUpperCase());
+
+    try {
+        // 1. IERAKSTĀM VĒSTURĒ (Schedule tabulā)
+        await pool.query(`
+            INSERT INTO schedule (
+                worker_name, car, date, sākuma_laiks, beigu_laiks, 
+                month, resource_name, resource_amount, 
+                pielietā_eļļa, pielietā_degviela, darbs, hours
+            ) VALUES ($1, $2, $3, $4, $4, $5, $6, $7, $8, $9, $10, 0)`,
+        [
+            worker_name, 
+            car, 
+            datums, 
+            laiks, 
+            monthStr, 
+            resource_name, 
+            resource_amount, 
+            (type === 'Ella' ? resource_amount : null), 
+            (type === 'Degviela' ? resource_amount : null), 
+            (type === 'Ella' ? 'Eļļas papildināšana' : 'Degvielas uzpilde')
+        ]);
+
+        // 2. ATŅEMAM NO NOLIKTAVAS (resource_types tabulā)
+        await pool.query(
+            'UPDATE resource_types SET quantity = COALESCE(quantity, 0) - $1 WHERE name = $2',
+            [parseFloat(resource_amount), resource_name]
+        );
+
+        // Tikai tagad sūtām atbildi, kad abas darbības veiksmīgas
+        res.json({ success: true });
+
+    } catch (err) {
+        console.error("Resursu atjaunošanas kļūda:", err);
+        res.status(500).json({ error: "Servera kļūda saglabājot datus" });
+    }
+});
+
+// --- 5. DARBA STUNDAS ---
+app.get('/api/darbastundas', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT * FROM "darbastundas" ORDER BY id DESC');
+        res.json(result.rows);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/darbastundas', async (req, res) => {
+    const { darbinieks, datums, sāka_darbu, beidza_darbu, month, stundas } = req.body;
+    try {
+        await pool.query('INSERT INTO "darbastundas" (darbinieks, datums, sāka_darbu, beidza_darbu, month, stundas) VALUES ($1, $2, $3, $4, $5, $6)', [darbinieks, datums, sāka_darbu, beidza_darbu, month, stundas]);
+        res.status(200).send("OK");
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// --- 6. IZTĪRĪŠANA ---
+app.delete('/api/schedule', async (req, res) => {
+    try { await pool.query('DELETE FROM schedule'); res.json({ success: true }); } 
+    catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+const PORT = process.env.PORT || 8080;
+app.listen(PORT, () => console.log(`🚀 Server running on ${PORT}`));

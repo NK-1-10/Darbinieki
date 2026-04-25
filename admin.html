@@ -4,8 +4,10 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" href="admin.png?v=2">
+    
     <title>Admin Panelis</title>
     <link rel="stylesheet" href="adminCSS.css">
+    
 </head>
 <body>
 
@@ -32,9 +34,8 @@
         </div>
 
         <div class="sidebar-footer">
-            <button class="editadmin" onclick="openAdminModal()"><span>Rediģēt admin</span></button>
             <button class="btn-all-delete" onclick="deleteAllData()">⚠️ <span>DZĒST VISUS DATUS</span></button>
-            <button class="btn-logout" onclick="logout()">
+            <button class="btn-logout" onclick="logout()" style="width: 100%; background: #444; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">
                 <i>🚪</i><span class="logout-text">Iziet</span>
             </button>
         </div>
@@ -52,60 +53,107 @@
                     <ul id="workerList"></ul>
                 </div>
             </section>
-            
-            </main>
+
+            <section id="v-cars" class="view-section">
+                <div class="card">
+                    <button class="btn-add" onclick="addNewItem('/api/cars', 'Auto numurs:')">+ Pievienot auto</button>
+                    <ul id="carList"></ul>
+                </div>
+            </section>
+
+            <section id="v-worktypes" class="view-section">
+                <div class="card">
+                    <button class="btn-add" onclick="addNewItem('/api/work-types', 'Darba veids:')">+ Pievienot darba veidu</button>
+                    <ul id="workList"></ul>
+                </div>
+            </section>
+
+            <section id="v-objects" class="view-section">
+                <div class="card">
+                    <button class="btn-add" onclick="addNewItem('/api/objects', 'Objekta nosaukums:')">+ Pievienot objektu</button>
+                    <ul id="objectList"></ul>
+                </div>
+            </section>
+
+            <section id="v-res" class="view-section">
+                <div class="card">
+                    <button class="btn-add" onclick="addNewItem('/api/resource-types', 'Resursa nosaukums:', {quantity:0})">+ Jauns resursa veids</button>
+                    <ul id="resourceList"></ul>
+                </div>
+            </section>
+
+            <section id="v-report-work" class="view-section">
+                <div class="card">
+                    <div class="table-controls">
+                        <select class="year-sel header-filter" onchange="renderTables()"></select>
+                        <select class="month-sel header-filter" onchange="renderTables()"></select>
+                        <select class="worker-sel header-filter" onchange="renderTables()"></select>
+                        <select class="car-sel header-filter" onchange="renderTables()"></select>
+                        <select class="object-sel header-filter" onchange="renderTables()"></select>
+                        <div class="summary-badge">Kopā stundas: <span id="totalHoursValue">0</span></div>
+                    </div>
+                    <div id="tableContainer" class="table-wrapper"></div>
+                </div>
+            </section>
+
+            <section id="v-report-fuel" class="view-section">
+                <div class="card">
+                    <div class="table-controls">
+                        <select class="year-sel header-filter" onchange="renderTables()"></select>
+                        <select class="month-sel header-filter" onchange="renderTables()"></select>
+                        <select class="res-sel header-filter" onchange="renderTables()"></select>
+                        <div class="summary-badge">Kopā: <span id="totalFuelValue">0</span></div>
+                    </div>
+                    <div id="fuelTableContainer" class="table-wrapper"></div>
+                </div>
+            </section>
+
+            <section id="v-report-hours" class="view-section">
+                <div class="card">
+                    <div class="table-controls">
+                        <select class="year-sel header-filter" onchange="renderTables()"></select>
+                        <select class="month-sel header-filter" onchange="renderTables()"></select>
+                        <select class="worker-sel header-filter" onchange="renderTables()"></select>
+                        <div class="summary-badge">Kopā: <span id="totalDayHoursValue">0</span></div>
+                    </div>
+                    <div id="daySummaryContainer" class="table-wrapper"></div>
+                </div>
+            </section>
+        </main>
     </div>
 
-    <div id="adminEditModal" class="modal" style="display:none;">
-        <div class="modal-content">
-            <h3>Admin iestatījumi</h3>
-            <div class="input-group">
-                <label>Jaunais lietotājvārds:</label>
-                <input type="text" id="adminNewName" placeholder="Atstāj tukšu, ja nemaini">
-            </div>
-            <div class="input-group">
-                <label>Jaunā parole:</label>
-                <input type="password" id="adminNewPass" placeholder="Jaunā parole">
-            </div>
-            <div class="modal-buttons">
-                <button onclick="closeAdminModal()" class="btn-cancel">Atcelt</button>
-                <button onclick="saveAdminSettings()" class="btn-save">Saglabāt</button>
-            </div>
-            <hr>
-            <h4>Pievienot jaunu Adminu</h4>
-            <button onclick="addNewAdmin()" class="btn-add" style="width: 100%;">+ Izveidot administratoru</button>
+    <div id="editModal" class="modal">
+    <div class="modal-content">
+        <h3>Rediģēt darbinieku</h3>
+        
+        <div class="input-group">
+            <label>Vārds Uzvārds:</label>
+            <input type="text" id="editName">
         </div>
-    </div>
 
-    <div id="editModal" class="modal" style="display:none;">
-        <div class="modal-content">
-            <h3>Rediģēt darbinieku</h3>
-            <div class="input-group">
-                <label>Vārds Uzvārds:</label>
-                <input type="text" id="editName">
-            </div>
-            <div class="input-group">
-                <label>Pagaidu parole:</label>
-                <input type="text" id="editTempPass">
-            </div>
-            <div class="input-group">
-                <label>Jauna pastāvīgā parole:</label>
-                <input type="password" id="editPass" placeholder="Ievadiet, lai mainītu">
-            </div>
-            <div class="modal-buttons">
-                <button onclick="closeEditModal()" class="btn-cancel">Atcelt</button>
-                <button onclick="saveWorkerEdit()" class="btn-save">Saglabāt</button>
-            </div>
+        <div class="input-group">
+            <label>Pagaidu parole:</label>
+            <input type="text" id="editTempPass" placeholder="Jauna pagaidu parole">
+        </div>
+
+        <div class="input-group">
+            <label>Jauna pastāvīgā parole:</label>
+            <input type="password" id="editPass" placeholder="Ievadiet, lai mainītu">
+        </div>
+
+        <div class="modal-buttons">
+            <button onclick="closeEditModal()" class="btn-cancel">Atcelt</button>
+            <button onclick="saveWorkerEdit()" class="btn-save">Saglabāt</button>
         </div>
     </div>
+</div>
+    
 
     <script>
         let workers = [], cars = [], schedule = [], workTypes = [], objects = [], daySummary = [], resourceTypes = [];
         const LV_MONTHS = ["Janvāris", "Februāris", "Marts", "Aprīlis", "Maijs", "Jūnijs", "Jūlijs", "Augusts", "Septembris", "Oktobris", "Novembris", "Decembris"];
-        
-        // Globālais ID administratoram, kuru rediģējam (parasti iegūst no sesijas)
-        let currentEditingAdminId = 2; 
 
+        // SALABOTS: Noņemta dubultā 'f' burtu drukas kļūda (bija ffunction)
         function toggleSidebar() {
             document.querySelector('.sidebar').classList.toggle('collapsed');
         }
@@ -120,110 +168,309 @@
 
         async function loadData() {
             try {
-                const endpoints = ['/api/workers', '/api/cars', '/api/schedule', '/api/work-types', '/api/objects', '/api/darbastundas', '/api/resource-types'];
-                const responses = await Promise.all(endpoints.map(url => fetch(url)));
-                const results = await Promise.all(responses.map(r => r.ok ? r.json() : []));
-
-                [workers, cars, schedule, workTypes, objects, daySummary, resourceTypes] = results;
+                const res = await Promise.all([
+                    fetch('/api/workers'), fetch('/api/cars'), fetch('/api/schedule'),
+                    fetch('/api/work-types'), fetch('/api/objects'), fetch('/api/darbastundas'),
+                    fetch('/api/resource-types')
+                ]);
+                [workers, cars, schedule, workTypes, objects, daySummary, resourceTypes] = await Promise.all(res.map(r => r.json()));
                 
                 updateFilterOptions();
                 renderLists();
                 renderTables();
-            } catch (err) { 
-                console.error("Datu ielādes kļūda:", err); 
-            }
-        }
-
-        // --- ADMIN FUNKCIJAS ---
-        function openAdminModal() {
-            document.getElementById('adminEditModal').style.display = 'flex';
-        }
-
-        function closeAdminModal() {
-            document.getElementById('adminEditModal').style.display = 'none';
-        }
-
-        async function saveAdminSettings() {
-            const newName = document.getElementById('adminNewName').value;
-            const newPass = document.getElementById('adminNewPass').value;
-
-            if (!newName && !newPass) return alert("Nav ievadītas izmaiņas!");
-
-            try {
-                const response = await fetch(`/api/workers/id/${currentEditingAdminId}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ newName, password: newPass })
-                });
-
-                if (response.ok) {
-                    alert("Admin dati atjaunoti!");
-                    location.reload();
-                }
             } catch (err) { console.error(err); }
         }
 
-        // --- DARBINIEKU FUNKCIJAS ---
-        let editingWorkerOriginalName = "";
-
-        function openEditModal(name, tempPass) {
-            editingWorkerOriginalName = name;
-            document.getElementById('editName').value = name;
-            document.getElementById('editTempPass').value = tempPass || "";
-            document.getElementById('editPass').value = "";
-            document.getElementById('editModal').style.display = 'flex';
-        }
-
-        async function saveWorkerEdit() {
-            const updatedData = {
-                newName: document.getElementById('editName').value,
-                temp_password: document.getElementById('editTempPass').value,
-                password: document.getElementById('editPass').value
+        function updateFilterOptions() {
+            const years = [...new Set([...schedule, ...daySummary].map(d => (d.date || d.datums || "").split('.')[2]))].filter(Boolean).sort();
+            
+            const fill = (selector, data, defaultText) => {
+                document.querySelectorAll(selector).forEach(sel => {
+                    const current = sel.value;
+                    sel.innerHTML = `<option value="">${defaultText}</option>` + data.map(item => `<option value="${item}">${item}</option>`).join("");
+                    sel.value = current;
+                });
             };
 
-            try {
-                const response = await fetch(`/api/workers/${encodeURIComponent(editingWorkerOriginalName)}`, {
-                    method: 'PUT',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify(updatedData)
-                });
+            fill('.year-sel', years, "Visi gadi");
+            fill('.month-sel', LV_MONTHS, "Visi mēneši");
+            fill('.worker-sel', workers.map(w => w.name), "Visi darbinieki"); 
+            fill('.car-sel', cars, "Visi auto");
+            fill('.object-sel', objects, "Visi objekti");
+            fill('.res-sel', resourceTypes.map(r => r.name), "Visi resursi");
+        }
 
-                if (response.ok) {
-                    closeEditModal();
-                    loadData();
+        function renderLists() {
+            const draw = (id, data, api, key='name') => {
+                const el = document.getElementById(id);
+                if(el) {
+                    el.innerHTML = data.map(item => `<li><span>${item[key] || item}</span><button class="btn-del" onclick="deleteItem('${api}', '${item[key] || item}')">✖</button></li>`).join("");
                 }
-            } catch (err) { console.error(err); }
-        }
+            };
 
-        function closeEditModal() {
-            document.getElementById('editModal').style.display = 'none';
-        }
+            const workerEl = document.getElementById('workerList');
+if(workerEl) {
+    workerEl.innerHTML = workers.map(w => {
+        // Pārbaudām, vai vispār ir pagaidu parole
+        const hasTempPass = !!w.temp_password;
+        const displayPass = w.temp_password || ""; 
+        
+        const codeStyle = "background: #fff0f0; color: #d63384; padding: 2px 5px; border-radius: 3px; border: 1px solid #ffcccc;";
 
-        // --- STANDARTA CRUD ---
-        async function addNewItem(url, msg, extra={}) {
-            const n = prompt(msg);
-            if(!n) return;
-            await fetch(url, {
-                method:'POST', 
-                headers:{'Content-Type':'application/json'}, 
-                body:JSON.stringify({name:n, ...extra})
-            });
-            loadData();
-        }
+        return `
+    <li style="display: flex; align-items: center; padding: 10px; border-bottom: 1px solid #eee;">
+        <div style="width: 150px; flex-shrink: 0;">
+            <strong style="font-size: 1.1em;">${w.name}</strong>
+        </div>
 
-        async function deleteItem(url, name) {
-            if(confirm(`Dzēst ${name}?`)) {
-                await fetch(`${url}/${encodeURIComponent(name)}`, {method:'DELETE'});
-                loadData();
+        <div style="flex-grow: 1;">
+            ${hasTempPass ? `
+                <span style="font-size: 14px; color: #666;">
+                    Pagaidu parole: <code style="${codeStyle}">${displayPass}</code>
+                </span>
+            ` : ''}
+        </div>
+
+        <div class="worker-actions" style="display: flex; gap: 10px;">
+    <div class="btn-container">
+        <button class="pencil" onclick="openEditModal('${w.name}', '${w.temp_password || ''}')">✏️</button> 
+        <span class="tooltip Tpencil">Rediģēt</span>
+    </div> 
+    
+    <div class="btn-container">
+        <button class="x" onclick="deleteWorker('${w.name}')">✖</button>
+        <span class="tooltip Tx">Izdzēst</span>
+    </div>
+</div>
+    </li>
+`;
+
+        
+    }).join("");
+}
+            draw('carList', cars, '/api/cars');
+            draw('workList', workTypes, '/api/work-types');
+            draw('objectList', objects, '/api/objects');
+
+            const resList = document.getElementById('resourceList');
+            if(resList) {
+                resList.innerHTML = resourceTypes.map(r => `
+                    <li style="flex-direction:column; align-items:stretch; border-bottom: 2px solid #eee; padding-bottom:15px;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                            <strong>${r.name}</strong> <span class="gold-val">${parseFloat(r.quantity || 0).toFixed(2)} L</span>
+                        </div>
+                        <div style="display:flex; gap:10px;">
+                            <input type="number" id="in-${r.id}" placeholder="Daudzums" style="flex:1">
+                            <button onclick="adjustRes(${r.id}, 'add')" style="background:var(--success); color:white; border:none; border-radius:4px; padding:8px 15px;" class="add">+</button>
+                            <button onclick="adjustRes(${r.id}, 'sub')" style="background:var(--danger); color:white; border:none; border-radius:4px; padding:8px 15px;" class="remove">-</button>
+                            <button class="btn-del" onclick="deleteItem('/api/resource-types', '${r.name}')">✖</button>
+                        </div>
+                    </li>`).join("");
             }
         }
 
-        function logout() {
-            localStorage.clear();
-            window.location.href = 'index.html';
+        function renderTables() {
+            // Darba gaita
+            const workSec = document.getElementById('v-report-work');
+            if (workSec) {
+                let fWork = schedule.filter(e => 
+                    (!workSec.querySelector('.year-sel').value || (e.date && e.date.includes(workSec.querySelector('.year-sel').value))) &&
+                    (!workSec.querySelector('.month-sel').value || e.month === workSec.querySelector('.month-sel').value) &&
+                    (!workSec.querySelector('.worker-sel').value || e.worker_name === workSec.querySelector('.worker-sel').value) &&
+                    (!workSec.querySelector('.car-sel').value || e.car === workSec.querySelector('.car-sel').value) &&
+                    (!workSec.querySelector('.object-sel').value || e.objekts === workSec.querySelector('.object-sel').value)
+                );
+                
+                document.getElementById('totalHoursValue').innerText = fWork.reduce((s,i) => s + parseFloat(i.hours || 0), 0).toFixed(2) + " h";
+                document.getElementById('tableContainer').innerHTML = `
+                    <table class="sticky-table">
+                        <thead>
+                            <tr>
+                                <th>Datums</th>
+                                <th>Auto</th>
+                                <th>Darbinieks</th>
+                                <th>Objekts</th>
+                                <th style="text-align: center;">Stundas</th>
+                                <th style="width: 50px;"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${fWork.map(e => `
+                                <tr>
+                                    <td>${e.date}</td>
+                                    <td>${e.car || '-'}</td>
+                                    <td>${e.worker_name}</td>
+                                    <td>${e.objekts}</td>
+                                    <td style="text-align: center;" class="gold-val">${parseFloat(e.hours || 0).toFixed(2)}</td>
+                                    <td><button class="btn-del" onclick="deleteScheduleItem(${e.id})">✖</button></td>
+                                </tr>`).join("")}
+                        </tbody>
+                    </table>`;
+            }
+
+            // Patēriņš
+            const fuelSec = document.getElementById('v-report-fuel');
+            if (fuelSec) {
+                const yearVal = fuelSec.querySelector('.year-sel')?.value;
+                const monthVal = fuelSec.querySelector('.month-sel')?.value;
+                const resVal = fuelSec.querySelector('.res-sel')?.value;
+
+                let fFuel = schedule.filter(e => 
+                    e.resource_amount && 
+                    (!yearVal || (e.date && e.date.includes(yearVal))) &&
+                    (!monthVal || e.month === monthVal) &&
+                    (!resVal || e.resource_name === resVal)
+                );
+                
+                document.getElementById('totalFuelValue').innerText = fFuel.reduce((s,i) => s + parseFloat(i.resource_amount || 0), 0).toFixed(2) + " L";
+                document.getElementById('fuelTableContainer').innerHTML = `
+                    <table class="sticky-table">
+                        <thead>
+                            <tr>
+                                <th>Datums</th>
+                                <th>Resurss</th>
+                                <th style="text-align: center;">Litri</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${fFuel.map(e => `
+                                <tr>
+                                    <td>${e.date}</td>
+                                    <td>${e.resource_name}</td>
+                                    <td style="text-align: center;" class="gold-val">${e.resource_amount} L</td>
+                                    <td><button class="btn-del" onclick="deleteScheduleItem(${e.id})">✖</button></td>
+                                </tr>`).join("")}
+                        </tbody>
+                    </table>`;
+            }
+
+            // Darba stundas
+            const hoursSec = document.getElementById('v-report-hours');
+            if (hoursSec) {
+                let fSum = daySummary.filter(e => 
+                    (!hoursSec.querySelector('.year-sel').value || (e.datums && e.datums.includes(hoursSec.querySelector('.year-sel').value))) &&
+                    (!hoursSec.querySelector('.month-sel').value || e.month === hoursSec.querySelector('.month-sel').value) &&
+                    (!hoursSec.querySelector('.worker-sel').value || e.darbinieks === hoursSec.querySelector('.worker-sel').value)
+                );
+                
+                document.getElementById('totalDayHoursValue').innerText = fSum.reduce((s,i) => s + parseFloat(i.stundas || 0), 0).toFixed(2) + " h";
+                document.getElementById('daySummaryContainer').innerHTML = `
+                    <table class="sticky-table">
+                        <thead>
+                            <tr>
+                                <th>Darbinieks</th>
+                                <th>Datums</th>
+                                <th>Sākums</th>
+                                <th>Beigas</th>
+                                <th style="text-align: center;">Stundas</th>
+                                <th style="width: 50px;"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${fSum.map(e => `
+                                <tr>
+                                    <td>${e.darbinieks}</td>
+                                    <td>${e.datums}</td>
+                                    <td>${e.sāka_darbu}</td>
+                                    <td>${e.beidza_darbu}</td>
+                                    <td style="text-align: center;" class="gold-val">${parseFloat(e.stundas || 0).toFixed(2)}</td>
+                                    <td>
+                                        ${e.id ? `<button class="btn-del" onclick="deleteHoursItem(${e.id})">✖</button>` : ''}
+                                    </td>
+                                </tr>`).join("")}
+                        </tbody>
+                    </table>`;
+            }
         }
 
-        // Inicializācija
+        async function deleteScheduleItem(id) { if (confirm("Dzēst ierakstu?")) { await fetch(`/api/schedule/${id}`, { method: 'DELETE' }); loadData(); } }
+        async function deleteHoursItem(id) { if (confirm("Dzēst stundu ierakstu?")) { await fetch(`/api/darbastundas/${id}`, { method: 'DELETE' }); loadData(); } }
+        async function deleteAllData() {
+            if (confirm("DZĒST VISUS DATUS?")) {
+                const confirm2 = prompt("Ierakstiet: DZĒST");
+                if (confirm2 === "DZĒST") { await fetch('/api/schedule/all', { method: 'DELETE' }); loadData(); }
+            }
+        }
+
+        async function addNewWorker() { 
+    const name = prompt("Ievadiet darbinieka Vārdu Uzvārdu:"); 
+    if (!name) return;
+
+    const tempPassword = prompt(`Ievadiet pagaidu paroli darbiniekam ${name}:`);
+    if (!tempPassword) {
+        alert("Parole ir obligāta!");
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/workers', {
+            method: 'POST', 
+            headers: {'Content-Type': 'application/json'}, 
+            body: JSON.stringify({ 
+                name: name, 
+                temp_password: tempPassword, // Sūtam kā temp_password
+                role: 'worker'
+            })
+        });
+
+        if (response.ok) {
+            loadData(); 
+        } else {
+            const errData = await response.json();
+            alert("Kļūda: " + (errData.error || "neizdevās saglabāt"));
+        }
+    } catch (err) {
+        console.error("Servera kļūda:", err);
+    }
+}
+
+        let editingWorkerOriginalName = "";
+
+// Šī funkcija atver logu un aizpilda datus
+function openEditModal(name, tempPass) {
+    editingWorkerOriginalName = name;
+    document.getElementById('editName').value = name;
+    document.getElementById('editTempPass').value = tempPass || "";
+    document.getElementById('editPass').value = ""; // Pastāvīgo paroli nerādām drošībai
+    document.getElementById('editModal').style.display = 'flex';
+}
+
+function closeEditModal() {
+    document.getElementById('editModal').style.display = 'none';
+}
+
+// Šī funkcija sūta datus uz serveri
+async function saveWorkerEdit() {
+    const updatedData = {
+        newName: document.getElementById('editName').value,
+        temp_password: document.getElementById('editTempPass').value,
+        password: document.getElementById('editPass').value
+    };
+
+    try {
+        const response = await fetch(`/api/workers/${encodeURIComponent(editingWorkerOriginalName)}`, {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(updatedData)
+        });
+
+        if (response.ok) {
+            closeEditModal();
+            loadData();
+        } else {
+            alert("Kļūda saglabājot!");
+        }
+    } catch (err) {
+        console.error(err);
+    }
+}
+        
+        async function addNewItem(url, msg, extra={}) { const n = prompt(msg); if(n) { await fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name:n, ...extra})}); loadData(); } }
+        async function deleteItem(url, name) { if(confirm(`Dzēst ${name}?`)) { await fetch(`${url}/${encodeURIComponent(name)}`, {method:'DELETE'}); loadData(); } }
+        async function adjustRes(id, action) { const val = parseFloat(document.getElementById(`in-${id}`).value); if(!val) return; await fetch(`/api/resource-types/${id}`, {method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action, amount:val})}); loadData(); }
+        function logout() { localStorage.clear(); window.location.href = 'index.html'; }
+
         loadData();
     </script>
 </body>
