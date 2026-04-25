@@ -214,7 +214,7 @@
 
         .sidebar-header h2 { 
             margin: 0; 
-            font-size: 18px; 
+            font-size: 18px !important; 
             color: var(--accent-gold); 
             text-transform: uppercase; 
         }
@@ -834,10 +834,10 @@ li{
           }
 
         .nav-item,.nav-item active{
-            font-size: 30px;
+            font-size: 22px;
         } 
         .nav-label{
-            font-size: 25px;
+            font-size: 24px;
         }
         .sidebar-header{
             font-size: 50px !important;
@@ -861,6 +861,6 @@ li{
         }
 
                   .sidebar-header h2 { 
-                              margin-left : 5px;
+                              margin-left : 4px;
                   }
 }
