@@ -740,15 +740,12 @@ li{
         position: fixed;
         left: 0;
         top: 0;
-        height: 100%;
+        height: 100vh;
+                width: var(--sidebar-wide);
         z-index: 2000;
-        transform: translateX(-100%);
         transition: transform 0.3s ease;
     }
 
-    .sidebar:not(.collapsed) {
-        transform: translateX(0);
-    }
        .sidebar.collapsed {
         width: var(--sidebar-collapsed) !important;
     }
@@ -769,7 +766,12 @@ li{
     .main-content {
         width: 100% !important;
         padding-top: 70px; /* Atstājam vietu augšējai pogai */
+            transition: margin-left 0.3s ease;
     }
+
+                  .sidebar.collapsed + .main-content {
+    margin-left: var(--sidebar-collapsed); /* Sākas pēc 60px */
+}
 
     header {
         padding-left: 85px !important; /* Atstājam vietu pogai augšā */
