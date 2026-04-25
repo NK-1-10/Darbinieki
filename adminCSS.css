@@ -738,38 +738,38 @@ li{
 
     /* 2. SIDEBAR - Fiksēts un vienmēr pa virsu */
     .sidebar {
-        position: fixed !important;
-        top: 0;
-        left: 0;
-        bottom: 0;
-        width: 300px !important; /* Konkrēts platums mobilajam */
-        z-index: 99999 !important; /* Ļoti augsts, lai nekas nepārklātu */
-        transform: translateX(-100%); /* Paslēpjam pa kreisi */
-        transition: transform 0.3s ease !important;
-        display: flex !important;
-        background: var(--sidebar-bg) !important;
-    }
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 300px !important;
+    z-index: 99999 !important;
+    /* Ja ir klase .collapsed, tad paslēpjam */
+    transform: translateX(-100%); 
+    transition: transform 0.3s ease-in-out !important;
+    display: flex !important;
+    background: var(--sidebar-bg) !important;
+}
 
-    /* Kad sidebar ir atvērts */
     .sidebar:not(.collapsed) {
-        left: 0 !important;
-    }
+    transform: translateX(0) !important; /* Šis iebīda atpakaļ ekrānā */
+}
 
     /* 3. BURGERA POGA */
     #toggle-btn {
-        position: fixed !important;
-        left: 15px !important;
-        top: 15px !important;
-        width: 60px !important;
-        height: 60px !important;
-        z-index: 100000 !important; /* VIRS sidebar, lai vienmēr varētu aizvērt */
-        background: var(--sidebar-bg) !important;
-        border: 2px solid var(--accent-gold) !important;
-        border-radius: 50% !important;
-        display: flex !important;
-        align-items: center;
-        justify-content: center;
-    }
+    position: fixed !important;
+    left: 15px !important;
+    top: 15px !important;
+    width: 60px !important;
+    height: 60px !important;
+    z-index: 100001 !important; 
+    background: var(--sidebar-bg) !important;
+    border: 2px solid var(--accent-gold) !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+}
 
     /* 4. GALVENAIS SATURS */
     .main-content {
