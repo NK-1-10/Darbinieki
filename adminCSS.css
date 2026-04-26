@@ -346,6 +346,10 @@ td { padding: 12px; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
     color: var(--accent-gold);
 }
 
+.add:hover, .remove:hover{
+    cursor: pointer;
+}
+
 .btn-save { background: #28a745; color: white; border: none; flex: 1; padding: 10px; border-radius: 5px; cursor: pointer; }
 .btn-cancel { background: #ccc; border: none; flex: 1; padding: 10px; border-radius: 5px; cursor: pointer; }
 
