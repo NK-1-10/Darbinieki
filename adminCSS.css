@@ -466,14 +466,18 @@ td { padding: 12px; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
     .nav-item{
         font-size: 12px;
     }
+    .nav-group{
+        font-size: 14px;
+    }
+    
     .sidebar-header{
-        height: 30vh;
+        height: 20vh;
     }
     #toggle-btn {
-        top: 10%;
+        top: 7%;
     }
     .sidebar-h2{
-        margin-left: 2%;
+        margin-left: 0;
     }
 
 }
