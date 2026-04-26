@@ -461,7 +461,7 @@ td { padding: 12px; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
         width: 100vw;
         height: auto;
         position: relative;
-        background: var(--sidebar-bg); /* nevis red vai #f0f0f0 */
+        background: red ; /* nevis red vai #f0f0f0 */
     }
 
     .sidebar.collapsed {
