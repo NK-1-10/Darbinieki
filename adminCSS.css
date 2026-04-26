@@ -8,7 +8,7 @@
     --danger: #dc3545;
     --success: #28a745;
     --sidebar-wide: 15%;
-    --sidebar-collapsed: 6%;
+    --sidebar-collapsed: 5%;
 }
 
 body { 
@@ -324,6 +324,8 @@ td { padding: 12px; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
     border: 1px solid #ddd;
     border-radius: 5px;
     background: white;
+    padding-right: 10%
+    
 }
 
 .pencil:hover { background-color: #f0f0f0; }
@@ -358,9 +360,6 @@ td { padding: 12px; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
     margin-right: 5%;
 }
 
-.x .pencil{
-    margin-right: 10%;
-}
 
 .tooltip {
     position: absolute;
