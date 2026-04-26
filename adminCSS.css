@@ -451,28 +451,30 @@ td { padding: 12px; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
 .input-group label { display: block; font-size: 11px; color: #777; }
 .input-group input { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
  
-@media screen and (max-width: 600px) { /* -----------------------------------------------------------*/
+/* ------------------------------------------------------------------------------------------------*/
+@media screen and (max-width: 600px) { 
     body {
-        background-color: #f0f0f0 ; 
+        flex-direction: column;
     }
 
     .sidebar {
-        width: 70vw ; 
-        left: 0 ;
-        position: fixed ;
-        background-color: red ; 
-        z-index: 9999 ;
-        display: block ;
-        transition: transform 0.3s ease;
+        width: 100vw;
+        height: auto;
+        position: relative;
+        background: var(--sidebar-bg); /* nevis red vai #f0f0f0 */
     }
 
     .sidebar.collapsed {
-        width: 30vw ;
+        width: 100vw;
+        height: 60px; /* Tikai augšējā josla */
+        overflow: hidden;
     }
 
+    .main-content {
+        width: 100vw;
+    }
 
     header {
-        font-size: 20px ; /* 28px ir par lielu S23 ekrānam */
-        padding: 15px ;
+        padding: 10px 15px;
     }
 }
