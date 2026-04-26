@@ -468,6 +468,11 @@ td { padding: 12px; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
     .nav-group{
         font-size: 14px;
     }
+
+    .nav-item, .nav-item.active{
+        font-size: 10px;
+    }
+    
     .sidebar-header{
         height: 20vh;
     }
