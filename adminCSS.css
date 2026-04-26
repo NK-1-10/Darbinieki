@@ -465,19 +465,6 @@ td { padding: 12px; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
     .sidebar-collapsed{
         width: 7vw;
     }
-
-    .sidebar.collapsed .nav-item {
-    justify-content: center; /* Nocentrē ikonu horizontāli */
-    padding: 15px 0;         /* Iedod vairāk vietas arī vertikāli */
-}
-
-    .sidebar.collapsed .nav-item i {
-    margin-right: 0;
-    width: auto;             /* Atļauj ikonai būt savā dabīgajā izmērā */
-    font-size: 18px;         /* Vari nedaudz palielināt, lai izskatās proporcionāli */
-    display: block;
-    text-align: center;
-}
     .nav-group{
         font-size: 14px;
     }
