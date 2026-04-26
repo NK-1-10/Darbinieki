@@ -463,11 +463,16 @@ td { padding: 12px; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
         background: var(--sidebar-bg) ; 
     }
     .sidebar-collapsed{
-        width: 20vh;
+        width: 7vw;
     }
-    .nav-item{
-        font-size: 12px;
-    }
+
+    .sidebar.collapsed .nav-item i {
+    margin-right: 0;
+    width: 100%;
+    display: flex;       /* Pievieno šo */
+    justify-content: center; /* Pievieno šo */
+    font-size: 12px;     /* Vari arī nedaudz palielināt pašu ikonu */
+}
     .nav-group{
         font-size: 14px;
     }
