@@ -450,38 +450,29 @@ td { padding: 12px; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
 .input-group { margin-bottom: 12px; }
 .input-group label { display: block; font-size: 11px; color: #777; }
 .input-group input { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
-
-@media screen and (device-width: 360px) and (device-height: 780px) and (-webkit-device-pixel-ratio: 3) {
-    /* Pārbaudām, vai media query vispār strādā - uzliekam fonu sarkanu */
+ 
+@media only screen and (max-width: 360px) { /* -----------------------------------------------------------*/
     body {
-        background-color: #f0f0f0 !important; 
+        background-color: #f0f0f0 ; 
     }
 
     .sidebar {
-        width: 70vw !important; /* 70% no ekrāna platuma */
-        left: 0 !important;
-        position: fixed !important;
-        background-color: red !important; /* Testam - ja ir sarkans, strādā! */
-        z-index: 9999 !important;
-        display: block !important;
+        width: 70vw ; 
+        left: 0 ;
+        position: fixed ;
+        background-color: red ; 
+        z-index: 9999 ;
+        display: block ;
         transition: transform 0.3s ease;
     }
 
-    /* Ja sānjosla ir aizvērta (collapsed) */
     .sidebar.collapsed {
-        transform: translateX(-100%); /* Pilnībā paslēpjam */
-        width: 70vw !important;
+        width: 30vw ;
     }
 
-    /* Saturs aizņem visu ekrānu mobilajā */
-    .main-content {
-        margin-left: 0 !important;
-        width: 100% !important;
-        padding: 10px !important;
-    }
 
     header {
-        font-size: 20px !important; /* 28px ir par lielu S23 ekrānam */
-        padding: 15px !important;
+        font-size: 20px ; /* 28px ir par lielu S23 ekrānam */
+        padding: 15px ;
     }
 }
