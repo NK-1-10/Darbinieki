@@ -225,6 +225,7 @@ ul { list-style: none; padding: 0; }
     overflow-y: auto; /* Iespējo skrollu tikai saraksta iekšpusē */
     flex-grow: 1; /* Aizņem visu pieejamo vietu kartītē */
     padding-right: 10px; /* Atstarpe skrolljoslai */
+    padding-bottom: 8%;
 }
 
 #workerList li {
