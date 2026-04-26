@@ -456,49 +456,59 @@ td { padding: 12px; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
 /* ------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
 @media screen and (max-width: 600px) { 
 
-    .view-section { 
-    padding: 0 5%;
+    .view-section { /* BĀZE*/
+    padding: 0 5px;
     height: calc(100vh - 8vh - 60px);
     overflow-y: auto; 
     }
     .card { 
-    padding: 5%; 
+    padding: 3%; 
     width: 100%;   
     margin: 0 auto;
+    gap: 10px;
+    }
+    .btn-add { /* DARBINIEKA UN PĀRĒJIE */
+    height: 40px !important;
+    font-size: 14px !important;
+    margin-bottom: 10px !important;
+    width: 100%;
     }
     #workerList li {
     padding: 8px 10px; /* Šaurākas rindiņas */
-}
-
-.worker-name {
+    flex-wrap: nowrap; /* Neļauj elementiem lēkāt */
+    font-size: 13px;
+    }
+    .worker-name {
     font-size: 14px; /* Mazāks fonts vārdiem */
-}
-
-.password-label {
-    font-size: 10px; /* Pagaidu paroles teksts pavisam mazs */
-}
-
-/* Samazina pogas sarakstā */
-.pencil, .x {
-    padding: 5px 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    }
+    .password-label {
+    font-size: 10px; 
+    display: block;
+    }
+    .worker-actions {
+    display: flex;
+    gap: 5px;
+    flex-shrink: 0; /* Neļauj pogām sarauties */
+    }
+    .pencil, .x {
+    padding: 4px 6px;
     font-size: 12px;
-}
-
-/* "+ Pievienot darbinieku" poga */
-.btn-add {
-    height: 45px !important; /* Zemāka poga */
-    font-size: 14px !important;
-}
-  
+    }
     th, td {
     padding: 8px 5px; /* Ciešāka tabula */
     font-size: 12px;  /* Mazāks fonts datiem */
     }
 
-    .sidebar {
+    .sidebar { /* SIDEBAR */
+        top: 0;
         width: 18vh;
         height: 100vh;
-        position: relative;
+        flex-direction: column;
+        position: sticky;
+        overflow: hidden;
         background: var(--sidebar-bg) ; 
         display: flex;
     }
@@ -506,16 +516,25 @@ td { padding: 12px; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
         width: 10vw;
     }
     .sidebar-footer {
-    margin-top: auto; /* Šis ir pareizi, tas aizstumj leju uz apakšu */
+    margin-top: auto; 
     padding: 10px;
-    padding-bottom: 20px; /* Drošības atstarpe apakšā */
+    display: flex;
+    flex-direction: column;
+    gap: 5px; /* Minimāla atstarpe starp abām pogām */
 }
-
+    .nav-group { 
+    padding: 5px 0; /* Samazināts no 15px */
+}
     .nav-item, .nav-item.active{
+        padding: 8px 15px;
         font-size: 10px;
     }
+    .nav-item i {
+    font-size: 18px;   /* Mazliet mazākas ikonas/emocijzīmes */
+}
     .nav-label{
         font-size: 12px;
+        padding: 5px 20px;
     }
     
     .sidebar-header{
@@ -532,6 +551,7 @@ td { padding: 12px; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
         height: 5vh;
         width: 100%;
         font-size: 10px;
+        margin-top: 0;
     }
 
 }
