@@ -463,7 +463,7 @@ td { padding: 12px; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
         background: var(--sidebar-bg) ; 
     }
     .sidebar-collapsed{
-        width: 7vw;
+        width: 10vw;
     }
 
     .nav-item, .nav-item.active{
@@ -474,14 +474,14 @@ td { padding: 12px; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
     }
     
     .sidebar-header{
-        height: 30vh;
+        height: 20vh;
     }
     #toggle-btn {
         top: 3.5%;
         height: 4%; 
     }
     .sidebar-header h2{
-        text-allign: center;
+        
     }
     .btn-logout, .btn-all-delete{
         height: 5vh;
