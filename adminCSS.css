@@ -57,7 +57,7 @@ body {
 }
 
 #toggle-btn {
-    margin-top: 15vh;
+    margin-top: 6vh;
     position: absolute;
     right: 0; 
     width: 30%;
@@ -76,7 +76,7 @@ body {
     transition: all 0.3s ease;
     transition: background 0.2s;
     box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    margin-right: 0;
+    margin-right: 50%;
 }
 
 #toggle-btn:hover { 
