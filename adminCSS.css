@@ -58,9 +58,10 @@ body {
 
 #toggle-btn {
     position: absolute;
-    right: 5px; 
+    right: 0; 
     top: 15px;
     width: 30%;
+    border-radius: 50%;
     height: 5%;
     z-index: 1100;
     background: var(--sidebar-bg);
@@ -72,11 +73,15 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: all 0.3s ease;
     transition: background 0.2s;
-    margin-right: 10%;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    margin-right: 0;
 }
 
-#toggle-btn:hover { background: var(--active-item); }
+#toggle-btn:hover { 
+    background: var(--active-item); 
+}
 
 /* Navigācija sānjoslā */
 .nav-group { padding: 15px 0; overflow: hidden; }
