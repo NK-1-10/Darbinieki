@@ -100,8 +100,10 @@
                 <div class="card">
                     <div class="table-controls">
                         <select class="year-sel header-filter" onchange="renderTables()"></select>
-                        <select class="month-sel header-filter" onchange="renderTables()"></select>
-                        <select class="res-sel header-filter" onchange="renderTables()"></select>
+            <select class="month-sel header-filter" onchange="renderTables()"></select>
+            <select class="worker-sel header-filter" onchange="renderTables()"></select>
+            <select class="car-sel header-filter" onchange="renderTables()"></select>
+            <select class="res-sel header-filter" onchange="renderTables()"></select>
                         <div class="summary-badge">Kopā: <span id="totalFuelValue">0</span></div>
                     </div>
                     <div id="fuelTableContainer" class="table-wrapper"></div>
@@ -314,13 +316,18 @@ if(workerEl) {
                 const yearVal = fuelSec.querySelector('.year-sel')?.value;
                 const monthVal = fuelSec.querySelector('.month-sel')?.value;
                 const resVal = fuelSec.querySelector('.res-sel')?.value;
+                const workerVal = fuelSec.querySelector('.worker-sel')?.value;
+                const carVal = fuelSec.querySelector('.car-sel')?.value;
 
                 let fFuel = schedule.filter(e => 
-                    e.resource_amount && 
-                    (!yearVal || (e.date && e.date.includes(yearVal))) &&
-                    (!monthVal || e.month === monthVal) &&
-                    (!resVal || e.resource_name === resVal)
-                );
+        e.resource_amount && 
+        (!yearVal || (e.date && e.date.includes(yearVal))) &&
+        (!monthVal || e.month === monthVal) &&
+        (!resVal || e.resource_name === resVal) &&
+        // Pievienojam loģiku jaunajiem filtriem:
+        (!workerVal || e.worker_name === workerVal) &&
+        (!carVal || e.car === carVal)
+    );
                 
                 document.getElementById('totalFuelValue').innerText = fFuel.reduce((s,i) => s + parseFloat(i.resource_amount || 0), 0).toFixed(2) + " L";
                 document.getElementById('fuelTableContainer').innerHTML = `
