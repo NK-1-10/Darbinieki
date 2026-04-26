@@ -7,7 +7,7 @@
     --active-item: rgba(197, 160, 89, 0.2);
     --danger: #dc3545;
     --success: #28a745;
-    --sidebar-wide: 15%;
+    --sidebar-wide: 12%;
     --sidebar-collapsed: 5%;
 }
 
@@ -260,7 +260,7 @@ li {
     display: flex;
     align-items: center;
     gap: 1%;
-    padding-right: 5%;
+    padding-right: 4%;
 }
 
 /* 5. TABULAS */
@@ -351,7 +351,14 @@ td { padding: 12px; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
 
 .add:hover { background-color: #208436; }
 .remove:hover { background-color: #b61f2e; }
-.btn-del { color: var(--danger); background: none; border: none; font-size: 1.2em; cursor: pointer; }
+.btn-del { 
+    color: var(--danger); 
+    background: none; 
+    border: none; 
+    font-size: 1.2em; 
+    cursor: pointer; 
+    padding-right: 4%;
+}
 
 /* Tooltip un nozīmītes */
 .btn-container {
