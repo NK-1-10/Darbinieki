@@ -199,6 +199,7 @@ header {
     display: none; 
     height: calc(100vh - 8vh - 60px);
     overflow: hidden; 
+    margin-bottom: 10%; /* FSHY*/
 }
 
 .view-section.active { 
