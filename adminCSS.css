@@ -455,16 +455,61 @@ td { padding: 12px; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
  
 /* ------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
 @media screen and (max-width: 600px) { 
-   
+
+    .view-section { 
+    padding: 0 5%;
+    height: calc(100vh - 8vh - 60px);
+    overflow-y: auto; 
+    }
+    .card { 
+    padding: 5%; 
+    width: 100%;   
+    margin: 0 auto;
+    }
+    #workerList li {
+    padding: 8px 10px; /* Šaurākas rindiņas */
+}
+
+.worker-name {
+    font-size: 14px; /* Mazāks fonts vārdiem */
+}
+
+.password-label {
+    font-size: 10px; /* Pagaidu paroles teksts pavisam mazs */
+}
+
+/* Samazina pogas sarakstā */
+.pencil, .x {
+    padding: 5px 8px;
+    font-size: 12px;
+}
+
+/* "+ Pievienot darbinieku" poga */
+.btn-add {
+    height: 45px !important; /* Zemāka poga */
+    font-size: 14px !important;
+}
+  
+    th, td {
+    padding: 8px 5px; /* Ciešāka tabula */
+    font-size: 12px;  /* Mazāks fonts datiem */
+    }
+
     .sidebar {
         width: 18vh;
-        height: auto;
+        height: 100vh;
         position: relative;
         background: var(--sidebar-bg) ; 
+        display: flex;
     }
     .sidebar-collapsed{
         width: 10vw;
     }
+    .sidebar-footer {
+    margin-top: auto; /* Šis ir pareizi, tas aizstumj leju uz apakšu */
+    padding: 10px;
+    padding-bottom: 20px; /* Drošības atstarpe apakšā */
+}
 
     .nav-item, .nav-item.active{
         font-size: 10px;
@@ -485,6 +530,7 @@ td { padding: 12px; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
     }
     .btn-logout, .btn-all-delete{
         height: 5vh;
+        width: 100%;
         font-size: 10px;
     }
 
