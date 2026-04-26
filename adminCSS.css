@@ -50,6 +50,7 @@ body {
 }
 
 .sidebar-header h2 { 
+    margin-top: 0;
     margin-left: 2%; 
     font-size: 18px !important; 
     color: var(--accent-gold); 
