@@ -504,16 +504,22 @@ td { padding: 12px; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
 
     .sidebar { /* SIDEBAR */
         top: 0;
-        width: 18vh;
+        width: 20%;
         height: 100vh;
         flex-direction: column;
-        position: sticky;
-        overflow: hidden;
+        position: fixed;
         background: var(--sidebar-bg) ; 
         display: flex;
+        z-index: 2000;
     }
     .sidebar-collapsed{
-        width: 100vw;
+        width: 10%;
+    }
+    .sidebar-header{
+        height: 16vh;
+        display: flex;
+    align-items: center;
+    justify-content: center;
     }
     .sidebar-footer {
     margin-top: auto; 
@@ -522,6 +528,10 @@ td { padding: 12px; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
     flex-direction: column;
     gap: 5px; /* Minimāla atstarpe starp abām pogām */
 }
+    #toggle-btn {
+        top: 3.5%;
+        height: 4%; 
+    }
     .nav-group { 
     padding: 5px 0; /* Samazināts no 15px */
 }
@@ -537,15 +547,13 @@ td { padding: 12px; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
         padding: 5px 20px;
     }
     
-    .sidebar-header{
-        height: 16vh;
-    }
-    #toggle-btn {
-        top: 3.5%;
-        height: 4%; 
-    }
+    
+    
     .sidebar-header h2 {
-        margin-right: 100vh;
+        margin-right: 0; /* Noņem to 100vh */
+    text-align: center;
+    width: 100%;
+    font-size: 16px;
     }
     .btn-logout, .btn-all-delete{
         height: 5vh;
