@@ -7,8 +7,8 @@
     --active-item: rgba(197, 160, 89, 0.2);
     --danger: #dc3545;
     --success: #28a745;
-    --sidebar-wide: 12%;
-    --sidebar-collapsed: 5%;
+    --sidebar-wide: 12.5%;
+    --sidebar-collapsed: 4.5%;
 }
 
 body { 
