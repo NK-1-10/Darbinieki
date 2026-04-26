@@ -15,10 +15,10 @@ body {
     font-family: 'Segoe UI', sans-serif; 
     margin: 0; 
     display: flex; 
-    height: 100%; 
+    height: 100vh; 
     background: var(--bg-light); 
     color: #333;
-    overflow: auto;
+    overflow: hidden;
 }
 
 /* 2. SĀNJOSLA (SIDEBAR) */
@@ -193,8 +193,17 @@ header {
     text-align: center;
 }
 
-.view-section { padding: 30px; display: none; }
-.view-section.active { display: block; }
+.view-section { 
+    padding: 30px; 
+    display: none; 
+    height: calc(100vh - 8vh - 60px);
+    overflow: hidden; 
+}
+
+.view-section.active { 
+    display: flex; 
+    flex-direction: column; 
+}
 
 /* 4. KARTĪTES UN SARAKSTI */
 .card { 
@@ -205,9 +214,16 @@ header {
     display: flex;
     flex-direction: column; 
     gap: 15px;
+    max-height: 100%; /* FISHY */
 }
 
 ul { list-style: none; padding: 0; }
+
+#workerList {
+    overflow-y: auto; /* Iespējo skrollu tikai saraksta iekšpusē */
+    flex-grow: 1; /* Aizņem visu pieejamo vietu kartītē */
+    padding-right: 10px; /* Atstarpe skrolljoslai */
+}
 
 #workerList li {
     display: flex;
@@ -223,7 +239,7 @@ li {
     align-items: center;
     padding: 8px 12px;
     border-bottom: 1px solid #eee;
-    max-width: 90%; /* Pārvērsts no px uz % */
+    max-width: 100%; /* Pārvērsts no px uz % */
 }
 
 .worker-info-container {
