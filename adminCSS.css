@@ -461,7 +461,7 @@ td { padding: 12px; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
         background: var(--sidebar-bg) ; 
     }
     .sidebar-collapsed{
-        width: 10%;
+        width: 10vh;
     }
     .nav-item{
         font-size: 12px;
@@ -469,16 +469,15 @@ td { padding: 12px; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
     .nav-group{
         font-size: 14px;
     }
-    
     .sidebar-header{
         height: 14vh;
     }
     #toggle-btn {
-        top: 5%;
+        top: 3.5%;
         height: 4%; 
     }
-    .sidebar-h2{
-        margin-left: 0;
+    .sidebar-header h2{
+        margin-right: 5%;
     }
 
 }
