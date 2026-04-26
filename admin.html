@@ -329,6 +329,8 @@ if(workerEl) {
                             <tr>
                                 <th>Datums</th>
                                 <th>Resurss</th>
+                                <th>Auto</th>
+                                <th>Darbinieks</th>
                                 <th style="text-align: center;">Litri</th>
                                 <th></th>
                             </tr>
@@ -338,6 +340,8 @@ if(workerEl) {
                                 <tr>
                                     <td>${e.date}</td>
                                     <td>${e.resource_name}</td>
+                                    <td>${e.car || '-'}</td>
+                                    <td>${e.worker_name || '-'}</td>
                                     <td style="text-align: center;" class="gold-val">${e.resource_amount} L</td>
                                     <td><button class="btn-del" onclick="deleteScheduleItem(${e.id})">✖</button></td>
                                 </tr>`).join("")}
