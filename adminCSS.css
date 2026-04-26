@@ -467,10 +467,10 @@ td { padding: 12px; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
         font-size: 12px;
     }
     .sidebar-header{
-        height: 10vh;
+        height: 30vh;
     }
     #toggle-btn {
-        top: 70%;
+        top: 10%;
     }
     .sidebar-h2{
         margin-left: 2%;
