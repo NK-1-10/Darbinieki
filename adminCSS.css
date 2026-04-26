@@ -178,7 +178,7 @@ header {
     justify-content: space-between; 
     align-items: center; 
     box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    height: 8vh;; 
+    height: 6vh;; 
     z-index: 1500 !important;
     flex-shrink: 0;
 }
@@ -195,7 +195,7 @@ header {
 }
 
 .view-section { 
-    padding: 30px; 
+    padding: 10px 30px;
     display: none; 
     height: calc(100vh - 8vh - 60px);
     overflow: hidden; 
@@ -273,10 +273,10 @@ li {
     align-items: center;
     width: 100%;
     position: sticky;
-    top: 80px; 
+    top: 10vh;
     background: #fff;
     z-index: 100;    
-    padding: 15px 0; 
+    padding: 10px 0 20px 0;
     border-bottom: 2px solid var(--accent-gold);
 }
 
@@ -401,6 +401,8 @@ td { padding: 12px; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
 }
 
 .summary-badge {
+    margin-bottom: 15px;
+    margin-top: 0;
     margin-right: 5%;
     background: var(--sidebar-bg);
     color: var(--accent-gold);
