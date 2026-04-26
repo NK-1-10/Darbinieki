@@ -201,6 +201,7 @@ header {
 }
 
 .view-section { 
+    top: 5px;
     padding: 0 30px;
     display: none; 
     height: calc(100vh - 8vh - 60px);
