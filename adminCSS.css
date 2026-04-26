@@ -57,12 +57,12 @@ body {
 }
 
 #toggle-btn {
+    margin-top: 5%;
     position: absolute;
     right: 0; 
-    top: 15px;
     width: 30%;
     border-radius: 50%;
-    height: 5%;
+    height: 2%;
     z-index: 1100;
     background: var(--sidebar-bg);
     color: var(--accent-gold);
