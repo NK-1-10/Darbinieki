@@ -395,6 +395,7 @@ td { padding: 12px; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
 }
 
 .summary-badge {
+    margin-right: 5%;
     background: var(--sidebar-bg);
     color: var(--accent-gold);
     padding: 8px 15px;
