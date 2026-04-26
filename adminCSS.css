@@ -50,14 +50,14 @@ body {
 }
 
 .sidebar-header h2 { 
-    margin: 0; 
+    margin-left: 2%; 
     font-size: 18px !important; 
     color: var(--accent-gold); 
     text-transform: uppercase; 
 }
 
 #toggle-btn {
-    margin-top: 6vh;
+    margin-top: 5vh;
     position: absolute;
     right: 0; 
     width: 30%;
@@ -76,7 +76,7 @@ body {
     transition: all 0.3s ease;
     transition: background 0.2s;
     box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    margin-right: 50%;
+    margin-right: 45%;
 }
 
 #toggle-btn:hover { 
