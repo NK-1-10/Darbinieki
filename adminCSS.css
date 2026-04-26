@@ -465,16 +465,16 @@ td { padding: 12px; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
     .sidebar-collapsed{
         width: 7vw;
     }
-    .nav-group{
-        font-size: 14px;
-    }
 
     .nav-item, .nav-item.active{
         font-size: 10px;
     }
+    .nav-label{
+        font-size: 12px;
+    }
     
     .sidebar-header{
-        height: 20vh;
+        height: 30vh;
     }
     #toggle-btn {
         top: 3.5%;
