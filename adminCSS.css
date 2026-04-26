@@ -455,13 +455,13 @@ td { padding: 12px; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
 @media screen and (max-width: 600px) { 
    
     .sidebar {
-        width: 20%;
+        width: 20vh;
         height: auto;
         position: relative;
         background: var(--sidebar-bg) ; 
     }
     .sidebar-collapsed{
-        width: 14%;
+        width: 14vh;
     }
 
 }
