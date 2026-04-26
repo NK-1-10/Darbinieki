@@ -481,7 +481,11 @@ td { padding: 12px; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
         height: 4%; 
     }
     .sidebar-header h2{
-        padding-right: 20%;
+        text-allign: center;
+    }
+    .btn-logout, .btn-all-delete{
+        height: 10vh;
+        font-size: 10px;
     }
 
 }
