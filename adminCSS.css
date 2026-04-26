@@ -451,17 +451,37 @@ td { padding: 12px; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
 .input-group label { display: block; font-size: 11px; color: #777; }
 .input-group input { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
 
-@media screen and (max-width: 480px){
-    .sidebar{
-        width: 30vh !important;
-        background-color: red !important;
+@media screen and (max-width: 500px) {
+    /* Pārbaudām, vai media query vispār strādā - uzliekam fonu sarkanu */
+    body {
+        background-color: #f0f0f0 !important; 
     }
 
+    .sidebar {
+        width: 70vw !important; /* 70% no ekrāna platuma */
+        left: 0 !important;
+        position: fixed !important;
+        background-color: red !important; /* Testam - ja ir sarkans, strādā! */
+        z-index: 9999 !important;
+        display: block !important;
+        transition: transform 0.3s ease;
+    }
+
+    /* Ja sānjosla ir aizvērta (collapsed) */
     .sidebar.collapsed {
-    width: 10vh !important;
-}
-    
-    header{
-        font-size: 28px !important;
+        transform: translateX(-100%); /* Pilnībā paslēpjam */
+        width: 70vw !important;
+    }
+
+    /* Saturs aizņem visu ekrānu mobilajā */
+    .main-content {
+        margin-left: 0 !important;
+        width: 100% !important;
+        padding: 10px !important;
+    }
+
+    header {
+        font-size: 20px !important; /* 28px ir par lielu S23 ekrānam */
+        padding: 15px !important;
     }
 }
