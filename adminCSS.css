@@ -73,7 +73,7 @@ body {
     align-items: center;
     justify-content: center;
     transition: background 0.2s;
-    margin-right: 10%;
+    margin-right: 20%;
 }
 
 #toggle-btn:hover { background: var(--active-item); }
@@ -355,7 +355,7 @@ td { padding: 12px; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    margin-right: 5%;
+    margin-right: 15%;
 }
 
 .tooltip {
