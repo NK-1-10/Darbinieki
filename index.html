@@ -7,22 +7,27 @@
   <link rel="stylesheet" href="assets/css/base.css">
   <link rel="stylesheet" href="assets/css/login.css">
 
+<style>
+    @media (max-width: 480px) {
+        .login-card { margin-top: 60px !important; }
+    }
+</style>
 </head>
 <body class="login-page">
 
   <form id="loginForm" class="login-card" autocomplete="off">
     <div class="login-field">
-      <label for="username">Username</label>
+      <label for="username">Lietotājvārds</label>
       <input id="username" name="username" type="text" required />
     </div>
 
     <div class="login-field">
-      <label for="password">Password</label>
+      <label for="password">Parole</label>
       <input id="password" name="password" type="password" required />
     </div>
 
-    <button type="submit">Log in</button>
-    <p class="hint">Ja jūs izmantojat pagaidu paroli, jums lūgs izveidot jaunu paroli.</p>
+    <button type="submit">Ielogoties</button>
+    <p class="hint">Ja izmantojat pagaidu paroli, jums tiks lūgts iestatīt jaunu paroli.</p>
   </form>
 
 <script>
@@ -45,13 +50,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 const user = await response.json();
 
                 // Paroles maiņas loģika
-                if (user.needsPasswordChange) {
+                if (user.needsParoleChange) {
                     const newPass = prompt("Jums jānomaina pagaidu parole:");
                     if (newPass) {
                         const changeRes = await fetch('/api/change-password', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ username: user.name, newPassword: newPass.trim() })
+                            body: JSON.stringify({ username: user.name, newParole: newPass.trim() })
                         });
                         if (changeRes.ok) {
                             alert("Parole nomainīta! Ielogojieties vēlreiz.");
@@ -65,7 +70,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 // SAGLABĀŠANA: Šis ir kritiski svarīgi worker.html lapai
                 // Admins un darbinieks glabājas atsevišķi, lai paralēla lietošana netraucē
                 if (user.role === "admin") {
-                    localStorage.setItem("loggedInAdmin", JSON.stringify(user));
+                    sessionStorage.setItem("loggedInAdmin", JSON.stringify(user));
                 } else {
                     localStorage.setItem("loggedInUser", JSON.stringify(user));
                 }
