@@ -167,6 +167,7 @@
             document.getElementById(viewId).classList.add('active');
             el.classList.add('active');
             document.getElementById('current-view-title').innerText = el.querySelector('span').innerText;
+            localStorage.setItem('adminActiveView', viewId);
         }
 
         async function loadData() {
@@ -483,6 +484,14 @@ async function saveWorkerEdit() {
         async function deleteItem(url, name) { if(confirm(`Dzēst ${name}?`)) { await fetch(`${url}/${encodeURIComponent(name)}`, {method:'DELETE'}); loadData(); } }
         async function adjustRes(id, action) { const val = parseFloat(document.getElementById(`in-${id}`).value); if(!val) return; await fetch(`/api/resource-types/${id}`, {method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action, amount:val})}); loadData(); }
         function logout() { localStorage.clear(); window.location.href = 'index.html'; }
+
+        // Atjauno pēdējo aktīvo skatu pēc refresh
+        const savedView = localStorage.getItem('adminActiveView');
+        if (savedView) {
+            const savedNavItem = [...document.querySelectorAll('.nav-item')]
+                .find(el => el.getAttribute('onclick')?.includes(savedView));
+            if (savedNavItem) showView(savedView, savedNavItem);
+        }
 
         loadData();
     </script>
