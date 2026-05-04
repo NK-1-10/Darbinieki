@@ -35,11 +35,23 @@ button {
   font-weight: 800;
   text-transform: uppercase;
 }
-#AtWork { background: var(--green); color: var(--gold); }
-#LeaveWork { background: #4a5d53; color: #fff; }
-#startBtn { background: var(--success); color: #fff; }
-#stopBtn { background: var(--gold); color: var(--green); }
-.res-btn, #OpenResourceBtn { background: var(--gold); color: var(--green); border: 2px solid var(--green); }
+#AtWork,
+#startBtn {
+  background: var(--green);
+  color: #fff;
+}
+#LeaveWork,
+#stopBtn {
+  background: #4f655a;
+  color: #fff;
+}
+.res-btn,
+#OpenResourceBtn {
+  background: #f7f3e8;
+  color: var(--green);
+  border: 2px solid var(--gold);
+}
+
 #logoutBtn { margin-top: 18px; background: transparent; color: var(--muted); border: 1px solid #d9dedb; min-height: 42px; font-size: .85rem; }
 #ieraksti { text-align: center; color: var(--green); }
 #tableContainer {
@@ -75,7 +87,15 @@ th, td { min-width: 120px; padding: 13px 10px; border-bottom: 1px solid #edf0ee;
   body.worker-page { padding: 12px; }
   .card { padding: 18px 14px; min-height: auto; }
   #welcome { font-size: 26px; }
-  #AtWork, #LeaveWork, #startBtn, #stopBtn, #OpenResourceBtn { min-height: 76px; font-size: 20px; border-radius: 18px; }
+  #AtWork,
+#LeaveWork,
+#startBtn,
+#stopBtn,
+#OpenResourceBtn {
+  min-height: 66px;
+  font-size: 18px;
+  border-radius: 18px;
+}
   select { min-height: 62px; font-size: 18px; }
   #tableContainer { width: calc(100vw - 24px); }
   th, td { white-space: nowrap; font-size: 14px; }
