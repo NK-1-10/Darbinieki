@@ -125,6 +125,7 @@
                         <select class="car-sel header-filter" onchange="renderTables()"></select>
                         <select class="object-sel header-filter" onchange="renderTables()"></select>
                         <select class="work-sel header-filter" onchange="renderTables()"></select>
+                        <input type="date" class="date-sel header-filter" onchange="renderTables()" style="min-height:38px;border:1px solid #d9dedb;border-radius:8px;padding:8px 10px;background:#fff;">
                         <div class="summary-badge">Kopā stundas: <span id="totalHoursValue">0</span></div>
                     </div>
                     <div id="tableContainer" class="table-wrapper"></div>
@@ -139,6 +140,7 @@
             <select class="worker-sel header-filter" onchange="renderTables()"></select>
             <select class="car-sel header-filter" onchange="renderTables()"></select>
             <select class="res-sel header-filter" onchange="renderTables()"></select>
+                        <input type="date" class="date-sel header-filter" onchange="renderTables()" style="min-height:38px;border:1px solid #d9dedb;border-radius:8px;padding:8px 10px;background:#fff;">
                         <div class="summary-badge">Kopā: <span id="totalFuelValue">0</span></div>
                     </div>
                     <div id="fuelTableContainer" class="table-wrapper"></div>
@@ -151,6 +153,7 @@
                         <select class="year-sel header-filter" onchange="renderTables()"></select>
                         <select class="month-sel header-filter" onchange="renderTables()"></select>
                         <select class="worker-sel header-filter" onchange="renderTables()"></select>
+                        <input type="date" class="date-sel header-filter" onchange="renderTables()" style="min-height:38px;border:1px solid #d9dedb;border-radius:8px;padding:8px 10px;background:#fff;">
                         <div class="summary-badge">Kopā: <span id="totalDayHoursValue">0</span></div>
                     </div>
                     <div id="daySummaryContainer" class="table-wrapper"></div>
@@ -383,6 +386,17 @@ if(workerEl) {
             }
         }
 
+        function dateMatches(dbDate, inputVal) {
+            if (!inputVal) return true;
+            // DB formāts: "4.05.2026." -> pārveidojam uz "2026-05-04"
+            const parts = dbDate.replace(/\.$/, '').split('.');
+            if (parts.length < 3) return false;
+            const d = parts[0].padStart(2,'0');
+            const m = parts[1].padStart(2,'0');
+            const y = parts[2];
+            return `${y}-${m}-${d}` === inputVal;
+        }
+
         function renderTables() {
             // Darba gaita
             const workSec = document.getElementById('v-report-work');
@@ -394,7 +408,8 @@ if(workerEl) {
                     (!workSec.querySelector('.worker-sel').value || e.worker_name === workSec.querySelector('.worker-sel').value) &&
                     (!workSec.querySelector('.car-sel').value || e.car === workSec.querySelector('.car-sel').value) &&
                     (!workSec.querySelector('.object-sel').value || e.objekts === workSec.querySelector('.object-sel').value) &&
-                    (!workSec.querySelector('.work-sel').value || e.darbs === workSec.querySelector('.work-sel').value)
+                    (!workSec.querySelector('.work-sel').value || e.darbs === workSec.querySelector('.work-sel').value) &&
+                    dateMatches(e.date || '', workSec.querySelector('.date-sel').value)
                 );
                 
                 document.getElementById('totalHoursValue').innerText = fWork.reduce((s,i) => s + parseFloat(i.hours || 0), 0).toFixed(2) + " h";
@@ -435,12 +450,14 @@ if(workerEl) {
                 const workerVal = fuelSec.querySelector('.worker-sel')?.value;
                 const carVal = fuelSec.querySelector('.car-sel')?.value;
 
+                const fuelDateVal = fuelSec.querySelector('.date-sel')?.value;
                 let fFuel = schedule.filter(e => 
                     e.resource_amount && 
                     (!yearVal || (e.date && e.date.includes(yearVal))) &&
                     (!monthVal || e.month === monthVal) &&
                     (!resVal || e.resource_name === resVal) &&
-                    (!workerVal || e.worker_name === workerVal)
+                    (!workerVal || e.worker_name === workerVal) &&
+                    dateMatches(e.date || '', fuelDateVal)
                 );
 
                 // Kopsumma: tikai admin papildinājumi (+), VISS PĀRĒJAIS (patēriņš + atņemšana) mīnus
@@ -491,7 +508,8 @@ if(workerEl) {
                 let fSum = daySummary.filter(e => 
                     (!hoursSec.querySelector('.year-sel').value || (e.datums && e.datums.includes(hoursSec.querySelector('.year-sel').value))) &&
                     (!hoursSec.querySelector('.month-sel').value || e.month === hoursSec.querySelector('.month-sel').value) &&
-                    (!hoursSec.querySelector('.worker-sel').value || e.darbinieks === hoursSec.querySelector('.worker-sel').value)
+                    (!hoursSec.querySelector('.worker-sel').value || e.darbinieks === hoursSec.querySelector('.worker-sel').value) &&
+                    dateMatches(e.datums || '', hoursSec.querySelector('.date-sel').value)
                 );
                 
                 document.getElementById('totalDayHoursValue').innerText = fSum.reduce((s,i) => s + parseFloat(i.stundas || 0), 0).toFixed(2) + " h";
