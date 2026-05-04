@@ -11,6 +11,22 @@
     <style>
         .green-val { color: #2e7d32; font-weight: 800; }
         .red-val { color: #b00020; font-weight: 800; }
+        .btn-settings {
+            width: 100% !important;
+            min-height: 46px;
+            border: 1px solid rgba(212,180,93,.7) !important;
+            border-radius: 8px !important;
+            font-weight: 800;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 8px !important;
+            background: transparent;
+            color: var(--gold);
+            font-size: 11px;
+        }
+        .btn-settings:hover { background: rgba(212,180,93,.15); }
+        .settings-section h4 { margin: 0 0 12px; font-size: 14px; color: #444; }
     </style>
     
 </head>
@@ -39,6 +55,7 @@
         </div>
 
         <div class="sidebar-footer">
+            <button class="btn-settings" onclick="openAdminSettings()">⚙️ <span>ADMIN IESTATĪJUMI</span></button>
             <button class="btn-all-delete" onclick="deleteAllData()">⚠️ <span>DZĒST VISUS DATUS</span></button>
             <button class="btn-logout" onclick="logout()">
                 <i>🚪</i><span class="logout-text">Iziet</span>
@@ -155,6 +172,56 @@
     </div>
 </div>
     
+
+    <!-- ADMIN IESTATĪJUMU MODĀLS -->
+    <div id="adminSettingsModal" class="modal">
+        <div class="modal-content" style="width:min(92vw,500px);">
+            <h3 style="margin:0 0 20px;">⚙️ Admin iestatījumi</h3>
+
+            <div class="settings-section">
+                <h4>Nomainīt vārdu</h4>
+                <div class="input-group">
+                    <label>Jaunais vārds:</label>
+                    <input type="text" id="adminNewName" placeholder="Ievadi jauno vārdu">
+                </div>
+                <button class="btn-save" onclick="saveAdminName()" style="width:100%">Saglabāt vārdu</button>
+            </div>
+
+            <hr style="margin:20px 0; border-color:#e0e0e0;">
+
+            <div class="settings-section">
+                <h4>Nomainīt paroli</h4>
+                <div class="input-group">
+                    <label>Jaunā parole:</label>
+                    <input type="password" id="adminNewPass" placeholder="Ievadi jauno paroli">
+                </div>
+                <div class="input-group">
+                    <label>Apstiprini paroli:</label>
+                    <input type="password" id="adminNewPassConfirm" placeholder="Atkārtoti ievadi paroli">
+                </div>
+                <button class="btn-save" onclick="saveAdminPassword()" style="width:100%">Saglabāt paroli</button>
+            </div>
+
+            <hr style="margin:20px 0; border-color:#e0e0e0;">
+
+            <div class="settings-section">
+                <h4>Pievienot jaunu admin</h4>
+                <div class="input-group">
+                    <label>Vārds Uzvārds:</label>
+                    <input type="text" id="newAdminName" placeholder="Jaunā admina vārds">
+                </div>
+                <div class="input-group">
+                    <label>Pagaidu parole:</label>
+                    <input type="text" id="newAdminTempPass" placeholder="Pagaidu parole">
+                </div>
+                <button class="btn-save" onclick="addNewAdmin()" style="width:100%">Pievienot admin</button>
+            </div>
+
+            <div style="margin-top:20px;">
+                <button class="btn-cancel" onclick="closeAdminSettings()" style="width:100%">Aizvērt</button>
+            </div>
+        </div>
+    </div>
 
     <script>
         let workers = [], cars = [], schedule = [], workTypes = [], objects = [], daySummary = [], resourceTypes = [];
@@ -507,6 +574,87 @@ async function saveWorkerEdit() {
             const savedNavItem = [...document.querySelectorAll('.nav-item')]
                 .find(el => el.getAttribute('onclick')?.includes(savedView));
             if (savedNavItem) showView(savedView, savedNavItem);
+        }
+
+        // --- ADMIN IESTATĪJUMI ---
+        function openAdminSettings() {
+            const user = JSON.parse(localStorage.getItem('loggedInUser'));
+            document.getElementById('adminNewName').value = user?.name || '';
+            document.getElementById('adminNewPass').value = '';
+            document.getElementById('adminNewPassConfirm').value = '';
+            document.getElementById('newAdminName').value = '';
+            document.getElementById('newAdminTempPass').value = '';
+            document.getElementById('adminSettingsModal').style.display = 'flex';
+        }
+
+        function closeAdminSettings() {
+            document.getElementById('adminSettingsModal').style.display = 'none';
+        }
+
+        async function saveAdminName() {
+            const user = JSON.parse(localStorage.getItem('loggedInUser'));
+            const newName = document.getElementById('adminNewName').value.trim();
+            if (!newName) return alert('Ievadi jauno vārdu!');
+            if (newName === user.name) return alert('Vārds nav mainīts!');
+
+            const res = await fetch(`/api/workers/${encodeURIComponent(user.name)}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ newName, temp_password: null, password: '' })
+            });
+
+            if (res.ok) {
+                user.name = newName;
+                localStorage.setItem('loggedInUser', JSON.stringify(user));
+                alert('Vārds nomainīts!');
+                document.getElementById('adminNewName').value = newName;
+            } else {
+                alert('Kļūda saglabājot!');
+            }
+        }
+
+        async function saveAdminPassword() {
+            const user = JSON.parse(localStorage.getItem('loggedInUser'));
+            const newPass = document.getElementById('adminNewPass').value.trim();
+            const confirm = document.getElementById('adminNewPassConfirm').value.trim();
+            if (!newPass) return alert('Ievadi jauno paroli!');
+            if (newPass !== confirm) return alert('Paroles nesakrīt!');
+
+            const res = await fetch('/api/change-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: user.name, newPassword: newPass })
+            });
+
+            if (res.ok) {
+                alert('Parole nomainīta!');
+                document.getElementById('adminNewPass').value = '';
+                document.getElementById('adminNewPassConfirm').value = '';
+            } else {
+                alert('Kļūda saglabājot paroli!');
+            }
+        }
+
+        async function addNewAdmin() {
+            const name = document.getElementById('newAdminName').value.trim();
+            const tempPass = document.getElementById('newAdminTempPass').value.trim();
+            if (!name) return alert('Ievadi admina vārdu!');
+            if (!tempPass) return alert('Pagaidu parole ir obligāta!');
+
+            const res = await fetch('/api/workers', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, temp_password: tempPass, role: 'admin' })
+            });
+
+            if (res.ok) {
+                alert(`Admins "${name}" pievienots! Pagaidu parole: ${tempPass}`);
+                document.getElementById('newAdminName').value = '';
+                document.getElementById('newAdminTempPass').value = '';
+            } else {
+                const err = await res.json();
+                alert('Kļūda: ' + (err.error || 'neizdevās'));
+            }
         }
 
         loadData();
