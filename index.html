@@ -4,135 +4,22 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Login</title>
-  <style>
-    :root {
-    --saulstari-green: #1a3025;   /* Tumši zaļais no logo/header */
-    --saulstari-yellow: #d4b45d;  /* Dzeltenais akcents */
-    --bg-light: #f4f6f1;          /* Gaišais fons no mājaslapas */
-    --white: #ffffff;
-  }
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/login.css">
 
-  body {
-    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    margin: 0;
-    background: var(--bg-light);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
-    color: #333;
-  }
-
-  /* Dekoratīva josla augšā kā Saulstari mājaslapā */
-  body::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    width: 100%;
-    height: 70px;
-    background: var(--saulstari-green);
-    z-index: -1;
-  }
-
-  h1 { 
-    margin: 0 0 20px 0; 
-    color: var(--saulstari-green); 
-    text-align: center;
-    font-size: 1.6rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
-  
-  form {
-    background: var(--white);
-    padding: 40px;
-    height: 85%;
-    border-radius: 15px;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    max-width: 380px;
-    border-top: 6px solid var(--saulstari-yellow); /* Dzeltenā līnija akcentam */
-  }
-  
-  label { 
-    display: block; 
-    margin: 15px 0 5px; 
-    font-weight: 600; 
-    color: var(--saulstari-green);
-  }
-  
-  input {
-    width: 100%;
-    padding: 12px;
-    margin-bottom: 10px;
-    box-sizing: border-box;
-    border-radius: 8px;
-    border: 1px solid #ddd;
-    font-size: 1rem;
-    background: #fafafa;
-  }
-
-  input:focus {
-    outline: none;
-    border-color: var(--saulstari-yellow);
-    box-shadow: 0 0 5px rgba(212, 180, 93, 0.3);
-  }
-
-  button {
-    width: 100%;
-    padding: 14px;
-    margin-top: 20px;
-    border-radius: 50px; /* Ļoti apaļas pogas kā Saulstari lapā */
-    border: none;
-    background: var(--saulstari-green);
-    color: white;
-    font-weight: bold;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    text-transform: uppercase;
-  }
-
-  button:hover {
-    background: #254535;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  }
-
-  .hint { 
-    margin-top: 20px; 
-    color: #777; 
-    font-size: 0.85rem; 
-    text-align: center;
-    line-height: 1.4;
-  }
-    @media (pointer: coarse) {
-      form {
-      width: 70% !important;
-      height: 30% !important; /* 80% var būt par šauru */
-      max-width: none !important;
-      padding: 30px 20px !important;
-      }
-    input, button {
-      padding: 35px !important; /* Lielāki elementi pirkstiem */
-      font-size: 30px;
-      }
-      .text{
-      font-size: 35px;
-      }
-      .hint{
-      font-size: 25px;
-      }
-    }
-  </style>
 </head>
-<body>
+<body class="login-page">
 
-  <form id="loginForm" autocomplete="off">
-    <label class="text" for="username">Username</label>
-    <input id="username" name="username" type="text" required />
+  <form id="loginForm" class="login-card" autocomplete="off">
+    <div class="login-field">
+      <label for="username">Username</label>
+      <input id="username" name="username" type="text" required />
+    </div>
 
-    <label class="text" for="password">Password</label>
-    <input id="password" name="password" type="password" required />
+    <div class="login-field">
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password" required />
+    </div>
 
     <button type="submit">Log in</button>
     <p class="hint">If using a temporary password, you will be prompted to set a new password.</p>

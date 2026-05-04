@@ -3,225 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <link rel="icon" type="image/png" href="worker.png?v=2">
+    <link rel="icon" type="image/png" href="assets/images/worker.png?v=2">
     <title>Darbinieka Panelis</title>
-    <style>
-        :root {
-    --saulstari-green: #1a3025;
-    --saulstari-yellow: #d4b45d;
-    --saulstari-gray: #4a5d53;
-    --bg-light: #f4f6f1;
-    --white: #ffffff;
-    --success: #27ae60;
-    --error: #e74c3c;
-}
-        #welcome:{
-            font-size: 30px;
-        }
-        #ieraksti{
-                text-align: center;
-            }
+    <link rel="stylesheet" href="assets/css/base.css">
+    <link rel="stylesheet" href="assets/css/worker.css">
 
-        thead { background-color: var(--saulstari-green) !important;
-        color: var(--saulstari-yellow) !important; cursor: pointer; user-select: none; }
-        
-.hidden-body { display: none; }
-
-        /* Kursors uz virsraksta, lai saprastu, ka var spiest */ta
-#tableContainer thead {
-    cursor: pointer;
-    user-select: none;
-}
-
-/* Klase, kas paslēps rindas */
-.hidden-rows {
-    display: none !important;
-}
-        
-/* --- PAMATA STILI (Datoram) --- */
-body { 
-    font-family: 'Segoe UI', Roboto, sans-serif; 
-    background-color: var(--bg-light); 
-    margin: 0; 
-    padding: 20px; 
-    color: #333; 
-}
-.card {
-    background: var(--white);
-    padding: 25px;
-    border-radius: 20px;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.08);
-    width: 600px;
-    height: 600px;
-    margin: 0 auto 30px;
-    border-top: 5px solid var(--saulstari-yellow);
-    text-align: center;
-}
-
-        h2 { color: var(--saulstari-green); margin-top: 0; text-transform: uppercase; letter-spacing: 1px; }
-#status { font-size: 1.1rem; margin-bottom: 10px; padding: 10px; border-radius: 10px; background: #fdfdfd; }
-
-        select, input[type="number"] {
-    width: 100%;
-    padding: 12px;
-    margin: 8px 0;
-    border-radius: 10px;
-    border: 1px solid #ddd;
-    font-size: 1rem;
-    box-sizing: border-box;
-}
-
-        select:disabled {
-            background-color: #f0f0f0;
-            cursor: not-allowed;
-            color: #666;
-        }
-
-        button {
-    padding: 14px 24px;
-    border-radius: 50px; 
-    border: none;
-    font-weight: bold;
-    cursor: pointer;
-    text-transform: uppercase;
-    font-size: 0.9rem;
-    margin: 5px;
-    width: 100%;
-}
-
-        #AtWork { background: var(--saulstari-green); color: var(--saulstari-yellow); }
-#LeaveWork { background: var(--saulstari-gray); color: white; }
-#startBtn { background: var(--success); color: white; margin-top: 15px; }
-#stopBtn { background: var(--saulstari-yellow); color: var(--saulstari-green); margin-top: 15px; }
-        .res-btn { background: #d4b45d; color: #1a3025; border: 2px solid #1a3025; }
-
-        #logoutBtn { background: transparent; color: var(--saulstari-grey); border: 1px solid #ddd; margin-top: 20px; padding: 8px 15px; font-size: 0.8rem; }
-
-#tableContainer { 
-    max-width: 900px; 
-    margin: 20px auto; 
-    background: var(--white); 
-    border-radius: 15px; 
-    overflow-x: auto; 
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
-}
-        table { width: 100%; border-collapse: collapse; min-width: 600px; }
-        
-
-        th, td {
-        min-width: 120px !important;
-        word-wrap: break-word !important;
-        font-size: 18px !important;
-        padding: 15px 10px !important;
-    }
-
-        .time-label { font-size: 0.9rem; margin-bottom: 5px; display: block; }
-        .shift-time { color: var(--saulstari-gray); font-style: italic; }
-        .work-time { color: var(--success); font-weight: bold; }
-
-       #resourceModal { 
-    display: none; 
-    position: fixed; 
-    top: 0; left: 0; 
-    width: 100%; height: 100%; 
-    background: rgba(0,0,0,0.5); 
-    z-index: 1000; 
-    align-items: center; 
-    justify-content: center; 
-}
-        .modal-content { background: white; padding: 25px; border-radius: 12px; width: 90%; max-width: 400px; text-align: left; }
-
-        /* -----------------------------------------------------------------------------------------------------------------------------------------*/
-        @media (pointer: coarse) {
-
-    /* 2. KARTĪTE (Galvenais rāmis pogām) */
-    .card {
-        width: 100vw !important;
-        height: 800px !important;
-        margin: 5px auto !important;
-        padding: 20px 10px !important;
-        box-sizing: border-box !important;
-        overflow: visible !important;
-        display: block !important;
-    }
-
-    /* 3. MILZĪGAS POGAS UN SELEKTI */
-    #AtWork, #LeaveWork, #startBtn, #stopBtn, #OpenResourceBtn {
-        height: 110px !important; /* Ļoti augstas pogas */
-        font-size: 32px !important; /* Liels teksts */
-        border-radius: 20px !important;
-        margin-bottom: 15px !important;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.2) !important;
-        color: var(--saulstari-yellow) !important;
-    }
-
-    select {
-        height: 80px !important;
-        font-size: 26px !important;
-        margin: 10px 0 !important;
-    }
-
-    #welcome {
-        font-size: 36px !important;
-        margin-bottom: 25px !important;
-    }
-
-    #status {
-        font-size: 28px !important;
-        padding: 20px !important;
-    }
-
-    #logoutBtn {
-        height: 70px !important;
-        font-size: 22px !important;
-        margin-top: 40px !important;
-    }
-
-    /* 4. TABULAS SEKCIJA - "IZIET ĀRĀ" NO EKRĀNA */
-    #ieraksti {
-        font-size: 34px !important;
-        margin: 40px 0 20px 0 !important;
-    }
-
-    #tableContainer {
-        width: 100vw !important; /* Pilns ekrāna platums */
-        margin-left: 20px !important; /* Centrēšanas triks, lai izietu ārpus card padding */
-        margin-right: calc(-50vw + 50%) !important; /* Centrēšanas triks, lai izietu ārpus card padding */
-        overflow-x: auto !important;
-        text-align: left !important;
-        display: block !important;
-        -webkit-overflow-scrolling: touch;
-        background: #fff;
-        border-top: 1px solid #ddd;
-        border-bottom: 1px solid #ddd;
-    }
-
-    table {
-        min-width: 1000px !important; /* Piespiežam būt milzīgai */
-        width: 1000px !important;
-        table-layout: auto !important;
-        border-collapse: collapse !important;
-        margin: 0 !important;
-    }
-
-    /* Tabulas galva un šūnas */
-    th, td {
-        white-space: nowrap !important;
-        padding: 15px 10px !important;
-        font-size: 30px !important;
-        text-align: center !important;
-        border: 1px solid #eee !important;
-    }
-
-    thead th {
-        background-color: var(--saulstari-green) !important;
-        color: var(--saulstari-yellow) !important;
-        height: 80px !important;
-    }
-}
-    </style>
 </head>
-<body>
+<body class="worker-page">
     <div class="card">
         <h2 id="welcome"></h2>
         <div id="shiftStartTimeDisplay" class="time-label shift-time"></div>
@@ -241,7 +29,7 @@ body {
             <button id="startBtn" style="display:none;">Sākt darbu</button>
             <button id="stopBtn" style="display:none;">Beigt darbu</button>
 
-            <button id="OpenResourceBtn" class="res-btn" style="display:none; width: 100%; margin-top: 10px;">🛢️ Reģistrēt Degvielu / Eļļu</button>
+            <button id="OpenResourceBtn" class="res-btn" style="display:none;">🛢️ Reģistrēt Degvielu / Eļļu</button>
         </div>
 
         <button id="logoutBtn">Izrakstīties</button>
@@ -260,9 +48,9 @@ body {
             <label>Daudzums (L):</label>
             <input type="number" id="modalAmountInput" step="0.1" min="0.1" placeholder="Ievadi litrus">
             
-            <div style="display:flex; gap:10px; margin-top:15px;">
-                <button id="modalCancel" style="flex:1; background:#6c757d; color:white;">Atcelt</button>
-                <button id="modalSave" style="flex:1; background:var(--success); color:white;">Saglabāt</button>
+            <div class="modal-actions">
+                <button id="modalCancel">Atcelt</button>
+                <button id="modalSave">Saglabāt</button>
             </div>
         </div>
     </div>

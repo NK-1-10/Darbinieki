@@ -3,13 +3,14 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/png" href="admin.png?v=2">
+    <link rel="icon" type="image/png" href="assets/images/admin.png?v=2">
     
     <title>Admin Panelis</title>
-    <link rel="stylesheet" href="adminCSS.css">
+    <link rel="stylesheet" href="assets/css/base.css">
+    <link rel="stylesheet" href="assets/css/admin.css">
     
 </head>
-<body>
+<body class="admin-page">
 
     <div class="sidebar">
         <button id="toggle-btn" onclick="toggleSidebar()">&#9776;</button>
@@ -35,7 +36,7 @@
 
         <div class="sidebar-footer">
             <button class="btn-all-delete" onclick="deleteAllData()">⚠️ <span>DZĒST VISUS DATUS</span></button>
-            <button class="btn-logout" onclick="logout()" style="width: 100%; background: #444; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">
+            <button class="btn-logout" onclick="logout()">
                 <i>🚪</i><span class="logout-text">Iziet</span>
             </button>
         </div>
