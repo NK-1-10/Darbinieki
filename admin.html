@@ -401,10 +401,10 @@ if(workerEl) {
                         <thead>
                             <tr>
                                 <th>Datums</th>
-                                <th>Auto</th>
                                 <th>Darbinieks</th>
-                                <th>Objekts</th>
                                 <th>Darba veids</th>
+                                <th>Objekts</th>
+                                <th>Auto</th>
                                 <th style="text-align: center;">Stundas</th>
                                 <th style="width: 50px;"></th>
                             </tr>
@@ -413,10 +413,10 @@ if(workerEl) {
                             ${fWork.map(e => `
                                 <tr>
                                     <td>${e.date}</td>
-                                    <td>${e.car || '-'}</td>
                                     <td>${e.worker_name}</td>
-                                    <td>${e.objekts || '-'}</td>
                                     <td>${e.darbs || '-'}</td>
+                                    <td>${e.objekts || '-'}</td>
+                                    <td>${e.car || '-'}</td>
                                     <td style="text-align: center;" class="gold-val">${parseFloat(e.hours || 0).toFixed(2)}</td>
                                     <td><button class="btn-del" onclick="deleteScheduleItem(${e.id})">✖</button></td>
                                 </tr>`).join("")}
