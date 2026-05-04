@@ -578,7 +578,7 @@ async function saveWorkerEdit() {
 
         // --- ADMIN IESTATĪJUMI ---
         function openAdminSettings() {
-            const user = JSON.parse(localStorage.getItem('loggedInAdmin'));
+            const user = JSON.parse(localStorage.getItem('loggedInAdmin') || localStorage.getItem('loggedInUser'));
             document.getElementById('adminNewName').value = user?.name || '';
             document.getElementById('adminNewPass').value = '';
             document.getElementById('adminNewPassConfirm').value = '';
@@ -592,7 +592,7 @@ async function saveWorkerEdit() {
         }
 
         async function saveAdminName() {
-            const user = JSON.parse(localStorage.getItem('loggedInAdmin'));
+            const user = JSON.parse(localStorage.getItem('loggedInAdmin') || localStorage.getItem('loggedInUser'));
             const newName = document.getElementById('adminNewName').value.trim();
             if (!newName) return alert('Ievadi jauno vārdu!');
             if (newName === user.name) return alert('Vārds nav mainīts!');
@@ -614,7 +614,7 @@ async function saveWorkerEdit() {
         }
 
         async function saveAdminPassword() {
-            const user = JSON.parse(localStorage.getItem('loggedInAdmin'));
+            const user = JSON.parse(localStorage.getItem('loggedInAdmin') || localStorage.getItem('loggedInUser'));
             const newPass = document.getElementById('adminNewPass').value.trim();
             const confirm = document.getElementById('adminNewPassConfirm').value.trim();
             if (!newPass) return alert('Ievadi jauno paroli!');
