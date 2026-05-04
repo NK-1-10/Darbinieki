@@ -380,6 +380,35 @@ app.delete('/api/workers/:name', async (req, res) => {
 
 // (Pievieno līdzīgus delete maršrutus cars, objects un work-types)
 
+// --- PUT (REDIĢĒT) MARŠRUTI ---
+app.put('/api/cars/:name', async (req, res) => {
+    try {
+        await pool.query('UPDATE cars SET name = $1 WHERE name = $2', [req.body.name, req.params.name]);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.put('/api/work-types/:name', async (req, res) => {
+    try {
+        await pool.query('UPDATE work_types SET name = $1 WHERE name = $2', [req.body.name, req.params.name]);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.put('/api/objects/:name', async (req, res) => {
+    try {
+        await pool.query('UPDATE objects SET name = $1 WHERE name = $2', [req.body.name, req.params.name]);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.put('/api/resource-types/:name', async (req, res) => {
+    try {
+        await pool.query('UPDATE resource_types SET name = $1 WHERE name = $2', [req.body.name, req.params.name]);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 app.post('/api/start-work', async (req, res) => {
     const { worker_name, car, start_time, objekts, darbs } = req.body;
     const [date, time] = start_time.split(' ');

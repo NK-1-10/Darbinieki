@@ -289,7 +289,22 @@
             const draw = (id, data, api, key='name') => {
                 const el = document.getElementById(id);
                 if(el) {
-                    el.innerHTML = data.map(item => `<li><span>${item[key] || item}</span><button class="btn-del" onclick="deleteItem('${api}', '${item[key] || item}')">✖</button></li>`).join("");
+                    el.innerHTML = data.map(item => {
+                        const val = item[key] || item;
+                        return `<li>
+                            <span style="flex:1;">${val}</span>
+                            <div class="worker-actions">
+                                <div class="btn-container">
+                                    <button class="pencil" onclick="editItem('${api}', '${val}')">✏️</button>
+                                    <span class="tooltip">Rediģēt</span>
+                                </div>
+                                <div class="btn-container">
+                                    <button class="btn-del" onclick="deleteItem('${api}', '${val}')">✖</button>
+                                    <span class="tooltip">Izdzēst</span>
+                                </div>
+                            </div>
+                        </li>`;
+                    }).join("");
                 }
             };
 
@@ -578,6 +593,16 @@ async function saveWorkerEdit() {
 }
         
         async function addNewItem(url, msg, extra={}) { const n = prompt(msg); if(n) { await fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name:n, ...extra})}); loadData(); } }
+        async function editItem(url, oldName) {
+            const newName = prompt("Jauns nosaukums:", oldName);
+            if (!newName || newName === oldName) return;
+            const res = await fetch(`${url}/${encodeURIComponent(oldName)}`, {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ name: newName })
+            });
+            if (res.ok) { loadData(); } else { alert("Kļūda saglabājot!"); }
+        }
         async function deleteItem(url, name) { if(confirm(`Dzēst ${name}?`)) { await fetch(`${url}/${encodeURIComponent(name)}`, {method:'DELETE'}); loadData(); } }
         async function deleteWorker(name) { if(confirm(`Dzēst darbinieku ${name}?`)) { await fetch(`/api/workers/${encodeURIComponent(name)}`, {method:'DELETE'}); loadData(); } }
         async function adjustRes(id, action) { const val = parseFloat(document.getElementById(`in-${id}`).value); if(!val) return; const adminUser = getAdminUser(); await fetch(`/api/resource-types/${id}`, {method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action, amount:val, adminName: adminUser?.name || 'Admin'})}); loadData(); }
