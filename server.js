@@ -68,6 +68,17 @@ function getMonthLV() {
         .replace(/^\w/, c => c.toUpperCase());
 }
 
+// Iztīrīt visu tabulu pilnībā — JĀBŪT PIRMS /:id !
+app.delete('/api/schedule/all', async (req, res) => {
+    try {
+        await pool.query("DELETE FROM schedule");
+        res.json({ success: true, message: "Tabula pilnībā iztīrīta" });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Neizdevās izdzēst visu: " + err.message });
+    }
+});
+
 app.delete('/api/schedule/:id', async (req, res) => {
     const id = req.params.id;
     try {
@@ -96,17 +107,6 @@ app.delete('/api/darbastundas/:id', async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: "Servera kļūda: " + err.message });
-    }
-});
-
-// Iztīrīt visu tabulu pilnībā (salabo lielo sarkano pogu)
-app.delete('/api/schedule/all', async (req, res) => {
-    try {
-        await pool.query("DELETE FROM schedule");
-        res.json({ success: true, message: "Tabula pilnībā iztīrīta" });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Neizdevās izdzēst visu: " + err.message });
     }
 });
 
