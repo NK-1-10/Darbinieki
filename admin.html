@@ -545,9 +545,16 @@ if(workerEl) {
         async function deleteScheduleItem(id) { if (confirm("Dzēst ierakstu?")) { await fetch(`/api/schedule/${id}`, { method: 'DELETE' }); loadData(); } }
         async function deleteHoursItem(id) { if (confirm("Dzēst stundu ierakstu?")) { await fetch(`/api/darbastundas/${id}`, { method: 'DELETE' }); loadData(); } }
         async function deleteAllData() {
-            if (confirm("DZĒST VISUS DATUS?")) {
+            if (confirm("DZĒST VISUS DATUS? Darbinieki, mašīnas, objekti un resursu veidi paliks.")) {
                 const confirm2 = prompt("Ierakstiet: DZĒST");
-                if (confirm2 === "DZĒST") { await fetch('/api/schedule/all', { method: 'DELETE' }); loadData(); }
+                if (confirm2 === "DZĒST") {
+                    await Promise.all([
+                        fetch('/api/schedule/all', { method: 'DELETE' }),
+                        fetch('/api/darbastundas', { method: 'DELETE' }),
+                        fetch('/api/resources/reset', { method: 'POST' })
+                    ]);
+                    loadData();
+                }
             }
         }
 

@@ -128,6 +128,16 @@ app.delete('/api/darbastundas', async (req, res) => {
     }
 });
 
+// Nullot visu resursu daudzumus (bet saglabāt veidus)
+app.post('/api/resources/reset', async (req, res) => {
+    try {
+        await pool.query('UPDATE resource_types SET quantity = 0');
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // --- 1. AUTENTIFIKĀCIJA ---
 app.post('/api/login', async (req, res) => {
     const { username, password } = req.body;
