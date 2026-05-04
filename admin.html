@@ -574,8 +574,9 @@ async function saveWorkerEdit() {
         
         async function addNewItem(url, msg, extra={}) { const n = prompt(msg); if(n) { await fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name:n, ...extra})}); loadData(); } }
         async function deleteItem(url, name) { if(confirm(`Dzēst ${name}?`)) { await fetch(`${url}/${encodeURIComponent(name)}`, {method:'DELETE'}); loadData(); } }
+        async function deleteWorker(name) { if(confirm(`Dzēst darbinieku ${name}?`)) { await fetch(`/api/workers/${encodeURIComponent(name)}`, {method:'DELETE'}); loadData(); } }
         async function adjustRes(id, action) { const val = parseFloat(document.getElementById(`in-${id}`).value); if(!val) return; const adminUser = getAdminUser(); await fetch(`/api/resource-types/${id}`, {method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action, amount:val, adminName: adminUser?.name || 'Admin'})}); loadData(); }
-        function logout() { localStorage.removeItem('loggedInAdmin'); window.location.href = 'index.html'; }
+        function logout() { sessionStorage.removeItem('loggedInAdmin'); window.location.href = 'index.html'; }
 
         // Atjauno pēdējo aktīvo skatu pēc refresh
         const savedView = localStorage.getItem('adminActiveView');
@@ -595,7 +596,7 @@ async function saveWorkerEdit() {
 
             const res = await fetch(`/api/workers/${encodeURIComponent(user.name)}`, { method: 'DELETE' });
             if (res.ok) {
-                localStorage.removeItem('loggedInAdmin');
+                sessionStorage.removeItem('loggedInAdmin');
                 localStorage.removeItem('loggedInUser');
                 window.location.href = 'index.html';
             } else {
@@ -605,7 +606,7 @@ async function saveWorkerEdit() {
 
 
         function getAdminUser() {
-            const admin = JSON.parse(localStorage.getItem('loggedInAdmin'));
+            const admin = JSON.parse(sessionStorage.getItem('loggedInAdmin'));
             if (admin) return admin;
             // Fallback: tikai ja loggedInUser ir admin role
             const u = JSON.parse(localStorage.getItem('loggedInUser'));
@@ -640,7 +641,7 @@ async function saveWorkerEdit() {
 
             if (res.ok) {
                 user.name = newName;
-                localStorage.setItem('loggedInAdmin', JSON.stringify(user));
+                sessionStorage.setItem('loggedInAdmin', JSON.stringify(user));
                 alert('Vārds nomainīts!');
                 document.getElementById('adminNewName').value = newName;
             } else {
