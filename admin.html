@@ -27,6 +27,14 @@
         }
         .btn-settings:hover { background: rgba(212,180,93,.15); }
         .settings-section h4 { margin: 0 0 12px; font-size: 14px; color: #444; }
+        .tooltip {
+            position: absolute !important;
+            top: calc(100% + 6px) !important;
+            bottom: auto !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+            z-index: 50 !important;
+        }
     </style>
     
 </head>
@@ -364,6 +372,7 @@ if(workerEl) {
                             <input type="number" id="in-${r.id}" placeholder="Daudzums">
                             <button onclick="adjustRes(${r.id}, 'add')" class="add">+</button>
                             <button onclick="adjustRes(${r.id}, 'sub')" class="remove">-</button>
+                            <button class="pencil" onclick="editItem('/api/resource-types', '${r.name}')">✏️</button>
                             <button class="btn-del" onclick="deleteItem('/api/resource-types', '${r.name}')">✖</button>
                         </div>
                     </li>`).join("");
