@@ -171,6 +171,7 @@
             document.getElementById(viewId).classList.add('active');
             el.classList.add('active');
             document.getElementById('current-view-title').innerText = el.querySelector('span').innerText;
+            localStorage.setItem('adminActiveView', viewId);
         }
 
         async function loadData() {
@@ -333,11 +334,13 @@ if(workerEl) {
                     (!workerVal || e.worker_name === workerVal)
                 );
 
-                // Kopsumma: tikai admin papildinājumi (+), VISS PĀRĒJAIS tiek atņemts (-)
+                // Kopsumma: tikai admin papildinājumi (+), VISS PĀRĒJAIS (patēriņš + atņemšana) mīnus
                 const totalNet = fFuel.reduce((s, e) => {
                     const litri = parseFloat(e.resource_amount || 0);
-                    const isAdminTop = e.car === 'Papildinājums' || e.darbs === 'Resursu papildinājums';
-                    return isAdminTop ? s + litri : s - litri;
+                    const isPlus = e.car === 'Papildinājums' || e.darbs === 'Resursu papildinājums';
+                    const isMinus = e.car === 'Atņemšana' || e.darbs === 'Resursu atņemšana';
+                    if (isPlus) return s + litri;
+                    return s - litri; // viss pārējais (darbinieki + admin atņemšana)
                 }, 0);
                 const totalSign = totalNet >= 0 ? '+' : '';
                 document.getElementById('totalFuelValue').innerText = totalSign + totalNet.toFixed(2) + " L";
@@ -356,9 +359,10 @@ if(workerEl) {
                         <tbody>
                             ${fFuel.map(e => {
                                 const isPapild = e.car === 'Papildinājums' || e.darbs === 'Resursu papildinājums';
+                                const isAtnemšana = e.car === 'Atņemšana' || e.darbs === 'Resursu atņemšana';
                                 const sign = isPapild ? '+' : '-';
                                 const colorClass = isPapild ? 'green-val' : 'red-val';
-                                const darbinieks = isPapild ? 'Admin (papildinājums)' : (e.worker_name || '-');
+                                const darbinieks = isPapild ? 'Admin (papildinājums)' : isAtnemšana ? 'Admin (atņemšana)' : (e.worker_name || '-');
                                 return '<tr>' +
                                     '<td>' + e.date + '</td>' +
                                     '<td>' + e.resource_name + '</td>' +
@@ -496,6 +500,14 @@ async function saveWorkerEdit() {
         async function deleteItem(url, name) { if(confirm(`Dzēst ${name}?`)) { await fetch(`${url}/${encodeURIComponent(name)}`, {method:'DELETE'}); loadData(); } }
         async function adjustRes(id, action) { const val = parseFloat(document.getElementById(`in-${id}`).value); if(!val) return; await fetch(`/api/resource-types/${id}`, {method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action, amount:val})}); loadData(); }
         function logout() { localStorage.clear(); window.location.href = 'index.html'; }
+
+        // Atjauno pēdējo aktīvo skatu pēc refresh
+        const savedView = localStorage.getItem('adminActiveView');
+        if (savedView) {
+            const savedNavItem = [...document.querySelectorAll('.nav-item')]
+                .find(el => el.getAttribute('onclick')?.includes(savedView));
+            if (savedNavItem) showView(savedView, savedNavItem);
+        }
 
         loadData();
     </script>
