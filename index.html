@@ -63,7 +63,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
 
                 // SAGLABĀŠANA: Šis ir kritiski svarīgi worker.html lapai
-                localStorage.setItem("loggedInUser", JSON.stringify(user));
+                // Admins un darbinieks glabājas atsevišķi, lai paralēla lietošana netraucē
+                if (user.role === "admin") {
+                    localStorage.setItem("loggedInAdmin", JSON.stringify(user));
+                } else {
+                    localStorage.setItem("loggedInUser", JSON.stringify(user));
+                }
                 
                 // Pārvirzīšana
                 window.location.href = user.role === "admin" ? "admin.html" : "worker.html";
