@@ -345,6 +345,24 @@ app.delete('/api/work-types/:name', async (req, res) => {
 
 app.delete('/api/resource-types/:name', async (req, res) => {
     try {
+        // Vispirms iegūstam atlikušo daudzumu
+        const existing = await pool.query('SELECT quantity FROM resource_types WHERE name = $1', [req.params.name]);
+        const remainingQty = existing.rows[0] ? parseFloat(existing.rows[0].quantity || 0) : 0;
+
+        // Ja ir atlikums, ierakstām atņemšanu schedule tabulā, lai kopsummas sakristu
+        if (remainingQty > 0) {
+            const now = new Date();
+            const o = { timeZone: 'Europe/Riga' };
+            const dat = now.toLocaleDateString('lv-LV', o);
+            const tim = now.toLocaleTimeString('lv-LV', { ...o, hour12: false });
+            const mon = now.toLocaleDateString('lv-LV', { ...o, month: 'long' }).replace(/^\w/, c => c.toUpperCase());
+
+            await pool.query(
+                `INSERT INTO schedule (worker_name, car, date, "sākuma_laiks", "beigu_laiks", month, resource_name, resource_amount, darbs, hours) VALUES ($1,$2,$3,$4,$4,$5,$6,$7,$8,0)`,
+                ['Admin', 'Atņemšana', dat, tim, mon, req.params.name, remainingQty, 'Resursu atņemšana']
+            );
+        }
+
         await pool.query('DELETE FROM resource_types WHERE name = $1', [req.params.name]);
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: err.message }); }
