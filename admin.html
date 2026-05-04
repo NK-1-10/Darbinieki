@@ -457,8 +457,8 @@ if(workerEl) {
                         <thead>
                             <tr>
                                 <th>Datums</th>
-                                <th>Resurss</th>
                                 <th>Darbinieks</th>
+                                <th>Resurss</th>
                                 <th style="text-align: center;">Litri</th>
                                 <th></th>
                             </tr>
@@ -473,8 +473,8 @@ if(workerEl) {
                                 const darbinieks = isPapild ? `${adminVards} (papildinājums)` : isAtnemšana ? `${adminVards} (atņemšana)` : (e.worker_name || '-');
                                 return '<tr>' +
                                     '<td>' + e.date + '</td>' +
-                                    '<td>' + e.resource_name + '</td>' +
                                     '<td>' + darbinieks + '</td>' +
+                                    '<td>' + e.resource_name + '</td>' +
                                     '<td style="text-align: center;" class="' + colorClass + '">' + sign + e.resource_amount + ' L</td>' +
                                     '<td><button class="btn-del" onclick="deleteScheduleItem(' + e.id + ')">✖</button></td>' +
                                     '</tr>';
@@ -497,8 +497,8 @@ if(workerEl) {
                     <table class="sticky-table">
                         <thead>
                             <tr>
-                                <th>Darbinieks</th>
                                 <th>Datums</th>
+                                <th>Darbinieks</th>
                                 <th>Sākums</th>
                                 <th>Beigas</th>
                                 <th style="text-align: center;">Stundas</th>
@@ -508,8 +508,8 @@ if(workerEl) {
                         <tbody>
                             ${fSum.map(e => `
                                 <tr>
-                                    <td>${e.darbinieks}</td>
                                     <td>${e.datums}</td>
+                                    <td>${e.darbinieks}</td>
                                     <td>${e.sāka_darbu}</td>
                                     <td>${e.beidza_darbu}</td>
                                     <td style="text-align: center;" class="gold-val">${parseFloat(e.stundas || 0).toFixed(2)}</td>
