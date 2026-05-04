@@ -577,8 +577,16 @@ async function saveWorkerEdit() {
         }
 
         // --- ADMIN IESTATĪJUMI ---
+        function getAdminUser() {
+            const admin = JSON.parse(localStorage.getItem('loggedInAdmin'));
+            if (admin) return admin;
+            // Fallback: tikai ja loggedInUser ir admin role
+            const u = JSON.parse(localStorage.getItem('loggedInUser'));
+            return (u && u.role === 'admin') ? u : null;
+        }
+
         function openAdminSettings() {
-            const user = JSON.parse(localStorage.getItem('loggedInAdmin') || localStorage.getItem('loggedInUser'));
+            const user = getAdminUser();
             document.getElementById('adminNewName').value = user?.name || '';
             document.getElementById('adminNewPass').value = '';
             document.getElementById('adminNewPassConfirm').value = '';
@@ -592,7 +600,7 @@ async function saveWorkerEdit() {
         }
 
         async function saveAdminName() {
-            const user = JSON.parse(localStorage.getItem('loggedInAdmin') || localStorage.getItem('loggedInUser'));
+            const user = getAdminUser();
             const newName = document.getElementById('adminNewName').value.trim();
             if (!newName) return alert('Ievadi jauno vārdu!');
             if (newName === user.name) return alert('Vārds nav mainīts!');
@@ -614,7 +622,7 @@ async function saveWorkerEdit() {
         }
 
         async function saveAdminPassword() {
-            const user = JSON.parse(localStorage.getItem('loggedInAdmin') || localStorage.getItem('loggedInUser'));
+            const user = getAdminUser();
             const newPass = document.getElementById('adminNewPass').value.trim();
             const confirm = document.getElementById('adminNewPassConfirm').value.trim();
             if (!newPass) return alert('Ievadi jauno paroli!');
