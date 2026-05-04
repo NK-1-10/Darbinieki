@@ -429,7 +429,8 @@ if(workerEl) {
                                 const isAtnemšana = e.car === 'Atņemšana' || e.darbs === 'Resursu atņemšana';
                                 const sign = isPapild ? '+' : '-';
                                 const colorClass = isPapild ? 'green-val' : 'red-val';
-                                const darbinieks = isPapild ? 'Admin (papildinājums)' : isAtnemšana ? 'Admin (atņemšana)' : (e.worker_name || '-');
+                                const adminVards = e.worker_name || 'Admin';
+                                const darbinieks = isPapild ? `${adminVards} (papildinājums)` : isAtnemšana ? `${adminVards} (atņemšana)` : (e.worker_name || '-');
                                 return '<tr>' +
                                     '<td>' + e.date + '</td>' +
                                     '<td>' + e.resource_name + '</td>' +
