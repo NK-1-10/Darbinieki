@@ -8,6 +8,10 @@
     <title>Admin Panelis</title>
     <link rel="stylesheet" href="assets/css/base.css">
     <link rel="stylesheet" href="assets/css/admin.css">
+    <style>
+        .green-val { color: #2e7d32; font-weight: 800; }
+        .red-val { color: #b00020; font-weight: 800; }
+    </style>
     
 </head>
 <body class="admin-page">
@@ -167,7 +171,6 @@
             document.getElementById(viewId).classList.add('active');
             el.classList.add('active');
             document.getElementById('current-view-title').innerText = el.querySelector('span').innerText;
-            localStorage.setItem('adminActiveView', viewId);
         }
 
         async function loadData() {
@@ -323,38 +326,47 @@ if(workerEl) {
                 const carVal = fuelSec.querySelector('.car-sel')?.value;
 
                 let fFuel = schedule.filter(e => 
-        e.resource_amount && 
-        (!yearVal || (e.date && e.date.includes(yearVal))) &&
-        (!monthVal || e.month === monthVal) &&
-        (!resVal || e.resource_name === resVal) &&
-        // Pievienojam loģiku jaunajiem filtriem:
-        (!workerVal || e.worker_name === workerVal) &&
-        (!carVal || e.car === carVal)
-    );
-                
-                document.getElementById('totalFuelValue').innerText = fFuel.reduce((s,i) => s + parseFloat(i.resource_amount || 0), 0).toFixed(2) + " L";
+                    e.resource_amount && 
+                    (!yearVal || (e.date && e.date.includes(yearVal))) &&
+                    (!monthVal || e.month === monthVal) &&
+                    (!resVal || e.resource_name === resVal) &&
+                    (!workerVal || e.worker_name === workerVal)
+                );
+
+                // Kopsumma: tikai admin papildinājumi (+), VISS PĀRĒJAIS tiek atņemts (-)
+                const totalNet = fFuel.reduce((s, e) => {
+                    const litri = parseFloat(e.resource_amount || 0);
+                    const isAdminTop = e.car === 'Papildinājums' || e.darbs === 'Resursu papildinājums';
+                    return isAdminTop ? s + litri : s - litri;
+                }, 0);
+                const totalSign = totalNet >= 0 ? '+' : '';
+                document.getElementById('totalFuelValue').innerText = totalSign + totalNet.toFixed(2) + " L";
+
                 document.getElementById('fuelTableContainer').innerHTML = `
                     <table class="sticky-table">
                         <thead>
                             <tr>
                                 <th>Datums</th>
                                 <th>Resurss</th>
-                                <th>Auto</th>
                                 <th>Darbinieks</th>
                                 <th style="text-align: center;">Litri</th>
                                 <th></th>
                             </tr>
                         </thead>
                         <tbody>
-                            ${fFuel.map(e => `
-                                <tr>
-                                    <td>${e.date}</td>
-                                    <td>${e.resource_name}</td>
-                                    <td>${e.car || '-'}</td>
-                                    <td>${e.worker_name || '-'}</td>
-                                    <td style="text-align: center;" class="gold-val">${e.resource_amount} L</td>
-                                    <td><button class="btn-del" onclick="deleteScheduleItem(${e.id})">✖</button></td>
-                                </tr>`).join("")}
+                            ${fFuel.map(e => {
+                                const isPapild = e.car === 'Papildinājums' || e.darbs === 'Resursu papildinājums';
+                                const sign = isPapild ? '+' : '-';
+                                const colorClass = isPapild ? 'green-val' : 'red-val';
+                                const darbinieks = isPapild ? 'Admin (papildinājums)' : (e.worker_name || '-');
+                                return '<tr>' +
+                                    '<td>' + e.date + '</td>' +
+                                    '<td>' + e.resource_name + '</td>' +
+                                    '<td>' + darbinieks + '</td>' +
+                                    '<td style="text-align: center;" class="' + colorClass + '">' + sign + e.resource_amount + ' L</td>' +
+                                    '<td><button class="btn-del" onclick="deleteScheduleItem(' + e.id + ')">✖</button></td>' +
+                                    '</tr>';
+                            }).join("")}
                         </tbody>
                     </table>`;
             }
@@ -484,14 +496,6 @@ async function saveWorkerEdit() {
         async function deleteItem(url, name) { if(confirm(`Dzēst ${name}?`)) { await fetch(`${url}/${encodeURIComponent(name)}`, {method:'DELETE'}); loadData(); } }
         async function adjustRes(id, action) { const val = parseFloat(document.getElementById(`in-${id}`).value); if(!val) return; await fetch(`/api/resource-types/${id}`, {method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action, amount:val})}); loadData(); }
         function logout() { localStorage.clear(); window.location.href = 'index.html'; }
-
-        // Atjauno pēdējo aktīvo skatu pēc refresh
-        const savedView = localStorage.getItem('adminActiveView');
-        if (savedView) {
-            const savedNavItem = [...document.querySelectorAll('.nav-item')]
-                .find(el => el.getAttribute('onclick')?.includes(savedView));
-            if (savedNavItem) showView(savedView, savedNavItem);
-        }
 
         loadData();
     </script>
