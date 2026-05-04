@@ -253,3 +253,100 @@ th { position: sticky; top: 0; background: #f8faf8; z-index: 2; font-size: 13px;
   #workerList li > div:nth-child(2) { min-width: 0; overflow: hidden; }
   .pencil, .x, .btn-del { width: 34px; height: 34px; }
 }
+
+/* Unified admin lists: Darbinieki / Mašīnas / Darba veidi / Objekti / Resursi */
+#carList li,
+#workList li,
+#objectList li,
+#resourceList li {
+  display: flex !important;
+  align-items: center !important;
+  gap: 18px !important;
+  width: 100% !important;
+  min-height: 58px !important;
+  padding: 12px 10px !important;
+  border-bottom: 1px solid var(--line) !important;
+}
+
+#carList li > span,
+#workList li > span,
+#objectList li > span {
+  flex: 1 1 auto !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  color: var(--ink) !important;
+}
+
+#carList li > .btn-del,
+#workList li > .btn-del,
+#objectList li > .btn-del {
+  margin-left: auto !important;
+  flex: 0 0 auto !important;
+}
+
+#resourceList .resource-row {
+  flex-direction: row !important;
+  align-items: center !important;
+}
+
+.resource-main {
+  flex: 1 1 auto;
+  min-width: 180px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 16px;
+}
+
+.resource-main strong {
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.resource-controls {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex: 0 0 auto;
+}
+
+#resourceList input {
+  width: 170px;
+  min-height: 38px;
+}
+
+.resource-controls .add,
+.resource-controls .remove {
+  width: 42px;
+  min-width: 42px;
+  height: 38px;
+  padding: 0 !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 760px) {
+  #carList li,
+  #workList li,
+  #objectList li,
+  #resourceList li {
+    gap: 8px !important;
+  }
+
+  #resourceList .resource-row {
+    flex-wrap: wrap;
+  }
+
+  .resource-controls {
+    width: 100%;
+    margin-left: 0;
+    justify-content: flex-start;
+  }
+
+  #resourceList input {
+    width: min(100%, 170px);
+  }
+}
