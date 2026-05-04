@@ -22,7 +22,7 @@
         </div>
 
         <div id="workControls">
-            <select id="car" required><option value="">-- Izvēlies mašīnu --</option></select>
+            <select id="car"><option value="">-- Nav mašīnas --</option></select>
             <select id="object" required><option value="">-- Izvēlies objektu --</option></select>
             <select id="work" required><option value="">-- Izvēlies darba veidu --</option></select>
             
@@ -268,7 +268,7 @@
         const auto = document.getElementById("car").value;
         const obj = document.getElementById("object").value;
         const wrk = document.getElementById("work").value;
-        if (!auto || !obj || !wrk) return alert("Izvēlies visus laukus!");
+        if (!obj || !wrk) return alert("Izvēlies darba veidu un objektu!");
         
         const response = await fetch('/api/start-work', {
             method: 'POST',
