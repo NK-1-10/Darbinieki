@@ -217,6 +217,14 @@
                 <button class="btn-save" onclick="addNewAdmin()" style="width:100%">Pievienot admin</button>
             </div>
 
+            <hr style="margin:20px 0; border-color:#e0e0e0;">
+
+            <div class="settings-section">
+                <h4 style="color:#b00020;">Dzēst savu kontu</h4>
+                <p style="font-size:13px;color:#666;margin:0 0 10px;">Šī darbība ir neatgriezeniska. Tu vairs nevarēsi ielogoties ar šiem datiem.</p>
+                <button class="remove" onclick="deleteOwnAccount()" style="width:100%">🗑️ Izdzēst manu kontu</button>
+            </div>
+
             <div style="margin-top:20px;">
                 <button class="btn-cancel" onclick="closeAdminSettings()" style="width:100%">Aizvērt</button>
             </div>
@@ -578,6 +586,24 @@ async function saveWorkerEdit() {
         }
 
         // --- ADMIN IESTATĪJUMI ---
+        async function deleteOwnAccount() {
+            const user = getAdminUser();
+            if (!user) return alert('Kļūda: nav atrasts admin lietotājs!');
+            if (!confirm(`Vai tiešām vēlies dzēst kontu "${user.name}"? Šī darbība ir neatgriezeniska!`)) return;
+            const confirm2 = prompt('Ieraksti savu vārdu, lai apstiprinātu:');
+            if (confirm2 !== user.name) return alert('Vārds nesakrīt. Konts netika dzēsts.');
+
+            const res = await fetch(`/api/workers/${encodeURIComponent(user.name)}`, { method: 'DELETE' });
+            if (res.ok) {
+                localStorage.removeItem('loggedInAdmin');
+                localStorage.removeItem('loggedInUser');
+                window.location.href = 'index.html';
+            } else {
+                alert('Kļūda dzēšot kontu!');
+            }
+        }
+
+
         function getAdminUser() {
             const admin = JSON.parse(localStorage.getItem('loggedInAdmin'));
             if (admin) return admin;
