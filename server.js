@@ -171,9 +171,29 @@ app.patch('/api/resource-types/:id', async (req, res) => {
     try {
         if (action === 'sub') {
             await pool.query('UPDATE resource_types SET quantity = COALESCE(quantity, 0) - $1 WHERE id = $2', [litri, id]);
+        } else if (action === 'add') {
+            await pool.query('UPDATE resource_types SET quantity = COALESCE(quantity, 0) + $1 WHERE id = $2', [litri, id]);
+
+            // Ierakstām papildinājumu schedule tabulā, lai redzams Patēriņš atskaitē
+            const resResult = await pool.query('SELECT name FROM resource_types WHERE id = $1', [id]);
+            const resourceName = resResult.rows[0]?.name || 'Nezināms';
+
+            const tagad = new Date();
+            const opts = { timeZone: 'Europe/Riga' };
+            const datums = tagad.toLocaleDateString('lv-LV', opts);
+            const laiks = tagad.toLocaleTimeString('lv-LV', { ...opts, hour12: false });
+            const monthStr = tagad.toLocaleDateString('lv-LV', { ...opts, month: 'long' }).replace(/^\w/, c => c.toUpperCase());
+
+            await pool.query(`
+                INSERT INTO schedule (
+                    worker_name, car, date, sākuma_laiks, beigu_laiks,
+                    month, resource_name, resource_amount,
+                    darbs, hours
+                ) VALUES ($1, $2, $3, $4, $4, $5, $6, $7, $8, 0)`,
+                ['Admin', 'Papildinājums', datums, laiks, monthStr, resourceName, litri, 'Resursu papildinājums']
+            );
         } else {
-            let query = action === 'add' ? 'UPDATE resource_types SET quantity = COALESCE(quantity, 0) + $1 WHERE id = $2' : 'UPDATE resource_types SET quantity = $1 WHERE id = $2';
-            await pool.query(query, [litri, id]);
+            await pool.query('UPDATE resource_types SET quantity = $1 WHERE id = $2', [litri, id]);
         }
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: err.message }); }
