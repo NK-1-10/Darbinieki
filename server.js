@@ -171,6 +171,21 @@ app.patch('/api/resource-types/:id', async (req, res) => {
     try {
         if (action === 'sub') {
             await pool.query('UPDATE resource_types SET quantity = COALESCE(quantity, 0) - $1 WHERE id = $2', [litri, id]);
+
+            // Ierakstām atņemšanu schedule tabulā
+            const resResultSub = await pool.query('SELECT name FROM resource_types WHERE id = $1', [id]);
+            const resourceNameSub = resResultSub.rows[0]?.name || 'Nezināms';
+
+            const tagadSub = new Date();
+            const optsSub = { timeZone: 'Europe/Riga' };
+            const datumsSub = tagadSub.toLocaleDateString('lv-LV', optsSub);
+            const laiksSub = tagadSub.toLocaleTimeString('lv-LV', { ...optsSub, hour12: false });
+            const monthStrSub = tagadSub.toLocaleDateString('lv-LV', { ...optsSub, month: 'long' }).replace(/^\w/, c => c.toUpperCase());
+
+            await pool.query(
+                `INSERT INTO schedule (worker_name, car, date, "sākuma_laiks", "beigu_laiks", month, resource_name, resource_amount, darbs, hours) VALUES ($1,$2,$3,$4,$4,$5,$6,$7,$8,0)`,
+                ['Admin', 'Atņemšana', datumsSub, laiksSub, monthStrSub, resourceNameSub, litri, 'Resursu atņemšana']
+            );
         } else if (action === 'add') {
             await pool.query('UPDATE resource_types SET quantity = COALESCE(quantity, 0) + $1 WHERE id = $2', [litri, id]);
 
@@ -184,19 +199,15 @@ app.patch('/api/resource-types/:id', async (req, res) => {
             const laiks = tagad.toLocaleTimeString('lv-LV', { ...opts, hour12: false });
             const monthStr = tagad.toLocaleDateString('lv-LV', { ...opts, month: 'long' }).replace(/^\w/, c => c.toUpperCase());
 
-            await pool.query(`
-                INSERT INTO schedule (
-                    worker_name, car, date, sākuma_laiks, beigu_laiks,
-                    month, resource_name, resource_amount,
-                    darbs, hours
-                ) VALUES ($1, $2, $3, $4, $4, $5, $6, $7, $8, 0)`,
+            await pool.query(
+                `INSERT INTO schedule (worker_name, car, date, "sākuma_laiks", "beigu_laiks", month, resource_name, resource_amount, darbs, hours) VALUES ($1,$2,$3,$4,$4,$5,$6,$7,$8,0)`,
                 ['Admin', 'Papildinājums', datums, laiks, monthStr, resourceName, litri, 'Resursu papildinājums']
             );
         } else {
             await pool.query('UPDATE resource_types SET quantity = $1 WHERE id = $2', [litri, id]);
         }
         res.json({ success: true });
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) { console.error('PATCH resource-types kļūda:', err.message); res.status(500).json({ error: err.message }); }
 });
 
 // --- 3. DARBINIEKI, AUTO, OBJEKTI ---
