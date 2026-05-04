@@ -51,6 +51,23 @@ function calculateHours(start, end) {
     return (diff / 3600).toFixed(2);
 }
 
+function getTodayLV() {
+    return new Date().toLocaleDateString('lv-LV', { timeZone: 'Europe/Riga' });
+}
+
+function getTimeLV() {
+    return new Date().toLocaleTimeString('lv-LV', {
+        timeZone: 'Europe/Riga',
+        hour12: false
+    });
+}
+
+function getMonthLV() {
+    return new Date()
+        .toLocaleDateString('lv-LV', { timeZone: 'Europe/Riga', month: 'long' })
+        .replace(/^\w/, c => c.toUpperCase());
+}
+
 app.delete('/api/schedule/:id', async (req, res) => {
     const id = req.params.id;
     try {
@@ -317,6 +334,18 @@ app.post('/api/start-work', async (req, res) => {
     const { worker_name, car, start_time, objekts, darbs } = req.body;
     const [date, time] = start_time.split(' ');
     try {
+        const shiftCheck = await pool.query(
+            `SELECT id FROM "darbastundas"
+             WHERE darbinieks = $1
+             AND beidza_darbu IS NULL
+             LIMIT 1`,
+            [worker_name]
+        );
+
+        if (shiftCheck.rows.length === 0) {
+            return res.status(400).json({ error: "Vispirms jāsāk darba diena!" });
+        }
+
         const activeCheck = await pool.query(
             "SELECT id FROM schedule WHERE worker_name = $1 AND beigu_laiks IS NULL AND darbs NOT IN ('Degvielas uzpilde', 'Eļļas papildināšana')",
             [worker_name]
@@ -393,6 +422,92 @@ app.post('/api/update-resources', async (req, res) => {
     } catch (err) {
         console.error("Resursu atjaunošanas kļūda:", err);
         res.status(500).json({ error: "Servera kļūda saglabājot datus" });
+    }
+});
+
+// --- DARBA DIENAS STATUSS ---
+app.get('/api/shift-status', async (req, res) => {
+    const { worker_name } = req.query;
+
+    try {
+        const result = await pool.query(
+            `SELECT * FROM "darbastundas"
+             WHERE darbinieks = $1
+             AND beidza_darbu IS NULL
+             ORDER BY id DESC
+             LIMIT 1`,
+            [worker_name]
+        );
+
+        res.json({
+            active: result.rows.length > 0,
+            shift: result.rows[0] || null
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/start-shift', async (req, res) => {
+    const { worker_name } = req.body;
+
+    try {
+        const active = await pool.query(
+            `SELECT id FROM "darbastundas"
+             WHERE darbinieks = $1
+             AND beidza_darbu IS NULL
+             LIMIT 1`,
+            [worker_name]
+        );
+
+        if (active.rows.length > 0) {
+            return res.status(400).json({ error: "Darba diena jau ir sākta!" });
+        }
+
+        await pool.query(
+            `INSERT INTO "darbastundas"
+             (darbinieks, datums, sāka_darbu, beidza_darbu, month, stundas)
+             VALUES ($1, $2, $3, NULL, $4, NULL)`,
+            [worker_name, getTodayLV(), getTimeLV(), getMonthLV()]
+        );
+
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/stop-shift', async (req, res) => {
+    const { worker_name } = req.body;
+
+    try {
+        const active = await pool.query(
+            `SELECT id, sāka_darbu FROM "darbastundas"
+             WHERE darbinieks = $1
+             AND beidza_darbu IS NULL
+             ORDER BY id DESC
+             LIMIT 1`,
+            [worker_name]
+        );
+
+        if (active.rows.length === 0) {
+            return res.status(404).json({ error: "Nav aktīvas darba dienas." });
+        }
+
+        const endTime = getTimeLV();
+        const hours = calculateHours(active.rows[0].sāka_darbu, endTime);
+
+        await pool.query(
+            `UPDATE "darbastundas"
+             SET beidza_darbu = $1,
+                 stundas = $2
+             WHERE id = $3`,
+            [endTime, hours, active.rows[0].id]
+        );
+
+        res.json({ success: true, hours });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
     }
 });
 
