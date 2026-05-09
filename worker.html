@@ -188,7 +188,7 @@
     let html = `<table>
         <thead>
             <tr id="toggleHeader">
-                <th>Auto</th>
+                <th>Datums</th>
                 <th>Objekts</th>
                 <th>Darbs</th>
                 <th>Sākums</th>
@@ -200,7 +200,7 @@
 
     const filteredData = data.filter(e => {
         const darbaVeids = e.darbs || "";
-        return !exclusionList.includes(darbaVeids) && e.objekts && e.objekts !== "-";
+        return !exclusionList.includes(darbaVeids);
     });
 
     if (filteredData.length === 0) {
@@ -211,7 +211,7 @@
     // Aizpildām rindas (jaunākie darbi augšā)
     filteredData.slice().reverse().forEach(e => {
         html += `<tr>
-            <td>${e.car || '-'}</td>
+            <td>${e.date || '-'}</td>
             <td>${e.objekts || '-'}</td>
             <td>${e.darbs || '-'}</td>
             <td>${e["sākuma_laiks"] || '-'}</td>
