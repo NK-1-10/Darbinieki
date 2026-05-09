@@ -557,7 +557,14 @@ if(workerEl) {
                     (!hoursSec.querySelector('.worker-sel').value || e.darbinieks === hoursSec.querySelector('.worker-sel').value) &&
                     dateMatches(e.datums || '', hoursSec.querySelector('.date-sel').value)
                 );
-                
+
+                // Aprēķinām pusdienu stundas no schedule tabulas katram ierakstam
+                function getPusdienas(workerName, datums) {
+                    return schedule
+                        .filter(s => s.worker_name === workerName && s.date === datums && s.darbs === 'Pusdienas' && s.hours)
+                        .reduce((sum, s) => sum + parseFloat(s.hours || 0), 0);
+                }
+
                 document.getElementById('totalDayHoursValue').innerText = fSum.reduce((s,i) => s + parseFloat(i.stundas || 0), 0).toFixed(2) + " h";
                 document.getElementById('daySummaryContainer').innerHTML = `
                     <table class="sticky-table">
@@ -567,22 +574,31 @@ if(workerEl) {
                                 <th>Darbinieks</th>
                                 <th>Sākums</th>
                                 <th>Beigas</th>
-                                <th style="text-align: center;">Stundas</th>
+                                <th style="text-align: center;">Pusdienas</th>
+                                <th style="text-align: center;">Kopā h</th>
+                                <th style="text-align: center;">Darbā h</th>
                                 <th style="width: 50px;"></th>
                             </tr>
                         </thead>
                         <tbody>
-                            ${fSum.map(e => `
+                            ${fSum.map(e => {
+                                const pusd = getPusdienas(e.darbinieks, e.datums);
+                                const kopaa = parseFloat(e.stundas || 0);
+                                const darba = Math.max(0, kopaa - pusd);
+                                return `
                                 <tr>
                                     <td>${e.datums}</td>
                                     <td>${e.darbinieks}</td>
                                     <td>${e.sāka_darbu}</td>
-                                    <td>${e.beidza_darbu}</td>
-                                    <td style="text-align: center;" class="gold-val">${parseFloat(e.stundas || 0).toFixed(2)}</td>
+                                    <td>${e.beidza_darbu || '-'}</td>
+                                    <td style="text-align: center;">${pusd > 0 ? pusd.toFixed(2) + ' h' : '-'}</td>
+                                    <td style="text-align: center;" class="gold-val">${kopaa.toFixed(2)}</td>
+                                    <td style="text-align: center;" class="gold-val">${darba.toFixed(2)}</td>
                                     <td>
                                         ${e.id ? `<button class="btn-del" onclick="deleteHoursItem(${e.id})">✖</button>` : ''}
                                     </td>
-                                </tr>`).join("")}
+                                </tr>`;
+                            }).join("")}
                         </tbody>
                     </table>`;
             }
