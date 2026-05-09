@@ -490,12 +490,15 @@ if(workerEl) {
             hours: '#v-report-hours'
         };
         function wSec_set(val, sel, table) {
-            const el = document.querySelector(`${_secMap[table]} ${sel}`);
+            // Meklē slēptajā div iekšienē konkrētajā sekcijā
+            const sec = document.querySelector(_secMap[table]);
+            const el = sec?.querySelector(`[style*="display:none"] ${sel}`) || sec?.querySelector(sel);
             if (el) { el.value = val; renderTables(); }
             document.querySelectorAll('.col-filter-popup.open').forEach(p => p.classList.remove('open'));
         }
         function wSec_setDate(val, table) {
-            const el = document.querySelector(`${_secMap[table]} .date-sel`);
+            const sec = document.querySelector(_secMap[table]);
+            const el = sec?.querySelector('[style*="display:none"] .date-sel') || sec?.querySelector('.date-sel');
             if (el) { el.value = val; renderTables(); }
             document.querySelectorAll('.col-filter-popup.open').forEach(p => p.classList.remove('open'));
         }
