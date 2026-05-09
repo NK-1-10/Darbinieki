@@ -150,7 +150,7 @@ app.post('/api/login', async (req, res) => {
                 id: userData.id,
                 name: userData.name,
                 role: userData.role || "worker",
-                needsPasswordChange: (userData.temp_password === password)
+                needsPasswordChange: (userData.temp_password === password && userData.role !== 'viewer')
             });
         } else {
             res.status(401).json({ success: false, error: "Nepareizs vārds vai parole" });
@@ -225,7 +225,7 @@ app.patch('/api/resource-types/:id', async (req, res) => {
 app.get('/api/workers', async (req, res) => {
     try {
         // Atlasām vārdu un pagaidu paroli, lai admins varētu to pateikt darbiniekam
-        const r = await pool.query("SELECT name, temp_password, role FROM users WHERE role != 'admin' OR role IS NULL ORDER BY name ASC");
+        const r = await pool.query("SELECT name, temp_password, role FROM users WHERE role = 'worker' OR role IS NULL ORDER BY name ASC");
         res.json(r.rows);
     } catch (err) {
         res.status(500).json({ error: err.message });

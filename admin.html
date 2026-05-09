@@ -236,6 +236,22 @@
             <hr style="margin:20px 0; border-color:#e0e0e0;">
 
             <div class="settings-section">
+                <h4>Pievienot skatītāju</h4>
+                <p style="font-size:13px;color:#666;margin:0 0 10px;">Skatītājs var tikai apskatīt atskaites — nevar neko mainīt.</p>
+                <div class="input-group">
+                    <label>Vārds:</label>
+                    <input type="text" id="newViewerName" placeholder="Skatītāja vārds">
+                </div>
+                <div class="input-group">
+                    <label>Parole:</label>
+                    <input type="text" id="newViewerPass" placeholder="Parole">
+                </div>
+                <button class="btn-save" onclick="addNewViewer()" style="width:100%">Pievienot skatītāju</button>
+            </div>
+
+            <hr style="margin:20px 0; border-color:#e0e0e0;">
+
+            <div class="settings-section">
                 <h4 style="color:#b00020;">Dzēst savu kontu</h4>
                 <p style="font-size:13px;color:#666;margin:0 0 10px;">Šī darbība ir neatgriezeniska. Tu vairs nevarēsi ielogoties ar šiem datiem.</p>
                 <button class="remove" onclick="deleteOwnAccount()" style="width:100%">🗑️ Izdzēst manu kontu</button>
@@ -409,7 +425,52 @@ if(workerEl) {
             return `${y}-${m}-${d}` === inputVal;
         }
 
+        function applyViewerMode() {
+            const user = getAdminUser();
+            if (!user || user.role !== 'viewer') return;
+
+            // Paslēpjam visu IESTATĪJUMI sadaļu
+            document.querySelectorAll('.nav-item').forEach(el => {
+                if (el.getAttribute('onclick')?.includes('v-workers') ||
+                    el.getAttribute('onclick')?.includes('v-cars') ||
+                    el.getAttribute('onclick')?.includes('v-work') ||
+                    el.getAttribute('onclick')?.includes('v-objects') ||
+                    el.getAttribute('onclick')?.includes('v-res')) {
+                    el.style.display = 'none';
+                }
+            });
+
+            // Paslēpjam pogas sānjoslā
+            const settingsBtn = document.querySelector('.btn-settings');
+            const deleteBtn = document.querySelector('.btn-all-delete');
+            if (settingsBtn) settingsBtn.style.display = 'none';
+            if (deleteBtn) deleteBtn.style.display = 'none';
+
+            // Paslēpjam IESTATĪJUMI virsrakstu
+            document.querySelectorAll('.nav-section-title').forEach(el => {
+                if (el.textContent.includes('IESTATĪJUMI')) el.style.display = 'none';
+            });
+
+            // Paslēpjam dzēšanas pogas tabulās
+            document.querySelectorAll('.btn-del').forEach(el => el.style.display = 'none');
+
+            // Paslēpjam arī filtru "Visi auto" kas saistīts ar mašīnām
+            const companyName = document.getElementById('companyName');
+            if (companyName) companyName.style.pointerEvents = 'none';
+
+            // Automātiski atver pirmo atskaiti
+            const firstReport = [...document.querySelectorAll('.nav-item')]
+                .find(el => el.getAttribute('onclick')?.includes('v-report-work'));
+            if (firstReport) showView('v-report-work', firstReport);
+        }
+
         function renderTables() {
+            setTimeout(() => {
+                const user = getAdminUser();
+                if (user?.role === 'viewer') {
+                    document.querySelectorAll('.btn-del').forEach(el => el.style.display = 'none');
+                }
+            }, 50);
             // Darba gaita
             const workSec = document.getElementById('v-report-work');
             if (workSec) {
@@ -776,6 +837,28 @@ async function saveWorkerEdit() {
             }
         }
 
+        async function addNewViewer() {
+            const name = document.getElementById('newViewerName').value.trim();
+            const pass = document.getElementById('newViewerPass').value.trim();
+            if (!name) return alert('Ievadi skatītāja vārdu!');
+            if (!pass) return alert('Parole ir obligāta!');
+
+            const res = await fetch('/api/workers', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, temp_password: pass, role: 'viewer' })
+            });
+
+            if (res.ok) {
+                alert(`Skatītājs "${name}" pievienots!`);
+                document.getElementById('newViewerName').value = '';
+                document.getElementById('newViewerPass').value = '';
+            } else {
+                const err = await res.json();
+                alert('Kļūda: ' + (err.error || 'neizdevās'));
+            }
+        }
+
         async function addNewAdmin() {
             const name = document.getElementById('newAdminName').value.trim();
             const tempPass = document.getElementById('newAdminTempPass').value.trim();
@@ -798,7 +881,7 @@ async function saveWorkerEdit() {
             }
         }
 
-        loadData();
+        loadData().then(() => applyViewerMode());
     </script>
 </body>
 </html>
