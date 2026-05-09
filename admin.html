@@ -429,39 +429,30 @@ if(workerEl) {
             const user = getAdminUser();
             if (!user || user.role !== 'viewer') return;
 
-            // Paslēpjam visu IESTATĪJUMI sadaļu
-            document.querySelectorAll('.nav-item').forEach(el => {
-                if (el.getAttribute('onclick')?.includes('v-workers') ||
-                    el.getAttribute('onclick')?.includes('v-cars') ||
-                    el.getAttribute('onclick')?.includes('v-work') ||
-                    el.getAttribute('onclick')?.includes('v-objects') ||
-                    el.getAttribute('onclick')?.includes('v-res')) {
-                    el.style.display = 'none';
-                }
-            });
-
-            // Paslēpjam pogas sānjoslā
+            // Paslēpjam tikai darbību pogas — pievienot, dzēst, rediģēt, checkbox, sānjoslas pogas
             const settingsBtn = document.querySelector('.btn-settings');
             const deleteBtn = document.querySelector('.btn-all-delete');
             if (settingsBtn) settingsBtn.style.display = 'none';
             if (deleteBtn) deleteBtn.style.display = 'none';
 
-            // Paslēpjam IESTATĪJUMI virsrakstu
-            document.querySelectorAll('.nav-section-title').forEach(el => {
-                if (el.textContent.includes('IESTATĪJUMI')) el.style.display = 'none';
+            // Paslēpjam "Pievienot" pogas (btn-add klase un zaļais header)
+            document.querySelectorAll('.btn-add, .add-row').forEach(el => el.style.display = 'none');
+
+            // Paslēpjam dzēšanas un rediģēšanas pogas
+            document.querySelectorAll('.btn-del, .pencil, .x, .remove, .add').forEach(el => el.style.display = 'none');
+
+            // Paslēpjam checkboxes (mH atķeksēšana)
+            document.querySelectorAll('input[type="checkbox"]').forEach(el => {
+                el.disabled = true;
+                el.style.pointerEvents = 'none';
+                el.style.opacity = '0.5';
             });
 
-            // Paslēpjam dzēšanas pogas tabulās
-            document.querySelectorAll('.btn-del').forEach(el => el.style.display = 'none');
+            // Paslēpjam resursu pievienošanas/atņemšanas pogas un input
+            document.querySelectorAll('.resource-controls').forEach(el => el.style.display = 'none');
 
-            // Paslēpjam arī filtru "Visi auto" kas saistīts ar mašīnām
-            const companyName = document.getElementById('companyName');
-            if (companyName) companyName.style.pointerEvents = 'none';
-
-            // Automātiski atver pirmo atskaiti
-            const firstReport = [...document.querySelectorAll('.nav-item')]
-                .find(el => el.getAttribute('onclick')?.includes('v-report-work'));
-            if (firstReport) showView('v-report-work', firstReport);
+            // Paslēpjam darbinieku rediģēšanas formas
+            document.querySelectorAll('.edit-form, .worker-actions').forEach(el => el.style.display = 'none');
         }
 
         function renderTables() {
