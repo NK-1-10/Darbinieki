@@ -10,6 +10,31 @@
 <style>
     #tableContainer table th,
     #tableContainer table td { text-align: center; }
+
+    /* Pogu bāzes stāvokļi */
+    #AtWork, #LeaveWork {
+        background: var(--red, #c0392b) !important;
+        color: #fff !important;
+        border: none !important;
+    }
+    #startBtn, #stopBtn {
+        background: var(--green) !important;
+        color: #fff !important;
+        border: none !important;
+    }
+
+    /* Pelēkais / neaktīvais stāvoklis */
+    button.btn-inactive {
+        background: #b0b8b4 !important;
+        color: #fff !important;
+        border: none !important;
+        cursor: not-allowed !important;
+        opacity: 0.7 !important;
+    }
+</style>
+<style>
+    #tableContainer table th,
+    #tableContainer table td { text-align: center; }
 </style>
 <style>
     button {
@@ -38,20 +63,16 @@
         <div id="status">Statuss: Gaidīšana</div>
         <div id="workStartTimeDisplay" class="time-label work-time"></div>
 
-        <div>
-            <button id="AtWork">SĀKT DARBA DIENU</button>
-            <button id="LeaveWork" style="display:none;">BEIGT DARBA DIENU</button>
-        </div>
+        <button id="AtWork">SĀKT DIENU</button>
+        <button id="startBtn">SĀKT DARBU</button>
+        <button id="stopBtn">BEIGT TAGADĒJO DARBU</button>
+        <button id="LeaveWork">BEIGT DIENU</button>
 
         <div id="workControls">
             <select id="car"><option value="">-- Nav mašīnas --</option></select>
             <select id="object"><option value="">-- Nav objekta --</option></select>
             <select id="work" required><option value="">-- Izvēlies darba veidu --</option></select>
-            
-            <button id="startBtn" style="display:none;">Sākt darbu</button>
-            <button id="stopBtn" style="display:none;">Beigt darbu</button>
-
-            <button id="OpenResourceBtn" class="res-btn" style="display:none;">Reģistrēt Degvielu / Eļļu</button>
+            <button id="OpenResourceBtn" class="res-btn">🛢 Reģistrēt Degvielu / Eļļu</button>
         </div>
 
         <button id="logoutBtn">Izrakstīties</button>
@@ -141,39 +162,61 @@
                 shiftDisplay.textContent = "";
             }
 
-            // Aktīvā darba statusa un lauku bloķēšanas loģika
-            if (activeJob) {
-                document.getElementById("status").innerHTML = `Strādā: <b>${activeJob.objekts}</b>`;
-                document.getElementById("startBtn").style.display = "none";
-                document.getElementById("stopBtn").style.display = "block";
-                document.getElementById("LeaveWork").style.display = "none";
-                
-                workTimeDisplay.textContent = `Uzsāki šo darbu: ${activeJob.sākuma_laiks.substring(0, 5)}`;
-                
-                // Iestatām vērtības un NOBLOĶĒJAM laukus
-                carEl.value = activeJob.car;
-                objEl.value = activeJob.objekts;
-                wrkEl.value = activeJob.darbs;
-                
+            // Pogu stāvokļu loģika
+            function setBtn(id, active) {
+                const btn = document.getElementById(id);
+                if (active) {
+                    btn.classList.remove('btn-inactive');
+                    btn.disabled = false;
+                } else {
+                    btn.classList.add('btn-inactive');
+                    btn.disabled = true;
+                }
+            }
+
+            if (!isShiftStarted) {
+                // Sākuma stāvoklis — tikai Sākt dienu aktīva
+                setBtn('AtWork', true);
+                setBtn('startBtn', false);
+                setBtn('stopBtn', false);
+                setBtn('LeaveWork', false);
+                document.getElementById("status").textContent = "Statuss: Gaidīšana";
+                workTimeDisplay.textContent = "";
                 carEl.disabled = true;
                 objEl.disabled = true;
                 wrkEl.disabled = true;
+                document.getElementById("OpenResourceBtn").classList.add('btn-inactive');
+                document.getElementById("OpenResourceBtn").disabled = true;
+            } else if (activeJob) {
+                // Darbs aktīvs — tikai Beigt darbu zaļa, pārējās pelēkas
+                setBtn('AtWork', false);
+                setBtn('startBtn', false);
+                setBtn('stopBtn', true);
+                setBtn('LeaveWork', false);
+                document.getElementById("status").innerHTML = `Strādā: <b>${activeJob.objekts || 'Birojs'}</b>`;
+                workTimeDisplay.textContent = `Uzsāki šo darbu: ${activeJob.sākuma_laiks.substring(0, 5)}`;
+                carEl.value = activeJob.car || '';
+                objEl.value = activeJob.objekts || '';
+                wrkEl.value = activeJob.darbs || '';
+                carEl.disabled = true;
+                objEl.disabled = true;
+                wrkEl.disabled = true;
+                document.getElementById("OpenResourceBtn").classList.remove('btn-inactive');
+                document.getElementById("OpenResourceBtn").disabled = false;
             } else {
-                document.getElementById("status").textContent = isShiftStarted ? "Statuss: Maiņa sākta" : "Statuss: Gaidīšana";
-                document.getElementById("startBtn").style.display = isShiftStarted ? "block" : "none";
-                document.getElementById("stopBtn").style.display = "none";
-                document.getElementById("LeaveWork").style.display = isShiftStarted ? "block" : "none";
-                document.getElementById("LeaveWork").style.display = isShiftStarted ? "block" : "none";
+                // Diena sākta, nav aktīva darba — Sākt darbu zaļa, Beigt dienu sarkana
+                setBtn('AtWork', false);
+                setBtn('startBtn', true);
+                setBtn('stopBtn', false);
+                setBtn('LeaveWork', true);
+                document.getElementById("status").textContent = "Statuss: Maiņa sākta";
                 workTimeDisplay.textContent = "";
-                
-                // ATBLOĶĒJAM laukus (tikai tad, ja maiņa ir sākta)
-                carEl.disabled = !isShiftStarted;
-                objEl.disabled = !isShiftStarted;
-                wrkEl.disabled = !isShiftStarted;
+                carEl.disabled = false;
+                objEl.disabled = false;
+                wrkEl.disabled = false;
+                document.getElementById("OpenResourceBtn").classList.remove('btn-inactive');
+                document.getElementById("OpenResourceBtn").disabled = false;
             }
-
-            document.getElementById("AtWork").style.display = isShiftStarted ? "none" : "block";
-            document.getElementById("OpenResourceBtn").style.display = isShiftStarted ? "block" : "none";
 
             renderTable(allSchedule.filter(e => e.worker_name === user.name));
         } catch (err) { console.error("Kļūda:", err); }
@@ -255,7 +298,7 @@
     document.getElementById("LeaveWork").onclick = async () => {
         const stopBtn = document.getElementById("stopBtn");
 
-        if (stopBtn && stopBtn.style.display === "block") {
+        if (stopBtn && !stopBtn.disabled) {
             const statusEl = document.getElementById("status");
             statusEl.style.color = "red";
             alert("Tu nevari beigt darba dienu, kamēr neesi pabeidzis aktīvo darbu!");
