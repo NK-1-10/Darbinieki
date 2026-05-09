@@ -494,7 +494,6 @@ if(workerEl) {
             work: {}, fuel: {}, hours: {}
         };
         function wSec_set(val, sel, table) {
-            console.log('wSec_set:', table, sel, val);
             _filters[table][sel] = val;
             // Atjaunina arī slēpto select
             const sec = document.querySelector(_secMap[table]);
@@ -650,6 +649,7 @@ if(workerEl) {
                     (!monthVal || e.month === monthVal) &&
                     (!resVal || e.resource_name === resVal) &&
                     (!workerVal || e.worker_name === workerVal) &&
+                    (!carVal || e.car === carVal) &&
                     dateMatches(e.date || '', fuelDateVal)
                 );
 
