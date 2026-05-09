@@ -386,7 +386,16 @@
         modalCarSelect.innerHTML = mainCarSelect.innerHTML;
         modalCarSelect.value = mainCarSelect.value;
 
-        // Pārbauda vai ABI (mašīna UN resurss) ir track_mh
+        // Ielādē pēdējo mH izvēlētajai mašīnai
+        const selCar = mainCarSelect.value;
+        if (selCar) {
+            fetch(`/api/last-mh?car=${encodeURIComponent(selCar)}`).then(r => r.json()).then(data => {
+                window._lastMh = data.mh ? parseFloat(data.mh) : null;
+                const mhInput = document.getElementById("modalMhInput");
+                mhInput.placeholder = window._lastMh !== null ? `Iepriekšējais: ${window._lastMh} mH` : "Ievadi pašreizējo mH";
+                mhInput.min = window._lastMh !== null ? window._lastMh : 0;
+            });
+        }
         setTimeout(checkMhVisibility, 0);
 
         document.getElementById("resourceModal").style.display = "flex";
@@ -406,7 +415,20 @@
         if (!showMh) mhInput.value = "";
     }
 
-    document.getElementById("modalCarSelect").onchange = checkMhVisibility;
+    document.getElementById("modalCarSelect").onchange = async function() {
+        checkMhVisibility();
+        const carName = this.value;
+        if (carName) {
+            const r = await fetch(`/api/last-mh?car=${encodeURIComponent(carName)}`);
+            const data = await r.json();
+            window._lastMh = data.mh ? parseFloat(data.mh) : null;
+            const mhInput = document.getElementById("modalMhInput");
+            mhInput.placeholder = window._lastMh !== null ? `Iepriekšējais: ${window._lastMh} mH` : "Ievadi pašreizējo mH";
+            mhInput.min = window._lastMh !== null ? window._lastMh : 0;
+        } else {
+            window._lastMh = null;
+        }
+    };
     document.getElementById("modalResourceSelect").addEventListener('change', checkMhVisibility);
 
     document.getElementById("modalResourceSelect").onchange = function() {
@@ -446,6 +468,9 @@
         const mhRequired = carData2?.track_mh && resData2?.track_mh;
         if (mhRequired && (mhVal === null || isNaN(mhVal))) {
             return alert("Šai mašīnai un resursam obligāti jāievada motorstundas (mH)!");
+        }
+        if (mhRequired && mhVal !== null && window._lastMh !== null && mhVal < window._lastMh) {
+            return alert(`Kļūda! Ievadītais mH (${mhVal}) nevar būt mazāks par iepriekšējo (${window._lastMh})!`);
         }
 
         if (!resourceId || !auto || isNaN(litri) || litri <= 0) {

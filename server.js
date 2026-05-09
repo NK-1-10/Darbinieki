@@ -538,6 +538,18 @@ app.post('/api/update-resources', async (req, res) => {
     }
 });
 
+// Iegūt pēdējo mH konkrētai mašīnai
+app.get('/api/last-mh', async (req, res) => {
+    const { car } = req.query;
+    try {
+        const r = await pool.query(
+            'SELECT mh_current FROM schedule WHERE car = $1 AND mh_current IS NOT NULL ORDER BY id DESC LIMIT 1',
+            [car]
+        );
+        res.json({ mh: r.rows[0]?.mh_current || null });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 // --- DARBA DIENAS STATUSS ---
 app.get('/api/shift-status', async (req, res) => {
     const { worker_name } = req.query;
