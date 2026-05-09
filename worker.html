@@ -60,7 +60,7 @@
     <div class="card">
         <h2 id="welcome"></h2>
         <div id="shiftStartTimeDisplay" class="time-label shift-time"></div>
-        <div id="status">Statuss: Gaidīšana</div>
+        <div id="status">Darba diena nav sākta</div>
         <div id="workStartTimeDisplay" class="time-label work-time"></div>
 
         <button id="AtWork">SĀKT DIENU</button>
@@ -187,7 +187,7 @@
                 setBtn('startBtn', false);
                 setBtn('stopBtn', false);
                 setBtn('LeaveWork', false);
-                document.getElementById("status").textContent = "Statuss: Gaidīšana";
+                document.getElementById("status").textContent = "Darba diena nav sākta";
                 workTimeDisplay.textContent = "";
                 carEl.disabled = true;
                 objEl.disabled = true;
@@ -216,7 +216,7 @@
                 setBtn('startBtn', true);
                 setBtn('stopBtn', false);
                 setBtn('LeaveWork', true);
-                document.getElementById("status").textContent = "Statuss: Maiņa sākta";
+                document.getElementById("status").textContent = "Darba diena ir sākta";
                 workTimeDisplay.textContent = "";
                 carEl.disabled = false;
                 objEl.disabled = false;
