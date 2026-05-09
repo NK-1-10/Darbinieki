@@ -29,6 +29,8 @@
         .settings-section h4 { margin: 0 0 12px; font-size: 14px; color: #444; }
         .sidebar.collapsed .btn-settings span { display: none; }
         .sidebar.collapsed .btn-settings { padding: 0 !important; justify-content: center !important; }
+        body.viewer-mode .btn-all-delete,
+        body.viewer-mode .btn-settings { display: none !important; }
         .tooltip {
             position: absolute !important;
             top: calc(100% + 6px) !important;
@@ -429,11 +431,14 @@ if(workerEl) {
             const user = getAdminUser();
             if (!user || user.role !== 'viewer') return;
 
-            // Paslēpjam tikai darbību pogas — pievienot, dzēst, rediģēt, checkbox, sānjoslas pogas
+            // Paslēpjam sānjoslas admin pogas
             const settingsBtn = document.querySelector('.btn-settings');
             const deleteBtn = document.querySelector('.btn-all-delete');
             if (settingsBtn) settingsBtn.style.display = 'none';
             if (deleteBtn) deleteBtn.style.display = 'none';
+            // Pārliecinamies ka arī pēc renderēšanas tās ir paslēptas
+            document.querySelectorAll('.btn-all-delete, .btn-settings').forEach(el => el.style.display = 'none');
+            document.body.classList.add('viewer-mode');
 
             // Paslēpjam "Pievienot" pogas (btn-add klase un zaļais header)
             document.querySelectorAll('.btn-add, .add-row').forEach(el => el.style.display = 'none');
