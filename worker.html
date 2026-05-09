@@ -130,6 +130,7 @@
             const workTypes = await wRes.json();
             const allSchedule = await sRes.json();
             const resources = await rRes.json();
+            window._resourcesData = resources;
 
             // Atrodam aktīvo darbu
             const activeJob = allSchedule.find(e => 
@@ -385,37 +386,28 @@
         modalCarSelect.innerHTML = mainCarSelect.innerHTML;
         modalCarSelect.value = mainCarSelect.value;
 
-        // Pārbauda vai izvēlētajai mašīnai ir track_mh
-        const selectedCarName = mainCarSelect.value;
-        const carData = (window._carsData || []).find(c => c.name === selectedCarName);
-        const mhSection = document.getElementById("mhSection");
-        const mhInput = document.getElementById("modalMhInput");
-        if (carData && carData.track_mh) {
-            mhSection.style.display = "block";
-            mhInput.required = true;
-        } else {
-            mhSection.style.display = "none";
-            mhInput.required = false;
-            mhInput.value = "";
-        }
+        // Pārbauda vai ABI (mašīna UN resurss) ir track_mh
+        setTimeout(checkMhVisibility, 0);
 
         document.getElementById("resourceModal").style.display = "flex";
     };
 
-    document.getElementById("modalCarSelect").onchange = function() {
-        const selectedCarName = this.value;
-        const carData = (window._carsData || []).find(c => c.name === selectedCarName);
+    function checkMhVisibility() {
+        const carName = document.getElementById("modalCarSelect").value;
+        const resSelect = document.getElementById("modalResourceSelect");
+        const resName = resSelect.options[resSelect.selectedIndex]?.text?.split(' (')[0] || '';
+        const carData = (window._carsData || []).find(c => c.name === carName);
+        const resData = (window._resourcesData || []).find(r => r.name === resName);
         const mhSection = document.getElementById("mhSection");
         const mhInput = document.getElementById("modalMhInput");
-        if (carData && carData.track_mh) {
-            mhSection.style.display = "block";
-            mhInput.required = true;
-        } else {
-            mhSection.style.display = "none";
-            mhInput.required = false;
-            mhInput.value = "";
-        }
-    };
+        const showMh = carData?.track_mh && resData?.track_mh;
+        mhSection.style.display = showMh ? "block" : "none";
+        mhInput.required = showMh;
+        if (!showMh) mhInput.value = "";
+    }
+
+    document.getElementById("modalCarSelect").onchange = checkMhVisibility;
+    document.getElementById("modalResourceSelect").addEventListener('change', checkMhVisibility);
 
     document.getElementById("modalResourceSelect").onchange = function() {
         const selected = this.options[this.selectedIndex];
@@ -448,9 +440,12 @@
 
         const mhInput = document.getElementById("modalMhInput");
         const mhVal = mhInput.value !== "" ? parseFloat(mhInput.value) : null;
-        const carData = (window._carsData || []).find(c => c.name === auto);
-        if (carData && carData.track_mh && (mhVal === null || isNaN(mhVal))) {
-            return alert("Šai mašīnai obligāti jāievada motorstundas (mH)!");
+        const carData2 = (window._carsData || []).find(c => c.name === auto);
+        const resName2 = document.getElementById("modalResourceSelect").options[document.getElementById("modalResourceSelect").selectedIndex]?.text?.split(' (')[0] || '';
+        const resData2 = (window._resourcesData || []).find(r => r.name === resName2);
+        const mhRequired = carData2?.track_mh && resData2?.track_mh;
+        if (mhRequired && (mhVal === null || isNaN(mhVal))) {
+            return alert("Šai mašīnai un resursam obligāti jāievada motorstundas (mH)!");
         }
 
         if (!resourceId || !auto || isNaN(litri) || litri <= 0) {

@@ -387,6 +387,10 @@ if(workerEl) {
                             <input type="number" id="in-${r.id}" placeholder="Daudzums">
                             <button onclick="adjustRes(${r.id}, 'add')" class="add">+</button>
                             <button onclick="adjustRes(${r.id}, 'sub')" class="remove">-</button>
+                            <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:#666;cursor:pointer;margin-right:8px;">
+                                <input type="checkbox" ${r.track_mh ? 'checked' : ''} onchange="toggleResourceTrackMh('${r.name}', this.checked)" style="width:18px;height:18px;cursor:pointer;">
+                                mH
+                            </label>
                             <button class="pencil" onclick="editItem('/api/resource-types', '${r.name}')">✏️</button>
                             <button class="btn-del" onclick="deleteItem('/api/resource-types', '${r.name}')">✖</button>
                         </div>
@@ -646,6 +650,15 @@ async function saveWorkerEdit() {
 }
         
         async function addNewItem(url, msg, extra={}) { const n = prompt(msg); if(n) { await fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name:n, ...extra})}); loadData(); } }
+        async function toggleResourceTrackMh(resName, checked) {
+            await fetch(`/api/resource-types/${encodeURIComponent(resName)}`, {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ name: resName, track_mh: checked })
+            });
+            loadData();
+        }
+
         async function toggleTrackMh(carName, checked) {
             await fetch(`/api/cars/${encodeURIComponent(carName)}`, {
                 method: 'PUT',

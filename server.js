@@ -169,7 +169,7 @@ app.post('/api/change-password', async (req, res) => {
 // --- 2. RESURSU PĀRVALDĪBA ---
 app.get('/api/resource-types', async (req, res) => {
     try {
-        const r = await pool.query("SELECT id, name, quantity FROM resource_types ORDER BY name ASC");
+        const r = await pool.query("SELECT id, name, quantity, track_mh FROM resource_types ORDER BY name ASC");
         res.json(r.rows); 
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -419,7 +419,12 @@ app.put('/api/objects/:name', async (req, res) => {
 
 app.put('/api/resource-types/:name', async (req, res) => {
     try {
-        await pool.query('UPDATE resource_types SET name = $1 WHERE name = $2', [req.body.name, req.params.name]);
+        const { name, track_mh } = req.body;
+        if (track_mh !== undefined) {
+            await pool.query('UPDATE resource_types SET name = $1, track_mh = $2 WHERE name = $3', [name, track_mh, req.params.name]);
+        } else {
+            await pool.query('UPDATE resource_types SET name = $1 WHERE name = $2', [name, req.params.name]);
+        }
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
