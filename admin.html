@@ -43,6 +43,36 @@
         }
         /* Mazāka atstarpe tabulas rindās */
         .sticky-table th, .sticky-table td { padding: 4px 12px !important; font-size: 13px !important; }
+        /* Kolonnu filtri */
+        .col-filter-wrap { position: relative; display: inline-flex; align-items: center; gap: 5px; }
+        .col-filter-btn {
+            width: 18px; height: 18px; border-radius: 50%;
+            border: 1.5px solid rgba(255,255,255,0.5);
+            background: rgba(255,255,255,0.15);
+            color: #fff; font-size: 10px; line-height: 1;
+            cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+            padding: 0; flex-shrink: 0; transition: .15s;
+        }
+        .col-filter-btn.active { background: #d4b45d; border-color: #d4b45d; color: #173629; }
+        .col-filter-btn:hover { background: rgba(255,255,255,0.35); }
+        .col-filter-popup {
+            display: none; position: absolute; top: calc(100% + 6px); left: 50%;
+            transform: translateX(-50%); z-index: 200;
+            background: #fff; border: 1px solid #ddd; border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,.15); padding: 6px; min-width: 180px;
+        }
+        .col-filter-popup.open { display: block; }
+        .col-filter-popup select, .col-filter-popup input[type=date] {
+            width: 100%; padding: 7px 10px; border: 1px solid #ddd;
+            border-radius: 7px; font-size: 13px; color: #333;
+            background: #fafafa; box-sizing: border-box;
+        }
+        .col-filter-clear {
+            margin-top: 5px; width: 100%; padding: 5px;
+            background: none; border: none; color: #888;
+            font-size: 12px; cursor: pointer; text-align: center;
+        }
+        .col-filter-clear:hover { color: #c0392b; }
     </style>
     
 </head>
@@ -122,14 +152,16 @@
 
             <section id="v-report-work" class="view-section">
                 <div class="card">
-                    <div class="table-controls">
+                    <div style="display:none;">
                         <select class="year-sel header-filter" onchange="renderTables()"></select>
                         <select class="month-sel header-filter" onchange="renderTables()"></select>
                         <select class="worker-sel header-filter" onchange="renderTables()"></select>
                         <select class="car-sel header-filter" onchange="renderTables()"></select>
                         <select class="object-sel header-filter" onchange="renderTables()"></select>
                         <select class="work-sel header-filter" onchange="renderTables()"></select>
-                        <input type="date" class="date-sel header-filter" onchange="renderTables()" style="min-height:38px;border:1px solid #d9dedb;border-radius:8px;padding:8px 10px;background:#fff;">
+                        <input type="date" class="date-sel header-filter" onchange="renderTables()">
+                    </div>
+                    <div style="display:flex; align-items:center; justify-content:flex-end; margin-bottom:8px;">
                         <div class="summary-badge">Kopā stundas: <span id="totalHoursValue">0</span></div>
                     </div>
                     <div id="tableContainer" class="table-wrapper"></div>
@@ -138,13 +170,15 @@
 
             <section id="v-report-fuel" class="view-section">
                 <div class="card">
-                    <div class="table-controls">
+                    <div style="display:none;">
                         <select class="year-sel header-filter" onchange="renderTables()"></select>
-            <select class="month-sel header-filter" onchange="renderTables()"></select>
-            <select class="worker-sel header-filter" onchange="renderTables()"></select>
-            <select class="car-sel header-filter" onchange="renderTables()"></select>
-            <select class="res-sel header-filter" onchange="renderTables()"></select>
-                        <input type="date" class="date-sel header-filter" onchange="renderTables()" style="min-height:38px;border:1px solid #d9dedb;border-radius:8px;padding:8px 10px;background:#fff;">
+                        <select class="month-sel header-filter" onchange="renderTables()"></select>
+                        <select class="worker-sel header-filter" onchange="renderTables()"></select>
+                        <select class="car-sel header-filter" onchange="renderTables()"></select>
+                        <select class="res-sel header-filter" onchange="renderTables()"></select>
+                        <input type="date" class="date-sel header-filter" onchange="renderTables()">
+                    </div>
+                    <div style="display:flex; align-items:center; justify-content:flex-end; margin-bottom:8px;">
                         <div class="summary-badge">Kopā: <span id="totalFuelValue">0</span></div>
                     </div>
                     <div id="fuelTableContainer" class="table-wrapper"></div>
@@ -153,11 +187,13 @@
 
             <section id="v-report-hours" class="view-section">
                 <div class="card">
-                    <div class="table-controls">
+                    <div style="display:none;">
                         <select class="year-sel header-filter" onchange="renderTables()"></select>
                         <select class="month-sel header-filter" onchange="renderTables()"></select>
                         <select class="worker-sel header-filter" onchange="renderTables()"></select>
-                        <input type="date" class="date-sel header-filter" onchange="renderTables()" style="min-height:38px;border:1px solid #d9dedb;border-radius:8px;padding:8px 10px;background:#fff;">
+                        <input type="date" class="date-sel header-filter" onchange="renderTables()">
+                    </div>
+                    <div style="display:flex; align-items:center; justify-content:flex-end; margin-bottom:8px;">
                         <div class="summary-badge">Kopā: <span id="totalDayHoursValue">0</span></div>
                     </div>
                     <div id="daySummaryContainer" class="table-wrapper"></div>
@@ -387,6 +423,80 @@ if(workerEl) {
             }
         }
 
+        // Kolonnas galvene ar filtru pogu
+        function colTh(label, filterEl, style='') {
+            const hasVal = filterEl ? (filterEl.value && filterEl.value !== '') : false;
+            return `<th style="${style}">
+                <div class="col-filter-wrap">
+                    ${label}
+                    ${filterEl ? `<button class="col-filter-btn ${hasVal ? 'active' : ''}"
+                        onclick="toggleColFilter(this)" title="Filtrēt">▾</button>
+                        <div class="col-filter-popup">${filterEl.outerHTML.replace('<select ', '<select style=&quot;width:100%&quot; ').replace('style="display:none"','')}</div>` : ''}
+                </div>
+            </th>`;
+        }
+
+        function toggleColFilter(btn) {
+            const popup = btn.nextElementSibling;
+            const isOpen = popup.classList.contains('open');
+            // Aizver visus citus
+            document.querySelectorAll('.col-filter-popup.open').forEach(p => p.classList.remove('open'));
+            if (!isOpen) popup.classList.add('open');
+        }
+
+        // Aizver popupus klikšķinot ārpus
+        document.addEventListener('click', e => {
+            if (!e.target.closest('.col-filter-wrap')) {
+                document.querySelectorAll('.col-filter-popup.open').forEach(p => p.classList.remove('open'));
+            }
+        });
+
+        function makeColFilter(selectEl, label) {
+            if (!selectEl) return `<th>${label}</th>`;
+            const hasVal = selectEl.value && selectEl.value !== '';
+            const id = 'cf_' + Math.random().toString(36).slice(2);
+            selectEl.id = id;
+            selectEl.style = '';
+            selectEl.className = selectEl.className + ' cf-inner';
+            return `<th>
+                <div class="col-filter-wrap">
+                    <span>${label}</span>
+                    <button class="col-filter-btn ${hasVal ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
+                    <div class="col-filter-popup">
+                        ${selectEl.outerHTML}
+                        <button class="col-filter-clear" onclick="clearColFilter('${id}')">✕ Notīrīt</button>
+                    </div>
+                </div>
+            </th>`;
+        }
+
+        function clearColFilter(id) {
+            const sec = document.querySelector(`#${id}`)?.closest('section') ||
+                        document.querySelector(`[id="${id}"]`)?.closest('section');
+            // Atrodam slēpto select pēc klases
+            const hidden = document.querySelectorAll('[style*="display:none"] select, [style*="display: none"] select');
+            hidden.forEach(s => { if(s.id === id || s.className.includes(id)) s.value = ''; });
+            renderTables();
+            document.querySelectorAll('.col-filter-popup.open').forEach(p => p.classList.remove('open'));
+        }
+
+        // Helpers kolonnu filtru setošanai
+        const _secMap = {
+            work: '#v-report-work',
+            fuel: '#v-report-fuel',
+            hours: '#v-report-hours'
+        };
+        function wSec_set(val, sel, table) {
+            const el = document.querySelector(`${_secMap[table]} ${sel}`);
+            if (el) { el.value = val; renderTables(); }
+            document.querySelectorAll('.col-filter-popup.open').forEach(p => p.classList.remove('open'));
+        }
+        function wSec_setDate(val, table) {
+            const el = document.querySelector(`${_secMap[table]} .date-sel`);
+            if (el) { el.value = val; renderTables(); }
+            document.querySelectorAll('.col-filter-popup.open').forEach(p => p.classList.remove('open'));
+        }
+
         function dateMatches(dbDate, inputVal) {
             if (!inputVal) return true;
             // DB formāts: "4.05.2026." -> pārveidojam uz "2026-05-04"
@@ -454,17 +564,38 @@ if(workerEl) {
                 );
                 
                 document.getElementById('totalHoursValue').innerText = fWork.reduce((s,i) => s + parseFloat(i.hours || 0), 0).toFixed(2) + " h";
+                const wSel = s => workSec.querySelector(s);
                 document.getElementById('tableContainer').innerHTML = `
                     <table class="sticky-table">
                         <thead>
                             <tr>
-                                <th>Datums</th>
-                                <th>Darbinieks</th>
-                                <th>Darba veids</th>
-                                <th>Objekts</th>
-                                <th>Auto</th>
-                                <th style="text-align: center;">Stundas</th>
-                                <th style="width: 50px;"></th>
+                                <th><div class="col-filter-wrap"><span>Datums</span>
+                                    <button class="col-filter-btn ${wSel('.date-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
+                                    <div class="col-filter-popup"><input type="date" value="${wSel('.date-sel').value}" onchange="wSec_setDate(this.value,'work')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">
+                                    <button class="col-filter-clear" onclick="wSec_setDate('','work')">✕ Notīrīt</button></div>
+                                </div></th>
+                                <th><div class="col-filter-wrap"><span>Darbinieks</span>
+                                    <button class="col-filter-btn ${wSel('.worker-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
+                                    <div class="col-filter-popup"><select onchange="wSec_set(this.value,'.worker-sel','work')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">${Array.from(wSel('.worker-sel').options).map(o=>`<option value="${o.value}" ${o.value===wSel('.worker-sel').value?'selected':''}>${o.text}</option>`).join('')}</select>
+                                    <button class="col-filter-clear" onclick="wSec_set('','.worker-sel','work')">✕ Notīrīt</button></div>
+                                </div></th>
+                                <th><div class="col-filter-wrap"><span>Darba veids</span>
+                                    <button class="col-filter-btn ${wSel('.work-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
+                                    <div class="col-filter-popup"><select onchange="wSec_set(this.value,'.work-sel','work')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">${Array.from(wSel('.work-sel').options).map(o=>`<option value="${o.value}" ${o.value===wSel('.work-sel').value?'selected':''}>${o.text}</option>`).join('')}</select>
+                                    <button class="col-filter-clear" onclick="wSec_set('','.work-sel','work')">✕ Notīrīt</button></div>
+                                </div></th>
+                                <th><div class="col-filter-wrap"><span>Objekts</span>
+                                    <button class="col-filter-btn ${wSel('.object-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
+                                    <div class="col-filter-popup"><select onchange="wSec_set(this.value,'.object-sel','work')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">${Array.from(wSel('.object-sel').options).map(o=>`<option value="${o.value}" ${o.value===wSel('.object-sel').value?'selected':''}>${o.text}</option>`).join('')}</select>
+                                    <button class="col-filter-clear" onclick="wSec_set('','.object-sel','work')">✕ Notīrīt</button></div>
+                                </div></th>
+                                <th><div class="col-filter-wrap"><span>Auto</span>
+                                    <button class="col-filter-btn ${wSel('.car-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
+                                    <div class="col-filter-popup"><select onchange="wSec_set(this.value,'.car-sel','work')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">${Array.from(wSel('.car-sel').options).map(o=>`<option value="${o.value}" ${o.value===wSel('.car-sel').value?'selected':''}>${o.text}</option>`).join('')}</select>
+                                    <button class="col-filter-clear" onclick="wSec_set('','.car-sel','work')">✕ Notīrīt</button></div>
+                                </div></th>
+                                <th style="text-align:center;">Stundas</th>
+                                <th style="width:50px;"></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -512,17 +643,34 @@ if(workerEl) {
                 const totalSign = totalNet >= 0 ? '+' : '';
                 document.getElementById('totalFuelValue').innerText = totalSign + totalNet.toFixed(2) + " L";
 
+                const fSel = s => fuelSec.querySelector(s);
                 document.getElementById('fuelTableContainer').innerHTML = `
                     <table class="sticky-table">
                         <thead>
                             <tr>
-                                <th>Datums</th>
-                                <th>Darbinieks</th>
-                                <th>Auto</th>
-                                <th>Resurss</th>
-                                <th style="text-align: center;">Litri</th>
-                                <th style="text-align: center;">mH</th>
-                                <th style="text-align: center;">L/mH</th>
+                                <th><div class="col-filter-wrap"><span>Datums</span>
+                                    <button class="col-filter-btn ${fSel('.date-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
+                                    <div class="col-filter-popup"><input type="date" value="${fSel('.date-sel').value}" onchange="wSec_setDate(this.value,'fuel')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">
+                                    <button class="col-filter-clear" onclick="wSec_setDate('','fuel')">✕ Notīrīt</button></div>
+                                </div></th>
+                                <th><div class="col-filter-wrap"><span>Darbinieks</span>
+                                    <button class="col-filter-btn ${fSel('.worker-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
+                                    <div class="col-filter-popup"><select onchange="wSec_set(this.value,'.worker-sel','fuel')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">${Array.from(fSel('.worker-sel').options).map(o=>`<option value="${o.value}" ${o.value===fSel('.worker-sel').value?'selected':''}>${o.text}</option>`).join('')}</select>
+                                    <button class="col-filter-clear" onclick="wSec_set('','.worker-sel','fuel')">✕ Notīrīt</button></div>
+                                </div></th>
+                                <th><div class="col-filter-wrap"><span>Auto</span>
+                                    <button class="col-filter-btn ${fSel('.car-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
+                                    <div class="col-filter-popup"><select onchange="wSec_set(this.value,'.car-sel','fuel')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">${Array.from(fSel('.car-sel').options).map(o=>`<option value="${o.value}" ${o.value===fSel('.car-sel').value?'selected':''}>${o.text}</option>`).join('')}</select>
+                                    <button class="col-filter-clear" onclick="wSec_set('','.car-sel','fuel')">✕ Notīrīt</button></div>
+                                </div></th>
+                                <th><div class="col-filter-wrap"><span>Resurss</span>
+                                    <button class="col-filter-btn ${fSel('.res-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
+                                    <div class="col-filter-popup"><select onchange="wSec_set(this.value,'.res-sel','fuel')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">${Array.from(fSel('.res-sel').options).map(o=>`<option value="${o.value}" ${o.value===fSel('.res-sel').value?'selected':''}>${o.text}</option>`).join('')}</select>
+                                    <button class="col-filter-clear" onclick="wSec_set('','.res-sel','fuel')">✕ Notīrīt</button></div>
+                                </div></th>
+                                <th style="text-align:center;">Litri</th>
+                                <th style="text-align:center;">mH</th>
+                                <th style="text-align:center;">L/mH</th>
                                 <th></th>
                             </tr>
                         </thead>
@@ -567,18 +715,27 @@ if(workerEl) {
                 }
 
                 document.getElementById('totalDayHoursValue').innerText = fSum.reduce((s,i) => s + parseFloat(i.stundas || 0), 0).toFixed(2) + " h";
+                const hSel = s => hoursSec.querySelector(s);
                 document.getElementById('daySummaryContainer').innerHTML = `
                     <table class="sticky-table">
                         <thead>
                             <tr>
-                                <th>Datums</th>
-                                <th>Darbinieks</th>
+                                <th><div class="col-filter-wrap"><span>Datums</span>
+                                    <button class="col-filter-btn ${hSel('.date-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
+                                    <div class="col-filter-popup"><input type="date" value="${hSel('.date-sel').value}" onchange="wSec_setDate(this.value,'hours')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">
+                                    <button class="col-filter-clear" onclick="wSec_setDate('','hours')">✕ Notīrīt</button></div>
+                                </div></th>
+                                <th><div class="col-filter-wrap"><span>Darbinieks</span>
+                                    <button class="col-filter-btn ${hSel('.worker-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
+                                    <div class="col-filter-popup"><select onchange="wSec_set(this.value,'.worker-sel','hours')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">${Array.from(hSel('.worker-sel').options).map(o=>`<option value="${o.value}" ${o.value===hSel('.worker-sel').value?'selected':''}>${o.text}</option>`).join('')}</select>
+                                    <button class="col-filter-clear" onclick="wSec_set('','.worker-sel','hours')">✕ Notīrīt</button></div>
+                                </div></th>
                                 <th>Sākums</th>
                                 <th>Beigas</th>
-                                <th style="text-align: center;">Pusdienas</th>
-                                <th style="text-align: center;">Kopā h</th>
-                                <th style="text-align: center;">Darbā h</th>
-                                <th style="width: 50px;"></th>
+                                <th style="text-align:center;">Pusdienas</th>
+                                <th style="text-align:center;">Kopā h</th>
+                                <th style="text-align:center;">Darbā h</th>
+                                <th style="width:50px;"></th>
                             </tr>
                         </thead>
                         <tbody>
