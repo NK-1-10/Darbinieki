@@ -193,74 +193,43 @@
 
     <!-- ADMIN IESTATĪJUMU MODĀLS -->
     <div id="adminSettingsModal" class="modal">
-        <div class="modal-content" style="width:min(92vw,500px);">
-            <h3 style="margin:0 0 20px;">⚙️ Admin iestatījumi</h3>
+        <div class="modal-content" style="width:min(92vw,460px); padding:18px;">
+            <h3 style="margin:0 0 14px; font-size:15px;">⚙️ Admin iestatījumi</h3>
 
-            <div class="settings-section">
-                <h4>Nomainīt vārdu</h4>
-                <div class="input-group">
-                    <label>Jaunais vārds:</label>
-                    <input type="text" id="adminNewName" placeholder="Ievadi jauno vārdu">
-                </div>
-                <button class="btn-save" onclick="saveAdminName()" style="width:100%">Saglabāt vārdu</button>
+            <div style="display:grid; gap:8px; margin-bottom:10px;">
+                <input type="text" id="adminNewName" placeholder="Jaunais vārds">
+                <button class="btn-save" onclick="saveAdminName()">Saglabāt vārdu</button>
             </div>
 
-            <hr style="margin:20px 0; border-color:#e0e0e0;">
+            <hr style="margin:10px 0; border-color:#e0e0e0;">
 
-            <div class="settings-section">
-                <h4>Nomainīt paroli</h4>
-                <div class="input-group">
-                    <label>Jaunā parole:</label>
-                    <input type="password" id="adminNewPass" placeholder="Ievadi jauno paroli">
-                </div>
-                <div class="input-group">
-                    <label>Apstiprini paroli:</label>
-                    <input type="password" id="adminNewPassConfirm" placeholder="Atkārtoti ievadi paroli">
-                </div>
-                <button class="btn-save" onclick="saveAdminPassword()" style="width:100%">Saglabāt paroli</button>
+            <div style="display:grid; gap:8px; margin-bottom:10px;">
+                <input type="password" id="adminNewPass" placeholder="Jaunā parole">
+                <input type="password" id="adminNewPassConfirm" placeholder="Apstiprini paroli">
+                <button class="btn-save" onclick="saveAdminPassword()">Saglabāt paroli</button>
             </div>
 
-            <hr style="margin:20px 0; border-color:#e0e0e0;">
+            <hr style="margin:10px 0; border-color:#e0e0e0;">
 
-            <div class="settings-section">
-                <h4>Pievienot jaunu admin</h4>
-                <div class="input-group">
-                    <label>Vārds Uzvārds:</label>
-                    <input type="text" id="newAdminName" placeholder="Jaunā admina vārds">
-                </div>
-                <div class="input-group">
-                    <label>Pagaidu parole:</label>
-                    <input type="text" id="newAdminTempPass" placeholder="Pagaidu parole">
-                </div>
-                <button class="btn-save" onclick="addNewAdmin()" style="width:100%">Pievienot admin</button>
+            <p style="font-size:12px; color:#666; margin:0 0 6px;">Jauns admin (pagaidu parole):</p>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px;">
+                <input type="text" id="newAdminName" placeholder="Vārds">
+                <input type="text" id="newAdminTempPass" placeholder="Pagaidu parole">
             </div>
+            <button class="btn-save" onclick="addNewAdmin()" style="width:100%; margin-bottom:10px;">Pievienot admin</button>
 
-            <hr style="margin:20px 0; border-color:#e0e0e0;">
-
-            <div class="settings-section">
-                <h4>Pievienot skatītāju</h4>
-                <p style="font-size:13px;color:#666;margin:0 0 10px;">Skatītājs var tikai apskatīt atskaites — nevar neko mainīt.</p>
-                <div class="input-group">
-                    <label>Vārds:</label>
-                    <input type="text" id="newViewerName" placeholder="Skatītāja vārds">
-                </div>
-                <div class="input-group">
-                    <label>Parole:</label>
-                    <input type="text" id="newViewerPass" placeholder="Parole">
-                </div>
-                <button class="btn-save" onclick="addNewViewer()" style="width:100%">Pievienot skatītāju</button>
+            <p style="font-size:12px; color:#666; margin:0 0 6px;">Jauns skatītājs:</p>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px;">
+                <input type="text" id="newViewerName" placeholder="Vārds">
+                <input type="text" id="newViewerPass" placeholder="Parole">
             </div>
+            <button class="btn-save" onclick="addNewViewer()" style="width:100%; margin-bottom:10px;">Pievienot skatītāju</button>
 
-            <hr style="margin:20px 0; border-color:#e0e0e0;">
+            <hr style="margin:10px 0; border-color:#e0e0e0;">
 
-            <div class="settings-section">
-                <h4 style="color:#b00020;">Dzēst savu kontu</h4>
-                <p style="font-size:13px;color:#666;margin:0 0 10px;">Šī darbība ir neatgriezeniska. Tu vairs nevarēsi ielogoties ar šiem datiem.</p>
-                <button class="remove" onclick="deleteOwnAccount()" style="width:100%">🗑️ Izdzēst manu kontu</button>
-            </div>
-
-            <div style="margin-top:20px;">
-                <button class="btn-cancel" onclick="closeAdminSettings()" style="width:100%">Aizvērt</button>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                <button class="remove" onclick="deleteOwnAccount()">Dzēst kontu</button>
+                <button class="btn-cancel" onclick="closeAdminSettings()">Aizvērt</button>
             </div>
         </div>
     </div>
