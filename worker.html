@@ -90,6 +90,11 @@
             <label id="availableLabel" style="font-size: 0.85rem; color: var(--saulstari-gray);"></label>
             <label>Daudzums (L):</label>
             <input type="number" id="modalAmountInput" step="0.1" min="0.1" placeholder="Ievadi litrus">
+
+            <div id="mhSection" style="display:none;">
+                <label>Motorstundas (mH):</label>
+                <input type="number" id="modalMhInput" step="0.1" min="0" placeholder="Ievadi pašreizējo mH">
+            </div>
             
             <div class="modal-actions">
                 <button id="modalCancel">Atcelt</button>
@@ -119,7 +124,8 @@
                 fetch('/api/schedule'), fetch('/api/resource-types')
             ]);
             
-            const cars = await cRes.json();
+            const cars = await cRes.json(); // [{id, name, track_mh}]
+            window._carsData = cars;
             const objects = await oRes.json();
             const workTypes = await wRes.json();
             const allSchedule = await sRes.json();
@@ -134,7 +140,7 @@
             );
 
             // Aizpildām selectus
-            fillSelect(document.getElementById("car"), cars, "-- Izvēlies mašīnu --");
+            fillSelect(document.getElementById("car"), cars.map(c => c.name), "-- Nav mašīnas --");
             fillSelect(document.getElementById("object"), objects, "-- Izvēlies objektu --");
             fillSelect(document.getElementById("work"), workTypes, "-- Izvēlies darba veidu --");
 
@@ -374,13 +380,41 @@
     // --- RESURSU LOĢIKA ---
 
     document.getElementById("OpenResourceBtn").onclick = () => {
-        // Aizpildām mašīnu sarakstu modālajā logā no galvenā (pat ja tas ir disabled)
         const mainCarSelect = document.getElementById("car");
         const modalCarSelect = document.getElementById("modalCarSelect");
         modalCarSelect.innerHTML = mainCarSelect.innerHTML;
-        modalCarSelect.value = mainCarSelect.value; // Automātiski iestata pašreizējo mašīnu
-        
+        modalCarSelect.value = mainCarSelect.value;
+
+        // Pārbauda vai izvēlētajai mašīnai ir track_mh
+        const selectedCarName = mainCarSelect.value;
+        const carData = (window._carsData || []).find(c => c.name === selectedCarName);
+        const mhSection = document.getElementById("mhSection");
+        const mhInput = document.getElementById("modalMhInput");
+        if (carData && carData.track_mh) {
+            mhSection.style.display = "block";
+            mhInput.required = true;
+        } else {
+            mhSection.style.display = "none";
+            mhInput.required = false;
+            mhInput.value = "";
+        }
+
         document.getElementById("resourceModal").style.display = "flex";
+    };
+
+    document.getElementById("modalCarSelect").onchange = function() {
+        const selectedCarName = this.value;
+        const carData = (window._carsData || []).find(c => c.name === selectedCarName);
+        const mhSection = document.getElementById("mhSection");
+        const mhInput = document.getElementById("modalMhInput");
+        if (carData && carData.track_mh) {
+            mhSection.style.display = "block";
+            mhInput.required = true;
+        } else {
+            mhSection.style.display = "none";
+            mhInput.required = false;
+            mhInput.value = "";
+        }
     };
 
     document.getElementById("modalResourceSelect").onchange = function() {
@@ -412,6 +446,13 @@
         const auto = document.getElementById("modalCarSelect").value;
         const litri = parseFloat(document.getElementById("modalAmountInput").value);
 
+        const mhInput = document.getElementById("modalMhInput");
+        const mhVal = mhInput.value !== "" ? parseFloat(mhInput.value) : null;
+        const carData = (window._carsData || []).find(c => c.name === auto);
+        if (carData && carData.track_mh && (mhVal === null || isNaN(mhVal))) {
+            return alert("Šai mašīnai obligāti jāievada motorstundas (mH)!");
+        }
+
         if (!resourceId || !auto || isNaN(litri) || litri <= 0) {
             return alert("Lūdzu, aizpildi visus laukus!");
         }
@@ -429,7 +470,8 @@
                     car: auto, 
                     resource_name: resourceName, 
                     resource_amount: litri,
-                    type: resourceName.includes("Degviela") ? "Degviela" : "Ella"
+                    type: resourceName.includes("Degviela") ? "Degviela" : "Ella",
+                    mh_current: mhVal
                 })
             });
 
@@ -439,6 +481,7 @@
 
             document.getElementById("resourceModal").style.display = "none";
             document.getElementById("modalAmountInput").value = "";
+            document.getElementById("modalMhInput").value = "";
             alert(`Veiksmīgi reģistrēts: ${resourceName} (${litri} L)`);
             loadWorkerData();
         } catch (err) { 

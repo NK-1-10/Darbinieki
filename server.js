@@ -234,8 +234,8 @@ app.get('/api/workers', async (req, res) => {
 
 app.get('/api/cars', async (req, res) => {
     try {
-        const r = await pool.query("SELECT name FROM cars ORDER BY name ASC");
-        res.json(r.rows.map(row => row.name));
+        const r = await pool.query("SELECT id, name, track_mh FROM cars ORDER BY name ASC");
+        res.json(r.rows);
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -393,7 +393,12 @@ app.delete('/api/workers/:name', async (req, res) => {
 // --- PUT (REDIĢĒT) MARŠRUTI ---
 app.put('/api/cars/:name', async (req, res) => {
     try {
-        await pool.query('UPDATE cars SET name = $1 WHERE name = $2', [req.body.name, req.params.name]);
+        const { name, track_mh } = req.body;
+        if (track_mh !== undefined) {
+            await pool.query('UPDATE cars SET name = $1, track_mh = $2 WHERE name = $3', [name, track_mh, req.params.name]);
+        } else {
+            await pool.query('UPDATE cars SET name = $1 WHERE name = $2', [name, req.params.name]);
+        }
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -480,12 +485,24 @@ app.post('/api/update-resources', async (req, res) => {
 
     try {
         // 1. IERAKSTĀM VĒSTURĒ (Schedule tabulā)
+        // Iegūstam iepriekšējo mH šai mašīnai
+        let mh_previous = null;
+        if (req.body.mh_current != null && car) {
+            const prevRow = await pool.query(
+                `SELECT mh_current FROM schedule WHERE car = $1 AND mh_current IS NOT NULL ORDER BY id DESC LIMIT 1`,
+                [car]
+            );
+            mh_previous = prevRow.rows[0]?.mh_current || null;
+        }
+        const mh_current = req.body.mh_current || null;
+
         await pool.query(`
             INSERT INTO schedule (
                 worker_name, car, date, sākuma_laiks, beigu_laiks, 
                 month, resource_name, resource_amount, 
-                pielietā_eļļa, pielietā_degviela, darbs, hours
-            ) VALUES ($1, $2, $3, $4, $4, $5, $6, $7, $8, $9, $10, 0)`,
+                pielietā_eļļa, pielietā_degviela, darbs, hours,
+                mh_current, mh_previous
+            ) VALUES ($1, $2, $3, $4, $4, $5, $6, $7, $8, $9, $10, 0, $11, $12)`,
         [
             worker_name, 
             car, 
@@ -496,7 +513,9 @@ app.post('/api/update-resources', async (req, res) => {
             resource_amount, 
             (type === 'Ella' ? resource_amount : null), 
             (type === 'Degviela' ? resource_amount : null), 
-            (type === 'Ella' ? 'Eļļas papildināšana' : 'Degvielas uzpilde')
+            (type === 'Ella' ? 'Eļļas papildināšana' : 'Degvielas uzpilde'),
+            mh_current,
+            mh_previous
         ]);
 
         // 2. ATŅEMAM NO NOLIKTAVAS (resource_types tabulā)
