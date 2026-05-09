@@ -56,8 +56,7 @@
         .col-filter-btn.active { background: #d4b45d; border-color: #d4b45d; color: #173629; }
         .col-filter-btn:hover { background: #ddd; }
         .col-filter-popup {
-            display: none; position: absolute; top: calc(100% + 6px); left: 50%;
-            transform: translateX(-50%); z-index: 200;
+            display: none; position: fixed; z-index: 9999;
             background: #fff; border: 1px solid #ddd; border-radius: 10px;
             box-shadow: 0 4px 20px rgba(0,0,0,.15); padding: 6px; min-width: 180px;
         }
@@ -439,9 +438,13 @@ if(workerEl) {
         function toggleColFilter(btn) {
             const popup = btn.nextElementSibling;
             const isOpen = popup.classList.contains('open');
-            // Aizver visus citus
             document.querySelectorAll('.col-filter-popup.open').forEach(p => p.classList.remove('open'));
-            if (!isOpen) popup.classList.add('open');
+            if (!isOpen) {
+                const rect = btn.getBoundingClientRect();
+                popup.style.top = (rect.bottom + 6) + 'px';
+                popup.style.left = Math.max(4, rect.left - 80) + 'px';
+                popup.classList.add('open');
+            }
         }
 
         // Aizver popupus klikšķinot ārpus
