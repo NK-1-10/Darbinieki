@@ -443,6 +443,7 @@ if(workerEl) {
             if (workSec) {
                 let fWork = schedule.filter(e => 
                     e.darbs !== 'Resursu papildinājums' && e.darbs !== 'Resursu atņemšana' &&
+                    e.darbs !== 'Degvielas uzpilde' && e.darbs !== 'Eļļas papildināšana' &&
                     (!workSec.querySelector('.year-sel').value || (e.date && e.date.includes(workSec.querySelector('.year-sel').value))) &&
                     (!workSec.querySelector('.month-sel').value || e.month === workSec.querySelector('.month-sel').value) &&
                     (!workSec.querySelector('.worker-sel').value || e.worker_name === workSec.querySelector('.worker-sel').value) &&
