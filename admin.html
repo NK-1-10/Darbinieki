@@ -489,18 +489,32 @@ if(workerEl) {
             fuel: '#v-report-fuel',
             hours: '#v-report-hours'
         };
+        // Filtru stāvoklis glabājas šeit, nevis DOM
+        const _filters = {
+            work: {}, fuel: {}, hours: {}
+        };
         function wSec_set(val, sel, table) {
-            // Meklē slēptajā div iekšienē konkrētajā sekcijā
+            _filters[table][sel] = val;
+            // Atjaunina arī slēpto select
             const sec = document.querySelector(_secMap[table]);
-            const el = sec?.querySelector(`[style*="display:none"] ${sel}`) || sec?.querySelector(sel);
-            if (el) { el.value = val; renderTables(); }
+            const els = sec?.querySelectorAll(sel);
+            els?.forEach(el => el.value = val);
+            renderTables();
             document.querySelectorAll('.col-filter-popup.open').forEach(p => p.classList.remove('open'));
         }
         function wSec_setDate(val, table) {
+            _filters[table]['.date-sel'] = val;
             const sec = document.querySelector(_secMap[table]);
-            const el = sec?.querySelector('[style*="display:none"] .date-sel') || sec?.querySelector('.date-sel');
-            if (el) { el.value = val; renderTables(); }
+            const els = sec?.querySelectorAll('.date-sel');
+            els?.forEach(el => el.value = val);
+            renderTables();
             document.querySelectorAll('.col-filter-popup.open').forEach(p => p.classList.remove('open'));
+        }
+        function _fval(table, sel) {
+            // Lasa no _filters objekta, fallback uz DOM
+            if (_filters[table][sel] !== undefined) return _filters[table][sel];
+            const sec = document.querySelector(_secMap[table]);
+            return sec?.querySelector(sel)?.value || '';
         }
 
         function dateMatches(dbDate, inputVal) {
@@ -560,13 +574,13 @@ if(workerEl) {
                 let fWork = schedule.filter(e => 
                     e.darbs !== 'Resursu papildinājums' && e.darbs !== 'Resursu atņemšana' &&
                     e.darbs !== 'Degvielas uzpilde' && e.darbs !== 'Eļļas papildināšana' &&
-                    (!workSec.querySelector('.year-sel').value || (e.date && e.date.includes(workSec.querySelector('.year-sel').value))) &&
-                    (!workSec.querySelector('.month-sel').value || e.month === workSec.querySelector('.month-sel').value) &&
-                    (!workSec.querySelector('.worker-sel').value || e.worker_name === workSec.querySelector('.worker-sel').value) &&
-                    (!workSec.querySelector('.car-sel').value || e.car === workSec.querySelector('.car-sel').value) &&
-                    (!workSec.querySelector('.object-sel').value || e.objekts === workSec.querySelector('.object-sel').value) &&
-                    (!workSec.querySelector('.work-sel').value || e.darbs === workSec.querySelector('.work-sel').value) &&
-                    dateMatches(e.date || '', workSec.querySelector('.date-sel').value)
+                    (!_fval('work','.year-sel') || (e.date && e.date.includes(_fval('work','.year-sel')))) &&
+                    (!_fval('work','.month-sel') || e.month === _fval('work','.month-sel')) &&
+                    (!_fval('work','.worker-sel') || e.worker_name === _fval('work','.worker-sel')) &&
+                    (!_fval('work','.car-sel') || e.car === _fval('work','.car-sel')) &&
+                    (!_fval('work','.object-sel') || e.objekts === _fval('work','.object-sel')) &&
+                    (!_fval('work','.work-sel') || e.darbs === _fval('work','.work-sel')) &&
+                    dateMatches(e.date || '', _fval('work','.date-sel'))
                 );
                 
                 document.getElementById('totalHoursValue').innerText = fWork.reduce((s,i) => s + parseFloat(i.hours || 0), 0).toFixed(2) + " h";
@@ -622,13 +636,13 @@ if(workerEl) {
             // Patēriņš
             const fuelSec = document.getElementById('v-report-fuel');
             if (fuelSec) {
-                const yearVal = fuelSec.querySelector('.year-sel')?.value;
-                const monthVal = fuelSec.querySelector('.month-sel')?.value;
-                const resVal = fuelSec.querySelector('.res-sel')?.value;
-                const workerVal = fuelSec.querySelector('.worker-sel')?.value;
-                const carVal = fuelSec.querySelector('.car-sel')?.value;
+                const yearVal = _fval('fuel','.year-sel');
+                const monthVal = _fval('fuel','.month-sel');
+                const resVal = _fval('fuel','.res-sel');
+                const workerVal = _fval('fuel','.worker-sel');
+                const carVal = _fval('fuel','.car-sel');
 
-                const fuelDateVal = fuelSec.querySelector('.date-sel')?.value;
+                const fuelDateVal = _fval('fuel','.date-sel');
                 let fFuel = schedule.filter(e => 
                     e.resource_amount && 
                     (!yearVal || (e.date && e.date.includes(yearVal))) &&
@@ -707,10 +721,10 @@ if(workerEl) {
             const hoursSec = document.getElementById('v-report-hours');
             if (hoursSec) {
                 let fSum = daySummary.filter(e => 
-                    (!hoursSec.querySelector('.year-sel').value || (e.datums && e.datums.includes(hoursSec.querySelector('.year-sel').value))) &&
-                    (!hoursSec.querySelector('.month-sel').value || e.month === hoursSec.querySelector('.month-sel').value) &&
-                    (!hoursSec.querySelector('.worker-sel').value || e.darbinieks === hoursSec.querySelector('.worker-sel').value) &&
-                    dateMatches(e.datums || '', hoursSec.querySelector('.date-sel').value)
+                    (!_fval('hours','.year-sel') || (e.datums && e.datums.includes(_fval('hours','.year-sel')))) &&
+                    (!_fval('hours','.month-sel') || e.month === _fval('hours','.month-sel')) &&
+                    (!_fval('hours','.worker-sel') || e.darbinieks === _fval('hours','.worker-sel')) &&
+                    dateMatches(e.datums || '', _fval('hours','.date-sel'))
                 );
 
                 // Aprēķinām pusdienu stundas no schedule tabulas katram ierakstam
