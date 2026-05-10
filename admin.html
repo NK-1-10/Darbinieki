@@ -162,8 +162,22 @@
                     </div>
                     <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
                         <div style="display:flex; gap:8px;">
-                            <select class="year-sel header-filter" onchange="wSec_set(this.value,'.year-sel','work')" style="min-height:34px;border:1px solid #d9dedb;border-radius:8px;padding:4px 10px;background:#fff;font-size:13px;"></select>
-                            <select class="month-sel header-filter" onchange="wSec_set(this.value,'.month-sel','work')" style="min-height:34px;border:1px solid #d9dedb;border-radius:8px;padding:4px 10px;background:#fff;font-size:13px;"></select>
+                            <div class="col-filter-wrap" style="background:#f8f8f8;border:1px solid #e0e0e0;border-radius:8px;padding:5px 10px;">
+                                <span style="font-size:13px;color:#444;font-weight:600;">Gads</span>
+                                <button class="col-filter-btn" onclick="toggleColFilter(this)">▾</button>
+                                <div class="col-filter-popup">
+                                    <select onchange="wSec_set(this.value,'.year-sel','work')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;" class="year-sel-mirror-work"></select>
+                                    <button class="col-filter-clear" onclick="wSec_set('','.year-sel','work')">✕ Notīrīt</button>
+                                </div>
+                            </div>
+                            <div class="col-filter-wrap" style="background:#f8f8f8;border:1px solid #e0e0e0;border-radius:8px;padding:5px 10px;">
+                                <span style="font-size:13px;color:#444;font-weight:600;">Mēnesis</span>
+                                <button class="col-filter-btn" onclick="toggleColFilter(this)">▾</button>
+                                <div class="col-filter-popup">
+                                    <select onchange="wSec_set(this.value,'.month-sel','work')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;" class="month-sel-mirror-work"></select>
+                                    <button class="col-filter-clear" onclick="wSec_set('','.month-sel','work')">✕ Notīrīt</button>
+                                </div>
+                            </div>
                         </div>
                         <div class="summary-badge">Kopā stundas: <span id="totalHoursValue">0</span></div>
                     </div>
@@ -183,8 +197,22 @@
                     </div>
                     <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
                         <div style="display:flex; gap:8px;">
-                            <select class="year-sel header-filter" onchange="wSec_set(this.value,'.year-sel','fuel')" style="min-height:34px;border:1px solid #d9dedb;border-radius:8px;padding:4px 10px;background:#fff;font-size:13px;"></select>
-                            <select class="month-sel header-filter" onchange="wSec_set(this.value,'.month-sel','fuel')" style="min-height:34px;border:1px solid #d9dedb;border-radius:8px;padding:4px 10px;background:#fff;font-size:13px;"></select>
+                            <div class="col-filter-wrap" style="background:#f8f8f8;border:1px solid #e0e0e0;border-radius:8px;padding:5px 10px;">
+                                <span style="font-size:13px;color:#444;font-weight:600;">Gads</span>
+                                <button class="col-filter-btn" onclick="toggleColFilter(this)">▾</button>
+                                <div class="col-filter-popup">
+                                    <select onchange="wSec_set(this.value,'.year-sel','fuel')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;" class="year-sel-mirror-fuel"></select>
+                                    <button class="col-filter-clear" onclick="wSec_set('','.year-sel','fuel')">✕ Notīrīt</button>
+                                </div>
+                            </div>
+                            <div class="col-filter-wrap" style="background:#f8f8f8;border:1px solid #e0e0e0;border-radius:8px;padding:5px 10px;">
+                                <span style="font-size:13px;color:#444;font-weight:600;">Mēnesis</span>
+                                <button class="col-filter-btn" onclick="toggleColFilter(this)">▾</button>
+                                <div class="col-filter-popup">
+                                    <select onchange="wSec_set(this.value,'.month-sel','fuel')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;" class="month-sel-mirror-fuel"></select>
+                                    <button class="col-filter-clear" onclick="wSec_set('','.month-sel','fuel')">✕ Notīrīt</button>
+                                </div>
+                            </div>
                         </div>
                         <div class="summary-badge">Kopā: <span id="totalFuelValue">0</span></div>
                     </div>
@@ -202,8 +230,22 @@
                     </div>
                     <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
                         <div style="display:flex; gap:8px;">
-                            <select class="year-sel header-filter" onchange="wSec_set(this.value,'.year-sel','hours')" style="min-height:34px;border:1px solid #d9dedb;border-radius:8px;padding:4px 10px;background:#fff;font-size:13px;"></select>
-                            <select class="month-sel header-filter" onchange="wSec_set(this.value,'.month-sel','hours')" style="min-height:34px;border:1px solid #d9dedb;border-radius:8px;padding:4px 10px;background:#fff;font-size:13px;"></select>
+                            <div class="col-filter-wrap" style="background:#f8f8f8;border:1px solid #e0e0e0;border-radius:8px;padding:5px 10px;">
+                                <span style="font-size:13px;color:#444;font-weight:600;">Gads</span>
+                                <button class="col-filter-btn" onclick="toggleColFilter(this)">▾</button>
+                                <div class="col-filter-popup">
+                                    <select onchange="wSec_set(this.value,'.year-sel','hours')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;" class="year-sel-mirror-hours"></select>
+                                    <button class="col-filter-clear" onclick="wSec_set('','.year-sel','hours')">✕ Notīrīt</button>
+                                </div>
+                            </div>
+                            <div class="col-filter-wrap" style="background:#f8f8f8;border:1px solid #e0e0e0;border-radius:8px;padding:5px 10px;">
+                                <span style="font-size:13px;color:#444;font-weight:600;">Mēnesis</span>
+                                <button class="col-filter-btn" onclick="toggleColFilter(this)">▾</button>
+                                <div class="col-filter-popup">
+                                    <select onchange="wSec_set(this.value,'.month-sel','hours')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;" class="month-sel-mirror-hours"></select>
+                                    <button class="col-filter-clear" onclick="wSec_set('','.month-sel','hours')">✕ Notīrīt</button>
+                                </div>
+                            </div>
                         </div>
                         <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;">
                             <div class="summary-badge">Pusdienas: <span id="totalPusdienas">0</span></div>
@@ -333,6 +375,13 @@
 
             fill('.year-sel', years, "Gads");
             fill('.month-sel', LV_MONTHS, "Mēnesis");
+            // Aizpildām mirror selects
+            ['work','fuel','hours'].forEach(t => {
+                const yr = document.querySelector(`.year-sel-mirror-${t}`);
+                const mo = document.querySelector(`.month-sel-mirror-${t}`);
+                if (yr) { yr.innerHTML = document.querySelector('.year-sel').innerHTML; }
+                if (mo) { mo.innerHTML = document.querySelector('.month-sel').innerHTML; }
+            });
             fill('.worker-sel', workers.map(w => w.name), "Visi darbinieki"); 
             fill('.car-sel', cars.map(c => c.name || c), "Visi auto");
             fill('.object-sel', objects, "Visi objekti");
