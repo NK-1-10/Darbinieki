@@ -160,7 +160,11 @@
                         <select class="work-sel header-filter" onchange="renderTables()"></select>
                         <input type="date" class="date-sel header-filter" onchange="renderTables()">
                     </div>
-                    <div style="display:flex; align-items:center; justify-content:flex-end; margin-bottom:8px;">
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
+                        <div style="display:flex; gap:8px;">
+                            <select class="year-sel header-filter" onchange="wSec_set(this.value,'.year-sel','work')" style="min-height:34px;border:1px solid #d9dedb;border-radius:8px;padding:4px 10px;background:#fff;font-size:13px;"></select>
+                            <select class="month-sel header-filter" onchange="wSec_set(this.value,'.month-sel','work')" style="min-height:34px;border:1px solid #d9dedb;border-radius:8px;padding:4px 10px;background:#fff;font-size:13px;"></select>
+                        </div>
                         <div class="summary-badge">Kopā stundas: <span id="totalHoursValue">0</span></div>
                     </div>
                     <div id="tableContainer" class="table-wrapper"></div>
@@ -177,7 +181,11 @@
                         <select class="res-sel header-filter" onchange="renderTables()"></select>
                         <input type="date" class="date-sel header-filter" onchange="renderTables()">
                     </div>
-                    <div style="display:flex; align-items:center; justify-content:flex-end; margin-bottom:8px;">
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
+                        <div style="display:flex; gap:8px;">
+                            <select class="year-sel header-filter" onchange="wSec_set(this.value,'.year-sel','fuel')" style="min-height:34px;border:1px solid #d9dedb;border-radius:8px;padding:4px 10px;background:#fff;font-size:13px;"></select>
+                            <select class="month-sel header-filter" onchange="wSec_set(this.value,'.month-sel','fuel')" style="min-height:34px;border:1px solid #d9dedb;border-radius:8px;padding:4px 10px;background:#fff;font-size:13px;"></select>
+                        </div>
                         <div class="summary-badge">Kopā: <span id="totalFuelValue">0</span></div>
                     </div>
                     <div id="fuelTableContainer" class="table-wrapper"></div>
@@ -192,7 +200,11 @@
                         <select class="worker-sel header-filter" onchange="renderTables()"></select>
                         <input type="date" class="date-sel header-filter" onchange="renderTables()">
                     </div>
-                    <div style="display:flex; align-items:center; justify-content:flex-end; margin-bottom:8px;">
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
+                        <div style="display:flex; gap:8px;">
+                            <select class="year-sel header-filter" onchange="wSec_set(this.value,'.year-sel','hours')" style="min-height:34px;border:1px solid #d9dedb;border-radius:8px;padding:4px 10px;background:#fff;font-size:13px;"></select>
+                            <select class="month-sel header-filter" onchange="wSec_set(this.value,'.month-sel','hours')" style="min-height:34px;border:1px solid #d9dedb;border-radius:8px;padding:4px 10px;background:#fff;font-size:13px;"></select>
+                        </div>
                         <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;">
                             <div class="summary-badge">Pusdienas: <span id="totalPusdienas">0</span></div>
                             <div class="summary-badge">Kopā: <span id="totalDayHoursValue">0</span></div>
