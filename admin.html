@@ -1350,8 +1350,12 @@ async function saveWorkerEdit() {
         async function geocodeAddress() {
             const addr = document.getElementById('objLocAddress').value.trim();
             if (!addr) return;
-            const res = await fetch(`/api/geocode?address=${encodeURIComponent(addr)}`);
-            const results = await res.json();
+            // Tieši uz OpenStreetMap Nominatim - nav vajadzīgs serveris
+            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addr)}&limit=5`, {
+                headers: { 'Accept-Language': 'lv,en' }
+            });
+            const raw = await res.json();
+            const results = raw.map(r => ({ display_name: r.display_name, lat: parseFloat(r.lat), lon: parseFloat(r.lon) }));
             const container = document.getElementById('geocodeResults');
             if (!results.length) { container.innerHTML = '<p style="padding:8px;color:#888;font-size:13px;">Nav atrasts</p>'; container.style.display = 'block'; return; }
             container.style.display = 'block';
