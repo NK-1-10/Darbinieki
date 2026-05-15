@@ -362,8 +362,9 @@
             <!-- Mini mapa -->
             <div id="objMap" style="height:220px; border-radius:10px; border:1px solid #ddd; margin-bottom:12px; overflow:hidden;"></div>
 
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;">
                 <button onclick="saveObjectLoc()" style="background:#173629;color:#fff;border:none;border-radius:8px;padding:10px;font-weight:700;cursor:pointer;">Saglabāt</button>
+                <button onclick="removeObjectLoc()" style="background:#c0392b;color:#fff;border:none;border-radius:8px;padding:10px;font-weight:700;cursor:pointer;">Noņemt</button>
                 <button onclick="document.getElementById('objectLocModal').style.display='none'" style="background:#f0f0f0;color:#444;border:none;border-radius:8px;padding:10px;font-weight:700;cursor:pointer;">Aizvērt</button>
             </div>
         </div>
@@ -1272,6 +1273,21 @@ async function saveWorkerEdit() {
                         document.getElementById('objLng').value = p.lng.toFixed(6);
                     });
                 }
+            }
+        }
+
+        async function removeObjectLoc() {
+            if (!confirm(`Noņemt lokāciju objektam "${_objLocName}"?`)) return;
+            const res = await fetch(`/api/objects/${encodeURIComponent(_objLocName)}`, {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ name: _objLocName, latitude: null, longitude: null, radius_m: 200 })
+            });
+            if (res.ok) {
+                document.getElementById('objectLocModal').style.display = 'none';
+                loadData();
+            } else {
+                alert('Kļūda!');
             }
         }
 
