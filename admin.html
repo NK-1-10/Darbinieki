@@ -1386,7 +1386,7 @@ async function saveWorkerEdit() {
                 body: JSON.stringify({ name: _objLocName, latitude: lat, longitude: lng, radius_m: radius })
             });
             if (res.ok) { document.getElementById('objectLocModal').style.display = 'none'; loadData(); }
-            else alert('Kļūda saglabājot!');
+            else { const err = await res.json().catch(() => ({error: res.status + ' ' + res.statusText})); alert('Kļūda: ' + JSON.stringify(err)); }
         }
 
         async function removeObjectLoc() {
