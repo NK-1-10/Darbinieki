@@ -506,7 +506,11 @@ app.put('/api/work-types/:name', async (req, res) => {
 
 app.put('/api/objects/:name', async (req, res) => {
     try {
-        await pool.query('UPDATE objects SET name = $1 WHERE name = $2', [req.body.name, req.params.name]);
+        const { name, latitude, longitude, radius_m } = req.body;
+        await pool.query(
+            'UPDATE objects SET name = $1, latitude = $2, longitude = $3, radius_m = $4 WHERE name = $5',
+            [name, latitude || null, longitude || null, radius_m || 200, req.params.name]
+        );
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
