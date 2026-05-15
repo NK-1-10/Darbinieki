@@ -74,6 +74,8 @@
         .col-filter-clear:hover { color: #c0392b; }
     </style>
     
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body class="admin-page">
 
@@ -329,6 +331,44 @@
         </div>
     </div>
 
+    <!-- OBJEKTA LOKĀCIJAS MODĀLS -->
+    <div id="objectLocModal" class="modal" style="display:none;">
+        <div class="modal-content" style="width:min(95vw,560px); padding:20px;">
+            <h3 style="margin:0 0 16px; font-size:15px; color:#2d5a3d;">📍 Objekta lokācija</h3>
+            <p style="margin:0 0 4px; font-size:13px; font-weight:600;" id="objLocName"></p>
+
+            <div style="display:grid; gap:8px; margin-bottom:12px;">
+                <input type="text" id="objLocAddress" placeholder="Ievadi adresi un meklē..." style="margin:0;">
+                <button onclick="geocodeAddress()" style="background:#173629;color:#fff;border:none;border-radius:8px;padding:10px;cursor:pointer;font-weight:700;">🔍 Meklēt adresi</button>
+                <div id="geocodeResults" style="display:none; border:1px solid #ddd; border-radius:8px; max-height:150px; overflow-y:auto;"></div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px;">
+                <div>
+                    <label style="font-size:12px;color:#666;">Platums (lat)</label>
+                    <input type="number" id="objLat" step="0.00001" placeholder="56.9460" style="margin:4px 0 0;">
+                </div>
+                <div>
+                    <label style="font-size:12px;color:#666;">Garums (lng)</label>
+                    <input type="number" id="objLng" step="0.00001" placeholder="24.1059" style="margin:4px 0 0;">
+                </div>
+            </div>
+
+            <div style="margin-bottom:12px;">
+                <label style="font-size:12px;color:#666;">Rādiuss (m) — cik tuvu jābūt</label>
+                <input type="number" id="objRadius" value="200" min="50" max="5000" style="margin:4px 0 0;">
+            </div>
+
+            <!-- Mini mapa -->
+            <div id="objMap" style="height:220px; border-radius:10px; border:1px solid #ddd; margin-bottom:12px; overflow:hidden;"></div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                <button onclick="saveObjectLoc()" style="background:#173629;color:#fff;border:none;border-radius:8px;padding:10px;font-weight:700;cursor:pointer;">Saglabāt</button>
+                <button onclick="document.getElementById('objectLocModal').style.display='none'" style="background:#f0f0f0;color:#444;border:none;border-radius:8px;padding:10px;font-weight:700;cursor:pointer;">Aizvērt</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         let workers = [], cars = [], schedule = [], workTypes = [], objects = [], daySummary = [], resourceTypes = [];
         const LV_MONTHS = ["Janvāris", "Februāris", "Marts", "Aprīlis", "Maijs", "Jūnijs", "Jūlijs", "Augusts", "Septembris", "Oktobris", "Novembris", "Decembris"];
@@ -462,7 +502,31 @@ if(workerEl) {
 }
             draw('carList', cars, '/api/cars');
             draw('workList', workTypes, '/api/work-types');
-            draw('objectList', objects, '/api/objects');
+            // Objekti ar lokāciju
+            const objEl = document.getElementById('objectList');
+            if (objEl) {
+                objEl.innerHTML = objects.map(obj => {
+                    const name = obj.name || obj;
+                    const hasLoc = obj.latitude && obj.longitude;
+                    const locText = hasLoc ? `📍 ${obj.latitude.toFixed(5)}, ${obj.longitude.toFixed(5)} (${obj.radius_m || 200}m)` : '📍 Nav lokācijas';
+                    return `<li>
+                        <div style="flex:1;">
+                            <span style="font-weight:600;">${name}</span>
+                            <span style="font-size:12px; color:${hasLoc ? '#2d6a4f' : '#aaa'}; margin-left:8px;">${locText}</span>
+                        </div>
+                        <div class="worker-actions">
+                            <div class="btn-container">
+                                <button class="pencil" onclick="openObjectLocModal('${name}', ${obj.latitude || 'null'}, ${obj.longitude || 'null'}, ${obj.radius_m || 200})">✏️</button>
+                                <span class="tooltip">Rediģēt</span>
+                            </div>
+                            <div class="btn-container">
+                                <button class="btn-del" onclick="deleteItem('/api/objects', '${name}')">✖</button>
+                                <span class="tooltip">Izdzēst</span>
+                            </div>
+                        </div>
+                    </li>`;
+                }).join("");
+            }
 
             const resList = document.getElementById('resourceList');
             if(resList) {
@@ -1112,6 +1176,127 @@ async function saveWorkerEdit() {
                 alert('Kļūda: ' + (err.error || 'neizdevās'));
             }
         }
+
+        // --- OBJEKTA LOKĀCIJA ---
+        let _objLocName = '';
+        let _objMap = null;
+        let _objMarker = null;
+
+        function openObjectLocModal(name, lat, lng, radius) {
+            _objLocName = name;
+            document.getElementById('objLocName').textContent = name;
+            document.getElementById('objLat').value = lat || '';
+            document.getElementById('objLng').value = lng || '';
+            document.getElementById('objRadius').value = radius || 200;
+            document.getElementById('objLocAddress').value = '';
+            document.getElementById('geocodeResults').style.display = 'none';
+            document.getElementById('objectLocModal').style.display = 'flex';
+
+            // Inicializē karti pēc nelielas aizkaves (lai modāls ir redzams)
+            setTimeout(() => initObjMap(lat, lng), 100);
+        }
+
+        function initObjMap(lat, lng) {
+            const defaultLat = lat || 56.9460;
+            const defaultLng = lng || 24.1059;
+
+            if (_objMap) {
+                _objMap.remove();
+                _objMap = null;
+                _objMarker = null;
+            }
+
+            _objMap = L.map('objMap').setView([defaultLat, defaultLng], lat ? 14 : 8);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap'
+            }).addTo(_objMap);
+
+            if (lat && lng) {
+                _objMarker = L.marker([lat, lng], {draggable: true}).addTo(_objMap);
+                _objMarker.on('dragend', e => {
+                    const p = e.target.getLatLng();
+                    document.getElementById('objLat').value = p.lat.toFixed(6);
+                    document.getElementById('objLng').value = p.lng.toFixed(6);
+                });
+            }
+
+            // Klikšķis uz kartes → pārvieto marķieri
+            _objMap.on('click', e => {
+                const {lat, lng} = e.latlng;
+                document.getElementById('objLat').value = lat.toFixed(6);
+                document.getElementById('objLng').value = lng.toFixed(6);
+                if (_objMarker) {
+                    _objMarker.setLatLng([lat, lng]);
+                } else {
+                    _objMarker = L.marker([lat, lng], {draggable: true}).addTo(_objMap);
+                    _objMarker.on('dragend', ev => {
+                        const p = ev.target.getLatLng();
+                        document.getElementById('objLat').value = p.lat.toFixed(6);
+                        document.getElementById('objLng').value = p.lng.toFixed(6);
+                    });
+                }
+            });
+        }
+
+        async function geocodeAddress() {
+            const addr = document.getElementById('objLocAddress').value.trim();
+            if (!addr) return;
+            const res = await fetch(`/api/geocode?address=${encodeURIComponent(addr)}`);
+            const results = await res.json();
+            const container = document.getElementById('geocodeResults');
+            if (!results.length) {
+                container.innerHTML = '<p style="padding:8px;color:#888;font-size:13px;">Nav atrasts</p>';
+                container.style.display = 'block';
+                return;
+            }
+            container.style.display = 'block';
+            container.innerHTML = results.map((r,i) => `
+                <div onclick="selectGeoResult(${r.lat}, ${r.lon})" style="padding:8px 10px; cursor:pointer; font-size:13px; border-bottom:1px solid #f0f0f0;" onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background=''">
+                    ${r.display_name}
+                </div>`).join('');
+        }
+
+        function selectGeoResult(lat, lng) {
+            document.getElementById('objLat').value = lat.toFixed(6);
+            document.getElementById('objLng').value = lng.toFixed(6);
+            document.getElementById('geocodeResults').style.display = 'none';
+            if (_objMap) {
+                _objMap.setView([lat, lng], 15);
+                if (_objMarker) {
+                    _objMarker.setLatLng([lat, lng]);
+                } else {
+                    _objMarker = L.marker([lat, lng], {draggable: true}).addTo(_objMap);
+                    _objMarker.on('dragend', e => {
+                        const p = e.target.getLatLng();
+                        document.getElementById('objLat').value = p.lat.toFixed(6);
+                        document.getElementById('objLng').value = p.lng.toFixed(6);
+                    });
+                }
+            }
+        }
+
+        async function saveObjectLoc() {
+            const lat = parseFloat(document.getElementById('objLat').value);
+            const lng = parseFloat(document.getElementById('objLng').value);
+            const radius = parseInt(document.getElementById('objRadius').value) || 200;
+            if (isNaN(lat) || isNaN(lng)) return alert('Lūdzu ievadi koordinātes!');
+            const res = await fetch(`/api/objects/${encodeURIComponent(_objLocName)}`, {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ name: _objLocName, latitude: lat, longitude: lng, radius_m: radius })
+            });
+            if (res.ok) {
+                document.getElementById('objectLocModal').style.display = 'none';
+                loadData();
+            } else {
+                alert('Kļūda saglabājot!');
+            }
+        }
+
+        // Enter uz adreses lauka → meklē
+        document.getElementById('objLocAddress').addEventListener('keydown', e => {
+            if (e.key === 'Enter') geocodeAddress();
+        });
 
         loadData().then(() => applyViewerMode());
     </script>

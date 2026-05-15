@@ -127,6 +127,7 @@
             const cars = await cRes.json(); // [{id, name, track_mh}]
             window._carsData = cars;
             const objects = await oRes.json();
+            window._objectsData = objects; // [{name, latitude, longitude, radius_m}]
             const workTypes = await wRes.json();
             const allSchedule = await sRes.json();
             const resources = await rRes.json();
@@ -142,7 +143,7 @@
 
             // Aizpildām selectus
             fillSelect(document.getElementById("car"), cars.map(c => c.name), "-- Nav mašīnas --");
-            fillSelect(document.getElementById("object"), objects, "-- Izvēlies objektu --");
+            fillSelect(document.getElementById("object"), objects.map(o => o.name || o), "-- Izvēlies objektu --");
             fillSelect(document.getElementById("work"), workTypes, "-- Izvēlies darba veidu --");
 
             // Noliktavas resursu ielāde
@@ -335,12 +336,62 @@
         }
     };
 
+    // GPS pārbaude — atgriež true ja darbinieks ir pietiekami tuvu
+    function checkGpsLocation(objLat, objLng, radiusM) {
+        return new Promise(resolve => {
+            if (!navigator.geolocation) {
+                // GPS nav pieejams — atļaujam turpināt ar brīdinājumu
+                if (confirm("GPS nav pieejams šajā ierīcē. Turpināt bez pārbaudes?")) resolve(true);
+                else resolve(false);
+                return;
+            }
+
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = '📡 Nosaka atrašanās vietu...';
+
+            navigator.geolocation.getCurrentPosition(
+                pos => {
+                    const dist = getDistanceM(pos.coords.latitude, pos.coords.longitude, objLat, objLng);
+                    statusEl.textContent = '';
+                    if (dist <= radiusM) {
+                        resolve(true);
+                    } else {
+                        alert(`Tu atrodas pārāk tālu no objekta! (${Math.round(dist)}m, atļautais rādiuss: ${radiusM}m)`);
+                        resolve(false);
+                    }
+                },
+                err => {
+                    statusEl.textContent = '';
+                    if (confirm("Nevarēja noteikt atrašanās vietu. Turpināt bez pārbaudes?")) resolve(true);
+                    else resolve(false);
+                },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            );
+        });
+    }
+
+    // Haversine formula — attālums metros starp diviem GPS punktiem
+    function getDistanceM(lat1, lng1, lat2, lng2) {
+        const R = 6371000;
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLng = (lng2 - lng1) * Math.PI / 180;
+        const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLng/2)**2;
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    }
+
     document.getElementById("startBtn").onclick = async () => {
         const now = new Date();
         const auto = document.getElementById("car").value;
         const obj = document.getElementById("object").value;
         const wrk = document.getElementById("work").value;
         if (!wrk) return alert("Izvēlies darba veidu!");
+
+        // GPS pārbaude ja objektam ir koordinātes
+        const objData = (window._objectsData || []).find(o => (o.name || o) === obj);
+        if (objData && objData.latitude && objData.longitude) {
+            const allowed = await checkGpsLocation(objData.latitude, objData.longitude, objData.radius_m || 200);
+            if (!allowed) return; // checkGpsLocation rāda alert pats
+        }
         
         const response = await fetch('/api/start-work', {
             method: 'POST',

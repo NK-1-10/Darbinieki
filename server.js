@@ -241,8 +241,8 @@ app.get('/api/cars', async (req, res) => {
 
 app.get('/api/objects', async (req, res) => {
     try {
-        const r = await pool.query("SELECT name FROM objects ORDER BY name ASC");
-        res.json(r.rows.map(row => row.name));
+        const r = await pool.query("SELECT name, latitude, longitude, radius_m FROM objects ORDER BY name ASC");
+        res.json(r.rows);
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -250,6 +250,17 @@ app.get('/api/work-types', async (req, res) => {
     try {
         const r = await pool.query("SELECT name FROM work_types ORDER BY name ASC");
         res.json(r.rows.map(row => row.name));
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// Geocoding: adrese -> koordinātes (izmanto Nominatim/OpenStreetMap, bezmaksas)
+app.get('/api/geocode', async (req, res) => {
+    const { address } = req.query;
+    try {
+        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=5`;
+        const resp = await fetch(url, { headers: { 'User-Agent': 'DarbiniekuUzskaite/1.0' } });
+        const data = await resp.json();
+        res.json(data.map(r => ({ display_name: r.display_name, lat: parseFloat(r.lat), lon: parseFloat(r.lon) })));
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -412,7 +423,11 @@ app.put('/api/work-types/:name', async (req, res) => {
 
 app.put('/api/objects/:name', async (req, res) => {
     try {
-        await pool.query('UPDATE objects SET name = $1 WHERE name = $2', [req.body.name, req.params.name]);
+        const { name, latitude, longitude, radius_m } = req.body;
+        await pool.query(
+            'UPDATE objects SET name = $1, latitude = $2, longitude = $3, radius_m = $4 WHERE name = $5',
+            [name, latitude || null, longitude || null, radius_m || 200, req.params.name]
+        );
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
