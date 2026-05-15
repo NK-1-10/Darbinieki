@@ -82,19 +82,113 @@ app.delete('/api/schedule/all', async (req, res) => {
 app.delete('/api/schedule/:id', async (req, res) => {
     const id = req.params.id;
     try {
-        const result = await pool.query("DELETE FROM schedule WHERE id = $1", [id]);
-        if (result.rowCount > 0) {
-            res.json({ success: true, message: "Ieraksts izdzēsts" });
-        } else {
-            res.status(404).json({ error: "Ieraksts netika atrasts" });
+        // Vispirms iegūstam ieraksta datus
+        const row = await pool.query("SELECT * FROM schedule WHERE id = $1", [id]);
+        if (!row.rows.length) return res.status(404).json({ error: "Ieraksts netika atrasts" });
+        const e = row.rows[0];
+
+        // Ja ir degvielas/eļļas patēriņš -> atjaunojam krājumu (pieskaitām atpakaļ)
+        if (e.resource_amount && e.resource_name && 
+            (e.darbs === 'Degvielas uzpilde' || e.darbs === 'Eļļas papildināšana')) {
+            await pool.query(
+                'UPDATE resource_types SET quantity = COALESCE(quantity, 0) + $1 WHERE name = $2',
+                [parseFloat(e.resource_amount), e.resource_name]
+            );
         }
+        // Ja ir admin atņemšana -> atjaunojam atpakaļ (pieskaitām)
+        if (e.resource_amount && e.resource_name && e.darbs === 'Resursu atņemšana') {
+            await pool.query(
+                'UPDATE resource_types SET quantity = COALESCE(quantity, 0) + $1 WHERE name = $2',
+                [parseFloat(e.resource_amount), e.resource_name]
+            );
+        }
+        // Ja ir admin papildinājums -> atjaunojam atpakaļ (atņemam)
+        if (e.resource_amount && e.resource_name && e.darbs === 'Resursu papildinājums') {
+            await pool.query(
+                'UPDATE resource_types SET quantity = COALESCE(quantity, 0) - $1 WHERE name = $2',
+                [parseFloat(e.resource_amount), e.resource_name]
+            );
+        }
+
+        await pool.query("DELETE FROM schedule WHERE id = $1", [id]);
+        res.json({ success: true, message: "Ieraksts izdzēsts" });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: "Servera kļūda: " + err.message });
     }
 });
 
+// Rediģēt schedule ierakstu
+app.put('/api/schedule/:id', async (req, res) => {
+    const id = req.params.id;
+    const { resource_amount, resource_name, mh_current, hours, darbs, objekts, car } = req.body;
+    try {
+        // Iegūstam veco ierakstu
+        const old = await pool.query("SELECT * FROM schedule WHERE id = $1", [id]);
+        if (!old.rows.length) return res.status(404).json({ error: "Nav atrasts" });
+        const e = old.rows[0];
+
+        // Ja mainās resursu daudzums -> atjaunojam krājumu
+        const oldAmt = parseFloat(e.resource_amount || 0);
+        const newAmt = parseFloat(resource_amount || e.resource_amount || 0);
+        const resName = resource_name || e.resource_name;
+
+        if (resName && oldAmt !== newAmt) {
+            const isConsumption = e.darbs === 'Degvielas uzpilde' || e.darbs === 'Eļļas papildināšana' || e.darbs === 'Resursu atņemšana';
+            const isAddition = e.darbs === 'Resursu papildinājums';
+            if (isConsumption) {
+                // Pieskaitām veco, atņemam jauno
+                await pool.query(
+                    'UPDATE resource_types SET quantity = COALESCE(quantity,0) + $1 - $2 WHERE name = $3',
+                    [oldAmt, newAmt, resName]
+                );
+            } else if (isAddition) {
+                // Atņemam veco, pieskaitām jauno
+                await pool.query(
+                    'UPDATE resource_types SET quantity = COALESCE(quantity,0) - $1 + $2 WHERE name = $3',
+                    [oldAmt, newAmt, resName]
+                );
+            }
+        }
+
+        // Aprēķinām jauno mh_previous ja mainās mh_current
+        let newMhPrev = e.mh_previous;
+        if (mh_current !== undefined && e.car) {
+            const prev = await pool.query(
+                'SELECT mh_current FROM schedule WHERE car = $1 AND mh_current IS NOT NULL AND id != $2 ORDER BY id DESC LIMIT 1',
+                [e.car, id]
+            );
+            newMhPrev = prev.rows[0]?.mh_current || null;
+        }
+
+        await pool.query(`
+            UPDATE schedule SET
+                resource_amount = COALESCE($1, resource_amount),
+                resource_name = COALESCE($2, resource_name),
+                mh_current = COALESCE($3, mh_current),
+                mh_previous = $4,
+                hours = COALESCE($5, hours),
+                darbs = COALESCE($6, darbs),
+                objekts = COALESCE($7, objekts),
+                car = COALESCE($8, car)
+            WHERE id = $9`,
+            [resource_amount || null, resource_name || null, mh_current || null, newMhPrev, hours || null, darbs || null, objekts || null, car || null, id]
+        );
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // --- JAUNS: Dzēst vienu ierakstu no DARBASTUNDAS ---
+app.put('/api/darbastundas/:id', async (req, res) => {
+    try {
+        const { stundas } = req.body;
+        await pool.query('UPDATE "darbastundas" SET stundas = $1 WHERE id = $2', [parseFloat(stundas), req.params.id]);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 app.delete('/api/darbastundas/:id', async (req, res) => {
     const id = req.params.id;
     try {
@@ -241,8 +335,8 @@ app.get('/api/cars', async (req, res) => {
 
 app.get('/api/objects', async (req, res) => {
     try {
-        const r = await pool.query("SELECT name, latitude, longitude, radius_m FROM objects ORDER BY name ASC");
-        res.json(r.rows);
+        const r = await pool.query("SELECT name FROM objects ORDER BY name ASC");
+        res.json(r.rows.map(row => row.name));
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -250,17 +344,6 @@ app.get('/api/work-types', async (req, res) => {
     try {
         const r = await pool.query("SELECT name FROM work_types ORDER BY name ASC");
         res.json(r.rows.map(row => row.name));
-    } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-// Geocoding: adrese -> koordinātes (izmanto Nominatim/OpenStreetMap, bezmaksas)
-app.get('/api/geocode', async (req, res) => {
-    const { address } = req.query;
-    try {
-        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=5`;
-        const resp = await fetch(url, { headers: { 'User-Agent': 'DarbiniekuUzskaite/1.0' } });
-        const data = await resp.json();
-        res.json(data.map(r => ({ display_name: r.display_name, lat: parseFloat(r.lat), lon: parseFloat(r.lon) })));
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -423,11 +506,7 @@ app.put('/api/work-types/:name', async (req, res) => {
 
 app.put('/api/objects/:name', async (req, res) => {
     try {
-        const { name, latitude, longitude, radius_m } = req.body;
-        await pool.query(
-            'UPDATE objects SET name = $1, latitude = $2, longitude = $3, radius_m = $4 WHERE name = $5',
-            [name, latitude || null, longitude || null, radius_m || 200, req.params.name]
-        );
+        await pool.query('UPDATE objects SET name = $1 WHERE name = $2', [req.body.name, req.params.name]);
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });

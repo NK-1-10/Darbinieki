@@ -42,7 +42,9 @@
             z-index: 50 !important;
         }
         /* Mazāka atstarpe tabulas rindās */
-        .sticky-table th, .sticky-table td { padding: 4px 12px !important; font-size: 13px !important; }
+        .sticky-table th, .sticky-table td { padding: 3px 8px !important; font-size: 13px !important; line-height: 1.3 !important; }
+        .sticky-table tbody tr { height: auto !important; }
+        .col-filter-wrap { gap: 3px !important; }
         /* Kolonnu filtri */
         .col-filter-wrap { position: relative; display: inline-flex; align-items: center; gap: 5px; }
         .col-filter-btn {
@@ -74,8 +76,6 @@
         .col-filter-clear:hover { color: #c0392b; }
     </style>
     
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body class="admin-page">
 
@@ -331,41 +331,43 @@
         </div>
     </div>
 
-    <!-- OBJEKTA LOKĀCIJAS MODĀLS -->
-    <div id="objectLocModal" class="modal" style="display:none;">
-        <div class="modal-content" style="width:min(95vw,560px); padding:20px;">
-            <h3 style="margin:0 0 16px; font-size:15px; color:#2d5a3d;">📍 Objekta lokācija</h3>
-            <p style="margin:0 0 4px; font-size:13px; font-weight:600;" id="objLocName"></p>
+    <!-- IERAKSTA REDIĢĒŠANAS MODĀLS -->
+    <div id="editRecordModal" class="modal" style="display:none;">
+        <div class="modal-content" style="width:min(95vw,480px); padding:20px;">
+            <h3 style="margin:0 0 14px; font-size:15px; color:#2d5a3d;" id="editRecordTitle">✏️ Rediģēt ierakstu</h3>
+            <input type="hidden" id="editRecordId">
+            <input type="hidden" id="editRecordType">
 
-            <div style="display:grid; gap:8px; margin-bottom:12px;">
-                <input type="text" id="objLocAddress" placeholder="Ievadi adresi un meklē..." style="margin:0;">
-                <button onclick="geocodeAddress()" style="background:#173629;color:#fff;border:none;border-radius:8px;padding:10px;cursor:pointer;font-weight:700;">🔍 Meklēt adresi</button>
-                <div id="geocodeResults" style="display:none; border:1px solid #ddd; border-radius:8px; max-height:150px; overflow-y:auto;"></div>
+            <div id="editFieldsWork" style="display:none; gap:8px; flex-direction:column;">
+                <label style="font-size:12px;color:#666;">Darba veids</label>
+                <input type="text" id="editDarbs" style="margin:0 0 6px;">
+                <label style="font-size:12px;color:#666;">Objekts</label>
+                <input type="text" id="editObjekts" style="margin:0 0 6px;">
+                <label style="font-size:12px;color:#666;">Auto</label>
+                <input type="text" id="editCar" style="margin:0 0 6px;">
+                <label style="font-size:12px;color:#666;">Stundas</label>
+                <input type="number" id="editHours" step="0.01" style="margin:0;">
             </div>
 
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px;">
-                <div>
-                    <label style="font-size:12px;color:#666;">Platums (lat)</label>
-                    <input type="number" id="objLat" step="0.00001" placeholder="56.9460" style="margin:4px 0 0;">
+            <div id="editFieldsFuel" style="display:none; gap:8px; flex-direction:column;">
+                <label style="font-size:12px;color:#666;">Resurss</label>
+                <input type="text" id="editResName" style="margin:0 0 6px;">
+                <label style="font-size:12px;color:#666;">Daudzums (L)</label>
+                <input type="number" id="editResAmount" step="0.01" style="margin:0 0 6px;">
+                <div id="editMhSection" style="display:none;">
+                    <label style="font-size:12px;color:#666;">Motorstundas (mH)</label>
+                    <input type="number" id="editMhCurrent" step="0.1" style="margin:0;">
                 </div>
-                <div>
-                    <label style="font-size:12px;color:#666;">Garums (lng)</label>
-                    <input type="number" id="objLng" step="0.00001" placeholder="24.1059" style="margin:4px 0 0;">
-                </div>
             </div>
 
-            <div style="margin-bottom:12px;">
-                <label style="font-size:12px;color:#666;">Rādiuss (m) — cik tuvu jābūt</label>
-                <input type="number" id="objRadius" value="200" min="50" max="5000" style="margin:4px 0 0;">
+            <div id="editFieldsHours" style="display:none; gap:8px; flex-direction:column;">
+                <label style="font-size:12px;color:#666;">Kopā stundas</label>
+                <input type="number" id="editShiftHours" step="0.01" style="margin:0;">
             </div>
 
-            <!-- Mini mapa -->
-            <div id="objMap" style="height:220px; border-radius:10px; border:1px solid #ddd; margin-bottom:12px; overflow:hidden;"></div>
-
-            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;">
-                <button onclick="saveObjectLoc()" style="background:#173629;color:#fff;border:none;border-radius:8px;padding:10px;font-weight:700;cursor:pointer;">Saglabāt</button>
-                <button onclick="removeObjectLoc()" style="background:#c0392b;color:#fff;border:none;border-radius:8px;padding:10px;font-weight:700;cursor:pointer;">Noņemt</button>
-                <button onclick="document.getElementById('objectLocModal').style.display='none'" style="background:#f0f0f0;color:#444;border:none;border-radius:8px;padding:10px;font-weight:700;cursor:pointer;">Aizvērt</button>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:14px;">
+                <button onclick="saveEditRecord()" style="background:#173629;color:#fff;border:none;border-radius:8px;padding:10px;font-weight:700;cursor:pointer;">Saglabāt</button>
+                <button onclick="document.getElementById('editRecordModal').style.display='none'" style="background:#f0f0f0;color:#444;border:none;border-radius:8px;padding:10px;font-weight:700;cursor:pointer;">Atcelt</button>
             </div>
         </div>
     </div>
@@ -503,31 +505,7 @@ if(workerEl) {
 }
             draw('carList', cars, '/api/cars');
             draw('workList', workTypes, '/api/work-types');
-            // Objekti ar lokāciju
-            const objEl = document.getElementById('objectList');
-            if (objEl) {
-                objEl.innerHTML = objects.map(obj => {
-                    const name = obj.name || obj;
-                    const hasLoc = obj.latitude && obj.longitude;
-                    const locText = hasLoc ? `📍 ${obj.latitude.toFixed(5)}, ${obj.longitude.toFixed(5)} (${obj.radius_m || 200}m)` : '📍 Nav lokācijas';
-                    return `<li>
-                        <div style="flex:1;">
-                            <span style="font-weight:600;">${name}</span>
-                            <span style="font-size:12px; color:${hasLoc ? '#2d6a4f' : '#aaa'}; margin-left:8px;">${locText}</span>
-                        </div>
-                        <div class="worker-actions">
-                            <div class="btn-container">
-                                <button class="pencil" onclick="openObjectLocModal('${name}', ${obj.latitude || 'null'}, ${obj.longitude || 'null'}, ${obj.radius_m || 200})">✏️</button>
-                                <span class="tooltip">Rediģēt</span>
-                            </div>
-                            <div class="btn-container">
-                                <button class="btn-del" onclick="deleteItem('/api/objects', '${name}')">✖</button>
-                                <span class="tooltip">Izdzēst</span>
-                            </div>
-                        </div>
-                    </li>`;
-                }).join("");
-            }
+            draw('objectList', objects, '/api/objects');
 
             const resList = document.getElementById('resourceList');
             if(resList) {
@@ -757,7 +735,7 @@ if(workerEl) {
                                     <td>${e.objekts || '-'}</td>
                                     <td>${e.car || '-'}</td>
                                     <td style="text-align: center;" class="gold-val">${parseFloat(e.hours || 0).toFixed(2)}</td>
-                                    <td><button class="btn-del" onclick="deleteScheduleItem(${e.id})">✖</button></td>
+                                    <td style="white-space:nowrap;"><button class="pencil" onclick="openEditFuel(${e.id}, '${e.resource_name}', ${e.resource_amount}, ${e.mh_current || 'null'})" style="margin-right:4px;">✏️</button><button class="btn-del" onclick="deleteScheduleItem(${e.id})">✖</button></td>
                                 </tr>`).join("")}
                         </tbody>
                     </table>`;
@@ -841,7 +819,10 @@ if(workerEl) {
                                     '<td style="text-align: center;" class="' + colorClass + '">' + sign + e.resource_amount + ' L</td>' +
                                     '<td style="text-align: center;">' + (e.mh_current != null ? e.mh_current + ' h' : '-') + '</td>' +
                                     (() => { const l = parseFloat(e.resource_amount||0); const mhD = e.mh_current != null && e.mh_previous != null ? parseFloat(e.mh_current) - parseFloat(e.mh_previous) : 0; const pat = mhD > 0 ? (l/mhD).toFixed(2) + ' L/mH' : '-'; return '<td style="text-align: center;">' + pat + '</td>'; })() +
-                                    '<td><button class="btn-del" onclick="deleteScheduleItem(' + e.id + ')">✖</button></td>' +
+                                    '<td style="white-space:nowrap;">' +
+                                        '<button class="pencil" onclick="openEditWork(' + e.id + ',\''+e.darbs+'\',\''+e.objekts+'\',\''+e.car+'\','+e.hours+')" style="margin-right:4px;">✏️</button>' +
+                                        '<button class="btn-del" onclick="deleteScheduleItem(' + e.id + ')">✖</button>' +
+                                    '</td>' +
                                     '</tr>';
                             }).join("")}
                         </tbody>
@@ -908,8 +889,10 @@ if(workerEl) {
                                     <td style="text-align: center;">${pusd > 0 ? pusd.toFixed(2) + ' h' : '-'}</td>
                                     <td style="text-align: center;" class="gold-val">${kopaa.toFixed(2)}</td>
                                     <td style="text-align: center;" class="gold-val">${darba.toFixed(2)}</td>
-                                    <td>
-                                        ${e.id ? `<button class="btn-del" onclick="deleteHoursItem(${e.id})">✖</button>` : ''}
+                                    <td style="white-space:nowrap;">
+                                        ${e.id ? `
+                                            <button class="pencil" onclick="openEditHours(${e.id}, ${e.stundas})" style="margin-right:4px;">✏️</button>
+                                            <button class="btn-del" onclick="deleteHoursItem(${e.id})">✖</button>` : ''}
                                     </td>
                                 </tr>`;
                             }).join("")}
@@ -1178,141 +1161,85 @@ async function saveWorkerEdit() {
             }
         }
 
-        // --- OBJEKTA LOKĀCIJA ---
-        let _objLocName = '';
-        let _objMap = null;
-        let _objMarker = null;
-
-        function openObjectLocModal(name, lat, lng, radius) {
-            _objLocName = name;
-            document.getElementById('objLocName').textContent = name;
-            document.getElementById('objLat').value = lat || '';
-            document.getElementById('objLng').value = lng || '';
-            document.getElementById('objRadius').value = radius || 200;
-            document.getElementById('objLocAddress').value = '';
-            document.getElementById('geocodeResults').style.display = 'none';
-            document.getElementById('objectLocModal').style.display = 'flex';
-
-            // Inicializē karti pēc nelielas aizkaves (lai modāls ir redzams)
-            setTimeout(() => initObjMap(lat, lng), 100);
+        // --- IERAKSTU REDIĢĒŠANA ---
+        function openEditWork(id, darbs, objekts, car, hours) {
+            document.getElementById('editRecordId').value = id;
+            document.getElementById('editRecordType').value = 'work';
+            document.getElementById('editRecordTitle').textContent = '✏️ Rediģēt darba ierakstu';
+            document.getElementById('editFieldsWork').style.display = 'flex';
+            document.getElementById('editFieldsFuel').style.display = 'none';
+            document.getElementById('editFieldsHours').style.display = 'none';
+            document.getElementById('editDarbs').value = darbs || '';
+            document.getElementById('editObjekts').value = objekts || '';
+            document.getElementById('editCar').value = car || '';
+            document.getElementById('editHours').value = hours || '';
+            document.getElementById('editRecordModal').style.display = 'flex';
         }
 
-        function initObjMap(lat, lng) {
-            const defaultLat = lat || 56.9460;
-            const defaultLng = lng || 24.1059;
+        function openEditFuel(id, resName, resAmount, mhCurrent) {
+            document.getElementById('editRecordId').value = id;
+            document.getElementById('editRecordType').value = 'fuel';
+            document.getElementById('editRecordTitle').textContent = '✏️ Rediģēt patēriņa ierakstu';
+            document.getElementById('editFieldsWork').style.display = 'none';
+            document.getElementById('editFieldsFuel').style.display = 'flex';
+            document.getElementById('editFieldsHours').style.display = 'none';
+            document.getElementById('editResName').value = resName || '';
+            document.getElementById('editResAmount').value = resAmount || '';
+            document.getElementById('editMhCurrent').value = mhCurrent || '';
+            document.getElementById('editMhSection').style.display = mhCurrent ? 'block' : 'none';
+            document.getElementById('editRecordModal').style.display = 'flex';
+        }
 
-            if (_objMap) {
-                _objMap.remove();
-                _objMap = null;
-                _objMarker = null;
-            }
+        function openEditHours(id, stundas) {
+            document.getElementById('editRecordId').value = id;
+            document.getElementById('editRecordType').value = 'hours';
+            document.getElementById('editRecordTitle').textContent = '✏️ Rediģēt stundu ierakstu';
+            document.getElementById('editFieldsWork').style.display = 'none';
+            document.getElementById('editFieldsFuel').style.display = 'none';
+            document.getElementById('editFieldsHours').style.display = 'flex';
+            document.getElementById('editShiftHours').value = stundas || '';
+            document.getElementById('editRecordModal').style.display = 'flex';
+        }
 
-            _objMap = L.map('objMap').setView([defaultLat, defaultLng], lat ? 14 : 8);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© OpenStreetMap'
-            }).addTo(_objMap);
+        async function saveEditRecord() {
+            const id = document.getElementById('editRecordId').value;
+            const type = document.getElementById('editRecordType').value;
+            let body = {};
 
-            if (lat && lng) {
-                _objMarker = L.marker([lat, lng], {draggable: true}).addTo(_objMap);
-                _objMarker.on('dragend', e => {
-                    const p = e.target.getLatLng();
-                    document.getElementById('objLat').value = p.lat.toFixed(6);
-                    document.getElementById('objLng').value = p.lng.toFixed(6);
+            if (type === 'work') {
+                body = {
+                    darbs: document.getElementById('editDarbs').value,
+                    objekts: document.getElementById('editObjekts').value,
+                    car: document.getElementById('editCar').value,
+                    hours: document.getElementById('editHours').value
+                };
+                const res = await fetch(`/api/schedule/${id}`, {
+                    method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body)
                 });
-            }
+                if (res.ok) { document.getElementById('editRecordModal').style.display = 'none'; loadData(); }
+                else alert('Kļūda saglabājot!');
 
-            // Klikšķis uz kartes → pārvieto marķieri
-            _objMap.on('click', e => {
-                const {lat, lng} = e.latlng;
-                document.getElementById('objLat').value = lat.toFixed(6);
-                document.getElementById('objLng').value = lng.toFixed(6);
-                if (_objMarker) {
-                    _objMarker.setLatLng([lat, lng]);
-                } else {
-                    _objMarker = L.marker([lat, lng], {draggable: true}).addTo(_objMap);
-                    _objMarker.on('dragend', ev => {
-                        const p = ev.target.getLatLng();
-                        document.getElementById('objLat').value = p.lat.toFixed(6);
-                        document.getElementById('objLng').value = p.lng.toFixed(6);
-                    });
-                }
-            });
-        }
+            } else if (type === 'fuel') {
+                body = {
+                    resource_name: document.getElementById('editResName').value,
+                    resource_amount: document.getElementById('editResAmount').value,
+                    mh_current: document.getElementById('editMhCurrent').value || null
+                };
+                const res = await fetch(`/api/schedule/${id}`, {
+                    method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body)
+                });
+                if (res.ok) { document.getElementById('editRecordModal').style.display = 'none'; loadData(); }
+                else alert('Kļūda saglabājot!');
 
-        async function geocodeAddress() {
-            const addr = document.getElementById('objLocAddress').value.trim();
-            if (!addr) return;
-            const res = await fetch(`/api/geocode?address=${encodeURIComponent(addr)}`);
-            const results = await res.json();
-            const container = document.getElementById('geocodeResults');
-            if (!results.length) {
-                container.innerHTML = '<p style="padding:8px;color:#888;font-size:13px;">Nav atrasts</p>';
-                container.style.display = 'block';
-                return;
-            }
-            container.style.display = 'block';
-            container.innerHTML = results.map((r,i) => `
-                <div onclick="selectGeoResult(${r.lat}, ${r.lon})" style="padding:8px 10px; cursor:pointer; font-size:13px; border-bottom:1px solid #f0f0f0;" onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background=''">
-                    ${r.display_name}
-                </div>`).join('');
-        }
-
-        function selectGeoResult(lat, lng) {
-            document.getElementById('objLat').value = lat.toFixed(6);
-            document.getElementById('objLng').value = lng.toFixed(6);
-            document.getElementById('geocodeResults').style.display = 'none';
-            if (_objMap) {
-                _objMap.setView([lat, lng], 15);
-                if (_objMarker) {
-                    _objMarker.setLatLng([lat, lng]);
-                } else {
-                    _objMarker = L.marker([lat, lng], {draggable: true}).addTo(_objMap);
-                    _objMarker.on('dragend', e => {
-                        const p = e.target.getLatLng();
-                        document.getElementById('objLat').value = p.lat.toFixed(6);
-                        document.getElementById('objLng').value = p.lng.toFixed(6);
-                    });
-                }
+            } else if (type === 'hours') {
+                const res = await fetch(`/api/darbastundas/${id}`, {
+                    method: 'PUT', headers: {'Content-Type':'application/json'},
+                    body: JSON.stringify({ stundas: document.getElementById('editShiftHours').value })
+                });
+                if (res.ok) { document.getElementById('editRecordModal').style.display = 'none'; loadData(); }
+                else alert('Kļūda saglabājot!');
             }
         }
-
-        async function removeObjectLoc() {
-            if (!confirm(`Noņemt lokāciju objektam "${_objLocName}"?`)) return;
-            const res = await fetch(`/api/objects/${encodeURIComponent(_objLocName)}`, {
-                method: 'PUT',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ name: _objLocName, latitude: null, longitude: null, radius_m: 200 })
-            });
-            if (res.ok) {
-                document.getElementById('objectLocModal').style.display = 'none';
-                loadData();
-            } else {
-                alert('Kļūda!');
-            }
-        }
-
-        async function saveObjectLoc() {
-            const lat = parseFloat(document.getElementById('objLat').value);
-            const lng = parseFloat(document.getElementById('objLng').value);
-            const radius = parseInt(document.getElementById('objRadius').value) || 200;
-            if (isNaN(lat) || isNaN(lng)) return alert('Lūdzu ievadi koordinātes!');
-            const res = await fetch(`/api/objects/${encodeURIComponent(_objLocName)}`, {
-                method: 'PUT',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ name: _objLocName, latitude: lat, longitude: lng, radius_m: radius })
-            });
-            if (res.ok) {
-                document.getElementById('objectLocModal').style.display = 'none';
-                loadData();
-            } else {
-                alert('Kļūda saglabājot!');
-            }
-        }
-
-        // Enter uz adreses lauka → meklē
-        document.getElementById('objLocAddress').addEventListener('keydown', e => {
-            if (e.key === 'Enter') geocodeAddress();
-        });
 
         loadData().then(() => applyViewerMode());
     </script>
