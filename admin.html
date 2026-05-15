@@ -462,7 +462,7 @@
             });
             fill('.worker-sel', workers.map(w => w.name), "Visi darbinieki"); 
             fill('.car-sel', cars.map(c => c.name || c), "Visi auto");
-            fill('.object-sel', objects, "Visi objekti");
+            fill('.object-sel', objects.map(o => o.name || o), "Visi objekti");
             fill('.res-sel', resourceTypes.map(r => r.name), "Visi resursi");
             fill('.work-sel', workTypes, "Visi darba veidi");
         }

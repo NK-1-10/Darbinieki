@@ -335,8 +335,8 @@ app.get('/api/cars', async (req, res) => {
 
 app.get('/api/objects', async (req, res) => {
     try {
-        const r = await pool.query("SELECT name FROM objects ORDER BY name ASC");
-        res.json(r.rows.map(row => row.name));
+        const r = await pool.query("SELECT name, latitude, longitude, radius_m FROM objects ORDER BY name ASC");
+        res.json(r.rows);
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
