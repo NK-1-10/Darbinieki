@@ -336,13 +336,12 @@
         }
     };
 
-    // GPS pārbaude — atgriež true ja darbinieks ir pietiekami tuvu
+    // GPS pārbaude — OBLIGĀTA, nav iespējas apiet
     function checkGpsLocation(objLat, objLng, radiusM) {
         return new Promise(resolve => {
             if (!navigator.geolocation) {
-                // GPS nav pieejams — atļaujam turpināt ar brīdinājumu
-                if (confirm("GPS nav pieejams šajā ierīcē. Turpināt bez pārbaudes?")) resolve(true);
-                else resolve(false);
+                alert("GPS nav pieejams šajā ierīcē. Nevar sākt/beigt darbu bez atrašanās vietas!");
+                resolve(false);
                 return;
             }
 
@@ -356,14 +355,14 @@
                     if (dist <= radiusM) {
                         resolve(true);
                     } else {
-                        alert(`Tu atrodas pārāk tālu no objekta! (${Math.round(dist)}m, atļautais rādiuss: ${radiusM}m)`);
+                        alert(`Tu atrodas pārāk tālu no objekta! (${Math.round(dist)}m, atļautais rādiuss: ${radiusM}m). Jābūt objektā lai sāktu/beigtu darbu.`);
                         resolve(false);
                     }
                 },
                 err => {
                     statusEl.textContent = '';
-                    if (confirm("Nevarēja noteikt atrašanās vietu. Turpināt bez pārbaudes?")) resolve(true);
-                    else resolve(false);
+                    alert("Nevarēja noteikt atrašanās vietu. Pārbaudi vai GPS ir ieslēgts un atļauts šai lapai.");
+                    resolve(false);
                 },
                 { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
             );
@@ -413,6 +412,14 @@
     };
 
     document.getElementById("stopBtn").onclick = async () => {
+        // GPS pārbaude pirms darba beigšanas
+        const objName = document.getElementById("object").value;
+        const objData = (window._objectsData || []).find(o => (o.name || o) === objName);
+        if (objData && objData.latitude && objData.longitude) {
+            const allowed = await checkGpsLocation(objData.latitude, objData.longitude, objData.radius_m || 200);
+            if (!allowed) return;
+        }
+
         const now = new Date();
         await fetch('/api/stop-work', {
             method: 'POST',
