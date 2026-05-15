@@ -41,9 +41,9 @@
             transform: translateX(-50%) !important;
             z-index: 50 !important;
         }
-        /* Mazāka atstarpe tabulas rindās -------------------------------------------------------------------------------*/
-        .sticky-table th, .sticky-table td { padding: 0px; font-size: 13px; line-height: normal ; height: 23px; } 
-        .sticky-table tbody tr { height: 26px !important; }
+        /* Mazāka atstarpe tabulas rindās */
+        .sticky-table th, .sticky-table td { padding: 0 8px !important; font-size: 12px !important; line-height: 26px !important; height: 26px !important; max-height: 26px !important; white-space: nowrap; overflow: hidden; }
+        .sticky-table tbody tr { height: 26px !important; max-height: 26px !important; }
         .col-filter-wrap { gap: 3px !important; }
         /* Kolonnu filtri */
         .col-filter-wrap { position: relative; display: inline-flex; align-items: center; gap: 5px; }
@@ -735,7 +735,7 @@ if(workerEl) {
                                     <td>${e.objekts || '-'}</td>
                                     <td>${e.car || '-'}</td>
                                     <td style="text-align: center;" class="gold-val">${parseFloat(e.hours || 0).toFixed(2)}</td>
-                                    <td style="white-space:nowrap;"><button class="pencil" onclick="openEditFuel(${e.id}, '${e.resource_name}', ${e.resource_amount}, ${e.mh_current || 'null'})" style="margin-right:4px;">✏️</button><button class="btn-del" onclick="deleteScheduleItem(${e.id})">✖</button></td>
+                                    <td style="white-space:nowrap;"><button class="pencil" onclick="openEditWork(${e.id}, '${e.darbs}', '${e.objekts}', '${e.car}', ${e.hours})" style="margin-right:4px;">✏️</button><button class="btn-del" onclick="deleteScheduleItem(${e.id})">✖</button></td>
                                 </tr>`).join("")}
                         </tbody>
                     </table>`;
@@ -820,7 +820,7 @@ if(workerEl) {
                                     '<td style="text-align: center;">' + (e.mh_current != null ? e.mh_current + ' h' : '-') + '</td>' +
                                     (() => { const l = parseFloat(e.resource_amount||0); const mhD = e.mh_current != null && e.mh_previous != null ? parseFloat(e.mh_current) - parseFloat(e.mh_previous) : 0; const pat = mhD > 0 ? (l/mhD).toFixed(2) + ' L/mH' : '-'; return '<td style="text-align: center;">' + pat + '</td>'; })() +
                                     '<td style="white-space:nowrap;">' +
-                                        '<button class="pencil" onclick="openEditWork(' + e.id + ',\''+e.darbs+'\',\''+e.objekts+'\',\''+e.car+'\','+e.hours+')" style="margin-right:4px;">✏️</button>' +
+                                        '<button class="pencil" onclick="openEditFuel(' + e.id + ',\'' + (e.resource_name||'') + '\',' + (e.resource_amount||0) + ',' + (e.mh_current||'null') + ')" style="margin-right:4px;">✏️</button>' +
                                         '<button class="btn-del" onclick="deleteScheduleItem(' + e.id + ')">✖</button>' +
                                     '</td>' +
                                     '</tr>';
