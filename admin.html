@@ -342,18 +342,18 @@
 
             <div id="editFieldsWork" style="display:none; gap:8px; flex-direction:column;">
                 <label style="font-size:12px;color:#666;">Darba veids</label>
-                <input type="text" id="editDarbs" style="margin:0 0 6px;">
+                <select id="editDarbs" style="margin:0 0 6px;"></select>
                 <label style="font-size:12px;color:#666;">Objekts</label>
-                <input type="text" id="editObjekts" style="margin:0 0 6px;">
+                <select id="editObjekts" style="margin:0 0 6px;"></select>
                 <label style="font-size:12px;color:#666;">Auto</label>
-                <input type="text" id="editCar" style="margin:0 0 6px;">
+                <select id="editCar" style="margin:0 0 6px;"></select>
                 <label style="font-size:12px;color:#666;">Stundas</label>
                 <input type="number" id="editHours" step="0.01" style="margin:0;">
             </div>
 
             <div id="editFieldsFuel" style="display:none; gap:8px; flex-direction:column;">
                 <label style="font-size:12px;color:#666;">Resurss</label>
-                <input type="text" id="editResName" style="margin:0 0 6px;">
+                <select id="editResName" style="margin:0 0 6px;"></select>
                 <label style="font-size:12px;color:#666;">Daudzums (L)</label>
                 <input type="number" id="editResAmount" step="0.01" style="margin:0 0 6px;">
                 <div id="editMhSection" style="display:none;">
@@ -1221,6 +1221,12 @@ async function saveWorkerEdit() {
         }
 
         // --- IERAKSTU REDIĢĒŠANA ---
+        function fillEditSelect(id, options, currentVal, emptyLabel='—') {
+            const sel = document.getElementById(id);
+            sel.innerHTML = `<option value="">${emptyLabel}</option>` +
+                options.map(o => `<option value="${o}" ${o === currentVal ? 'selected' : ''}>${o}</option>`).join('');
+        }
+
         function openEditWork(id, darbs, objekts, car, hours) {
             document.getElementById('editRecordId').value = id;
             document.getElementById('editRecordType').value = 'work';
@@ -1228,9 +1234,9 @@ async function saveWorkerEdit() {
             document.getElementById('editFieldsWork').style.display = 'flex';
             document.getElementById('editFieldsFuel').style.display = 'none';
             document.getElementById('editFieldsHours').style.display = 'none';
-            document.getElementById('editDarbs').value = darbs || '';
-            document.getElementById('editObjekts').value = objekts || '';
-            document.getElementById('editCar').value = car || '';
+            fillEditSelect('editDarbs', workTypes, darbs);
+            fillEditSelect('editObjekts', objects.map(o => o.name || o), objekts, '— Nav objekta —');
+            fillEditSelect('editCar', cars.map(c => c.name || c), car, '— Nav mašīnas —');
             document.getElementById('editHours').value = hours || '';
             document.getElementById('editRecordModal').style.display = 'flex';
         }
@@ -1242,7 +1248,7 @@ async function saveWorkerEdit() {
             document.getElementById('editFieldsWork').style.display = 'none';
             document.getElementById('editFieldsFuel').style.display = 'flex';
             document.getElementById('editFieldsHours').style.display = 'none';
-            document.getElementById('editResName').value = resName || '';
+            fillEditSelect('editResName', resourceTypes.map(r => r.name), resName);
             document.getElementById('editResAmount').value = resAmount || '';
             document.getElementById('editMhCurrent').value = mhCurrent || '';
             document.getElementById('editMhSection').style.display = mhCurrent ? 'block' : 'none';

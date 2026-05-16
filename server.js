@@ -128,26 +128,35 @@ app.put('/api/schedule/:id', async (req, res) => {
         if (!old.rows.length) return res.status(404).json({ error: "Nav atrasts" });
         const e = old.rows[0];
 
-        // Ja mainās resursu daudzums -> atjaunojam krājumu
+        // Ja mainās resursu daudzums VAI nosaukums -> atjaunojam krājumu
         const oldAmt = parseFloat(e.resource_amount || 0);
-        const newAmt = parseFloat(resource_amount || e.resource_amount || 0);
-        const resName = resource_name || e.resource_name;
+        const newAmt = parseFloat(resource_amount !== undefined ? resource_amount : e.resource_amount || 0);
+        const oldResName = e.resource_name;
+        const newResName = resource_name !== undefined ? resource_name : oldResName;
+        const resChanged = newResName !== oldResName;
+        const amtChanged = oldAmt !== newAmt;
+        const isConsumption = e.darbs === 'Degvielas uzpilde' || e.darbs === 'Eļļas papildināšana' || e.darbs === 'Resursu atņemšana';
+        const isAddition = e.darbs === 'Resursu papildinājums';
 
-        if (resName && oldAmt !== newAmt) {
-            const isConsumption = e.darbs === 'Degvielas uzpilde' || e.darbs === 'Eļļas papildināšana' || e.darbs === 'Resursu atņemšana';
-            const isAddition = e.darbs === 'Resursu papildinājums';
-            if (isConsumption) {
-                // Pieskaitām veco, atņemam jauno
-                await pool.query(
-                    'UPDATE resource_types SET quantity = COALESCE(quantity,0) + $1 - $2 WHERE name = $3',
-                    [oldAmt, newAmt, resName]
-                );
-            } else if (isAddition) {
-                // Atņemam veco, pieskaitām jauno
-                await pool.query(
-                    'UPDATE resource_types SET quantity = COALESCE(quantity,0) - $1 + $2 WHERE name = $3',
-                    [oldAmt, newAmt, resName]
-                );
+        if ((resChanged || amtChanged) && (isConsumption || isAddition)) {
+            if (resChanged) {
+                // Atdodam veco resursam atpakaļ
+                if (oldResName) {
+                    const sign = isConsumption ? 1 : -1;
+                    await pool.query('UPDATE resource_types SET quantity = COALESCE(quantity,0) + $1 WHERE name = $2', [sign * oldAmt, oldResName]);
+                }
+                // Atņemam no jaunā resursa
+                if (newResName) {
+                    const sign = isConsumption ? -1 : 1;
+                    await pool.query('UPDATE resource_types SET quantity = COALESCE(quantity,0) + $1 WHERE name = $2', [sign * newAmt, newResName]);
+                }
+            } else {
+                // Tikai daudzums mainījās
+                if (isConsumption) {
+                    await pool.query('UPDATE resource_types SET quantity = COALESCE(quantity,0) + $1 - $2 WHERE name = $3', [oldAmt, newAmt, oldResName]);
+                } else if (isAddition) {
+                    await pool.query('UPDATE resource_types SET quantity = COALESCE(quantity,0) - $1 + $2 WHERE name = $3', [oldAmt, newAmt, oldResName]);
+                }
             }
         }
 
