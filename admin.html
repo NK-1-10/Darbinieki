@@ -848,8 +848,8 @@ if(workerEl) {
                                     <td>${e.darbs || '-'}</td>
                                     <td>${e.objekts || '-'}</td>
                                     <td>${e.car || '-'}</td>
-                                    <td style="text-align: center;" class="gold-val">${parseFloat(e.hours || 0).toFixed(2)}</td>
-                                    <td style="white-space:nowrap;"><button class="pencil" onclick="openEditWork(${e.id}, '${e.darbs}', '${e.objekts}', '${e.car}', ${e.hours})" style="margin-right:4px;">✏️</button><button class="btn-del" onclick="deleteScheduleItem(${e.id})">✖</button></td>
+                                    <td style="text-align: center;" class="gold-val">${(parseFloat((e.hours||'0').toString().replace('*',''))||0).toFixed(2)}${(e.hours||'').toString().includes('*')?'*':''}</td>
+                                    <td style="white-space:nowrap;"><button class="pencil" onclick="openEditWork(${e.id}, '${e.darbs}', '${e.objekts}', '${e.car}', ${parseFloat((e.hours||'0').toString().replace('*',''))||0})" style="margin-right:4px;">✏️</button><button class="btn-del" onclick="deleteScheduleItem(${e.id})">✖</button></td>
                                 </tr>`).join("")}
                         </tbody>
                     </table>`;
@@ -995,7 +995,6 @@ if(workerEl) {
                                 const kopaa = parseFloat(e.stundas || 0);
                                 const darba = Math.max(0, kopaa - pusd);
                                 const isAutoStop = (e.beidza_darbu || '').includes('*');
-                                const star = isAutoStop ? '*' : '';
                                 return `
                                 <tr>
                                     <td>${e.datums}</td>
@@ -1003,12 +1002,12 @@ if(workerEl) {
                                     <td>${e.sāka_darbu}</td>
                                     <td>${e.beidza_darbu || '-'}</td>
                                     <td style="text-align: center;">${pusd > 0 ? pusd.toFixed(2) + ' h' : '-'}</td>
-                                    <td style="text-align: center;" class="gold-val">${kopaa.toFixed(2)}${star}</td>
-                                    <td style="text-align: center;" class="gold-val">${darba.toFixed(2)}${star}</td>
+                                    <td style="text-align: center;" class="gold-val">${kopaa.toFixed(2)}</td>
+                                    <td style="text-align: center;" class="gold-val">${darba.toFixed(2)}</td>
                                     <td style="white-space:nowrap;">
                                         ${e.id ? `
                                             <button class="pencil" onclick="openEditHours(${e.id}, ${e.stundas})" style="margin-right:4px;">✏️</button>
-                                            <button class="btn-del" onclick="deleteHoursItem(${e.id})">✖</button>` : ''}
+                                            <button class="btn-del" onclick="deleteHoursItem(${e.id})">${isAutoStop ? '✖*' : '✖'}</button>` : ''}
                                     </td>
                                 </tr>`;
                             }).join("")}
