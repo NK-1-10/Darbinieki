@@ -695,8 +695,22 @@
             console.log(`⏱ Auto-stop pēc ${Math.round(msLeft/1000)} sekundēm (${stopTime})`);
 
             if (_autoStopTimer) clearTimeout(_autoStopTimer);
-            _autoStopTimer = setTimeout(() => {
-                console.log('🕛 Auto-stop laiks — pārlādē worker lapu');
+            _autoStopTimer = setTimeout(async () => {
+                console.log('🕛 Auto-stop laiks — gaidam serveri...');
+                // Gaidam 5 sekundes lai serveris paspēj izpildīt cron
+                await new Promise(r => setTimeout(r, 5000));
+                // Pārbaudam vairākas reizes līdz shift ir beigusies
+                for (let i = 0; i < 10; i++) {
+                    const r = await fetch(`/api/shift-status?worker_name=${encodeURIComponent(user.name)}`);
+                    const d = await r.json();
+                    if (!d.active) {
+                        console.log('✅ Shift beigusies, pārlādē');
+                        loadWorkerData();
+                        return;
+                    }
+                    await new Promise(r => setTimeout(r, 3000)); // gaida 3 sek un mēģina vēlreiz
+                }
+                // Ja pēc 35 sek vēl aktīvs — pārlādē tik un tā
                 loadWorkerData();
             }, msLeft);
         } catch(e) {}
