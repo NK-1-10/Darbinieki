@@ -517,17 +517,18 @@
                             </label>` : '';
                         const caurlaideBadge = isCars ? getCaurlaideBadge(item.caurlaide_lidz) : '';
                         const caurlaideDateStr = isCars && item.caurlaide_lidz ? item.caurlaide_lidz.substring(0,10) : '';
-                        const caurlaideBtn = isCars ? `
-                            <div class="btn-container">
-                                <button class="pencil" onclick="editCaurlaide('${val}', '${caurlaideDateStr}')" style="font-size:13px;">🪪</button>
-                                <span class="tooltip">Caurlaide</span>
-                            </div>` : '';
+                        const hasCaurlaide = isCars && !!item.caurlaide_lidz;
+                        const caurlaideCheckbox = isCars ? `
+                            <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:#666;cursor:pointer;margin-right:8px;" onclick="editCaurlaide('${val}', '${caurlaideDateStr}')">
+                                <input type="checkbox" ${hasCaurlaide ? 'checked' : ''} onclick="event.preventDefault();" style="width:18px;height:18px;cursor:pointer;">
+                                Caurlaide
+                            </label>
+                            ${caurlaideBadge}` : '';
                         return `<li style="flex-wrap:wrap; gap:6px;">
                             <span style="flex:1; min-width:80px;">${val}</span>
-                            ${caurlaideBadge}
                             ${checkboxHtml}
+                            ${caurlaideCheckbox}
                             <div class="worker-actions">
-                                ${caurlaideBtn}
                                 <div class="btn-container">
                                     <button class="pencil" onclick="editItem('${api}', '${val}')">✏️</button>
                                     <span class="tooltip">Rediģēt</span>
