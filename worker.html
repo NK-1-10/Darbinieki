@@ -72,47 +72,6 @@
 </head>
 <body class="worker-page">
 <style>
-/* STAGING */
-body.worker-page { background: #ffcccc !important; }
-
-/* Mobilie stili */
-@media (max-width: 600px) {
-    html, body { overflow: hidden !important; height: 100% !important; }
-    #ieraksti, #tableContainer { display: none !important; }
-    body.worker-page { padding: 5px !important; }
-    .card { min-height: unset !important; margin-bottom: 0 !important; padding: 8px 12px !important; border-radius: 12px !important; }
-    h2#welcome { font-size: 15px !important; margin: 0 0 2px !important; }
-    #status { padding: 5px 8px !important; font-size: 12px !important; margin: 2px 0 !important; }
-    .time-label { font-size: 11px !important; margin-bottom: 1px !important; }
-    button { min-height: 44px !important; font-size: 13px !important; margin: 2px 0 !important; padding: 6px 16px !important; border-radius: 12px !important; }
-    #logoutBtn { min-height: 30px !important; font-size: 11px !important; }
-    select, input[type="number"] { min-height: 34px !important; font-size: 12px !important; margin: 2px 0 !important; padding: 6px !important; }
-    #workControls { margin: 0 !important; }
-}
-
-/* Pogu krāsas */
-#AtWork, #LeaveWork { background: var(--red, #c0392b) !important; color: #fff !important; border: none !important; }
-#startBtn, #stopBtn { background: var(--green) !important; color: #fff !important; border: none !important; }
-#OpenResourceBtn { background: #f7f3e8 !important; color: var(--green) !important; border: 2px solid var(--gold) !important; }
-#logoutBtn { background: transparent !important; color: var(--muted) !important; border: 1px solid #d9dedb !important; }
-
-/* Pilnīgi pelēkas neaktīvās pogas */
-button.btn-inactive,
-button.btn-inactive:hover,
-#AtWork.btn-inactive,
-#LeaveWork.btn-inactive,
-#startBtn.btn-inactive,
-#stopBtn.btn-inactive,
-#OpenResourceBtn.btn-inactive {
-    background: #b0b8b4 !important;
-    color: #e0e0e0 !important;
-    border: none !important;
-    cursor: not-allowed !important;
-    opacity: 1 !important;
-    box-shadow: none !important;
-}
-</style>
-<style>
 @media (max-width: 600px) {
     html, body { overflow: hidden !important; height: 100% !important; }
     #ieraksti, #tableContainer { display: none !important; }
@@ -705,17 +664,6 @@ button.btn-inactive:hover,
     };
 
     // Pulkstenis — sākas vienreiz, darbojas vienmēr
-    const _clockEl = document.getElementById('clockDisplay');
-    if (_clockEl) {
-        const _updateClock = () => {
-            const now = new Date();
-            _clockEl.textContent = 'Šobrīd ir ' + now.toLocaleTimeString('lv-LV', {hour:'2-digit', minute:'2-digit'});
-        };
-        _updateClock();
-        setInterval(_updateClock, 1000);
-    }
-
-    // Pulkstenis — sākas vienreiz
     const _clockEl = document.getElementById('clockDisplay');
     if (_clockEl) {
         const _updateClock = () => {
