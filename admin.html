@@ -1445,12 +1445,6 @@ async function saveWorkerEdit() {
 
         document.getElementById('objLocAddress').addEventListener('keydown', e => { if (e.key === 'Enter') geocodeAddress(); });
 
-            else alert('Kļūda saglabājot!');
-        }
-
-            else alert('Kļūda!');
-        }
-
         loadData().then(() => applyViewerMode());
     </script>
 
