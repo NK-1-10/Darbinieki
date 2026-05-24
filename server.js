@@ -849,7 +849,7 @@ cron.schedule('* * * * *', async () => {
                 const jobHours = calculateHours(activeJob.rows[0].sākuma_laiks, stopTime);
                 await pool.query(
                     `UPDATE schedule SET beigu_laiks = $1, hours = $2 WHERE id = $3`,
-                    [endMark, jobHours + '*', activeJob.rows[0].id]
+                    [endMark, jobHours, activeJob.rows[0].id]
                 );
                 // Shift stundas — ja ir pabeigti darbi tajā dienā, rēķinām līdz tiem
                 let shiftHours = '0.00';
