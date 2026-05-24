@@ -45,10 +45,15 @@ app.put('/api/workers/:originalName', async (req, res) => {
 
 // --- PALĪGFUNKCIJA LAIKA STARPĪBAI ---
 function calculateHours(start, end) {
-    const [sh, sm, ss] = start.split(':').map(Number);
-    const [eh, em, es] = end.split(':').map(Number);
+    // Noņemam * ja ir (auto-stop marķieris)
+    const s = (start || '').replace('*', '').trim();
+    const e = (end || '').replace('*', '').trim();
+    const sp = s.split(':').map(Number);
+    const ep = e.split(':').map(Number);
+    const sh = sp[0]||0, sm = sp[1]||0, ss = sp[2]||0;
+    const eh = ep[0]||0, em = ep[1]||0, es = ep[2]||0;
     let diff = (eh * 3600 + em * 60 + es) - (sh * 3600 + sm * 60 + ss);
-    if (diff < 0) diff += 86400; 
+    if (diff < 0) diff += 86400;
     return (diff / 3600).toFixed(2);
 }
 
@@ -831,9 +836,10 @@ cron.schedule('* * * * *', async () => {
 
             if (activeJob.rows.length > 0) {
                 const endMark = stopTime + '*';
+                const jobHours = calculateHours(activeJob.rows[0].sākuma_laiks, stopTime);
                 await pool.query(
                     `UPDATE schedule SET beigu_laiks = $1, hours = $2 WHERE id = $3`,
-                    [endMark, calculateHours(activeJob.rows[0].sākuma_laiks, stopTime), activeJob.rows[0].id]
+                    [endMark, jobHours + '*', activeJob.rows[0].id]
                 );
                 await pool.query(
                     `UPDATE "darbastundas" SET beidza_darbu = $1, stundas = $2 WHERE id = $3`,
