@@ -852,8 +852,8 @@ if(workerEl) {
                                     <td>${e.darbs || '-'}</td>
                                     <td>${e.objekts || '-'}</td>
                                     <td>${e.car || '-'}</td>
-                                    <td style="text-align: center;" class="gold-val">${(parseFloat((e.hours||'0').toString().replace('*',''))||0).toFixed(2)}${(e.hours||'').toString().includes('*')?'*':''}</td>
-                                    <td style="white-space:nowrap;"><button class="pencil" onclick="openEditWork(${e.id}, '${e.darbs}', '${e.objekts}', '${e.car}', ${parseFloat((e.hours||'0').toString().replace('*',''))||0})" style="margin-right:4px;">✏️</button><button class="btn-del" onclick="deleteScheduleItem(${e.id})">✖</button></td>
+                                    <td style="text-align: center;" class="gold-val">${parseFloat(e.hours || 0).toFixed(2)}</td>
+                                    <td style="white-space:nowrap;"><button class="pencil" onclick="openEditWork(${e.id}, '${e.darbs}', '${e.objekts}', '${e.car}', ${e.hours})" style="margin-right:4px;">✏️</button><button class="btn-del" onclick="deleteScheduleItem(${e.id})">✖</button></td>
                                 </tr>`).join("")}
                         </tbody>
                     </table>`;
@@ -999,7 +999,6 @@ if(workerEl) {
                                 const kopaa = parseFloat(e.stundas || 0);
                                 const darba = Math.max(0, kopaa - pusd);
                                 const isAutoStop = (e.beidza_darbu || '').includes('*');
-                                // Sarkans ja: auto-stop AR *, VAI sākums > beigas (kļūdains ieraksts)
                                 const startT = (e.sāka_darbu||'').replace('*','');
                                 const endT = (e.beidza_darbu||'').replace('*','');
                                 const isBadTime = endT && startT > endT;
@@ -1017,7 +1016,7 @@ if(workerEl) {
                                     <td style="${numStyle}" class="gold-val">${darba.toFixed(2)}</td>
                                     <td style="white-space:nowrap;">
                                         ${e.id ? `
-                                            <button class="pencil" onclick="openEditHours(${e.id}, ${e.stundas}, '${(e.sāka_darbu||'').replace('*','')}', '${(e.beidza_darbu||'').replace('*','')}')" style="margin-right:4px;">✏️</button>
+                                            <button class="pencil" onclick="openEditHours(${e.id}, ${e.stundas}, '${startT}', '${endT}')" style="margin-right:4px;">✏️</button>
                                             <button class="btn-del" onclick="deleteHoursItem(${e.id})">✖</button>` : ''}
                                     </td>
                                 </tr>`;
@@ -1564,11 +1563,20 @@ async function saveWorkerEdit() {
         }
         async function saveSysSetting(key, value) {
             if (!value) return alert('Ievadi vērtību!');
+            let clean = value.trim();
+            if (clean.toLowerCase().includes('pm') || clean.toLowerCase().includes('am')) {
+                const d = new Date('1970-01-01 ' + clean);
+                const h = String(d.getHours()).padStart(2,'0');
+                const m = String(d.getMinutes()).padStart(2,'0');
+                clean = h + ':' + m;
+            } else {
+                clean = clean.substring(0,5);
+            }
             const res = await fetch('/api/settings', {
                 method: 'PUT', headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ key, value })
+                body: JSON.stringify({ key, value: clean })
             });
-            if (res.ok) { alert(`Saglabāts! Auto-stop laiks: ${value}`); closeSysSettings(); }
+            if (res.ok) { alert(`Saglabāts! Auto-stop laiks: ${clean}`); closeSysSettings(); }
             else alert('Kļūda saglabājot!');
         }
     </script>
