@@ -31,18 +31,6 @@
         #adminSettingsModal .btn-save:hover { background: #214735 !important; }
         .sidebar.collapsed .btn-settings span { display: none; }
         .sidebar.collapsed .btn-settings { padding: 0 !important; justify-content: center !important; }
-        .btn-sysconfig {
-            width: 100% !important; min-height: 46px;
-            border: 1px solid rgba(255,255,255,.25) !important;
-            border-radius: 8px !important; font-weight: 800;
-            display: flex !important; align-items: center !important;
-            justify-content: center !important; gap: 8px !important;
-            background: rgba(255,255,255,.1); color: #fff; font-size: 11px;
-        }
-        .btn-sysconfig:hover { background: rgba(255,255,255,.2); }
-        .sidebar.collapsed .btn-sysconfig span { display: none; }
-        .sidebar.collapsed .btn-sysconfig { padding: 0 !important; justify-content: center !important; }
-        body.viewer-mode .btn-sysconfig { display: none !important; }
         body.viewer-mode .btn-all-delete,
         body.viewer-mode .btn-settings { display: none !important; }
         .tooltip {
@@ -116,7 +104,6 @@
         </div>
 
         <div class="sidebar-footer">
-            <button class="btn-sysconfig" onclick="openSysSettings()">🔧 <span>IESTATĪJUMI</span></button>
             <button class="btn-settings" onclick="openAdminSettings()">⚙️ <span>ADMIN IESTATĪJUMI</span></button>
             <button class="btn-all-delete" onclick="deleteAllData()">⚠️ <span>DZĒST VISUS DATUS</span></button>
             <button class="btn-logout" onclick="logout()">
@@ -994,6 +981,8 @@ if(workerEl) {
                                 const pusd = getPusdienas(e.darbinieks, e.datums);
                                 const kopaa = parseFloat(e.stundas || 0);
                                 const darba = Math.max(0, kopaa - pusd);
+                                const isAutoStop = (e.beidza_darbu || '').includes('*');
+                                const star = isAutoStop ? '*' : '';
                                 return `
                                 <tr>
                                     <td>${e.datums}</td>
@@ -1001,8 +990,8 @@ if(workerEl) {
                                     <td>${e.sāka_darbu}</td>
                                     <td>${e.beidza_darbu || '-'}</td>
                                     <td style="text-align: center;">${pusd > 0 ? pusd.toFixed(2) + ' h' : '-'}</td>
-                                    <td style="text-align: center;" class="gold-val">${kopaa.toFixed(2)}</td>
-                                    <td style="text-align: center;" class="gold-val">${darba.toFixed(2)}</td>
+                                    <td style="text-align: center;" class="gold-val">${kopaa.toFixed(2)}${star}</td>
+                                    <td style="text-align: center;" class="gold-val">${darba.toFixed(2)}${star}</td>
                                     <td style="white-space:nowrap;">
                                         ${e.id ? `
                                             <button class="pencil" onclick="openEditHours(${e.id}, ${e.stundas})" style="margin-right:4px;">✏️</button>
@@ -1502,45 +1491,6 @@ async function saveWorkerEdit() {
         }
 
         loadData().then(() => applyViewerMode());
-    </script>
-
-    <!-- SISTĒMAS IESTATĪJUMU MODĀLS -->
-    <div id="sysSettingsModal" class="modal" style="display:none;">
-        <div class="modal-content" style="width:min(92vw,460px); padding:20px;">
-            <h3 style="margin:0 0 16px; font-size:15px; color:#2d5a3d;">🔧 Sistēmas iestatījumi</h3>
-            <p style="font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:#888; margin:0 0 6px;">Auto-stop laiks</p>
-            <p style="font-size:12px; color:#666; margin:0 0 8px;">Laiks, kad darbinieki tiek automātiski apstādināti, ja aizmirsuši beigt darbu.</p>
-            <div style="display:grid; grid-template-columns:1fr auto; gap:8px; margin-bottom:20px;">
-                <input type="time" id="sysAutoStopTime" style="margin:0; min-height:42px; border:1px solid #ddd; border-radius:8px; padding:8px 12px; font-size:15px;">
-                <button onclick="saveSysSetting('auto_stop_time', document.getElementById('sysAutoStopTime').value)" style="background:#173629;color:#fff;border:none;border-radius:8px;padding:0 16px;font-weight:700;cursor:pointer;">Saglabāt</button>
-            </div>
-            <button onclick="closeSysSettings()" style="width:100%;background:#f0f0f0;color:#444;border:none;border-radius:8px;padding:10px;font-weight:700;cursor:pointer;">Aizvērt</button>
-        </div>
-    </div>
-
-    <script>
-        async function openSysSettings() {
-            try {
-                const res = await fetch('/api/settings');
-                const s = await res.json();
-                document.getElementById('sysAutoStopTime').value = s.auto_stop_time || '00:00';
-            } catch(e) {
-                document.getElementById('sysAutoStopTime').value = '00:00';
-            }
-            document.getElementById('sysSettingsModal').style.display = 'flex';
-        }
-        function closeSysSettings() {
-            document.getElementById('sysSettingsModal').style.display = 'none';
-        }
-        async function saveSysSetting(key, value) {
-            if (!value) return alert('Ievadi vērtību!');
-            const res = await fetch('/api/settings', {
-                method: 'PUT', headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ key, value })
-            });
-            if (res.ok) { alert(`Saglabāts! Auto-stop laiks: ${value}`); closeSysSettings(); }
-            else alert('Kļūda saglabājot!');
-        }
     </script>
 </body>
 </html>
