@@ -838,31 +838,40 @@ cron.schedule('* * * * *', async () => {
             );
 
             if (activeJob.rows.length > 0) {
+                // Aktīvs darbs — beigt ar stopTime*
+                // Shift stundas: ja ir pabeigti darbi → līdz pēdējam, citādi 0
                 const endMark = stopTime + '*';
                 const jobHours = calculateHours(activeJob.rows[0].sākuma_laiks, stopTime);
                 await pool.query(
                     `UPDATE schedule SET beigu_laiks = $1, hours = $2 WHERE id = $3`,
                     [endMark, jobHours + '*', activeJob.rows[0].id]
                 );
+                // Shift stundas — ja ir pabeigti darbi tajā dienā, rēķinām līdz tiem
+                let shiftHours = '0.00';
+                if (lastFinished.rows.length > 0) {
+                    shiftHours = calculateHours(shift.sāka_darbu, lastFinished.rows[0].beigu_laiks.replace('*',''));
+                }
                 await pool.query(
                     `UPDATE "darbastundas" SET beidza_darbu = $1, stundas = $2 WHERE id = $3`,
-                    [endMark, calculateHours(shift.sāka_darbu, stopTime), shift.id]
+                    [endMark, shiftHours, shift.id]
                 );
-                console.log(`⛔ ${workerName}: auto-slēgts ar ${endMark}`);
+                console.log(`⛔ ${workerName}: aktīvs darbs slēgts, shift stundas: ${shiftHours}`);
             } else if (lastFinished.rows.length > 0) {
-                const lastEndTime = lastFinished.rows[0].beigu_laiks;
+                // Nav aktīva darba, bet ir pabeigti → beigas = pēdējā darba beigu laiks
+                const lastEndTime = lastFinished.rows[0].beigu_laiks.replace('*','');
                 await pool.query(
                     `UPDATE "darbastundas" SET beidza_darbu = $1, stundas = $2 WHERE id = $3`,
                     [lastEndTime, calculateHours(shift.sāka_darbu, lastEndTime), shift.id]
                 );
                 console.log(`✅ ${workerName}: diena slēgta ar ${lastEndTime}`);
             } else {
+                // Nav neviena darba → 0h, beigas stopTime*
                 const endMark = stopTime + '*';
                 await pool.query(
                     `UPDATE "darbastundas" SET beidza_darbu = $1, stundas = $2 WHERE id = $3`,
-                    [endMark, calculateHours(shift.sāka_darbu, stopTime), shift.id]
+                    [endMark, '0.00', shift.id]
                 );
-                console.log(`⚠️ ${workerName}: nav darbu, diena slēgta ar ${endMark}`);
+                console.log(`⚠️ ${workerName}: nav darbu, diena slēgta ar 0h`);
             }
         }
     } catch (err) {
