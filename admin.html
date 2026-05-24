@@ -995,19 +995,25 @@ if(workerEl) {
                                 const kopaa = parseFloat(e.stundas || 0);
                                 const darba = Math.max(0, kopaa - pusd);
                                 const isAutoStop = (e.beidza_darbu || '').includes('*');
+                                // Sarkans ja: auto-stop AR *, VAI sākums > beigas (kļūdains ieraksts)
+                                const startT = (e.sāka_darbu||'').replace('*','');
+                                const endT = (e.beidza_darbu||'').replace('*','');
+                                const isBadTime = endT && startT > endT;
+                                const rowBg = (isAutoStop || isBadTime) ? 'background:#ffd6d6;' : '';
+                                const beigasCell = (isAutoStop || isBadTime) ? '' : (e.beidza_darbu || '-');
                                 return `
-                                <tr>
+                                <tr style="${rowBg}">
                                     <td>${e.datums}</td>
                                     <td>${e.darbinieks}</td>
                                     <td>${e.sāka_darbu}</td>
-                                    <td>${isAutoStop ? '' : (e.beidza_darbu || '-')}</td>
+                                    <td>${beigasCell}</td>
                                     <td style="text-align: center;">${pusd > 0 ? pusd.toFixed(2) + ' h' : '-'}</td>
                                     <td style="text-align: center;" class="gold-val">${kopaa.toFixed(2)}</td>
                                     <td style="text-align: center;" class="gold-val">${darba.toFixed(2)}</td>
                                     <td style="white-space:nowrap;">
                                         ${e.id ? `
                                             <button class="pencil" onclick="openEditHours(${e.id}, ${e.stundas})" style="margin-right:4px;">✏️</button>
-                                            <button class="btn-del" onclick="deleteHoursItem(${e.id})">${isAutoStop ? '✖*' : '✖'}</button>` : ''}
+                                            <button class="btn-del" onclick="deleteHoursItem(${e.id})">${(isAutoStop||isBadTime) ? '✖*' : '✖'}</button>` : ''}
                                     </td>
                                 </tr>`;
                             }).join("")}
