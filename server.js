@@ -2,6 +2,7 @@ const express = require('express');
 const { Pool } = require('pg');
 const path = require('path');
 const cors = require('cors');
+const cron = require('node-cron');
 
 const app = express();
 app.use(express.json());
@@ -763,6 +764,77 @@ app.post('/api/darbastundas', async (req, res) => {
 app.delete('/api/schedule', async (req, res) => {
     try { await pool.query('DELETE FROM schedule'); res.json({ success: true }); } 
     catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// --- PUSNAKTS AUTO-STOP ---
+cron.schedule('0 0 * * *', async () => {
+    console.log('🕛 Pusnakts cron: pārbaudām aktīvos darbus...');
+    const todayLV = getTodayLV();
+
+    try {
+        const activeShifts = await pool.query(
+            `SELECT * FROM "darbastundas" WHERE beidza_darbu IS NULL`
+        );
+
+        for (const shift of activeShifts.rows) {
+            const workerName = shift.darbinieks;
+
+            // Aktīvs konkrēts darbs?
+            const activeJob = await pool.query(
+                `SELECT * FROM schedule 
+                 WHERE worker_name = $1 
+                 AND beigu_laiks IS NULL 
+                 AND darbs NOT IN ('Degvielas uzpilde', 'Eļļas papildināšana')
+                 ORDER BY id DESC LIMIT 1`,
+                [workerName]
+            );
+
+            // Pēdējais pabeigtais darbs šodien?
+            const lastFinished = await pool.query(
+                `SELECT * FROM schedule 
+                 WHERE worker_name = $1 
+                 AND date = $2
+                 AND beigu_laiks IS NOT NULL
+                 AND darbs NOT IN ('Degvielas uzpilde', 'Eļļas papildināšana')
+                 ORDER BY id DESC LIMIT 1`,
+                [workerName, todayLV]
+            );
+
+            if (activeJob.rows.length > 0) {
+                // Gadījums 3: aktīvs darbs → beigt ar 00:00*
+                await pool.query(
+                    `UPDATE schedule SET beigu_laiks = $1, hours = $2 WHERE id = $3`,
+                    ['00:00*', calculateHours(activeJob.rows[0].sākuma_laiks, '00:00'), activeJob.rows[0].id]
+                );
+                await pool.query(
+                    `UPDATE "darbastundas" SET beidza_darbu = $1, stundas = $2 WHERE id = $3`,
+                    ['00:00*', calculateHours(shift.sāka_darbu, '00:00'), shift.id]
+                );
+                console.log(`⛔ ${workerName}: aktīvs darbs auto-slēgts ar 00:00*`);
+
+            } else if (lastFinished.rows.length > 0) {
+                // Gadījums 1: ir pabeigti darbi → beigu laiks = pēdējā darba beigu laiks
+                const lastEndTime = lastFinished.rows[0].beigu_laiks;
+                await pool.query(
+                    `UPDATE "darbastundas" SET beidza_darbu = $1, stundas = $2 WHERE id = $3`,
+                    [lastEndTime, calculateHours(shift.sāka_darbu, lastEndTime), shift.id]
+                );
+                console.log(`✅ ${workerName}: darba diena slēgta ar ${lastEndTime}`);
+
+            } else {
+                // Gadījums 2: nav neviena darba → 00:00*
+                await pool.query(
+                    `UPDATE "darbastundas" SET beidza_darbu = $1, stundas = $2 WHERE id = $3`,
+                    ['00:00*', calculateHours(shift.sāka_darbu, '00:00'), shift.id]
+                );
+                console.log(`⚠️ ${workerName}: nav darbu, darba diena slēgta ar 00:00*`);
+            }
+        }
+    } catch (err) {
+        console.error('Cron kļūda:', err);
+    }
+}, {
+    timezone: 'Europe/Riga'
 });
 
 const PORT = process.env.PORT || 8080;
