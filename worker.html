@@ -11,7 +11,7 @@
     #tableContainer table th,
     #tableContainer table td { text-align: center; }
 
-    /* Pogu bāzes stāvokļi */
+    /* Pogu bāzes stāvokļi — krāsa tikai aktīvajām */
     #AtWork, #LeaveWork {
         background: var(--red, #c0392b) !important;
         color: #fff !important;
@@ -22,15 +22,13 @@
         color: #fff !important;
         border: none !important;
     }
-
-    /* Pelēkais / neaktīvais stāvoklis */
-    button.btn-inactive {
-        background: #b0b8b4 !important;
-        color: #fff !important;
-        border: none !important;
-        cursor: not-allowed !important;
-        opacity: 0.7 !important;
+    #OpenResourceBtn {
+        background: #f7f3e8 !important;
+        color: var(--green) !important;
+        border: 2px solid var(--gold) !important;
     }
+
+    /* btn-inactive definēts zemāk */
 </style>
 <style>
     #tableContainer table th,
@@ -49,6 +47,22 @@
         color: var(--muted) !important;
         border: 1px solid #d9dedb !important;
     }
+    /* Pelēkais / neaktīvais stāvoklis — PILNĪGI pelēks */
+    button.btn-inactive,
+    button.btn-inactive:hover,
+    button.btn-inactive:focus,
+    #AtWork.btn-inactive,
+    #LeaveWork.btn-inactive,
+    #startBtn.btn-inactive,
+    #stopBtn.btn-inactive,
+    #OpenResourceBtn.btn-inactive {
+        background: #b0b8b4 !important;
+        color: #e0e0e0 !important;
+        border: none !important;
+        cursor: not-allowed !important;
+        opacity: 1 !important;
+        box-shadow: none !important;
+    }
     select, input[type="number"] {
         min-height: 60px !important;
         font-size: 17px !important;
@@ -57,11 +71,46 @@
 
 </head>
 <body class="worker-page">
+<style>
+@media (max-width: 600px) {
+    html, body { overflow: hidden !important; height: 100% !important; }
+    #ieraksti, #tableContainer { display: none !important; }
+    body.worker-page { padding: 5px !important; }
+    .card {
+        min-height: unset !important;
+        margin-bottom: 0 !important;
+        padding: 8px 12px !important;
+        border-radius: 12px !important;
+    }
+    h2#welcome { font-size: 15px !important; margin: 0 0 2px !important; }
+    #status { padding: 5px 8px !important; font-size: 12px !important; margin: 2px 0 !important; }
+    .time-label { font-size: 11px !important; margin-bottom: 1px !important; }
+    button {
+        min-height: 44px !important;
+        font-size: 13px !important;
+        margin: 2px 0 !important;
+        padding: 6px 16px !important;
+        border-radius: 12px !important;
+    }
+    #logoutBtn { min-height: 30px !important; font-size: 11px !important; }
+    select, input[type="number"] {
+        min-height: 34px !important;
+        font-size: 12px !important;
+        margin: 2px 0 !important;
+        padding: 6px !important;
+    }
+    #workControls { margin: 0 !important; }
+}
+</style>
     <div class="card">
         <h2 id="welcome"></h2>
-        <div id="shiftStartTimeDisplay" class="time-label shift-time"></div>
+        <div id="clockDisplay" class="time-label shift-time" style="margin-bottom:4px;"></div>
+        <div style="display:flex; justify-content:center; align-items:center; gap:6px; flex-wrap:wrap;">
+            <div id="shiftStartTimeDisplay" class="time-label shift-time"></div>
+            <div id="timeSeparator" class="time-label shift-time" style="display:none;">/</div>
+            <div id="workStartTimeDisplay" class="time-label shift-time"></div>
+        </div>
         <div id="status">Darba diena nav sākta</div>
-        <div id="workStartTimeDisplay" class="time-label work-time"></div>
 
         <button id="AtWork">SĀKT DIENU</button>
         <button id="startBtn">SĀKT DARBU</button>
@@ -182,26 +231,46 @@
                 }
             }
 
+            // Separators starp laikiem
+            function updateSeparator() {
+                const s = shiftDisplay.textContent;
+                const w = workTimeDisplay.textContent;
+                const sep = document.getElementById('timeSeparator');
+                if(sep) sep.style.display = (s && w) ? '' : 'none';
+            }
+
             if (!isShiftStarted) {
-                // Sākuma stāvoklis — tikai Sākt dienu aktīva
+                // Sākuma stāvoklis — TIKAI AtWork poga + pulkstenis
                 setBtn('AtWork', true);
                 setBtn('startBtn', false);
                 setBtn('stopBtn', false);
                 setBtn('LeaveWork', false);
-                document.getElementById("status").textContent = "Darba diena nav sākta";
+                document.getElementById("startBtn").style.display = 'none';
+                document.getElementById("stopBtn").style.display = 'none';
+                document.getElementById("LeaveWork").style.display = 'none';
+                document.getElementById("workControls").style.display = 'none';
+                document.getElementById("OpenResourceBtn").style.display = 'none';
+                document.getElementById("status").style.display = 'none';
+                document.getElementById("clockDisplay").style.display = '';
+                shiftDisplay.textContent = "";
                 workTimeDisplay.textContent = "";
-                carEl.disabled = true;
-                objEl.disabled = true;
-                wrkEl.disabled = true;
-                document.getElementById("OpenResourceBtn").classList.add('btn-inactive');
-                document.getElementById("OpenResourceBtn").disabled = true;
+                updateSeparator();
+
             } else if (activeJob) {
-                // Darbs aktīvs — tikai Beigt darbu zaļa, pārējās pelēkas
+                // Darbs aktīvs — visas pogas redzamas, tikai stopBtn aktīva
                 setBtn('AtWork', false);
                 setBtn('startBtn', false);
                 setBtn('stopBtn', true);
                 setBtn('LeaveWork', false);
-                document.getElementById("status").innerHTML = `Strādā: <b>${activeJob.objekts || 'Birojs'}</b>`;
+                document.getElementById("startBtn").style.display = '';
+                document.getElementById("stopBtn").style.display = '';
+                document.getElementById("LeaveWork").style.display = '';
+                document.getElementById("workControls").style.display = '';
+                document.getElementById("OpenResourceBtn").style.display = '';
+                document.getElementById("status").style.display = 'none';
+                document.getElementById("clockDisplay").style.display = 'none';
+                document.getElementById("OpenResourceBtn").classList.remove('btn-inactive');
+                document.getElementById("OpenResourceBtn").disabled = false;
                 workTimeDisplay.textContent = `Uzsāki šo darbu: ${activeJob.sākuma_laiks.substring(0, 5)}`;
                 carEl.value = activeJob.car || '';
                 objEl.value = activeJob.objekts || '';
@@ -209,21 +278,28 @@
                 carEl.disabled = true;
                 objEl.disabled = true;
                 wrkEl.disabled = true;
-                document.getElementById("OpenResourceBtn").classList.remove('btn-inactive');
-                document.getElementById("OpenResourceBtn").disabled = false;
+                updateSeparator();
+
             } else {
-                // Diena sākta, nav aktīva darba — Sākt darbu zaļa, Beigt dienu sarkana
+                // Diena sākta, nav aktīva darba
                 setBtn('AtWork', false);
                 setBtn('startBtn', true);
                 setBtn('stopBtn', false);
                 setBtn('LeaveWork', true);
-                document.getElementById("status").textContent = "Darba diena ir sākta";
+                document.getElementById("startBtn").style.display = '';
+                document.getElementById("stopBtn").style.display = '';
+                document.getElementById("LeaveWork").style.display = '';
+                document.getElementById("workControls").style.display = '';
+                document.getElementById("OpenResourceBtn").style.display = '';
+                document.getElementById("status").style.display = 'none';
+                document.getElementById("clockDisplay").style.display = 'none';
+                document.getElementById("OpenResourceBtn").classList.remove('btn-inactive');
+                document.getElementById("OpenResourceBtn").disabled = false;
                 workTimeDisplay.textContent = "";
                 carEl.disabled = false;
                 objEl.disabled = false;
                 wrkEl.disabled = false;
-                document.getElementById("OpenResourceBtn").classList.remove('btn-inactive');
-                document.getElementById("OpenResourceBtn").disabled = false;
+                updateSeparator();
             }
 
             renderTable(allSchedule.filter(e => e.worker_name === user.name));
@@ -587,6 +663,69 @@
         window.location.href = "index.html";
     };
 
+    // Pulkstenis — sākas vienreiz, darbojas vienmēr
+    const _clockEl = document.getElementById('clockDisplay');
+    if (_clockEl) {
+        const _updateClock = () => {
+            const now = new Date();
+            _clockEl.textContent = 'Šobrīd ir ' + now.toLocaleTimeString('lv-LV', {hour:'2-digit', minute:'2-digit'});
+        };
+        _updateClock();
+        setInterval(_updateClock, 1000);
+    }
+
+    // Auto-stop timer — precīzi uzstāda setTimeout uz auto-stop laiku
+    let _autoStopTimer = null;
+
+    async function scheduleAutoStop() {
+        try {
+            const res = await fetch('/api/settings');
+            const s = await res.json();
+            const stopTime = s.auto_stop_time || '00:00';
+
+            const now = new Date();
+            const [sh, sm] = stopTime.split(':').map(Number);
+            const stop = new Date();
+            stop.setHours(sh, sm, 0, 0);
+
+            // Ja laiks jau pagājis šodien, neiestata (cron jau izpildījās)
+            if (stop <= now) return;
+
+            const msLeft = stop - now;
+            console.log(`⏱ Auto-stop pēc ${Math.round(msLeft/1000)} sekundēm (${stopTime})`);
+
+            if (_autoStopTimer) clearTimeout(_autoStopTimer);
+            _autoStopTimer = setTimeout(async () => {
+                console.log('🕛 Auto-stop laiks — gaidam serveri...');
+                // Gaidam 5 sekundes lai serveris paspēj izpildīt cron
+                await new Promise(r => setTimeout(r, 5000));
+                // Pārbaudam vairākas reizes līdz shift ir beigusies
+                for (let i = 0; i < 10; i++) {
+                    const r = await fetch(`/api/shift-status?worker_name=${encodeURIComponent(user.name)}`);
+                    const d = await r.json();
+                    if (!d.active) {
+                        console.log('✅ Shift beigusies, pārlādē');
+                        loadWorkerData();
+                        return;
+                    }
+                    await new Promise(r => setTimeout(r, 3000)); // gaida 3 sek un mēģina vēlreiz
+                }
+                // Ja pēc 35 sek vēl aktīvs — pārlādē tik un tā
+                loadWorkerData();
+            }, msLeft);
+        } catch(e) {}
+    }
+
+    // Periodiski pārbauda shift statusu (rezerves variants)
+    setInterval(async () => {
+        try {
+            const res = await fetch(`/api/shift-status?worker_name=${encodeURIComponent(user.name)}`);
+            const data = await res.json();
+            if (!data.active) loadWorkerData();
+        } catch(e) {}
+    }, 30000);
+
+    scheduleAutoStop();
     loadWorkerData();
 </script>
 </body>

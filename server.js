@@ -2,6 +2,7 @@ const express = require('express');
 const { Pool } = require('pg');
 const path = require('path');
 const cors = require('cors');
+const cron = require('node-cron');
 
 const app = express();
 app.use(express.json());
@@ -44,10 +45,18 @@ app.put('/api/workers/:originalName', async (req, res) => {
 
 // --- PALĪGFUNKCIJA LAIKA STARPĪBAI ---
 function calculateHours(start, end) {
-    const [sh, sm, ss] = start.split(':').map(Number);
-    const [eh, em, es] = end.split(':').map(Number);
+    // Noņemam * ja ir (auto-stop marķieris)
+    const s = (start || '').replace('*', '').trim();
+    const e = (end || '').replace('*', '').trim();
+    const sp = s.split(':').map(Number);
+    const ep = e.split(':').map(Number);
+    const sh = sp[0]||0, sm = sp[1]||0, ss = sp[2]||0;
+    const eh = ep[0]||0, em = ep[1]||0, es = ep[2]||0;
     let diff = (eh * 3600 + em * 60 + es) - (sh * 3600 + sm * 60 + ss);
-    if (diff < 0) diff += 86400; 
+    // Ja beigas ir pirms sākuma (pusnakts pāreja), pievieno 24h
+    // Bet ja starpība > 16h, visticamāk kļūda — atgriežam 0
+    if (diff < 0) diff += 86400;
+    if (diff > 16 * 3600) diff = 0;
     return (diff / 3600).toFixed(2);
 }
 
@@ -337,7 +346,7 @@ app.get('/api/workers', async (req, res) => {
 
 app.get('/api/cars', async (req, res) => {
     try {
-        const r = await pool.query("SELECT id, name, track_mh FROM cars ORDER BY name ASC");
+        const r = await pool.query("SELECT id, name, track_mh, caurlaide_lidz FROM cars ORDER BY name ASC");
         res.json(r.rows);
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -496,12 +505,11 @@ app.delete('/api/workers/:name', async (req, res) => {
 // --- PUT (REDIĢĒT) MARŠRUTI ---
 app.put('/api/cars/:name', async (req, res) => {
     try {
-        const { name, track_mh } = req.body;
-        if (track_mh !== undefined) {
-            await pool.query('UPDATE cars SET name = $1, track_mh = $2 WHERE name = $3', [name, track_mh, req.params.name]);
-        } else {
-            await pool.query('UPDATE cars SET name = $1 WHERE name = $2', [name, req.params.name]);
-        }
+        const { name, track_mh, caurlaide_lidz } = req.body;
+        await pool.query(
+            'UPDATE cars SET name = $1, track_mh = $2, caurlaide_lidz = $3 WHERE name = $4',
+            [name, track_mh !== undefined ? track_mh : false, caurlaide_lidz || null, req.params.name]
+        );
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -537,8 +545,10 @@ app.put('/api/resource-types/:name', async (req, res) => {
 });
 
 app.post('/api/start-work', async (req, res) => {
-    const { worker_name, car, start_time, objekts, darbs } = req.body;
-    const [date, time] = start_time.split(' ');
+    const { worker_name, car, objekts, darbs } = req.body;
+    // Laiku ņemam no servera, ne klienta
+    const date = getTodayLV();
+    const time = getTimeLV();
     try {
         const shiftCheck = await pool.query(
             `SELECT id FROM "darbastundas"
@@ -570,8 +580,9 @@ app.post('/api/start-work', async (req, res) => {
 });
 
 app.post('/api/stop-work', async (req, res) => {
-    const { worker_name, end_time } = req.body;
-    const timeOnly = end_time.split(' ')[1];
+    const { worker_name } = req.body;
+    // Laiku ņemam no servera, ne klienta
+    const timeOnly = getTimeLV();
     try {
         const active = await pool.query(
             "SELECT id, sākuma_laiks FROM schedule WHERE worker_name=$1 AND beigu_laiks IS NULL AND darbs NOT IN ('Degvielas uzpilde', 'Eļļas papildināšana') ORDER BY id DESC LIMIT 1",
@@ -764,6 +775,114 @@ app.delete('/api/schedule', async (req, res) => {
     try { await pool.query('DELETE FROM schedule'); res.json({ success: true }); } 
     catch (err) { res.status(500).json({ error: err.message }); }
 });
+
+// --- IESTATĪJUMI ---
+app.get('/api/settings', async (req, res) => {
+    try {
+        const r = await pool.query('SELECT key, value FROM settings');
+        const obj = {};
+        r.rows.forEach(row => obj[row.key] = row.value);
+        res.json(obj);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.put('/api/settings', async (req, res) => {
+    const { key, value } = req.body;
+    try {
+        await pool.query(
+            'INSERT INTO settings (key, value) VALUES ($1, $2) ON CONFLICT (key) DO UPDATE SET value = $2',
+            [key, value]
+        );
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// --- AUTO-STOP CRON (katru minūti pārbauda laiku no DB) ---
+cron.schedule('* * * * *', async () => {
+    let stopTime = '00:00';
+    try {
+        const s = await pool.query("SELECT value FROM settings WHERE key = 'auto_stop_time'");
+        if (s.rows[0]) stopTime = s.rows[0].value;
+    } catch(e) {}
+
+    const nowLV = new Date().toLocaleTimeString('lv-LV', {
+        timeZone: 'Europe/Riga', hour: '2-digit', minute: '2-digit', hour12: false
+    });
+    if (nowLV !== stopTime) return;
+
+    console.log(`🕛 Auto-stop: ${stopTime} — pārbaudām aktīvos darbus...`);
+    const todayLV = getTodayLV();
+
+    try {
+        const activeShifts = await pool.query(
+            `SELECT * FROM "darbastundas" WHERE beidza_darbu IS NULL`
+        );
+
+        for (const shift of activeShifts.rows) {
+            const workerName = shift.darbinieks;
+
+            const activeJob = await pool.query(
+                `SELECT * FROM schedule
+                 WHERE worker_name = $1
+                 AND beigu_laiks IS NULL
+                 AND darbs NOT IN ('Degvielas uzpilde', 'Eļļas papildināšana')
+                 ORDER BY id DESC LIMIT 1`,
+                [workerName]
+            );
+
+            const lastFinished = await pool.query(
+                `SELECT * FROM schedule
+                 WHERE worker_name = $1
+                 AND date = $2
+                 AND beigu_laiks IS NOT NULL
+                 AND REPLACE(beigu_laiks, '*', '') >= $3
+                 AND REPLACE(beigu_laiks, '*', '') <= $4
+                 AND darbs NOT IN ('Degvielas uzpilde', 'Eļļas papildināšana')
+                 ORDER BY beigu_laiks DESC LIMIT 1`,
+                [workerName, shift.datums, shift.sāka_darbu, stopTime]
+            );
+
+            if (activeJob.rows.length > 0) {
+                // Aktīvs darbs — beigt ar stopTime*
+                // Shift stundas: ja ir pabeigti darbi → līdz pēdējam, citādi 0
+                const endMark = stopTime + '*';
+                const jobHours = calculateHours(activeJob.rows[0].sākuma_laiks, stopTime);
+                await pool.query(
+                    `UPDATE schedule SET beigu_laiks = $1, hours = $2 WHERE id = $3`,
+                    [endMark, jobHours, activeJob.rows[0].id]
+                );
+                // Shift stundas — ja ir pabeigti darbi tajā dienā, rēķinām līdz tiem
+                let shiftHours = '0.00';
+                if (lastFinished.rows.length > 0) {
+                    shiftHours = calculateHours(shift.sāka_darbu, lastFinished.rows[0].beigu_laiks.replace('*',''));
+                }
+                await pool.query(
+                    `UPDATE "darbastundas" SET beidza_darbu = $1, stundas = $2 WHERE id = $3`,
+                    [endMark, shiftHours, shift.id]
+                );
+                console.log(`⛔ ${workerName}: aktīvs darbs slēgts, shift stundas: ${shiftHours}`);
+            } else if (lastFinished.rows.length > 0) {
+                // Nav aktīva darba, bet ir pabeigti → beigas = pēdējā darba beigu laiks
+                const lastEndTime = lastFinished.rows[0].beigu_laiks.replace('*','');
+                await pool.query(
+                    `UPDATE "darbastundas" SET beidza_darbu = $1, stundas = $2 WHERE id = $3`,
+                    [lastEndTime, calculateHours(shift.sāka_darbu, lastEndTime), shift.id]
+                );
+                console.log(`✅ ${workerName}: diena slēgta ar ${lastEndTime}`);
+            } else {
+                // Nav neviena darba → 0h, beigas stopTime*
+                const endMark = stopTime + '*';
+                await pool.query(
+                    `UPDATE "darbastundas" SET beidza_darbu = $1, stundas = $2 WHERE id = $3`,
+                    [endMark, '0.00', shift.id]
+                );
+                console.log(`⚠️ ${workerName}: nav darbu, diena slēgta ar 0h`);
+            }
+        }
+    } catch (err) {
+        console.error('Auto-stop kļūda:', err);
+    }
+}, { timezone: 'Europe/Riga' });
 
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => console.log(`🚀 Server running on ${PORT}`));
