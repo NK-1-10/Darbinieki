@@ -104,6 +104,7 @@
 </style>
     <div class="card">
         <h2 id="welcome"></h2>
+        <div id="clockDisplay" class="time-label shift-time" style="margin-bottom:4px;"></div>
         <div style="display:flex; justify-content:center; align-items:center; gap:6px; flex-wrap:wrap;">
             <div id="shiftStartTimeDisplay" class="time-label shift-time"></div>
             <div id="timeSeparator" class="time-label shift-time" style="display:none;">/</div>
@@ -230,10 +231,6 @@
                 }
             }
 
-            // Helperi rādīt/slēpt elementus
-            function showEl(id) { const e = document.getElementById(id); if(e) e.style.display = ''; }
-            function hideEl(id) { const e = document.getElementById(id); if(e) e.style.display = 'none'; }
-
             // Separators starp laikiem
             function updateSeparator() {
                 const s = shiftDisplay.textContent;
@@ -245,41 +242,35 @@
             if (!isShiftStarted) {
                 // Sākuma stāvoklis — TIKAI AtWork poga + pulkstenis
                 setBtn('AtWork', true);
-                hideEl('startBtn');
-                hideEl('stopBtn');
-                hideEl('LeaveWork');
-                hideEl('workControls');
-                hideEl('OpenResourceBtn');
-                hideEl('status');
+                setBtn('startBtn', false);
+                setBtn('stopBtn', false);
+                setBtn('LeaveWork', false);
+                document.getElementById("startBtn").style.display = 'none';
+                document.getElementById("stopBtn").style.display = 'none';
+                document.getElementById("LeaveWork").style.display = 'none';
+                document.getElementById("workControls").style.display = 'none';
+                document.getElementById("OpenResourceBtn").style.display = 'none';
+                document.getElementById("status").style.display = 'none';
+                document.getElementById("clockDisplay").style.display = '';
                 shiftDisplay.textContent = "";
                 workTimeDisplay.textContent = "";
                 updateSeparator();
-                // Pulkstenis
-                hideEl('_clockDisplay') // noņem veco ja ir
-                const clockDiv = document.createElement('div');
-                clockDiv.id = '_clockDisplay';
-                clockDiv.className = 'time-label shift-time';
-                clockDiv.style.fontSize = '1rem';
-                clockDiv.style.marginTop = '8px';
-                const updateClock = () => {
-                    const now = new Date();
-                    clockDiv.textContent = 'Šobrīd ir ' + now.toLocaleTimeString('lv-LV', {hour:'2-digit', minute:'2-digit'});
-                };
-                updateClock();
-                setInterval(updateClock, 1000);
-                document.getElementById('AtWork').insertAdjacentElement('afterend', clockDiv);
 
             } else if (activeJob) {
-                // Darbs aktīvs — tikai Beigt darbu
+                // Darbs aktīvs — visas pogas redzamas, tikai stopBtn aktīva
                 setBtn('AtWork', false);
-                hideEl('AtWork');
-                showEl('stopBtn'); setBtn('stopBtn', true);
-                hideEl('startBtn');
-                hideEl('LeaveWork');
-                showEl('workControls');
-                showEl('OpenResourceBtn');
-                showEl('status');
-                document.getElementById("status").textContent = "";
+                setBtn('startBtn', false);
+                setBtn('stopBtn', true);
+                setBtn('LeaveWork', false);
+                document.getElementById("startBtn").style.display = '';
+                document.getElementById("stopBtn").style.display = '';
+                document.getElementById("LeaveWork").style.display = '';
+                document.getElementById("workControls").style.display = '';
+                document.getElementById("OpenResourceBtn").style.display = '';
+                document.getElementById("status").style.display = 'none';
+                document.getElementById("clockDisplay").style.display = 'none';
+                document.getElementById("OpenResourceBtn").classList.remove('btn-inactive');
+                document.getElementById("OpenResourceBtn").disabled = false;
                 workTimeDisplay.textContent = `Uzsāki šo darbu: ${activeJob.sākuma_laiks.substring(0, 5)}`;
                 carEl.value = activeJob.car || '';
                 objEl.value = activeJob.objekts || '';
@@ -287,27 +278,27 @@
                 carEl.disabled = true;
                 objEl.disabled = true;
                 wrkEl.disabled = true;
-                document.getElementById("OpenResourceBtn").classList.remove('btn-inactive');
-                document.getElementById("OpenResourceBtn").disabled = false;
                 updateSeparator();
 
             } else {
                 // Diena sākta, nav aktīva darba
                 setBtn('AtWork', false);
-                hideEl('AtWork');
-                showEl('startBtn'); setBtn('startBtn', true);
-                showEl('stopBtn'); setBtn('stopBtn', false);
-                showEl('LeaveWork'); setBtn('LeaveWork', true);
-                showEl('workControls');
-                showEl('OpenResourceBtn');
-                showEl('status');
-                document.getElementById("status").textContent = "";
+                setBtn('startBtn', true);
+                setBtn('stopBtn', false);
+                setBtn('LeaveWork', true);
+                document.getElementById("startBtn").style.display = '';
+                document.getElementById("stopBtn").style.display = '';
+                document.getElementById("LeaveWork").style.display = '';
+                document.getElementById("workControls").style.display = '';
+                document.getElementById("OpenResourceBtn").style.display = '';
+                document.getElementById("status").style.display = 'none';
+                document.getElementById("clockDisplay").style.display = 'none';
+                document.getElementById("OpenResourceBtn").classList.remove('btn-inactive');
+                document.getElementById("OpenResourceBtn").disabled = false;
                 workTimeDisplay.textContent = "";
                 carEl.disabled = false;
                 objEl.disabled = false;
                 wrkEl.disabled = false;
-                document.getElementById("OpenResourceBtn").classList.remove('btn-inactive');
-                document.getElementById("OpenResourceBtn").disabled = false;
                 updateSeparator();
             }
 
@@ -671,6 +662,17 @@
         localStorage.removeItem("loggedInUser");
         window.location.href = "index.html";
     };
+
+    // Pulkstenis — sākas vienreiz, darbojas vienmēr
+    const _clockEl = document.getElementById('clockDisplay');
+    if (_clockEl) {
+        const _updateClock = () => {
+            const now = new Date();
+            _clockEl.textContent = 'Šobrīd ir ' + now.toLocaleTimeString('lv-LV', {hour:'2-digit', minute:'2-digit'});
+        };
+        _updateClock();
+        setInterval(_updateClock, 1000);
+    }
 
     loadWorkerData();
 </script>
