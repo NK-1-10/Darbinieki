@@ -852,8 +852,8 @@ if(workerEl) {
                                     <td>${e.darbs || '-'}</td>
                                     <td>${e.objekts || '-'}</td>
                                     <td>${e.car || '-'}</td>
-                                    <td style="text-align: center;" class="gold-val">${parseFloat(e.hours || 0).toFixed(2)}</td>
-                                    <td style="white-space:nowrap;"><button class="pencil" onclick="openEditWork(${e.id}, '${e.darbs}', '${e.objekts}', '${e.car}', ${e.hours})" style="margin-right:4px;">✏️</button><button class="btn-del" onclick="deleteScheduleItem(${e.id})">✖</button></td>
+                                    <td style="text-align:center;${(e.beigu_laiks||'').includes('*')?'color:#c0392b;font-weight:800;':''}" class="gold-val">${parseFloat((e.hours||'0').toString().replace('*','')||0).toFixed(2)}</td>
+                                    <td style="white-space:nowrap;"><button class="pencil" onclick="openEditWork(${e.id}, '${e.darbs}', '${e.objekts}', '${e.car}', ${parseFloat((e.hours||'0').toString().replace('*',''))||0})" style="margin-right:4px;">✏️</button><button class="btn-del" onclick="deleteScheduleItem(${e.id})">✖</button></td>
                                 </tr>`).join("")}
                         </tbody>
                     </table>`;
