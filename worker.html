@@ -59,10 +59,33 @@
 <body class="worker-page">
 <style>
 @media (max-width: 600px) {
-    html, body { overflow: hidden !important; height: 100% !important; }
+    html, body { overflow: hidden !important; height: 100vh !important; }
     #ieraksti, #tableContainer { display: none !important; }
-    body.worker-page { padding: 8px !important; }
-    .card { min-height: unset !important; margin-bottom: 0 !important; }
+    body.worker-page { padding: 5px !important; }
+    .card {
+        min-height: unset !important;
+        margin-bottom: 0 !important;
+        padding: 8px 12px !important;
+        border-radius: 12px !important;
+    }
+    h2#welcome { font-size: 15px !important; margin: 0 0 2px !important; }
+    #status { padding: 5px 8px !important; font-size: 12px !important; margin: 2px 0 !important; }
+    .time-label { font-size: 11px !important; margin-bottom: 1px !important; }
+    button {
+        min-height: 36px !important;
+        font-size: 12px !important;
+        margin: 2px 0 !important;
+        padding: 6px !important;
+        border-radius: 12px !important;
+    }
+    #logoutBtn { min-height: 30px !important; font-size: 11px !important; }
+    select, input[type="number"] {
+        min-height: 34px !important;
+        font-size: 12px !important;
+        margin: 2px 0 !important;
+        padding: 6px !important;
+    }
+    #workControls { margin: 0 !important; }
 }
 </style>
     <div class="card">
