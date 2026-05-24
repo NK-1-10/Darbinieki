@@ -831,7 +831,7 @@ cron.schedule('* * * * *', async () => {
                  AND beigu_laiks IS NOT NULL
                  AND darbs NOT IN ('Degvielas uzpilde', 'Eļļas papildināšana')
                  ORDER BY id DESC LIMIT 1`,
-                [workerName, todayLV]
+                [workerName, shift.datums]
             );
 
             if (activeJob.rows.length > 0) {
