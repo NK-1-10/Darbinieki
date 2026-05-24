@@ -674,18 +674,44 @@
         setInterval(_updateClock, 1000);
     }
 
-    // Periodiski pārbauda vai shift vēl aktīva (katru minūti)
+    // Auto-stop timer — precīzi uzstāda setTimeout uz auto-stop laiku
+    let _autoStopTimer = null;
+
+    async function scheduleAutoStop() {
+        try {
+            const res = await fetch('/api/settings');
+            const s = await res.json();
+            const stopTime = s.auto_stop_time || '00:00';
+
+            const now = new Date();
+            const [sh, sm] = stopTime.split(':').map(Number);
+            const stop = new Date();
+            stop.setHours(sh, sm, 0, 0);
+
+            // Ja laiks jau pagājis šodien, neiestata (cron jau izpildījās)
+            if (stop <= now) return;
+
+            const msLeft = stop - now;
+            console.log(`⏱ Auto-stop pēc ${Math.round(msLeft/1000)} sekundēm (${stopTime})`);
+
+            if (_autoStopTimer) clearTimeout(_autoStopTimer);
+            _autoStopTimer = setTimeout(() => {
+                console.log('🕛 Auto-stop laiks — pārlādē worker lapu');
+                loadWorkerData();
+            }, msLeft);
+        } catch(e) {}
+    }
+
+    // Periodiski pārbauda shift statusu (rezerves variants)
     setInterval(async () => {
         try {
             const res = await fetch(`/api/shift-status?worker_name=${encodeURIComponent(user.name)}`);
             const data = await res.json();
-            // Ja shift tikko beigusies (beidza_darbu iestatīts) — pārlādē lapu
-            if (!data.active) {
-                loadWorkerData();
-            }
+            if (!data.active) loadWorkerData();
         } catch(e) {}
-    }, 30000); // katras 30 sekundes
+    }, 30000);
 
+    scheduleAutoStop();
     loadWorkerData();
 </script>
 </body>
