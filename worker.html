@@ -57,7 +57,14 @@
 
 </head>
 <body class="worker-page">
-<style>body.worker-page { background: #ffcccc !important; }</style>
+<style>
+@media (max-width: 600px) {
+    html, body { overflow: hidden !important; height: 100% !important; }
+    #ieraksti, #tableContainer { display: none !important; }
+    body.worker-page { padding: 8px !important; }
+    .card { min-height: unset !important; margin-bottom: 0 !important; }
+}
+</style>
     <div class="card">
         <h2 id="welcome"></h2>
         <div id="shiftStartTimeDisplay" class="time-label shift-time"></div>
