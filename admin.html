@@ -487,21 +487,23 @@
             fill('.work-sel', workTypes, "Visi darba veidi");
         }
 
-        function renderLists() {
-            function getCaurlaideBadge(caurlaide_lidz) {
-                if (!caurlaide_lidz) return '';
-                const today = new Date(); today.setHours(0,0,0,0);
-                const exp = new Date(caurlaide_lidz); exp.setHours(0,0,0,0);
-                const diff = Math.round((exp - today) / 86400000);
-                const dateStr = exp.toLocaleDateString('lv-LV');
-                if (diff < 0) {
-                    return `<span style="background:#c0392b;color:#fff;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;margin-right:6px;">❌ Beidzās ${dateStr}</span>`;
-                } else if (diff <= 2) {
-                    return `<span style="background:#e67e22;color:#fff;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;margin-right:6px;">⚠️ Beidzas pēc ${diff} d. (${dateStr})</span>`;
-                } else {
-                    return `<span style="background:#27ae60;color:#fff;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;margin-right:6px;">✅ Derīga līdz ${dateStr} (${diff} d.)</span>`;
-                }
+        // Globāla funkcija — vajadzīga arī editCaurlaide
+        function getCaurlaideBadge(caurlaide_lidz) {
+            if (!caurlaide_lidz) return '';
+            const today = new Date(); today.setHours(0,0,0,0);
+            const exp = new Date(caurlaide_lidz); exp.setHours(0,0,0,0);
+            const diff = Math.round((exp - today) / 86400000);
+            const dateStr = exp.toLocaleDateString('lv-LV');
+            if (diff < 0) {
+                return `<span style="background:#c0392b;color:#fff;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;margin-right:6px;">❌ Beidzās ${dateStr}</span>`;
+            } else if (diff <= 2) {
+                return `<span style="background:#e67e22;color:#fff;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;margin-right:6px;">⚠️ Beidzas pēc ${diff} d. (${dateStr})</span>`;
+            } else {
+                return `<span style="background:#27ae60;color:#fff;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;margin-right:6px;">✅ Derīga līdz ${dateStr} (${diff} d.)</span>`;
             }
+        }
+
+        function renderLists() {
 
             const draw = (id, data, api, key='name') => {
                 const el = document.getElementById(id);
