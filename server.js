@@ -337,7 +337,7 @@ app.get('/api/workers', async (req, res) => {
 
 app.get('/api/cars', async (req, res) => {
     try {
-        const r = await pool.query("SELECT id, name, track_mh FROM cars ORDER BY name ASC");
+        const r = await pool.query("SELECT id, name, track_mh, caurlaide_lidz FROM cars ORDER BY name ASC");
         res.json(r.rows);
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -496,12 +496,11 @@ app.delete('/api/workers/:name', async (req, res) => {
 // --- PUT (REDIĢĒT) MARŠRUTI ---
 app.put('/api/cars/:name', async (req, res) => {
     try {
-        const { name, track_mh } = req.body;
-        if (track_mh !== undefined) {
-            await pool.query('UPDATE cars SET name = $1, track_mh = $2 WHERE name = $3', [name, track_mh, req.params.name]);
-        } else {
-            await pool.query('UPDATE cars SET name = $1 WHERE name = $2', [name, req.params.name]);
-        }
+        const { name, track_mh, caurlaide_lidz } = req.body;
+        await pool.query(
+            'UPDATE cars SET name = $1, track_mh = $2, caurlaide_lidz = $3 WHERE name = $4',
+            [name, track_mh !== undefined ? track_mh : false, caurlaide_lidz || null, req.params.name]
+        );
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -763,27 +762,6 @@ app.post('/api/darbastundas', async (req, res) => {
 app.delete('/api/schedule', async (req, res) => {
     try { await pool.query('DELETE FROM schedule'); res.json({ success: true }); } 
     catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-// --- IESTATĪJUMI ---
-app.get('/api/settings', async (req, res) => {
-    try {
-        const r = await pool.query('SELECT key, value FROM settings');
-        const obj = {};
-        r.rows.forEach(row => obj[row.key] = row.value);
-        res.json(obj);
-    } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-app.put('/api/settings', async (req, res) => {
-    const { key, value } = req.body;
-    try {
-        await pool.query(
-            'INSERT INTO settings (key, value) VALUES ($1, $2) ON CONFLICT (key) DO UPDATE SET value = $2',
-            [key, value]
-        );
-        res.json({ success: true });
-    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 const PORT = process.env.PORT || 8080;

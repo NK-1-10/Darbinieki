@@ -31,23 +31,6 @@
         #adminSettingsModal .btn-save:hover { background: #214735 !important; }
         .sidebar.collapsed .btn-settings span { display: none; }
         .sidebar.collapsed .btn-settings { padding: 0 !important; justify-content: center !important; }
-        .btn-sysconfig {
-            width: 100% !important;
-            min-height: 46px;
-            border: 1px solid rgba(255,255,255,.25) !important;
-            border-radius: 8px !important;
-            font-weight: 800;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            gap: 8px !important;
-            background: rgba(255,255,255,.1);
-            color: #fff;
-            font-size: 11px;
-        }
-        .btn-sysconfig:hover { background: rgba(255,255,255,.2); }
-        .sidebar.collapsed .btn-sysconfig span { display: none; }
-        .sidebar.collapsed .btn-sysconfig { padding: 0 !important; justify-content: center !important; }
         body.viewer-mode .btn-all-delete,
         body.viewer-mode .btn-settings { display: none !important; }
         .tooltip {
@@ -121,7 +104,6 @@
         </div>
 
         <div class="sidebar-footer">
-            <button class="btn-sysconfig" onclick="openSysSettings()">🔧 <span>IESTATĪJUMI</span></button>
             <button class="btn-settings" onclick="openAdminSettings()">⚙️ <span>ADMIN IESTATĪJUMI</span></button>
             <button class="btn-all-delete" onclick="deleteAllData()">⚠️ <span>DZĒST VISUS DATUS</span></button>
             <button class="btn-logout" onclick="logout()">
@@ -425,19 +407,23 @@
         </div>
     </div>
 
-    <!-- SISTĒMAS IESTATĪJUMU MODĀLS -->
-    <div id="sysSettingsModal" class="modal" style="display:none;">
-        <div class="modal-content" style="width:min(92vw,460px); padding:20px;">
-            <h3 style="margin:0 0 16px; font-size:15px; color:#2d5a3d;">🔧 Sistēmas iestatījumi</h3>
+    <!-- CAURLAIDE MODĀLS -->
+    <div id="caurlaideModal" class="modal" style="display:none;">
+        <div class="modal-content" style="width:min(92vw,400px); padding:20px;">
+            <h3 style="margin:0 0 16px; font-size:15px; color:#2d5a3d;">🪪 Ceļu caurlaide</h3>
+            <p style="margin:0 0 4px; font-size:13px; font-weight:600;" id="caurlaideCarName"></p>
+            <input type="hidden" id="caurlaideCarKey">
 
-            <p style="font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:#888; margin:0 0 6px;">Auto-stop laiks</p>
-            <p style="font-size:12px; color:#666; margin:0 0 8px;">Laiks, kad darbinieki tiek automātiski apstādināti, ja aizmirsuši beigt darbu.</p>
-            <div style="display:grid; grid-template-columns:1fr auto; gap:8px; margin-bottom:20px;">
-                <input type="time" id="sysAutoStopTime" style="margin:0; min-height:42px; border:1px solid #ddd; border-radius:8px; padding:8px 12px; font-size:15px;">
-                <button onclick="saveSysSetting('auto_stop_time', document.getElementById('sysAutoStopTime').value)" style="background:#173629;color:#fff;border:none;border-radius:8px;padding:0 16px;font-weight:700;cursor:pointer;">Saglabāt</button>
+            <div id="caurlaideBadgeDisplay" style="margin-bottom:12px;"></div>
+
+            <label style="font-size:12px;color:#666;display:block;margin-bottom:4px;">Derīga līdz:</label>
+            <input type="date" id="caurlaideDateInput" style="width:100%;min-height:42px;border:1px solid #ddd;border-radius:8px;padding:8px 12px;font-size:15px;margin-bottom:14px;">
+
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+                <button onclick="saveCaurlaide()" style="background:#173629;color:#fff;border:none;border-radius:8px;padding:10px;font-weight:700;cursor:pointer;">Saglabāt</button>
+                <button onclick="removeCaurlaide()" style="background:#c0392b;color:#fff;border:none;border-radius:8px;padding:10px;font-weight:700;cursor:pointer;">Noņemt</button>
+                <button onclick="document.getElementById('caurlaideModal').style.display='none'" style="background:#f0f0f0;color:#444;border:none;border-radius:8px;padding:10px;font-weight:700;cursor:pointer;">Aizvērt</button>
             </div>
-
-            <button onclick="closeSysSettings()" style="width:100%;background:#f0f0f0;color:#444;border:none;border-radius:8px;padding:10px;font-weight:700;cursor:pointer;">Aizvērt</button>
         </div>
     </div>
 
@@ -502,6 +488,21 @@
         }
 
         function renderLists() {
+            function getCaurlaideBadge(caurlaide_lidz) {
+                if (!caurlaide_lidz) return '';
+                const today = new Date(); today.setHours(0,0,0,0);
+                const exp = new Date(caurlaide_lidz); exp.setHours(0,0,0,0);
+                const diff = Math.round((exp - today) / 86400000);
+                const dateStr = exp.toLocaleDateString('lv-LV');
+                if (diff < 0) {
+                    return `<span style="background:#c0392b;color:#fff;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;margin-right:6px;">❌ Beidzās ${dateStr}</span>`;
+                } else if (diff <= 2) {
+                    return `<span style="background:#e67e22;color:#fff;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;margin-right:6px;">⚠️ Beidzas pēc ${diff} d. (${dateStr})</span>`;
+                } else {
+                    return `<span style="background:#27ae60;color:#fff;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;margin-right:6px;">✅ Derīga līdz ${dateStr} (${diff} d.)</span>`;
+                }
+            }
+
             const draw = (id, data, api, key='name') => {
                 const el = document.getElementById(id);
                 if(el) {
@@ -514,10 +515,19 @@
                                 <input type="checkbox" ${trackMh ? 'checked' : ''} onchange="toggleTrackMh('${val}', this.checked)" style="width:18px;height:18px;cursor:pointer;">
                                 mH
                             </label>` : '';
-                        return `<li>
-                            <span style="flex:1;">${val}</span>
+                        const caurlaideBadge = isCars ? getCaurlaideBadge(item.caurlaide_lidz) : '';
+                        const caurlaideDateStr = isCars && item.caurlaide_lidz ? item.caurlaide_lidz.substring(0,10) : '';
+                        const caurlaideBtn = isCars ? `
+                            <div class="btn-container">
+                                <button class="pencil" onclick="editCaurlaide('${val}', '${caurlaideDateStr}')" style="font-size:13px;">🪪</button>
+                                <span class="tooltip">Caurlaide</span>
+                            </div>` : '';
+                        return `<li style="flex-wrap:wrap; gap:6px;">
+                            <span style="flex:1; min-width:80px;">${val}</span>
+                            ${caurlaideBadge}
                             ${checkboxHtml}
                             <div class="worker-actions">
+                                ${caurlaideBtn}
                                 <div class="btn-container">
                                     <button class="pencil" onclick="editItem('${api}', '${val}')">✏️</button>
                                     <span class="tooltip">Rediģēt</span>
@@ -1445,33 +1455,39 @@ async function saveWorkerEdit() {
 
         document.getElementById('objLocAddress').addEventListener('keydown', e => { if (e.key === 'Enter') geocodeAddress(); });
 
-        async function openSysSettings() {
-            try {
-                const res = await fetch('/api/settings');
-                const s = await res.json();
-                document.getElementById('sysAutoStopTime').value = s.auto_stop_time || '00:00';
-            } catch(e) {
-                document.getElementById('sysAutoStopTime').value = '00:00';
-            }
-            document.getElementById('sysSettingsModal').style.display = 'flex';
+        function editCaurlaide(carName, currentDate) {
+            document.getElementById('caurlaideCarName').textContent = carName;
+            document.getElementById('caurlaideCarKey').value = carName;
+            document.getElementById('caurlaideDateInput').value = currentDate || '';
+            // Parāda badge
+            const car = cars.find(c => (c.name || c) === carName);
+            document.getElementById('caurlaideBadgeDisplay').innerHTML = getCaurlaideBadge(car?.caurlaide_lidz || null);
+            document.getElementById('caurlaideModal').style.display = 'flex';
         }
 
-        function closeSysSettings() {
-            document.getElementById('sysSettingsModal').style.display = 'none';
-        }
-
-        async function saveSysSetting(key, value) {
-            if (!value) return alert('Ievadi vērtību!');
-            const res = await fetch('/api/settings', {
+        async function saveCaurlaide() {
+            const carName = document.getElementById('caurlaideCarKey').value;
+            const date = document.getElementById('caurlaideDateInput').value;
+            if (!date) return alert('Izvēlies datumu!');
+            const res = await fetch(`/api/cars/${encodeURIComponent(carName)}`, {
                 method: 'PUT',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ key, value })
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({ name: carName, caurlaide_lidz: date })
             });
-            if (res.ok) {
-                alert(`Saglabāts! Auto-stop laiks: ${value}`);
-            } else {
-                alert('Kļūda saglabājot!');
-            }
+            if (res.ok) { document.getElementById('caurlaideModal').style.display = 'none'; loadData(); }
+            else alert('Kļūda saglabājot!');
+        }
+
+        async function removeCaurlaide() {
+            const carName = document.getElementById('caurlaideCarKey').value;
+            if (!confirm(`Noņemt caurlaidi mašīnai "${carName}"?`)) return;
+            const res = await fetch(`/api/cars/${encodeURIComponent(carName)}`, {
+                method: 'PUT',
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({ name: carName, caurlaide_lidz: null })
+            });
+            if (res.ok) { document.getElementById('caurlaideModal').style.display = 'none'; loadData(); }
+            else alert('Kļūda!');
         }
 
         loadData().then(() => applyViewerMode());
