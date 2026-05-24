@@ -2,6 +2,7 @@ const express = require('express');
 const { Pool } = require('pg');
 const path = require('path');
 const cors = require('cors');
+const cron = require('node-cron');
 
 const app = express();
 app.use(express.json());
@@ -763,6 +764,102 @@ app.delete('/api/schedule', async (req, res) => {
     try { await pool.query('DELETE FROM schedule'); res.json({ success: true }); } 
     catch (err) { res.status(500).json({ error: err.message }); }
 });
+
+// --- IESTATĪJUMI ---
+app.get('/api/settings', async (req, res) => {
+    try {
+        const r = await pool.query('SELECT key, value FROM settings');
+        const obj = {};
+        r.rows.forEach(row => obj[row.key] = row.value);
+        res.json(obj);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.put('/api/settings', async (req, res) => {
+    const { key, value } = req.body;
+    try {
+        await pool.query(
+            'INSERT INTO settings (key, value) VALUES ($1, $2) ON CONFLICT (key) DO UPDATE SET value = $2',
+            [key, value]
+        );
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// --- AUTO-STOP CRON (katru minūti pārbauda laiku no DB) ---
+cron.schedule('* * * * *', async () => {
+    let stopTime = '00:00';
+    try {
+        const s = await pool.query("SELECT value FROM settings WHERE key = 'auto_stop_time'");
+        if (s.rows[0]) stopTime = s.rows[0].value;
+    } catch(e) {}
+
+    const nowLV = new Date().toLocaleTimeString('lv-LV', {
+        timeZone: 'Europe/Riga', hour: '2-digit', minute: '2-digit', hour12: false
+    });
+    if (nowLV !== stopTime) return;
+
+    console.log(`🕛 Auto-stop: ${stopTime} — pārbaudām aktīvos darbus...`);
+    const todayLV = getTodayLV();
+
+    try {
+        const activeShifts = await pool.query(
+            `SELECT * FROM "darbastundas" WHERE beidza_darbu IS NULL`
+        );
+
+        for (const shift of activeShifts.rows) {
+            const workerName = shift.darbinieks;
+
+            const activeJob = await pool.query(
+                `SELECT * FROM schedule
+                 WHERE worker_name = $1
+                 AND beigu_laiks IS NULL
+                 AND darbs NOT IN ('Degvielas uzpilde', 'Eļļas papildināšana')
+                 ORDER BY id DESC LIMIT 1`,
+                [workerName]
+            );
+
+            const lastFinished = await pool.query(
+                `SELECT * FROM schedule
+                 WHERE worker_name = $1
+                 AND date = $2
+                 AND beigu_laiks IS NOT NULL
+                 AND darbs NOT IN ('Degvielas uzpilde', 'Eļļas papildināšana')
+                 ORDER BY id DESC LIMIT 1`,
+                [workerName, todayLV]
+            );
+
+            if (activeJob.rows.length > 0) {
+                const endMark = stopTime + '*';
+                await pool.query(
+                    `UPDATE schedule SET beigu_laiks = $1, hours = $2 WHERE id = $3`,
+                    [endMark, calculateHours(activeJob.rows[0].sākuma_laiks, stopTime), activeJob.rows[0].id]
+                );
+                await pool.query(
+                    `UPDATE "darbastundas" SET beidza_darbu = $1, stundas = $2 WHERE id = $3`,
+                    [endMark, calculateHours(shift.sāka_darbu, stopTime), shift.id]
+                );
+                console.log(`⛔ ${workerName}: auto-slēgts ar ${endMark}`);
+            } else if (lastFinished.rows.length > 0) {
+                const lastEndTime = lastFinished.rows[0].beigu_laiks;
+                await pool.query(
+                    `UPDATE "darbastundas" SET beidza_darbu = $1, stundas = $2 WHERE id = $3`,
+                    [lastEndTime, calculateHours(shift.sāka_darbu, lastEndTime), shift.id]
+                );
+                console.log(`✅ ${workerName}: diena slēgta ar ${lastEndTime}`);
+            } else {
+                const endMark = stopTime + '*';
+                await pool.query(
+                    `UPDATE "darbastundas" SET beidza_darbu = $1, stundas = $2 WHERE id = $3`,
+                    [endMark, calculateHours(shift.sāka_darbu, stopTime), shift.id]
+                );
+                console.log(`⚠️ ${workerName}: nav darbu, diena slēgta ar ${endMark}`);
+            }
+        }
+    } catch (err) {
+        console.error('Auto-stop kļūda:', err);
+    }
+}, { timezone: 'Europe/Riga' });
 
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => console.log(`🚀 Server running on ${PORT}`));
