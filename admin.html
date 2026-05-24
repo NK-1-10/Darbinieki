@@ -31,18 +31,11 @@
         #adminSettingsModal .btn-save:hover { background: #214735 !important; }
         .sidebar.collapsed .btn-settings span { display: none; }
         .sidebar.collapsed .btn-settings { padding: 0 !important; justify-content: center !important; }
-        .btn-sysconfig {
-            width: 100% !important; min-height: 46px;
-            border: 1px solid rgba(255,255,255,.25) !important;
-            border-radius: 8px !important; font-weight: 800;
-            display: flex !important; align-items: center !important;
-            justify-content: center !important; gap: 8px !important;
-            background: rgba(255,255,255,.1); color: #fff; font-size: 11px;
-        }
-        .btn-sysconfig:hover { background: rgba(255,255,255,.2); }
-        .sidebar.collapsed .btn-sysconfig span { display: none; }
-        .sidebar.collapsed .btn-sysconfig { padding: 0 !important; justify-content: center !important; }
-        body.viewer-mode .btn-sysconfig { display: none !important; }
+        .btn-sysconfig { width:100%!important; min-height:46px; border:1px solid rgba(255,255,255,.25)!important; border-radius:8px!important; font-weight:800; display:flex!important; align-items:center!important; justify-content:center!important; gap:8px!important; background:rgba(255,255,255,.1); color:#fff; font-size:11px; }
+        .btn-sysconfig:hover { background:rgba(255,255,255,.2); }
+        .sidebar.collapsed .btn-sysconfig span { display:none; }
+        .sidebar.collapsed .btn-sysconfig { padding:0!important; justify-content:center!important; }
+        body.viewer-mode .btn-sysconfig { display:none!important; }
         body.viewer-mode .btn-all-delete,
         body.viewer-mode .btn-settings { display: none !important; }
         .tooltip {
@@ -423,10 +416,6 @@
             </div>
         </div>
     </div>
-
-
-
-    <script>
         let workers = [], cars = [], schedule = [], workTypes = [], objects = [], daySummary = [], resourceTypes = [];
         const LV_MONTHS = ["Janvāris", "Februāris", "Marts", "Aprīlis", "Maijs", "Jūnijs", "Jūlijs", "Augusts", "Septembris", "Oktobris", "Novembris", "Decembris"];
 
@@ -486,6 +475,7 @@
             fill('.work-sel', workTypes, "Visi darba veidi");
         }
 
+
         function renderLists() {
 
             const draw = (id, data, api, key='name') => {
@@ -500,10 +490,12 @@
                                 <input type="checkbox" ${trackMh ? 'checked' : ''} onchange="toggleTrackMh('${val}', this.checked)" style="width:18px;height:18px;cursor:pointer;">
                                 mH
                             </label>` : '';
-                        return `<li>
-                            <span style="flex:1;">${val}</span>
+                            </label>` : '';
+                        return `<li style="flex-wrap:nowrap; gap:8px; align-items:center;">
+                            <span style="font-weight:700;">${val}</span>
+                            <div style="flex:1; min-width:8px;"></div>
                             ${checkboxHtml}
-                            <div class="worker-actions">
+                            <div class="worker-actions" style="gap:6px;">
                                 <div class="btn-container">
                                     <button class="pencil" onclick="editItem('${api}', '${val}')">✏️</button>
                                     <span class="tooltip">Rediģēt</span>
@@ -813,8 +805,8 @@ if(workerEl) {
                                     <td>${e.darbs || '-'}</td>
                                     <td>${e.objekts || '-'}</td>
                                     <td>${e.car || '-'}</td>
-                                    <td style="text-align:center;${(e.beigu_laiks||''). includes('*')?'color:#c0392b;font-weight:800;':''}" class="gold-val">${parseFloat((e.hours||'0').toString().replace('*','')||0).toFixed(2)}</td>
-                                    <td style="white-space:nowrap;"><button class="pencil" onclick="openEditWork(${e.id}, '${e.darbs}', '${e.objekts}', '${e.car}', ${parseFloat((e.hours||'0').toString().replace('*',''))||0})" style="margin-right:4px;">✏️</button><button class="btn-del" onclick="deleteScheduleItem(${e.id})">✖</button></td>
+                                    <td style="text-align:center;${ (e.beigu_laiks||'').includes('*') ? 'color:#c0392b;font-weight:800;' : '' }" class="gold-val">${parseFloat((e.hours||'0').toString().replace('*','')||0).toFixed(2)}</td>
+                                    <td style="white-space:nowrap;"><button class="pencil" onclick="openEditWork(${e.id}, '${e.darbs}', '${e.objekts}', '${e.car}', ${ parseFloat((e.hours||'0').toString().replace('*',''))||0 })" style="margin-right:4px;">✏️</button><button class="btn-del" onclick="deleteScheduleItem(${e.id})">✖</button></td>
                                 </tr>`).join("")}
                         </tbody>
                     </table>`;
@@ -959,12 +951,12 @@ if(workerEl) {
                                 const pusd = getPusdienas(e.darbinieks, e.datums);
                                 const kopaa = parseFloat(e.stundas || 0);
                                 const darba = Math.max(0, kopaa - pusd);
-                                const isAutoStop = (e.beidza_darbu || '').includes('*');
+                                const isAutoStop = (e.beidza_darbu||'').includes('*');
                                 const startT = (e.sāka_darbu||'').replace('*','');
                                 const endT = (e.beidza_darbu||'').replace('*','');
                                 const isBadTime = endT && startT > endT;
                                 const isRed = isAutoStop || isBadTime;
-                                const beigasCell = (e.beidza_darbu || '-').replace('*', '');
+                                const beigasCell = (e.beidza_darbu||'-').replace('*','');
                                 const numStyle = isRed ? 'text-align:center;color:#c0392b;font-weight:800;' : 'text-align:center;';
                                 return `
                                 <tr>
@@ -1289,8 +1281,8 @@ async function saveWorkerEdit() {
             document.getElementById('editFieldsWork').style.display = 'none';
             document.getElementById('editFieldsFuel').style.display = 'none';
             document.getElementById('editFieldsHours').style.display = 'flex';
-            document.getElementById('editShiftStart').value = (sakadarbu || '').replace('*','');
-            document.getElementById('editShiftEnd').value = (beidzadarbu || '').replace('*','');
+            document.getElementById('editShiftStart').value = (sakadarbu||'').replace('*','');
+            document.getElementById('editShiftEnd').value = (beidzadarbu||'').replace('*','');
             document.getElementById('editShiftHours').value = stundas || '';
             const recalc = () => {
                 const s = document.getElementById('editShiftStart').value;
@@ -1453,6 +1445,9 @@ async function saveWorkerEdit() {
 
         document.getElementById('objLocAddress').addEventListener('keydown', e => { if (e.key === 'Enter') geocodeAddress(); });
 
+            else alert('Kļūda saglabājot!');
+        }
+
             else alert('Kļūda!');
         }
 
@@ -1478,30 +1473,19 @@ async function saveWorkerEdit() {
                 const res = await fetch('/api/settings');
                 const s = await res.json();
                 document.getElementById('sysAutoStopTime').value = s.auto_stop_time || '00:00';
-            } catch(e) {
-                document.getElementById('sysAutoStopTime').value = '00:00';
-            }
+            } catch(e) { document.getElementById('sysAutoStopTime').value = '00:00'; }
             document.getElementById('sysSettingsModal').style.display = 'flex';
         }
-        function closeSysSettings() {
-            document.getElementById('sysSettingsModal').style.display = 'none';
-        }
+        function closeSysSettings() { document.getElementById('sysSettingsModal').style.display = 'none'; }
         async function saveSysSetting(key, value) {
             if (!value) return alert('Ievadi vērtību!');
             let clean = value.trim();
             if (clean.toLowerCase().includes('pm') || clean.toLowerCase().includes('am')) {
                 const d = new Date('1970-01-01 ' + clean);
-                const h = String(d.getHours()).padStart(2,'0');
-                const m = String(d.getMinutes()).padStart(2,'0');
-                clean = h + ':' + m;
-            } else {
-                clean = clean.substring(0,5);
-            }
-            const res = await fetch('/api/settings', {
-                method: 'PUT', headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ key, value: clean })
-            });
-            if (res.ok) { alert(`Saglabāts! Auto-stop laiks: ${clean}`); closeSysSettings(); }
+                clean = String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+            } else { clean = clean.substring(0,5); }
+            const res = await fetch('/api/settings', { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({key, value:clean}) });
+            if (res.ok) { alert('Saglabāts! Auto-stop laiks: ' + clean); closeSysSettings(); }
             else alert('Kļūda saglabājot!');
         }
     </script>
