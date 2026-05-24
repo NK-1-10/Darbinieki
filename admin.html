@@ -376,8 +376,12 @@
             </div>
 
             <div id="editFieldsHours" style="display:none; gap:8px; flex-direction:column;">
-                <label style="font-size:12px;color:#666;">Kopā stundas</label>
-                <input type="number" id="editShiftHours" step="0.01" style="margin:0;">
+                <label style="font-size:12px;color:#666;">Sākuma laiks</label>
+                <input type="time" id="editShiftStart" step="1" style="margin:0;">
+                <label style="font-size:12px;color:#666;">Beigu laiks</label>
+                <input type="time" id="editShiftEnd" step="1" style="margin:0;">
+                <label style="font-size:12px;color:#666;">Kopā stundas (aprēķināts automātiski)</label>
+                <input type="number" id="editShiftHours" step="0.01" style="margin:0; background:#f5f5f5;" readonly>
             </div>
 
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:14px;">
@@ -1000,7 +1004,7 @@ if(workerEl) {
                                 const endT = (e.beidza_darbu||'').replace('*','');
                                 const isBadTime = endT && startT > endT;
                                 const isRed = isAutoStop || isBadTime;
-                                const beigasCell = isRed ? '' : (e.beidza_darbu || '-');
+                                const beigasCell = (e.beidza_darbu || '-').replace('*', '');
                                 const numStyle = isRed ? 'text-align:center;color:#c0392b;font-weight:800;' : 'text-align:center;';
                                 return `
                                 <tr>
@@ -1013,8 +1017,8 @@ if(workerEl) {
                                     <td style="${numStyle}" class="gold-val">${darba.toFixed(2)}</td>
                                     <td style="white-space:nowrap;">
                                         ${e.id ? `
-                                            <button class="pencil" onclick="openEditHours(${e.id}, ${e.stundas})" style="margin-right:4px;">✏️</button>
-                                            <button class="btn-del" onclick="deleteHoursItem(${e.id})">${(isAutoStop||isBadTime) ? '✖*' : '✖'}</button>` : ''}
+                                            <button class="pencil" onclick="openEditHours(${e.id}, ${e.stundas}, '${(e.sāka_darbu||'').replace('*','')}', '${(e.beidza_darbu||'').replace('*','')}')" style="margin-right:4px;">✏️</button>
+                                            <button class="btn-del" onclick="deleteHoursItem(${e.id})">✖</button>` : ''}
                                     </td>
                                 </tr>`;
                             }).join("")}
@@ -1318,14 +1322,29 @@ async function saveWorkerEdit() {
             document.getElementById('editRecordModal').style.display = 'flex';
         }
 
-        function openEditHours(id, stundas) {
+        function openEditHours(id, stundas, sakadarbu, beidzadarbu) {
             document.getElementById('editRecordId').value = id;
             document.getElementById('editRecordType').value = 'hours';
             document.getElementById('editRecordTitle').textContent = '✏️ Rediģēt stundu ierakstu';
             document.getElementById('editFieldsWork').style.display = 'none';
             document.getElementById('editFieldsFuel').style.display = 'none';
             document.getElementById('editFieldsHours').style.display = 'flex';
+            document.getElementById('editShiftStart').value = (sakadarbu || '').replace('*','');
+            document.getElementById('editShiftEnd').value = (beidzadarbu || '').replace('*','');
             document.getElementById('editShiftHours').value = stundas || '';
+            const recalc = () => {
+                const s = document.getElementById('editShiftStart').value;
+                const e = document.getElementById('editShiftEnd').value;
+                if (s && e) {
+                    const [sh,sm,ss] = s.split(':').map(Number);
+                    const [eh,em,es] = e.split(':').map(Number);
+                    let diff = (eh*3600+em*60+(es||0)) - (sh*3600+sm*60+(ss||0));
+                    if (diff < 0) diff += 86400;
+                    document.getElementById('editShiftHours').value = (diff/3600).toFixed(2);
+                }
+            };
+            document.getElementById('editShiftStart').onchange = recalc;
+            document.getElementById('editShiftEnd').onchange = recalc;
             document.getElementById('editRecordModal').style.display = 'flex';
         }
 
@@ -1362,7 +1381,11 @@ async function saveWorkerEdit() {
             } else if (type === 'hours') {
                 const res = await fetch(`/api/darbastundas/${id}`, {
                     method: 'PUT', headers: {'Content-Type':'application/json'},
-                    body: JSON.stringify({ stundas: document.getElementById('editShiftHours').value })
+                    body: JSON.stringify({
+                        stundas: document.getElementById('editShiftHours').value,
+                        sāka_darbu: document.getElementById('editShiftStart').value,
+                        beidza_darbu: document.getElementById('editShiftEnd').value
+                    })
                 });
                 if (res.ok) { document.getElementById('editRecordModal').style.display = 'none'; loadData(); }
                 else alert('Kļūda saglabājot!');
