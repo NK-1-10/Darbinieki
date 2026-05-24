@@ -999,17 +999,18 @@ if(workerEl) {
                                 const startT = (e.sāka_darbu||'').replace('*','');
                                 const endT = (e.beidza_darbu||'').replace('*','');
                                 const isBadTime = endT && startT > endT;
-                                const rowBg = (isAutoStop || isBadTime) ? 'background:#ffd6d6;' : '';
-                                const beigasCell = (isAutoStop || isBadTime) ? '' : (e.beidza_darbu || '-');
+                                const isRed = isAutoStop || isBadTime;
+                                const beigasCell = isRed ? '' : (e.beidza_darbu || '-');
+                                const numStyle = isRed ? 'text-align:center;color:#c0392b;font-weight:800;' : 'text-align:center;';
                                 return `
-                                <tr style="${rowBg}">
+                                <tr>
                                     <td>${e.datums}</td>
                                     <td>${e.darbinieks}</td>
                                     <td>${e.sāka_darbu}</td>
                                     <td>${beigasCell}</td>
                                     <td style="text-align: center;">${pusd > 0 ? pusd.toFixed(2) + ' h' : '-'}</td>
-                                    <td style="text-align: center;" class="gold-val">${kopaa.toFixed(2)}</td>
-                                    <td style="text-align: center;" class="gold-val">${darba.toFixed(2)}</td>
+                                    <td style="${numStyle}" class="gold-val">${kopaa.toFixed(2)}</td>
+                                    <td style="${numStyle}" class="gold-val">${darba.toFixed(2)}</td>
                                     <td style="white-space:nowrap;">
                                         ${e.id ? `
                                             <button class="pencil" onclick="openEditHours(${e.id}, ${e.stundas})" style="margin-right:4px;">✏️</button>
