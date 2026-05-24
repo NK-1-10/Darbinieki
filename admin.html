@@ -493,13 +493,12 @@
             const today = new Date(); today.setHours(0,0,0,0);
             const exp = new Date(caurlaide_lidz); exp.setHours(0,0,0,0);
             const diff = Math.round((exp - today) / 86400000);
-            const dateStr = exp.toLocaleDateString('lv-LV');
             if (diff < 0) {
-                return `<span style="background:#c0392b;color:#fff;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;margin-right:6px;">❌ Beidzās ${dateStr}</span>`;
+                return `<span style="background:#f5c6c6;color:#a00;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;margin-right:6px;">Beidzās pirms ${Math.abs(diff)} d.</span>`;
             } else if (diff <= 2) {
-                return `<span style="background:#e67e22;color:#fff;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;margin-right:6px;">⚠️ Beidzas pēc ${diff} d. (${dateStr})</span>`;
+                return `<span style="background:#f5c6c6;color:#a00;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;margin-right:6px;">Beidzas pēc ${diff} d.</span>`;
             } else {
-                return `<span style="background:#27ae60;color:#fff;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;margin-right:6px;">✅ Derīga līdz ${dateStr} (${diff} d.)</span>`;
+                return `<span style="background:#e8e8e8;color:#555;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;margin-right:6px;">${diff} d.</span>`;
             }
         }
 
