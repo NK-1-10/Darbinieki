@@ -193,8 +193,16 @@ app.put('/api/schedule/:id', async (req, res) => {
 // --- JAUNS: Dzēst vienu ierakstu no DARBASTUNDAS ---
 app.put('/api/darbastundas/:id', async (req, res) => {
     try {
-        const { stundas } = req.body;
-        await pool.query('UPDATE "darbastundas" SET stundas = $1 WHERE id = $2', [parseFloat(stundas), req.params.id]);
+        const { stundas, sāka_darbu, beidza_darbu } = req.body;
+        // Ja padoti sākums un beigas - aprēķinām stundas serverī arī
+        let finalHours = parseFloat(stundas);
+        if (sāka_darbu && beidza_darbu) {
+            finalHours = parseFloat(calculateHours(sāka_darbu, beidza_darbu));
+        }
+        await pool.query(
+            'UPDATE "darbastundas" SET stundas = $1, "sāka_darbu" = COALESCE($2, "sāka_darbu"), beidza_darbu = COALESCE($3, beidza_darbu) WHERE id = $4',
+            [finalHours, sāka_darbu || null, beidza_darbu || null, req.params.id]
+        );
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
