@@ -104,9 +104,11 @@
 </style>
     <div class="card">
         <h2 id="welcome"></h2>
-        <div id="shiftStartTimeDisplay" class="time-label shift-time"></div>
+        <div style="display:flex; justify-content:center; gap:18px; flex-wrap:wrap;">
+            <div id="shiftStartTimeDisplay" class="time-label shift-time"></div>
+            <div id="workStartTimeDisplay" class="time-label shift-time"></div>
+        </div>
         <div id="status">Darba diena nav sākta</div>
-        <div id="workStartTimeDisplay" class="time-label work-time"></div>
 
         <button id="AtWork">SĀKT DIENU</button>
         <button id="startBtn">SĀKT DARBU</button>
@@ -246,7 +248,7 @@
                 setBtn('startBtn', false);
                 setBtn('stopBtn', true);
                 setBtn('LeaveWork', false);
-                document.getElementById("status").innerHTML = `Strādā: <b>${activeJob.objekts || 'Birojs'}</b>`;
+                document.getElementById("status").textContent = "";
                 workTimeDisplay.textContent = `Uzsāki šo darbu: ${activeJob.sākuma_laiks.substring(0, 5)}`;
                 carEl.value = activeJob.car || '';
                 objEl.value = activeJob.objekts || '';
