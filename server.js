@@ -53,7 +53,10 @@ function calculateHours(start, end) {
     const sh = sp[0]||0, sm = sp[1]||0, ss = sp[2]||0;
     const eh = ep[0]||0, em = ep[1]||0, es = ep[2]||0;
     let diff = (eh * 3600 + em * 60 + es) - (sh * 3600 + sm * 60 + ss);
+    // Ja beigas ir pirms sākuma (pusnakts pāreja), pievieno 24h
+    // Bet ja starpība > 16h, visticamāk kļūda — atgriežam 0
     if (diff < 0) diff += 86400;
+    if (diff > 16 * 3600) diff = 0;
     return (diff / 3600).toFixed(2);
 }
 
