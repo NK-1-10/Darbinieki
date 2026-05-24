@@ -31,6 +31,23 @@
         #adminSettingsModal .btn-save:hover { background: #214735 !important; }
         .sidebar.collapsed .btn-settings span { display: none; }
         .sidebar.collapsed .btn-settings { padding: 0 !important; justify-content: center !important; }
+        .btn-sysconfig {
+            width: 100% !important;
+            min-height: 46px;
+            border: 1px solid rgba(255,255,255,.25) !important;
+            border-radius: 8px !important;
+            font-weight: 800;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 8px !important;
+            background: rgba(255,255,255,.1);
+            color: #fff;
+            font-size: 11px;
+        }
+        .btn-sysconfig:hover { background: rgba(255,255,255,.2); }
+        .sidebar.collapsed .btn-sysconfig span { display: none; }
+        .sidebar.collapsed .btn-sysconfig { padding: 0 !important; justify-content: center !important; }
         body.viewer-mode .btn-all-delete,
         body.viewer-mode .btn-settings { display: none !important; }
         .tooltip {
@@ -104,6 +121,7 @@
         </div>
 
         <div class="sidebar-footer">
+            <button class="btn-sysconfig" onclick="openSysSettings()">🔧 <span>IESTATĪJUMI</span></button>
             <button class="btn-settings" onclick="openAdminSettings()">⚙️ <span>ADMIN IESTATĪJUMI</span></button>
             <button class="btn-all-delete" onclick="deleteAllData()">⚠️ <span>DZĒST VISUS DATUS</span></button>
             <button class="btn-logout" onclick="logout()">
@@ -363,12 +381,8 @@
             </div>
 
             <div id="editFieldsHours" style="display:none; gap:8px; flex-direction:column;">
-                <label style="font-size:12px;color:#666;">Sākuma laiks</label>
-                <input type="time" id="editShiftStart" step="1" style="margin:0;">
-                <label style="font-size:12px;color:#666;">Beigu laiks</label>
-                <input type="time" id="editShiftEnd" step="1" style="margin:0;">
-                <label style="font-size:12px;color:#666;">Kopā stundas (aprēķināts automātiski)</label>
-                <input type="number" id="editShiftHours" step="0.01" style="margin:0; background:#f5f5f5;" readonly>
+                <label style="font-size:12px;color:#666;">Kopā stundas</label>
+                <input type="number" id="editShiftHours" step="0.01" style="margin:0;">
             </div>
 
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:14px;">
@@ -408,6 +422,22 @@
                 <button onclick="removeObjectLoc()" style="background:#c0392b;color:#fff;border:none;border-radius:8px;padding:10px;font-weight:700;cursor:pointer;">Noņemt</button>
                 <button onclick="document.getElementById('objectLocModal').style.display='none'" style="background:#f0f0f0;color:#444;border:none;border-radius:8px;padding:10px;font-weight:700;cursor:pointer;">Aizvērt</button>
             </div>
+        </div>
+    </div>
+
+    <!-- SISTĒMAS IESTATĪJUMU MODĀLS -->
+    <div id="sysSettingsModal" class="modal" style="display:none;">
+        <div class="modal-content" style="width:min(92vw,460px); padding:20px;">
+            <h3 style="margin:0 0 16px; font-size:15px; color:#2d5a3d;">🔧 Sistēmas iestatījumi</h3>
+
+            <p style="font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:#888; margin:0 0 6px;">Auto-stop laiks</p>
+            <p style="font-size:12px; color:#666; margin:0 0 8px;">Laiks, kad darbinieki tiek automātiski apstādināti, ja aizmirsuši beigt darbu.</p>
+            <div style="display:grid; grid-template-columns:1fr auto; gap:8px; margin-bottom:20px;">
+                <input type="time" id="sysAutoStopTime" style="margin:0; min-height:42px; border:1px solid #ddd; border-radius:8px; padding:8px 12px; font-size:15px;">
+                <button onclick="saveSysSetting('auto_stop_time', document.getElementById('sysAutoStopTime').value)" style="background:#173629;color:#fff;border:none;border-radius:8px;padding:0 16px;font-weight:700;cursor:pointer;">Saglabāt</button>
+            </div>
+
+            <button onclick="closeSysSettings()" style="width:100%;background:#f0f0f0;color:#444;border:none;border-radius:8px;padding:10px;font-weight:700;cursor:pointer;">Aizvērt</button>
         </div>
     </div>
 
@@ -954,7 +984,7 @@ if(workerEl) {
                                     <td style="text-align: center;" class="gold-val">${darba.toFixed(2)}</td>
                                     <td style="white-space:nowrap;">
                                         ${e.id ? `
-                                            <button class="pencil" onclick="openEditHours(${e.id}, ${e.stundas}, '${e.sāka_darbu || ''}', '${e.beidza_darbu || ''}')" style="margin-right:4px;">✏️</button>
+                                            <button class="pencil" onclick="openEditHours(${e.id}, ${e.stundas})" style="margin-right:4px;">✏️</button>
                                             <button class="btn-del" onclick="deleteHoursItem(${e.id})">✖</button>` : ''}
                                     </td>
                                 </tr>`;
@@ -1259,31 +1289,14 @@ async function saveWorkerEdit() {
             document.getElementById('editRecordModal').style.display = 'flex';
         }
 
-        function openEditHours(id, stundas, sakadarbu, beidzadarbu) {
+        function openEditHours(id, stundas) {
             document.getElementById('editRecordId').value = id;
             document.getElementById('editRecordType').value = 'hours';
             document.getElementById('editRecordTitle').textContent = '✏️ Rediģēt stundu ierakstu';
             document.getElementById('editFieldsWork').style.display = 'none';
             document.getElementById('editFieldsFuel').style.display = 'none';
             document.getElementById('editFieldsHours').style.display = 'flex';
-            const startClean = (sakadarbu || '').replace('*', '');
-            const endClean = (beidzadarbu || '').replace('*', '');
-            document.getElementById('editShiftStart').value = startClean;
-            document.getElementById('editShiftEnd').value = endClean;
             document.getElementById('editShiftHours').value = stundas || '';
-            const recalc = () => {
-                const s = document.getElementById('editShiftStart').value;
-                const e = document.getElementById('editShiftEnd').value;
-                if (s && e) {
-                    const [sh,sm,ss] = s.split(':').map(Number);
-                    const [eh,em,es] = e.split(':').map(Number);
-                    let diff = (eh*3600+em*60+(es||0)) - (sh*3600+sm*60+(ss||0));
-                    if (diff < 0) diff += 86400;
-                    document.getElementById('editShiftHours').value = (diff/3600).toFixed(2);
-                }
-            };
-            document.getElementById('editShiftStart').onchange = recalc;
-            document.getElementById('editShiftEnd').onchange = recalc;
             document.getElementById('editRecordModal').style.display = 'flex';
         }
 
@@ -1320,11 +1333,7 @@ async function saveWorkerEdit() {
             } else if (type === 'hours') {
                 const res = await fetch(`/api/darbastundas/${id}`, {
                     method: 'PUT', headers: {'Content-Type':'application/json'},
-                    body: JSON.stringify({ 
-                        stundas: document.getElementById('editShiftHours').value,
-                        sāka_darbu: document.getElementById('editShiftStart').value,
-                        beidza_darbu: document.getElementById('editShiftEnd').value
-                    })
+                    body: JSON.stringify({ stundas: document.getElementById('editShiftHours').value })
                 });
                 if (res.ok) { document.getElementById('editRecordModal').style.display = 'none'; loadData(); }
                 else alert('Kļūda saglabājot!');
@@ -1435,6 +1444,35 @@ async function saveWorkerEdit() {
         }
 
         document.getElementById('objLocAddress').addEventListener('keydown', e => { if (e.key === 'Enter') geocodeAddress(); });
+
+        async function openSysSettings() {
+            try {
+                const res = await fetch('/api/settings');
+                const s = await res.json();
+                document.getElementById('sysAutoStopTime').value = s.auto_stop_time || '00:00';
+            } catch(e) {
+                document.getElementById('sysAutoStopTime').value = '00:00';
+            }
+            document.getElementById('sysSettingsModal').style.display = 'flex';
+        }
+
+        function closeSysSettings() {
+            document.getElementById('sysSettingsModal').style.display = 'none';
+        }
+
+        async function saveSysSetting(key, value) {
+            if (!value) return alert('Ievadi vērtību!');
+            const res = await fetch('/api/settings', {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ key, value })
+            });
+            if (res.ok) {
+                alert(`Saglabāts! Auto-stop laiks: ${value}`);
+            } else {
+                alert('Kļūda saglabājot!');
+            }
+        }
 
         loadData().then(() => applyViewerMode());
     </script>

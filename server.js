@@ -2,7 +2,6 @@ const express = require('express');
 const { Pool } = require('pg');
 const path = require('path');
 const cors = require('cors');
-const cron = require('node-cron');
 
 const app = express();
 app.use(express.json());
@@ -193,16 +192,8 @@ app.put('/api/schedule/:id', async (req, res) => {
 // --- JAUNS: Dzēst vienu ierakstu no DARBASTUNDAS ---
 app.put('/api/darbastundas/:id', async (req, res) => {
     try {
-        const { stundas, sāka_darbu, beidza_darbu } = req.body;
-        // Ja padoti sākums un beigas - aprēķinām stundas serverī arī
-        let finalHours = parseFloat(stundas);
-        if (sāka_darbu && beidza_darbu) {
-            finalHours = parseFloat(calculateHours(sāka_darbu, beidza_darbu));
-        }
-        await pool.query(
-            'UPDATE "darbastundas" SET stundas = $1, "sāka_darbu" = COALESCE($2, "sāka_darbu"), beidza_darbu = COALESCE($3, beidza_darbu) WHERE id = $4',
-            [finalHours, sāka_darbu || null, beidza_darbu || null, req.params.id]
-        );
+        const { stundas } = req.body;
+        await pool.query('UPDATE "darbastundas" SET stundas = $1 WHERE id = $2', [parseFloat(stundas), req.params.id]);
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -774,75 +765,25 @@ app.delete('/api/schedule', async (req, res) => {
     catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// --- PUSNAKTS AUTO-STOP ---
-cron.schedule('0 0 * * *', async () => {
-    console.log('🕛 Pusnakts cron: pārbaudām aktīvos darbus...');
-    const todayLV = getTodayLV();
-
+// --- IESTATĪJUMI ---
+app.get('/api/settings', async (req, res) => {
     try {
-        const activeShifts = await pool.query(
-            `SELECT * FROM "darbastundas" WHERE beidza_darbu IS NULL`
+        const r = await pool.query('SELECT key, value FROM settings');
+        const obj = {};
+        r.rows.forEach(row => obj[row.key] = row.value);
+        res.json(obj);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.put('/api/settings', async (req, res) => {
+    const { key, value } = req.body;
+    try {
+        await pool.query(
+            'INSERT INTO settings (key, value) VALUES ($1, $2) ON CONFLICT (key) DO UPDATE SET value = $2',
+            [key, value]
         );
-
-        for (const shift of activeShifts.rows) {
-            const workerName = shift.darbinieks;
-
-            // Aktīvs konkrēts darbs?
-            const activeJob = await pool.query(
-                `SELECT * FROM schedule 
-                 WHERE worker_name = $1 
-                 AND beigu_laiks IS NULL 
-                 AND darbs NOT IN ('Degvielas uzpilde', 'Eļļas papildināšana')
-                 ORDER BY id DESC LIMIT 1`,
-                [workerName]
-            );
-
-            // Pēdējais pabeigtais darbs šodien?
-            const lastFinished = await pool.query(
-                `SELECT * FROM schedule 
-                 WHERE worker_name = $1 
-                 AND date = $2
-                 AND beigu_laiks IS NOT NULL
-                 AND darbs NOT IN ('Degvielas uzpilde', 'Eļļas papildināšana')
-                 ORDER BY id DESC LIMIT 1`,
-                [workerName, todayLV]
-            );
-
-            if (activeJob.rows.length > 0) {
-                // Gadījums 3: aktīvs darbs → beigt ar 00:00*
-                await pool.query(
-                    `UPDATE schedule SET beigu_laiks = $1, hours = $2 WHERE id = $3`,
-                    ['00:00*', calculateHours(activeJob.rows[0].sākuma_laiks, '00:00'), activeJob.rows[0].id]
-                );
-                await pool.query(
-                    `UPDATE "darbastundas" SET beidza_darbu = $1, stundas = $2 WHERE id = $3`,
-                    ['00:00*', calculateHours(shift.sāka_darbu, '00:00'), shift.id]
-                );
-                console.log(`⛔ ${workerName}: aktīvs darbs auto-slēgts ar 00:00*`);
-
-            } else if (lastFinished.rows.length > 0) {
-                // Gadījums 1: ir pabeigti darbi → beigu laiks = pēdējā darba beigu laiks
-                const lastEndTime = lastFinished.rows[0].beigu_laiks;
-                await pool.query(
-                    `UPDATE "darbastundas" SET beidza_darbu = $1, stundas = $2 WHERE id = $3`,
-                    [lastEndTime, calculateHours(shift.sāka_darbu, lastEndTime), shift.id]
-                );
-                console.log(`✅ ${workerName}: darba diena slēgta ar ${lastEndTime}`);
-
-            } else {
-                // Gadījums 2: nav neviena darba → 00:00*
-                await pool.query(
-                    `UPDATE "darbastundas" SET beidza_darbu = $1, stundas = $2 WHERE id = $3`,
-                    ['00:00*', calculateHours(shift.sāka_darbu, '00:00'), shift.id]
-                );
-                console.log(`⚠️ ${workerName}: nav darbu, darba diena slēgta ar 00:00*`);
-            }
-        }
-    } catch (err) {
-        console.error('Cron kļūda:', err);
-    }
-}, {
-    timezone: 'Europe/Riga'
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 const PORT = process.env.PORT || 8080;
