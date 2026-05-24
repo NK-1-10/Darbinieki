@@ -674,6 +674,18 @@
         setInterval(_updateClock, 1000);
     }
 
+    // Periodiski pārbauda vai shift vēl aktīva (katru minūti)
+    setInterval(async () => {
+        try {
+            const res = await fetch(`/api/shift-status?worker_name=${encodeURIComponent(user.name)}`);
+            const data = await res.json();
+            // Ja shift tikko beigusies (beidza_darbu iestatīts) — pārlādē lapu
+            if (!data.active) {
+                loadWorkerData();
+            }
+        } catch(e) {}
+    }, 30000); // katras 30 sekundes
+
     loadWorkerData();
 </script>
 </body>
