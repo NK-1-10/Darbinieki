@@ -545,8 +545,10 @@ app.put('/api/resource-types/:name', async (req, res) => {
 });
 
 app.post('/api/start-work', async (req, res) => {
-    const { worker_name, car, start_time, objekts, darbs } = req.body;
-    const [date, time] = start_time.split(' ');
+    const { worker_name, car, objekts, darbs } = req.body;
+    // Laiku ņemam no servera, ne klienta
+    const date = getTodayLV();
+    const time = getTimeLV();
     try {
         const shiftCheck = await pool.query(
             `SELECT id FROM "darbastundas"
@@ -578,8 +580,9 @@ app.post('/api/start-work', async (req, res) => {
 });
 
 app.post('/api/stop-work', async (req, res) => {
-    const { worker_name, end_time } = req.body;
-    const timeOnly = end_time.split(' ')[1];
+    const { worker_name } = req.body;
+    // Laiku ņemam no servera, ne klienta
+    const timeOnly = getTimeLV();
     try {
         const active = await pool.query(
             "SELECT id, sākuma_laiks FROM schedule WHERE worker_name=$1 AND beigu_laiks IS NULL AND darbs NOT IN ('Degvielas uzpilde', 'Eļļas papildināšana') ORDER BY id DESC LIMIT 1",
