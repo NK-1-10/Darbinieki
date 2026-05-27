@@ -420,6 +420,21 @@
     </div>
 
     <script>
+        // Konvertē laiku uz 24h HH:MM:SS formātu
+        function to24h(val) {
+            if (!val) return val;
+            val = val.trim();
+            if (val.toLowerCase().includes('am') || val.toLowerCase().includes('pm')) {
+                const d = new Date('1970-01-01 ' + val);
+                if (!isNaN(d)) {
+                    return String(d.getHours()).padStart(2,'0') + ':' +
+                           String(d.getMinutes()).padStart(2,'0') + ':' +
+                           String(d.getSeconds()).padStart(2,'0');
+                }
+            }
+            return val;
+        }
+
         let workers = [], cars = [], schedule = [], workTypes = [], objects = [], daySummary = [], resourceTypes = [];
         const LV_MONTHS = ["Janvāris", "Februāris", "Marts", "Aprīlis", "Maijs", "Jūnijs", "Jūlijs", "Augusts", "Septembris", "Oktobris", "Novembris", "Decembris"];
 
@@ -1355,8 +1370,8 @@ async function saveWorkerEdit() {
                     objekts: document.getElementById('editObjekts').value,
                     car: document.getElementById('editCar').value,
                     hours: document.getElementById('editHours').value,
-                    sākuma_laiks: document.getElementById('editWorkStart').value,
-                    beigu_laiks: isForceStopWork ? workEndVal + '*' : workEndVal
+                    sākuma_laiks: to24h(document.getElementById('editWorkStart').value),
+                    beigu_laiks: isForceStopWork ? to24h(workEndVal) + '*' : to24h(workEndVal)
                 };
                 const res = await fetch(`/api/schedule/${id}`, {
                     method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body)
@@ -1380,10 +1395,10 @@ async function saveWorkerEdit() {
                 const isForceStop = document.getElementById('editRecordId').dataset.isForceStop === '1';
                 const endVal = document.getElementById('editShiftEnd').value;
                 // Saglabājam * marķieri ja bija force-stop
-                const endValFinal = isForceStop ? endVal + '*' : endVal;
+                const endValFinal = isForceStop ? to24h(endVal) + '*' : to24h(endVal);
                 const res = await fetch(`/api/darbastundas/${id}`, {
                     method: 'PUT', headers: {'Content-Type':'application/json'},
-                    body: JSON.stringify({ stundas: document.getElementById('editShiftHours').value, sāka_darbu: document.getElementById('editShiftStart').value, beidza_darbu: endValFinal })
+                    body: JSON.stringify({ stundas: document.getElementById('editShiftHours').value, sāka_darbu: to24h(document.getElementById('editShiftStart').value), beidza_darbu: endValFinal })
                 });
                 if (res.ok) { document.getElementById('editRecordModal').style.display = 'none'; loadData(); }
                 else alert('Kļūda saglabājot!');
