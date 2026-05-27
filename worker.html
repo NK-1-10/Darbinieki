@@ -241,10 +241,8 @@
 
             if (!isShiftStarted) {
                 // Sākuma stāvoklis — TIKAI AtWork poga + pulkstenis
+                document.getElementById("AtWork").style.display = '';
                 setBtn('AtWork', true);
-                setBtn('startBtn', false);
-                setBtn('stopBtn', false);
-                setBtn('LeaveWork', false);
                 document.getElementById("startBtn").style.display = 'none';
                 document.getElementById("stopBtn").style.display = 'none';
                 document.getElementById("LeaveWork").style.display = 'none';
