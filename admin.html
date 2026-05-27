@@ -1371,7 +1371,7 @@ async function saveWorkerEdit() {
                     car: document.getElementById('editCar').value,
                     hours: document.getElementById('editHours').value,
                     sākuma_laiks: to24h(document.getElementById('editWorkStart').value),
-                    beigu_laiks: to24h(workEndVal)  // * noņemam — admins manuāli laboja
+                    beigu_laiks: isForceStopWork ? to24h(workEndVal) + '*' : to24h(workEndVal)
                 };
                 const res = await fetch(`/api/schedule/${id}`, {
                     method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body)
@@ -1395,7 +1395,7 @@ async function saveWorkerEdit() {
                 const isForceStop = document.getElementById('editRecordId').dataset.isForceStop === '1';
                 const endVal = document.getElementById('editShiftEnd').value;
                 // Saglabājam * marķieri ja bija force-stop
-                const endValFinal = to24h(endVal);  // * noņemam — admins manuāli laboja
+                const endValFinal = isForceStop ? to24h(endVal) + '*' : to24h(endVal);
                 const res = await fetch(`/api/darbastundas/${id}`, {
                     method: 'PUT', headers: {'Content-Type':'application/json'},
                     body: JSON.stringify({ stundas: document.getElementById('editShiftHours').value, sāka_darbu: to24h(document.getElementById('editShiftStart').value), beidza_darbu: endValFinal })
