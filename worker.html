@@ -112,19 +112,19 @@
         </div>
         <div id="status">Darba diena nav sākta</div>
 
-        <button id="AtWork">SĀKT DIENU</button>
-        <button id="startBtn">SĀKT DARBU</button>
+        <button id="AtWork" style="display:none;">SĀKT DIENU</button>
+        <button id="startBtn" style="display:none;">SĀKT DARBU</button>
 
-        <div id="workControls">
+        <div id="workControls" style="display:none;">
             <select id="car"><option value="">-- Nav mašīnas --</option></select>
             <select id="object"><option value="">-- Nav objekta --</option></select>
             <select id="work" required><option value="">-- Izvēlies darba veidu --</option></select>
         </div>
 
-        <button id="stopBtn">BEIGT TAGADĒJO DARBU</button>
-        <button id="OpenResourceBtn" class="res-btn">REĢISTRĒT DEGVIELU / EĻĻU</button>
-        <button id="LeaveWork">BEIGT DIENU</button>
-        <button id="logoutBtn">Izrakstīties</button>
+        <button id="stopBtn" style="display:none;">BEIGT TAGADĒJO DARBU</button>
+        <button id="OpenResourceBtn" class="res-btn" style="display:none;">REĢISTRĒT DEGVIELU / EĻĻU</button>
+        <button id="LeaveWork" style="display:none;">BEIGT DIENU</button>
+        <button id="logoutBtn" style="display:none;">Izrakstīties</button>
     </div>
 
     <div id="resourceModal">
@@ -241,10 +241,8 @@
 
             if (!isShiftStarted) {
                 // Sākuma stāvoklis — TIKAI AtWork poga + pulkstenis
+                document.getElementById("AtWork").style.display = '';
                 setBtn('AtWork', true);
-                setBtn('startBtn', false);
-                setBtn('stopBtn', false);
-                setBtn('LeaveWork', false);
                 document.getElementById("startBtn").style.display = 'none';
                 document.getElementById("stopBtn").style.display = 'none';
                 document.getElementById("LeaveWork").style.display = 'none';

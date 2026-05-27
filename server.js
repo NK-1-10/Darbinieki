@@ -130,7 +130,7 @@ app.delete('/api/schedule/:id', async (req, res) => {
 // Rediģēt schedule ierakstu
 app.put('/api/schedule/:id', async (req, res) => {
     const id = req.params.id;
-    const { resource_amount, resource_name, mh_current, hours, darbs, objekts, car } = req.body;
+    const { resource_amount, resource_name, mh_current, hours, darbs, objekts, car, sākuma_laiks, beigu_laiks } = req.body;
     try {
         // Iegūstam veco ierakstu
         const old = await pool.query("SELECT * FROM schedule WHERE id = $1", [id]);
@@ -179,6 +179,13 @@ app.put('/api/schedule/:id', async (req, res) => {
             newMhPrev = prev.rows[0]?.mh_current || null;
         }
 
+        // Ja mainās sākuma/beigu laiks → pārrēķinām stundas
+        let finalHours = hours || null;
+        if (sākuma_laiks && beigu_laiks) {
+            const cleanEnd = beigu_laiks.replace('*', '');
+            finalHours = calculateHours(sākuma_laiks, cleanEnd);
+        }
+
         await pool.query(`
             UPDATE schedule SET
                 resource_amount = COALESCE($1, resource_amount),
@@ -188,10 +195,53 @@ app.put('/api/schedule/:id', async (req, res) => {
                 hours = COALESCE($5, hours),
                 darbs = COALESCE($6, darbs),
                 objekts = COALESCE($7, objekts),
-                car = COALESCE($8, car)
+                car = COALESCE($8, car),
+                "sākuma_laiks" = COALESCE($10, "sākuma_laiks"),
+                beigu_laiks = COALESCE($11, beigu_laiks)
             WHERE id = $9`,
-            [resource_amount || null, resource_name || null, mh_current || null, newMhPrev, hours || null, darbs || null, objekts || null, car || null, id]
+            [resource_amount || null, resource_name || null, mh_current || null, newMhPrev, finalHours, darbs || null, objekts || null, car || null, id, sākuma_laiks || null, beigu_laiks || null]
         );
+
+        // Automātiska darbastundas korekcija
+        // Summējam visus darbus šim darbiniekam šajā datumā (ne degviela/eļļa)
+        const updatedRow = await pool.query('SELECT * FROM schedule WHERE id = $1', [id]);
+        if (updatedRow.rows.length > 0) {
+            const row = updatedRow.rows[0];
+            const workerName = row.worker_name;
+            const date = row.date;
+
+            const sumResult = await pool.query(`
+                SELECT COALESCE(SUM(CAST(REPLACE(hours::text, '*', '') AS NUMERIC)), 0) as total
+                FROM schedule
+                WHERE worker_name = $1
+                AND date = $2
+                AND darbs NOT IN ('Degvielas uzpilde', 'Eļļas papildināšana', 'Resursu papildinājums', 'Resursu atņemšana')
+                AND hours IS NOT NULL`,
+                [workerName, date]
+            );
+            const scheduleTotal = parseFloat(sumResult.rows[0].total);
+
+            // Atrodam darbastundas ierakstu šim darbiniekam šajā datumā
+            const shiftRow = await pool.query(`
+                SELECT id, stundas FROM "darbastundas"
+                WHERE darbinieks = $1 AND datums = $2
+                ORDER BY id DESC LIMIT 1`,
+                [workerName, date]
+            );
+
+            if (shiftRow.rows.length > 0) {
+                const currentShiftHours = parseFloat(shiftRow.rows[0].stundas || 0);
+                // Ja darba gaita pārsniedz darba stundas → atjauninam
+                if (scheduleTotal > currentShiftHours) {
+                    await pool.query(
+                        'UPDATE "darbastundas" SET stundas = $1 WHERE id = $2',
+                        [scheduleTotal.toFixed(2), shiftRow.rows[0].id]
+                    );
+                    console.log(`📊 Darbastundas atjauninātas: ${workerName} ${date} → ${scheduleTotal.toFixed(2)}h`);
+                }
+            }
+        }
+
         res.json({ success: true });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -201,8 +251,16 @@ app.put('/api/schedule/:id', async (req, res) => {
 // --- JAUNS: Dzēst vienu ierakstu no DARBASTUNDAS ---
 app.put('/api/darbastundas/:id', async (req, res) => {
     try {
-        const { stundas } = req.body;
-        await pool.query('UPDATE "darbastundas" SET stundas = $1 WHERE id = $2', [parseFloat(stundas), req.params.id]);
+        const { stundas, sāka_darbu, beidza_darbu } = req.body;
+        let finalHours = parseFloat(stundas);
+        if (sāka_darbu && beidza_darbu) {
+            const cleanEnd = beidza_darbu.replace('*', '');
+            finalHours = parseFloat(calculateHours(sāka_darbu, cleanEnd));
+        }
+        await pool.query(
+            'UPDATE "darbastundas" SET stundas = $1, "sāka_darbu" = COALESCE($2, "sāka_darbu"), beidza_darbu = COALESCE($3, beidza_darbu) WHERE id = $4',
+            [finalHours, sāka_darbu || null, beidza_darbu || null, req.params.id]
+        );
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -843,23 +901,28 @@ cron.schedule('* * * * *', async () => {
             );
 
             if (activeJob.rows.length > 0) {
-                // Aktīvs darbs — beigt ar stopTime*
-                // Shift stundas: ja ir pabeigti darbi → līdz pēdējam, citādi 0
                 const endMark = stopTime + '*';
-                const jobHours = calculateHours(activeJob.rows[0].sākuma_laiks, stopTime);
+                // Aktīvais darbs vienmēr 0h (netika pabeigts)
                 await pool.query(
                     `UPDATE schedule SET beigu_laiks = $1, hours = $2 WHERE id = $3`,
-                    [endMark, jobHours, activeJob.rows[0].id]
+                    [endMark, '0.00', activeJob.rows[0].id]
                 );
-                // Shift stundas — ja ir pabeigti darbi tajā dienā, rēķinām līdz tiem
-                let shiftHours = '0.00';
+                // Shift beigu laiks un stundas
                 if (lastFinished.rows.length > 0) {
-                    shiftHours = calculateHours(shift.sāka_darbu, lastFinished.rows[0].beigu_laiks.replace('*',''));
+                    // Ir pabeigti darbi → beigas = pēdējā darba beigu laiks + * marķieris
+                    const lastEnd = lastFinished.rows[0].beigu_laiks.replace('*','');
+                    const shiftHours = calculateHours(shift.sāka_darbu, lastEnd);
+                    await pool.query(
+                        `UPDATE "darbastundas" SET beidza_darbu = $1, stundas = $2 WHERE id = $3`,
+                        [lastEnd + '*', shiftHours, shift.id]
+                    );
+                } else {
+                    // Nav pabeigtu darbu → 0h, beigas stopTime*
+                    await pool.query(
+                        `UPDATE "darbastundas" SET beidza_darbu = $1, stundas = $2 WHERE id = $3`,
+                        [endMark, '0.00', shift.id]
+                    );
                 }
-                await pool.query(
-                    `UPDATE "darbastundas" SET beidza_darbu = $1, stundas = $2 WHERE id = $3`,
-                    [endMark, shiftHours, shift.id]
-                );
                 console.log(`⛔ ${workerName}: aktīvs darbs slēgts, shift stundas: ${shiftHours}`);
             } else if (lastFinished.rows.length > 0) {
                 // Nav aktīva darba, bet ir pabeigti → beigas = pēdējā darba beigu laiks

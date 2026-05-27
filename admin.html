@@ -353,8 +353,11 @@
                 <select id="editObjekts" style="margin:0 0 6px;"></select>
                 <label style="font-size:12px;color:#666;">Auto</label>
                 <select id="editCar" style="margin:0 0 6px;"></select>
-                <label style="font-size:12px;color:#666;">Stundas</label>
-                <input type="number" id="editHours" step="0.01" style="margin:0;">
+                <label style="font-size:12px;color:#666;">Sākuma laiks</label>
+                <input type="text" id="editWorkStart" placeholder="HH:MM:SS" pattern="[0-9]{2}:[0-9]{2}:[0-9]{2}" style="margin:0 0 6px;">
+                <label style="font-size:12px;color:#666;">Beigu laiks</label>
+                <input type="text" id="editWorkEnd" placeholder="HH:MM:SS" pattern="[0-9]{2}:[0-9]{2}:[0-9]{2}" style="margin:0 0 6px;">
+                <input type="number" id="editHours" step="0.01" style="display:none;" readonly>
             </div>
 
             <div id="editFieldsFuel" style="display:none; gap:8px; flex-direction:column;">
@@ -370,11 +373,10 @@
 
             <div id="editFieldsHours" style="display:none; gap:8px; flex-direction:column;">
                 <label style="font-size:12px;color:#666;">Sākuma laiks</label>
-                <input type="time" id="editShiftStart" step="1" style="margin:0;">
+                <input type="text" id="editShiftStart" placeholder="HH:MM:SS" pattern="[0-9]{2}:[0-9]{2}:[0-9]{2}" style="margin:0;">
                 <label style="font-size:12px;color:#666;">Beigu laiks</label>
-                <input type="time" id="editShiftEnd" step="1" style="margin:0;">
-                <label style="font-size:12px;color:#666;">Kopā stundas (aprēķināts automātiski)</label>
-                <input type="number" id="editShiftHours" step="0.01" style="margin:0; background:#f5f5f5;" readonly>
+                <input type="text" id="editShiftEnd" placeholder="HH:MM:SS" pattern="[0-9]{2}:[0-9]{2}:[0-9]{2}" style="margin:0;">
+                <input type="number" id="editShiftHours" step="0.01" style="display:none;" readonly>
             </div>
 
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:14px;">
@@ -418,6 +420,21 @@
     </div>
 
     <script>
+        // Konvertē laiku uz 24h HH:MM:SS formātu
+        function to24h(val) {
+            if (!val) return val;
+            val = val.trim();
+            if (val.toLowerCase().includes('am') || val.toLowerCase().includes('pm')) {
+                const d = new Date('1970-01-01 ' + val);
+                if (!isNaN(d)) {
+                    return String(d.getHours()).padStart(2,'0') + ':' +
+                           String(d.getMinutes()).padStart(2,'0') + ':' +
+                           String(d.getSeconds()).padStart(2,'0');
+                }
+            }
+            return val;
+        }
+
         let workers = [], cars = [], schedule = [], workTypes = [], objects = [], daySummary = [], resourceTypes = [];
         const LV_MONTHS = ["Janvāris", "Februāris", "Marts", "Aprīlis", "Maijs", "Jūnijs", "Jūlijs", "Augusts", "Septembris", "Oktobris", "Novembris", "Decembris"];
 
@@ -793,6 +810,8 @@ if(workerEl) {
                                     <div class="col-filter-popup"><select onchange="wSec_set(this.value,'.car-sel','work')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">${Array.from(wSel('.car-sel').options).map(o=>`<option value="${o.value}" ${o.value===wSel('.car-sel').value?'selected':''}>${o.text}</option>`).join('')}</select>
                                     <button class="col-filter-clear" onclick="wSec_set('','.car-sel','work')">✕ Notīrīt</button></div>
                                 </div></th>
+                                <th>Sākums</th>
+                                <th>Beigas</th>
                                 <th style="text-align:center;">Stundas</th>
                                 <th style="width:50px;"></th>
                             </tr>
@@ -805,8 +824,10 @@ if(workerEl) {
                                     <td>${e.darbs || '-'}</td>
                                     <td>${e.objekts || '-'}</td>
                                     <td>${e.car || '-'}</td>
-                                    <td style="text-align:center;${ (e.beigu_laiks||'').includes('*') ? 'color:#c0392b;font-weight:800;' : '' }" class="gold-val">${parseFloat((e.hours||'0').toString().replace('*','')||0).toFixed(2)}</td>
-                                    <td style="white-space:nowrap;"><button class="pencil" onclick="openEditWork(${e.id}, '${e.darbs}', '${e.objekts}', '${e.car}', ${ parseFloat((e.hours||'0').toString().replace('*',''))||0 })" style="margin-right:4px;">✏️</button><button class="btn-del" onclick="deleteScheduleItem(${e.id})">✖</button></td>
+                                    <td>${e.sākuma_laiks || '-'}</td>
+                                    <td>${(e.beigu_laiks||'-').replace('*','')}</td>
+                                    <td style="text-align:center;color:${ (e.beigu_laiks||'').includes('*') ? '#c0392b' : 'var(--green)' };font-weight:800;">${parseFloat((e.hours||'0').toString().replace('*','')||0).toFixed(2)}</td>
+                                    <td style="white-space:nowrap;"><button class="pencil" onclick="openEditWork(${e.id}, '${e.darbs}', '${e.objekts}', '${e.car}', ${parseFloat((e.hours||'0').toString().replace('*','')||0)}, '${(e.sākuma_laiks||'').replace(/'/g,'')}', '${(e.beigu_laiks||'').replace(/'/g,'')}')" style="margin-right:4px;">✏️</button><button class="btn-del" onclick="deleteScheduleItem(${e.id})">✖</button></td>
                                 </tr>`).join("")}
                         </tbody>
                     </table>`;
@@ -911,14 +932,25 @@ if(workerEl) {
                 );
 
                 // Aprēķinām pusdienu stundas no schedule tabulas katram ierakstam
-                function getPusdienas(workerName, datums) {
+                function getPusdienas(workerName, datums, sakadarbu, beidzadarbu) {
                     return schedule
-                        .filter(s => s.worker_name === workerName && s.date === datums && s.darbs === 'Pusdienas' && s.hours)
+                        .filter(s => {
+                            if (s.worker_name !== workerName || s.date !== datums || s.darbs !== 'Pusdienas' || !s.hours) return false;
+                            // Ja ir shift laiki — pārbaudām vai pusdienas iekļaujas šajā shift'ā
+                            if (sakadarbu && s.sākuma_laiks) {
+                                const cleanSaka = sakadarbu.replace('*','');
+                                const cleanBeidza = (beidzadarbu||'').replace('*','');
+                                const pusdSak = s.sākuma_laiks.replace('*','');
+                                if (pusdSak < cleanSaka) return false;
+                                if (cleanBeidza && pusdSak > cleanBeidza) return false;
+                            }
+                            return true;
+                        })
                         .reduce((sum, s) => sum + parseFloat(s.hours || 0), 0);
                 }
 
                 const totalKopa = fSum.reduce((s,i) => s + parseFloat(i.stundas || 0), 0);
-                const totalPusd = fSum.reduce((s,i) => s + getPusdienas(i.darbinieks, i.datums), 0);
+                const totalPusd = fSum.reduce((s,i) => s + getPusdienas(i.darbinieks, i.datums, i.sāka_darbu, i.beidza_darbu), 0);
                 const totalDarba = Math.max(0, totalKopa - totalPusd);
                 document.getElementById('totalDayHoursValue').innerText = totalKopa.toFixed(2) + ' h';
                 document.getElementById('totalPusdienas').innerText = totalPusd.toFixed(2) + ' h';
@@ -948,25 +980,27 @@ if(workerEl) {
                         </thead>
                         <tbody>
                             ${fSum.map(e => {
-                                const pusd = getPusdienas(e.darbinieks, e.datums);
+                                const pusd = getPusdienas(e.darbinieks, e.datums, e.sāka_darbu, e.beidza_darbu);
                                 const kopaa = parseFloat(e.stundas || 0);
                                 const darba = Math.max(0, kopaa - pusd);
                                 const isAutoStop = (e.beidza_darbu||'').includes('*');
                                 const startT = (e.sāka_darbu||'').replace('*','');
-                                const endT = (e.beidza_darbu||'').replace('*','');
-                                const isBadTime = endT && startT > endT;
-                                const isRed = isAutoStop || isBadTime;
-                                const beigasCell = (e.beidza_darbu||'-').replace('*','');
-                                const numStyle = isRed ? 'text-align:center;color:#c0392b;font-weight:800;' : 'text-align:center;';
+                                const endT = (e.beidza_darbu||'');  // saglabājam * priekš isForceStop
+                                const beigasCell = endT || '-';
+                                // Sarkans = force-stop (paliek sarkans arī pēc korekcijas)
+                                // Zaļš = darbinieks pats beidza
+                                const numStyleRed = 'text-align:center;color:#c0392b;font-weight:800;';
+                                const numStyleGreen = 'text-align:center;color:var(--green);font-weight:800;';
+                                const numStyle = isAutoStop ? numStyleRed : numStyleGreen;
                                 return `
                                 <tr>
                                     <td>${e.datums}</td>
                                     <td>${e.darbinieks}</td>
-                                    <td>${e.sāka_darbu}</td>
+                                    <td>${startT}</td>
                                     <td>${beigasCell}</td>
                                     <td style="text-align: center;">${pusd > 0 ? pusd.toFixed(2) + ' h' : '-'}</td>
-                                    <td style="${numStyle}" class="gold-val">${kopaa.toFixed(2)}</td>
-                                    <td style="${numStyle}" class="gold-val">${darba.toFixed(2)}</td>
+                                    <td style="${numStyle}">${kopaa.toFixed(2)}</td>
+                                    <td style="${numStyle}">${darba.toFixed(2)}</td>
                                     <td style="white-space:nowrap;">
                                         ${e.id ? `
                                             <button class="pencil" onclick="openEditHours(${e.id}, ${e.stundas}, '${startT}', '${endT}')" style="margin-right:4px;">✏️</button>
@@ -1246,7 +1280,7 @@ async function saveWorkerEdit() {
                 options.map(o => `<option value="${o}" ${o === currentVal ? 'selected' : ''}>${o}</option>`).join('');
         }
 
-        function openEditWork(id, darbs, objekts, car, hours) {
+        function openEditWork(id, darbs, objekts, car, hours, sakums, beigas) {
             document.getElementById('editRecordId').value = id;
             document.getElementById('editRecordType').value = 'work';
             document.getElementById('editRecordTitle').textContent = '✏️ Rediģēt darba ierakstu';
@@ -1256,7 +1290,29 @@ async function saveWorkerEdit() {
             fillEditSelect('editDarbs', workTypes, darbs);
             fillEditSelect('editObjekts', objects.map(o => o.name || o), objekts, '— Nav objekta —');
             fillEditSelect('editCar', cars.map(c => c.name || c), car, '— Nav mašīnas —');
+            // Saglabājam force-stop marķieri
+            document.getElementById('editRecordId').dataset.isForceStopWork = (beigas||'').includes('*') ? '1' : '0';
+            console.log('isForceStopWork:', (beigas||'').includes('*'), 'beigas:', beigas);
+            const startClean = (sakums||'').replace('*','');
+            const endClean = (beigas||'').replace('*','');
+            document.getElementById('editWorkStart').value = startClean;
+            document.getElementById('editWorkEnd').value = endClean;
             document.getElementById('editHours').value = hours || '';
+            // Auto-aprēķins
+            const recalcWork = () => {
+                const s = to24h(document.getElementById('editWorkStart').value);
+                const e = to24h(document.getElementById('editWorkEnd').value);
+                if (s && e) {
+                    const [sh,sm,ss] = s.split(':').map(Number);
+                    const [eh,em,es] = e.split(':').map(Number);
+                    let diff = (eh*3600+em*60+(es||0)) - (sh*3600+sm*60+(ss||0));
+                    if (diff < 0) diff += 86400;
+                    if (diff > 16*3600) diff = 0;
+                    document.getElementById('editHours').value = (diff/3600).toFixed(2);
+                }
+            };
+            document.getElementById('editWorkStart').onchange = recalcWork;
+            document.getElementById('editWorkEnd').onchange = recalcWork;
             document.getElementById('editRecordModal').style.display = 'flex';
         }
 
@@ -1281,12 +1337,15 @@ async function saveWorkerEdit() {
             document.getElementById('editFieldsWork').style.display = 'none';
             document.getElementById('editFieldsFuel').style.display = 'none';
             document.getElementById('editFieldsHours').style.display = 'flex';
+            // Saglabājam vai ir force-stop marķieris
+            document.getElementById('editRecordId').dataset.isForceStop = beidzadarbu.includes('*') ? '1' : '0';
+            console.log('isForceStop:', beidzadarbu.includes('*'), 'beidzadarbu:', beidzadarbu);
             document.getElementById('editShiftStart').value = (sakadarbu||'').replace('*','');
-            document.getElementById('editShiftEnd').value = (beidzadarbu||'').replace('*','');
+            document.getElementById('editShiftEnd').value = (beidzadarbu||'').replace('*','');  // rādām bez *
             document.getElementById('editShiftHours').value = stundas || '';
             const recalc = () => {
-                const s = document.getElementById('editShiftStart').value;
-                const e = document.getElementById('editShiftEnd').value;
+                const s = to24h(document.getElementById('editShiftStart').value);
+                const e = to24h(document.getElementById('editShiftEnd').value);
                 if (s && e) {
                     const [sh,sm,ss] = s.split(':').map(Number);
                     const [eh,em,es] = e.split(':').map(Number);
@@ -1305,12 +1364,31 @@ async function saveWorkerEdit() {
             const type = document.getElementById('editRecordType').value;
             let body = {};
 
+            // Validācija — beigas nevar būt pirms sākuma
             if (type === 'work') {
+                const ws = to24h(document.getElementById('editWorkStart').value);
+                const we = to24h(document.getElementById('editWorkEnd').value);
+                if (ws && we && we.replace('*','') <= ws) {
+                    return alert('Kļūda! Beigu laiks nevar būt pirms vai vienāds ar sākuma laiku!');
+                }
+            } else if (type === 'hours') {
+                const hs = to24h(document.getElementById('editShiftStart').value);
+                const he = to24h(document.getElementById('editShiftEnd').value);
+                if (hs && he && he.replace('*','') <= hs) {
+                    return alert('Kļūda! Beigu laiks nevar būt pirms vai vienāds ar sākuma laiku!');
+                }
+            }
+
+            if (type === 'work') {
+                const isForceStopWork = document.getElementById('editRecordId').dataset.isForceStopWork === '1';
+                const workEndVal = document.getElementById('editWorkEnd').value;
                 body = {
                     darbs: document.getElementById('editDarbs').value,
                     objekts: document.getElementById('editObjekts').value,
                     car: document.getElementById('editCar').value,
-                    hours: document.getElementById('editHours').value
+                    hours: document.getElementById('editHours').value,
+                    sākuma_laiks: to24h(document.getElementById('editWorkStart').value),
+                    beigu_laiks: isForceStopWork ? to24h(workEndVal) + '*' : to24h(workEndVal)
                 };
                 const res = await fetch(`/api/schedule/${id}`, {
                     method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body)
@@ -1331,9 +1409,13 @@ async function saveWorkerEdit() {
                 else alert('Kļūda saglabājot!');
 
             } else if (type === 'hours') {
+                const isForceStop = document.getElementById('editRecordId').dataset.isForceStop === '1';
+                const endVal = document.getElementById('editShiftEnd').value;
+                // Saglabājam * marķieri ja bija force-stop
+                const endValFinal = isForceStop ? to24h(endVal) + '*' : to24h(endVal);
                 const res = await fetch(`/api/darbastundas/${id}`, {
                     method: 'PUT', headers: {'Content-Type':'application/json'},
-                    body: JSON.stringify({ stundas: document.getElementById('editShiftHours').value, sāka_darbu: document.getElementById('editShiftStart').value, beidza_darbu: document.getElementById('editShiftEnd').value })
+                    body: JSON.stringify({ stundas: document.getElementById('editShiftHours').value, sāka_darbu: to24h(document.getElementById('editShiftStart').value), beidza_darbu: endValFinal })
                 });
                 if (res.ok) { document.getElementById('editRecordModal').style.display = 'none'; loadData(); }
                 else alert('Kļūda saglabājot!');
