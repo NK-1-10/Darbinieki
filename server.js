@@ -179,7 +179,7 @@ app.put('/api/schedule/:id', async (req, res) => {
             newMhPrev = prev.rows[0]?.mh_current || null;
         }
 
-        // Ja mainās sākuma/beigu laiks un ir hours → pārrēķinām
+        // Ja mainās sākuma/beigu laiks → pārrēķinām stundas
         let finalHours = hours || null;
         if (sākuma_laiks && beigu_laiks) {
             const cleanEnd = beigu_laiks.replace('*', '');
@@ -201,6 +201,47 @@ app.put('/api/schedule/:id', async (req, res) => {
             WHERE id = $9`,
             [resource_amount || null, resource_name || null, mh_current || null, newMhPrev, finalHours, darbs || null, objekts || null, car || null, id, sākuma_laiks || null, beigu_laiks || null]
         );
+
+        // Automātiska darbastundas korekcija
+        // Summējam visus darbus šim darbiniekam šajā datumā (ne degviela/eļļa)
+        const updatedRow = await pool.query('SELECT * FROM schedule WHERE id = $1', [id]);
+        if (updatedRow.rows.length > 0) {
+            const row = updatedRow.rows[0];
+            const workerName = row.worker_name;
+            const date = row.date;
+
+            const sumResult = await pool.query(`
+                SELECT COALESCE(SUM(CAST(REPLACE(hours::text, '*', '') AS NUMERIC)), 0) as total
+                FROM schedule
+                WHERE worker_name = $1
+                AND date = $2
+                AND darbs NOT IN ('Degvielas uzpilde', 'Eļļas papildināšana', 'Resursu papildinājums', 'Resursu atņemšana')
+                AND hours IS NOT NULL`,
+                [workerName, date]
+            );
+            const scheduleTotal = parseFloat(sumResult.rows[0].total);
+
+            // Atrodam darbastundas ierakstu šim darbiniekam šajā datumā
+            const shiftRow = await pool.query(`
+                SELECT id, stundas FROM "darbastundas"
+                WHERE darbinieks = $1 AND datums = $2
+                ORDER BY id DESC LIMIT 1`,
+                [workerName, date]
+            );
+
+            if (shiftRow.rows.length > 0) {
+                const currentShiftHours = parseFloat(shiftRow.rows[0].stundas || 0);
+                // Ja darba gaita pārsniedz darba stundas → atjauninam
+                if (scheduleTotal > currentShiftHours) {
+                    await pool.query(
+                        'UPDATE "darbastundas" SET stundas = $1 WHERE id = $2',
+                        [scheduleTotal.toFixed(2), shiftRow.rows[0].id]
+                    );
+                    console.log(`📊 Darbastundas atjauninātas: ${workerName} ${date} → ${scheduleTotal.toFixed(2)}h`);
+                }
+            }
+        }
+
         res.json({ success: true });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -212,7 +253,6 @@ app.put('/api/darbastundas/:id', async (req, res) => {
     try {
         const { stundas, sāka_darbu, beidza_darbu } = req.body;
         let finalHours = parseFloat(stundas);
-        // Ja padoti sākums un beigas — pārrēķinām stundas serverī
         if (sāka_darbu && beidza_darbu) {
             const cleanEnd = beidza_darbu.replace('*', '');
             finalHours = parseFloat(calculateHours(sāka_darbu, cleanEnd));
@@ -861,15 +901,16 @@ cron.schedule('* * * * *', async () => {
             );
 
             if (activeJob.rows.length > 0) {
-                // Aktīvs darbs — beigt ar stopTime*
-                // Shift stundas: ja ir pabeigti darbi → līdz pēdējam, citādi 0
                 const endMark = stopTime + '*';
-                const jobHours = calculateHours(activeJob.rows[0].sākuma_laiks, stopTime);
+                // Ja ir pabeigti darbi → aktīvā darba stundas aprēķinām, citādi 0
+                const jobHours = lastFinished.rows.length > 0
+                    ? calculateHours(activeJob.rows[0].sākuma_laiks, stopTime)
+                    : '0.00';
                 await pool.query(
                     `UPDATE schedule SET beigu_laiks = $1, hours = $2 WHERE id = $3`,
                     [endMark, jobHours, activeJob.rows[0].id]
                 );
-                // Shift stundas — ja ir pabeigti darbi tajā dienā, rēķinām līdz tiem
+                // Shift stundas — ja ir pabeigti darbi tajā dienā, rēķinām līdz tiem, citādi 0
                 let shiftHours = '0.00';
                 if (lastFinished.rows.length > 0) {
                     shiftHours = calculateHours(shift.sāka_darbu, lastFinished.rows[0].beigu_laiks.replace('*',''));
