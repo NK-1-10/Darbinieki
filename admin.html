@@ -797,6 +797,8 @@ if(workerEl) {
                                     <div class="col-filter-popup"><select onchange="wSec_set(this.value,'.car-sel','work')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">${Array.from(wSel('.car-sel').options).map(o=>`<option value="${o.value}" ${o.value===wSel('.car-sel').value?'selected':''}>${o.text}</option>`).join('')}</select>
                                     <button class="col-filter-clear" onclick="wSec_set('','.car-sel','work')">✕ Notīrīt</button></div>
                                 </div></th>
+                                <th>Sākums</th>
+                                <th>Beigas</th>
                                 <th style="text-align:center;">Stundas</th>
                                 <th style="width:50px;"></th>
                             </tr>
