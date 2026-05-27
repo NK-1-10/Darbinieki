@@ -354,9 +354,9 @@
                 <label style="font-size:12px;color:#666;">Auto</label>
                 <select id="editCar" style="margin:0 0 6px;"></select>
                 <label style="font-size:12px;color:#666;">Sākuma laiks</label>
-                <input type="time" id="editWorkStart" step="1" style="margin:0 0 6px;">
+                <input type="text" id="editWorkStart" placeholder="HH:MM:SS" pattern="[0-9]{2}:[0-9]{2}:[0-9]{2}" style="margin:0 0 6px;">
                 <label style="font-size:12px;color:#666;">Beigu laiks</label>
-                <input type="time" id="editWorkEnd" step="1" style="margin:0 0 6px;">
+                <input type="text" id="editWorkEnd" placeholder="HH:MM:SS" pattern="[0-9]{2}:[0-9]{2}:[0-9]{2}" style="margin:0 0 6px;">
                 <input type="number" id="editHours" step="0.01" style="display:none;" readonly>
             </div>
 
@@ -373,9 +373,9 @@
 
             <div id="editFieldsHours" style="display:none; gap:8px; flex-direction:column;">
                 <label style="font-size:12px;color:#666;">Sākuma laiks</label>
-                <input type="time" id="editShiftStart" step="1" style="margin:0;">
+                <input type="text" id="editShiftStart" placeholder="HH:MM:SS" pattern="[0-9]{2}:[0-9]{2}:[0-9]{2}" style="margin:0;">
                 <label style="font-size:12px;color:#666;">Beigu laiks</label>
-                <input type="time" id="editShiftEnd" step="1" style="margin:0;">
+                <input type="text" id="editShiftEnd" placeholder="HH:MM:SS" pattern="[0-9]{2}:[0-9]{2}:[0-9]{2}" style="margin:0;">
                 <input type="number" id="editShiftHours" step="0.01" style="display:none;" readonly>
             </div>
 
@@ -1300,8 +1300,8 @@ async function saveWorkerEdit() {
             document.getElementById('editHours').value = hours || '';
             // Auto-aprēķins
             const recalcWork = () => {
-                const s = document.getElementById('editWorkStart').value;
-                const e = document.getElementById('editWorkEnd').value;
+                const s = to24h(document.getElementById('editWorkStart').value);
+                const e = to24h(document.getElementById('editWorkEnd').value);
                 if (s && e) {
                     const [sh,sm,ss] = s.split(':').map(Number);
                     const [eh,em,es] = e.split(':').map(Number);
@@ -1344,8 +1344,8 @@ async function saveWorkerEdit() {
             document.getElementById('editShiftEnd').value = (beidzadarbu||'').replace('*','');  // rādām bez *
             document.getElementById('editShiftHours').value = stundas || '';
             const recalc = () => {
-                const s = document.getElementById('editShiftStart').value;
-                const e = document.getElementById('editShiftEnd').value;
+                const s = to24h(document.getElementById('editShiftStart').value);
+                const e = to24h(document.getElementById('editShiftEnd').value);
                 if (s && e) {
                     const [sh,sm,ss] = s.split(':').map(Number);
                     const [eh,em,es] = e.split(':').map(Number);
@@ -1363,6 +1363,21 @@ async function saveWorkerEdit() {
             const id = document.getElementById('editRecordId').value;
             const type = document.getElementById('editRecordType').value;
             let body = {};
+
+            // Validācija — beigas nevar būt pirms sākuma
+            if (type === 'work') {
+                const ws = to24h(document.getElementById('editWorkStart').value);
+                const we = to24h(document.getElementById('editWorkEnd').value);
+                if (ws && we && we.replace('*','') <= ws) {
+                    return alert('Kļūda! Beigu laiks nevar būt pirms vai vienāds ar sākuma laiku!');
+                }
+            } else if (type === 'hours') {
+                const hs = to24h(document.getElementById('editShiftStart').value);
+                const he = to24h(document.getElementById('editShiftEnd').value);
+                if (hs && he && he.replace('*','') <= hs) {
+                    return alert('Kļūda! Beigu laiks nevar būt pirms vai vienāds ar sākuma laiku!');
+                }
+            }
 
             if (type === 'work') {
                 const isForceStopWork = document.getElementById('editRecordId').dataset.isForceStopWork === '1';
