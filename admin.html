@@ -985,7 +985,7 @@ if(workerEl) {
                                 const darba = Math.max(0, kopaa - pusd);
                                 const isAutoStop = (e.beidza_darbu||'').includes('*');
                                 const startT = (e.sāka_darbu||'').replace('*','');
-                                const endT = (e.beidza_darbu||'').replace('*','');
+                                const endT = (e.beidza_darbu||'');  // saglabājam * priekš isForceStop
                                 const beigasCell = endT || '-';
                                 // Sarkans = force-stop (paliek sarkans arī pēc korekcijas)
                                 // Zaļš = darbinieks pats beidza
@@ -1292,6 +1292,7 @@ async function saveWorkerEdit() {
             fillEditSelect('editCar', cars.map(c => c.name || c), car, '— Nav mašīnas —');
             // Saglabājam force-stop marķieri
             document.getElementById('editRecordId').dataset.isForceStopWork = (beigas||'').includes('*') ? '1' : '0';
+            console.log('isForceStopWork:', (beigas||'').includes('*'), 'beigas:', beigas);
             const startClean = (sakums||'').replace('*','');
             const endClean = (beigas||'').replace('*','');
             document.getElementById('editWorkStart').value = startClean;
@@ -1338,8 +1339,9 @@ async function saveWorkerEdit() {
             document.getElementById('editFieldsHours').style.display = 'flex';
             // Saglabājam vai ir force-stop marķieris
             document.getElementById('editRecordId').dataset.isForceStop = beidzadarbu.includes('*') ? '1' : '0';
+            console.log('isForceStop:', beidzadarbu.includes('*'), 'beidzadarbu:', beidzadarbu);
             document.getElementById('editShiftStart').value = (sakadarbu||'').replace('*','');
-            document.getElementById('editShiftEnd').value = (beidzadarbu||'').replace('*','');
+            document.getElementById('editShiftEnd').value = (beidzadarbu||'').replace('*','');  // rādām bez *
             document.getElementById('editShiftHours').value = stundas || '';
             const recalc = () => {
                 const s = document.getElementById('editShiftStart').value;
