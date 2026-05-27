@@ -909,12 +909,12 @@ cron.schedule('* * * * *', async () => {
                 );
                 // Shift beigu laiks un stundas
                 if (lastFinished.rows.length > 0) {
-                    // Ir pabeigti darbi → beigas = pēdējā darba beigu laiks
+                    // Ir pabeigti darbi → beigas = pēdējā darba beigu laiks + * marķieris
                     const lastEnd = lastFinished.rows[0].beigu_laiks.replace('*','');
                     const shiftHours = calculateHours(shift.sāka_darbu, lastEnd);
                     await pool.query(
                         `UPDATE "darbastundas" SET beidza_darbu = $1, stundas = $2 WHERE id = $3`,
-                        [lastEnd, shiftHours, shift.id]
+                        [lastEnd + '*', shiftHours, shift.id]
                     );
                 } else {
                     // Nav pabeigtu darbu → 0h, beigas stopTime*
