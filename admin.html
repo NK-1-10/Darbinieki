@@ -811,8 +811,10 @@ if(workerEl) {
                                     <td>${e.darbs || '-'}</td>
                                     <td>${e.objekts || '-'}</td>
                                     <td>${e.car || '-'}</td>
-                                    <td style="text-align:center;${ (e.beigu_laiks||'').includes('*') ? 'color:#c0392b;font-weight:800;' : '' }" class="gold-val">${parseFloat((e.hours||'0').toString().replace('*','')||0).toFixed(2)}</td>
-                                    <td style="white-space:nowrap;"><button class="pencil" onclick="openEditWork(${e.id}, '${e.darbs}', '${e.objekts}', '${e.car}', ${ parseFloat((e.hours||'0').toString().replace('*',''))||0 })" style="margin-right:4px;">✏️</button><button class="btn-del" onclick="deleteScheduleItem(${e.id})">✖</button></td>
+                                    <td>${e.sākuma_laiks || '-'}</td>
+                                    <td>${(e.beigu_laiks||'-').replace('*','')}</td>
+                                    <td style="text-align:center;color:${ (e.beigu_laiks||'').includes('*') ? '#c0392b' : 'var(--green)' };font-weight:800;">${parseFloat((e.hours||'0').toString().replace('*','')||0).toFixed(2)}</td>
+                                    <td style="white-space:nowrap;"><button class="pencil" onclick="openEditWork(${e.id}, '${e.darbs}', '${e.objekts}', '${e.car}', ${parseFloat((e.hours||'0').toString().replace('*','')||0)}, '${(e.sākuma_laiks||'').replace(/'/g,'')}', '${(e.beigu_laiks||'').replace(/'/g,'')}')" style="margin-right:4px;">✏️</button><button class="btn-del" onclick="deleteScheduleItem(${e.id})">✖</button></td>
                                 </tr>`).join("")}
                         </tbody>
                     </table>`;
