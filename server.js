@@ -902,23 +902,27 @@ cron.schedule('* * * * *', async () => {
 
             if (activeJob.rows.length > 0) {
                 const endMark = stopTime + '*';
-                // Ja ir pabeigti darbi → aktīvā darba stundas aprēķinām, citādi 0
-                const jobHours = lastFinished.rows.length > 0
-                    ? calculateHours(activeJob.rows[0].sākuma_laiks, stopTime)
-                    : '0.00';
+                // Aktīvais darbs vienmēr 0h (netika pabeigts)
                 await pool.query(
                     `UPDATE schedule SET beigu_laiks = $1, hours = $2 WHERE id = $3`,
-                    [endMark, jobHours, activeJob.rows[0].id]
+                    [endMark, '0.00', activeJob.rows[0].id]
                 );
-                // Shift stundas — ja ir pabeigti darbi tajā dienā, rēķinām līdz tiem, citādi 0
-                let shiftHours = '0.00';
+                // Shift beigu laiks un stundas
                 if (lastFinished.rows.length > 0) {
-                    shiftHours = calculateHours(shift.sāka_darbu, lastFinished.rows[0].beigu_laiks.replace('*',''));
+                    // Ir pabeigti darbi → beigas = pēdējā darba beigu laiks
+                    const lastEnd = lastFinished.rows[0].beigu_laiks.replace('*','');
+                    const shiftHours = calculateHours(shift.sāka_darbu, lastEnd);
+                    await pool.query(
+                        `UPDATE "darbastundas" SET beidza_darbu = $1, stundas = $2 WHERE id = $3`,
+                        [lastEnd, shiftHours, shift.id]
+                    );
+                } else {
+                    // Nav pabeigtu darbu → 0h, beigas stopTime*
+                    await pool.query(
+                        `UPDATE "darbastundas" SET beidza_darbu = $1, stundas = $2 WHERE id = $3`,
+                        [endMark, '0.00', shift.id]
+                    );
                 }
-                await pool.query(
-                    `UPDATE "darbastundas" SET beidza_darbu = $1, stundas = $2 WHERE id = $3`,
-                    [endMark, shiftHours, shift.id]
-                );
                 console.log(`⛔ ${workerName}: aktīvs darbs slēgts, shift stundas: ${shiftHours}`);
             } else if (lastFinished.rows.length > 0) {
                 // Nav aktīva darba, bet ir pabeigti → beigas = pēdējā darba beigu laiks
