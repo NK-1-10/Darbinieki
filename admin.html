@@ -917,14 +917,25 @@ if(workerEl) {
                 );
 
                 // Aprēķinām pusdienu stundas no schedule tabulas katram ierakstam
-                function getPusdienas(workerName, datums) {
+                function getPusdienas(workerName, datums, sakadarbu, beidzadarbu) {
                     return schedule
-                        .filter(s => s.worker_name === workerName && s.date === datums && s.darbs === 'Pusdienas' && s.hours)
+                        .filter(s => {
+                            if (s.worker_name !== workerName || s.date !== datums || s.darbs !== 'Pusdienas' || !s.hours) return false;
+                            // Ja ir shift laiki — pārbaudām vai pusdienas iekļaujas šajā shift'ā
+                            if (sakadarbu && s.sākuma_laiks) {
+                                const cleanSaka = sakadarbu.replace('*','');
+                                const cleanBeidza = (beidzadarbu||'').replace('*','');
+                                const pusdSak = s.sākuma_laiks.replace('*','');
+                                if (pusdSak < cleanSaka) return false;
+                                if (cleanBeidza && pusdSak > cleanBeidza) return false;
+                            }
+                            return true;
+                        })
                         .reduce((sum, s) => sum + parseFloat(s.hours || 0), 0);
                 }
 
                 const totalKopa = fSum.reduce((s,i) => s + parseFloat(i.stundas || 0), 0);
-                const totalPusd = fSum.reduce((s,i) => s + getPusdienas(i.darbinieks, i.datums), 0);
+                const totalPusd = fSum.reduce((s,i) => s + getPusdienas(i.darbinieks, i.datums, i.sāka_darbu, i.beidza_darbu), 0);
                 const totalDarba = Math.max(0, totalKopa - totalPusd);
                 document.getElementById('totalDayHoursValue').innerText = totalKopa.toFixed(2) + ' h';
                 document.getElementById('totalPusdienas').innerText = totalPusd.toFixed(2) + ' h';
@@ -954,7 +965,7 @@ if(workerEl) {
                         </thead>
                         <tbody>
                             ${fSum.map(e => {
-                                const pusd = getPusdienas(e.darbinieks, e.datums);
+                                const pusd = getPusdienas(e.darbinieks, e.datums, e.sāka_darbu, e.beidza_darbu);
                                 const kopaa = parseFloat(e.stundas || 0);
                                 const darba = Math.max(0, kopaa - pusd);
                                 const isAutoStop = (e.beidza_darbu||'').includes('*');
