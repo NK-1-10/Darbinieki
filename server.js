@@ -130,7 +130,7 @@ app.delete('/api/schedule/:id', async (req, res) => {
 // Rediģēt schedule ierakstu
 app.put('/api/schedule/:id', async (req, res) => {
     const id = req.params.id;
-    const { resource_amount, resource_name, mh_current, hours, darbs, objekts, car } = req.body;
+    const { resource_amount, resource_name, mh_current, hours, darbs, objekts, car, sākuma_laiks, beigu_laiks } = req.body;
     try {
         // Iegūstam veco ierakstu
         const old = await pool.query("SELECT * FROM schedule WHERE id = $1", [id]);
@@ -179,6 +179,13 @@ app.put('/api/schedule/:id', async (req, res) => {
             newMhPrev = prev.rows[0]?.mh_current || null;
         }
 
+        // Ja mainās sākuma/beigu laiks un ir hours → pārrēķinām
+        let finalHours = hours || null;
+        if (sākuma_laiks && beigu_laiks) {
+            const cleanEnd = beigu_laiks.replace('*', '');
+            finalHours = calculateHours(sākuma_laiks, cleanEnd);
+        }
+
         await pool.query(`
             UPDATE schedule SET
                 resource_amount = COALESCE($1, resource_amount),
@@ -188,9 +195,11 @@ app.put('/api/schedule/:id', async (req, res) => {
                 hours = COALESCE($5, hours),
                 darbs = COALESCE($6, darbs),
                 objekts = COALESCE($7, objekts),
-                car = COALESCE($8, car)
+                car = COALESCE($8, car),
+                "sākuma_laiks" = COALESCE($10, "sākuma_laiks"),
+                beigu_laiks = COALESCE($11, beigu_laiks)
             WHERE id = $9`,
-            [resource_amount || null, resource_name || null, mh_current || null, newMhPrev, hours || null, darbs || null, objekts || null, car || null, id]
+            [resource_amount || null, resource_name || null, mh_current || null, newMhPrev, finalHours, darbs || null, objekts || null, car || null, id, sākuma_laiks || null, beigu_laiks || null]
         );
         res.json({ success: true });
     } catch (err) {
@@ -201,8 +210,17 @@ app.put('/api/schedule/:id', async (req, res) => {
 // --- JAUNS: Dzēst vienu ierakstu no DARBASTUNDAS ---
 app.put('/api/darbastundas/:id', async (req, res) => {
     try {
-        const { stundas } = req.body;
-        await pool.query('UPDATE "darbastundas" SET stundas = $1 WHERE id = $2', [parseFloat(stundas), req.params.id]);
+        const { stundas, sāka_darbu, beidza_darbu } = req.body;
+        let finalHours = parseFloat(stundas);
+        // Ja padoti sākums un beigas — pārrēķinām stundas serverī
+        if (sāka_darbu && beidza_darbu) {
+            const cleanEnd = beidza_darbu.replace('*', '');
+            finalHours = parseFloat(calculateHours(sāka_darbu, cleanEnd));
+        }
+        await pool.query(
+            'UPDATE "darbastundas" SET stundas = $1, "sāka_darbu" = COALESCE($2, "sāka_darbu"), beidza_darbu = COALESCE($3, beidza_darbu) WHERE id = $4',
+            [finalHours, sāka_darbu || null, beidza_darbu || null, req.params.id]
+        );
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });

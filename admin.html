@@ -353,8 +353,12 @@
                 <select id="editObjekts" style="margin:0 0 6px;"></select>
                 <label style="font-size:12px;color:#666;">Auto</label>
                 <select id="editCar" style="margin:0 0 6px;"></select>
-                <label style="font-size:12px;color:#666;">Stundas</label>
-                <input type="number" id="editHours" step="0.01" style="margin:0;">
+                <label style="font-size:12px;color:#666;">Sākuma laiks</label>
+                <input type="time" id="editWorkStart" step="1" style="margin:0 0 6px;">
+                <label style="font-size:12px;color:#666;">Beigu laiks</label>
+                <input type="time" id="editWorkEnd" step="1" style="margin:0 0 6px;">
+                <label style="font-size:12px;color:#666;">Stundas (aprēķināts automātiski)</label>
+                <input type="number" id="editHours" step="0.01" style="margin:0; background:#f5f5f5;" readonly>
             </div>
 
             <div id="editFieldsFuel" style="display:none; gap:8px; flex-direction:column;">
@@ -954,19 +958,21 @@ if(workerEl) {
                                 const isAutoStop = (e.beidza_darbu||'').includes('*');
                                 const startT = (e.sāka_darbu||'').replace('*','');
                                 const endT = (e.beidza_darbu||'').replace('*','');
-                                const isBadTime = endT && startT > endT;
-                                const isRed = isAutoStop || isBadTime;
-                                const beigasCell = (e.beidza_darbu||'-').replace('*','');
-                                const numStyle = isRed ? 'text-align:center;color:#c0392b;font-weight:800;' : 'text-align:center;';
+                                const beigasCell = endT || '-';
+                                // Sarkans = force-stop (paliek sarkans arī pēc korekcijas)
+                                // Zaļš = darbinieks pats beidza
+                                const numStyleRed = 'text-align:center;color:#c0392b;font-weight:800;';
+                                const numStyleGreen = 'text-align:center;color:var(--green);font-weight:800;';
+                                const numStyle = isAutoStop ? numStyleRed : numStyleGreen;
                                 return `
                                 <tr>
                                     <td>${e.datums}</td>
                                     <td>${e.darbinieks}</td>
-                                    <td>${e.sāka_darbu}</td>
+                                    <td>${startT}</td>
                                     <td>${beigasCell}</td>
                                     <td style="text-align: center;">${pusd > 0 ? pusd.toFixed(2) + ' h' : '-'}</td>
-                                    <td style="${numStyle}" class="gold-val">${kopaa.toFixed(2)}</td>
-                                    <td style="${numStyle}" class="gold-val">${darba.toFixed(2)}</td>
+                                    <td style="${numStyle}">${kopaa.toFixed(2)}</td>
+                                    <td style="${numStyle}">${darba.toFixed(2)}</td>
                                     <td style="white-space:nowrap;">
                                         ${e.id ? `
                                             <button class="pencil" onclick="openEditHours(${e.id}, ${e.stundas}, '${startT}', '${endT}')" style="margin-right:4px;">✏️</button>
@@ -1246,7 +1252,7 @@ async function saveWorkerEdit() {
                 options.map(o => `<option value="${o}" ${o === currentVal ? 'selected' : ''}>${o}</option>`).join('');
         }
 
-        function openEditWork(id, darbs, objekts, car, hours) {
+        function openEditWork(id, darbs, objekts, car, hours, sakums, beigas) {
             document.getElementById('editRecordId').value = id;
             document.getElementById('editRecordType').value = 'work';
             document.getElementById('editRecordTitle').textContent = '✏️ Rediģēt darba ierakstu';
@@ -1256,7 +1262,28 @@ async function saveWorkerEdit() {
             fillEditSelect('editDarbs', workTypes, darbs);
             fillEditSelect('editObjekts', objects.map(o => o.name || o), objekts, '— Nav objekta —');
             fillEditSelect('editCar', cars.map(c => c.name || c), car, '— Nav mašīnas —');
+            // Saglabājam force-stop marķieri
+            document.getElementById('editRecordId').dataset.isForceStopWork = (beigas||'').includes('*') ? '1' : '0';
+            const startClean = (sakums||'').replace('*','');
+            const endClean = (beigas||'').replace('*','');
+            document.getElementById('editWorkStart').value = startClean;
+            document.getElementById('editWorkEnd').value = endClean;
             document.getElementById('editHours').value = hours || '';
+            // Auto-aprēķins
+            const recalcWork = () => {
+                const s = document.getElementById('editWorkStart').value;
+                const e = document.getElementById('editWorkEnd').value;
+                if (s && e) {
+                    const [sh,sm,ss] = s.split(':').map(Number);
+                    const [eh,em,es] = e.split(':').map(Number);
+                    let diff = (eh*3600+em*60+(es||0)) - (sh*3600+sm*60+(ss||0));
+                    if (diff < 0) diff += 86400;
+                    if (diff > 16*3600) diff = 0;
+                    document.getElementById('editHours').value = (diff/3600).toFixed(2);
+                }
+            };
+            document.getElementById('editWorkStart').onchange = recalcWork;
+            document.getElementById('editWorkEnd').onchange = recalcWork;
             document.getElementById('editRecordModal').style.display = 'flex';
         }
 
@@ -1281,6 +1308,8 @@ async function saveWorkerEdit() {
             document.getElementById('editFieldsWork').style.display = 'none';
             document.getElementById('editFieldsFuel').style.display = 'none';
             document.getElementById('editFieldsHours').style.display = 'flex';
+            // Saglabājam vai ir force-stop marķieris
+            document.getElementById('editRecordId').dataset.isForceStop = beidzadarbu.includes('*') ? '1' : '0';
             document.getElementById('editShiftStart').value = (sakadarbu||'').replace('*','');
             document.getElementById('editShiftEnd').value = (beidzadarbu||'').replace('*','');
             document.getElementById('editShiftHours').value = stundas || '';
@@ -1306,11 +1335,15 @@ async function saveWorkerEdit() {
             let body = {};
 
             if (type === 'work') {
+                const isForceStopWork = document.getElementById('editRecordId').dataset.isForceStopWork === '1';
+                const workEndVal = document.getElementById('editWorkEnd').value;
                 body = {
                     darbs: document.getElementById('editDarbs').value,
                     objekts: document.getElementById('editObjekts').value,
                     car: document.getElementById('editCar').value,
-                    hours: document.getElementById('editHours').value
+                    hours: document.getElementById('editHours').value,
+                    sākuma_laiks: document.getElementById('editWorkStart').value,
+                    beigu_laiks: isForceStopWork ? workEndVal + '*' : workEndVal
                 };
                 const res = await fetch(`/api/schedule/${id}`, {
                     method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body)
@@ -1331,9 +1364,13 @@ async function saveWorkerEdit() {
                 else alert('Kļūda saglabājot!');
 
             } else if (type === 'hours') {
+                const isForceStop = document.getElementById('editRecordId').dataset.isForceStop === '1';
+                const endVal = document.getElementById('editShiftEnd').value;
+                // Saglabājam * marķieri ja bija force-stop
+                const endValFinal = isForceStop ? endVal + '*' : endVal;
                 const res = await fetch(`/api/darbastundas/${id}`, {
                     method: 'PUT', headers: {'Content-Type':'application/json'},
-                    body: JSON.stringify({ stundas: document.getElementById('editShiftHours').value, sāka_darbu: document.getElementById('editShiftStart').value, beidza_darbu: document.getElementById('editShiftEnd').value })
+                    body: JSON.stringify({ stundas: document.getElementById('editShiftHours').value, sāka_darbu: document.getElementById('editShiftStart').value, beidza_darbu: endValFinal })
                 });
                 if (res.ok) { document.getElementById('editRecordModal').style.display = 'none'; loadData(); }
                 else alert('Kļūda saglabājot!');
