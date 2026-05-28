@@ -20,6 +20,7 @@ body.admin-page {
 
 .sidebar-header {
   min-height: 76px;
+  flex-shrink: 0;
   padding: 18px 18px 12px;
   border-bottom: 1px solid rgba(255,255,255,.10);
   display: flex;
@@ -44,7 +45,7 @@ body.admin-page {
   color: var(--gold);
   font-size: 20px;
 }
-.nav-group { padding: 14px 0 4px; }
+.nav-group { padding: 14px 0 4px; flex-shrink: 0; }
 .nav-label {
   padding: 0 22px 10px;
   color: rgba(255,255,255,.55);
@@ -69,7 +70,7 @@ body.admin-page {
   color: var(--gold);
 }
 .nav-item.active { border-left: 4px solid var(--gold); padding-left: 16px; }
-.sidebar-footer { margin-top: auto; padding: 16px; display: grid; gap: 10px; }
+.sidebar-footer { margin-top: auto; padding: 16px; display: grid; gap: 10px; flex-shrink: 0; }
 .btn-all-delete, .btn-logout {
   width: 100% !important;
   min-height: 46px;
@@ -254,8 +255,6 @@ th { position: sticky; top: 0; background: #f8faf8; z-index: 2; font-size: 13px;
   #workerList li > div:nth-child(2) { min-width: 0; overflow: hidden; }
   .pencil, .x, .btn-del { width: 34px; height: 34px; }
 }
-
-/* Unified admin lists: Darbinieki / Mašīnas / Darba veidi / Objekti / Resursi */
 #carList li,
 #workList li,
 #objectList li,
@@ -268,7 +267,6 @@ th { position: sticky; top: 0; background: #f8faf8; z-index: 2; font-size: 13px;
   padding: 12px 10px !important;
   border-bottom: 1px solid var(--line) !important;
 }
-
 #carList li > span,
 #workList li > span,
 #objectList li > span {
@@ -277,19 +275,16 @@ th { position: sticky; top: 0; background: #f8faf8; z-index: 2; font-size: 13px;
   font-weight: 700 !important;
   color: var(--ink) !important;
 }
-
 #carList li > .btn-del,
 #workList li > .btn-del,
 #objectList li > .btn-del {
   margin-left: auto !important;
   flex: 0 0 auto !important;
 }
-
 #resourceList .resource-row {
   flex-direction: row !important;
   align-items: center !important;
 }
-
 .resource-main {
   flex: 1 1 auto;
   min-width: 180px;
@@ -298,12 +293,7 @@ th { position: sticky; top: 0; background: #f8faf8; z-index: 2; font-size: 13px;
   gap: 6px;
   font-size: 16px;
 }
-
-.resource-main strong {
-  font-size: 16px;
-  font-weight: 800;
-}
-
+.resource-main strong { font-size: 16px; font-weight: 800; }
 .resource-controls {
   margin-left: auto;
   display: flex;
@@ -312,12 +302,7 @@ th { position: sticky; top: 0; background: #f8faf8; z-index: 2; font-size: 13px;
   gap: 10px;
   flex: 0 0 auto;
 }
-
-#resourceList input {
-  width: 170px;
-  min-height: 38px;
-}
-
+#resourceList input { width: 170px; min-height: 38px; }
 .resource-controls .add,
 .resource-controls .remove {
   width: 42px;
@@ -328,26 +313,9 @@ th { position: sticky; top: 0; background: #f8faf8; z-index: 2; font-size: 13px;
   align-items: center;
   justify-content: center;
 }
-
 @media (max-width: 760px) {
-  #carList li,
-  #workList li,
-  #objectList li,
-  #resourceList li {
-    gap: 8px !important;
-  }
-
-  #resourceList .resource-row {
-    flex-wrap: wrap;
-  }
-
-  .resource-controls {
-    width: 100%;
-    margin-left: 0;
-    justify-content: flex-start;
-  }
-
-  #resourceList input {
-    width: min(100%, 170px);
-  }
+  #carList li, #workList li, #objectList li, #resourceList li { gap: 8px !important; }
+  #resourceList .resource-row { flex-wrap: wrap; }
+  .resource-controls { width: 100%; margin-left: 0; justify-content: flex-start; }
+  #resourceList input { width: min(100%, 170px); }
 }
