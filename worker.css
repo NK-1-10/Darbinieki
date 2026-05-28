@@ -1,0 +1,103 @@
+body.worker-page { padding: 22px; }
+.card {
+  position: relative;
+  width: min(100%, 620px);
+  min-height: 560px;
+  margin: 0 auto 28px;
+  padding: 26px;
+  background: #fff;
+  border-top: 5px solid var(--gold);
+  border-radius: 20px;
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+h2 { margin: 0 0 14px; color: var(--green); text-transform: uppercase; letter-spacing: .04em; }
+#welcome { font-size: 28px; }
+#status { margin: 12px 0; padding: 12px; border-radius: 12px; background: #fbfbfb; font-size: 1.05rem; }
+.time-label { display: block; margin-bottom: 6px; font-size: .95rem; }
+.shift-time { color: var(--muted); font-style: italic; }
+.work-time { color: var(--success); font-weight: 800; }
+select, input[type="number"] {
+  width: 100%;
+  min-height: 48px;
+  margin: 8px 0;
+  padding: 12px;
+  border: 1px solid #d9dedb;
+  border-radius: 10px;
+  background: #fff;
+}
+button {
+  width: 100%;
+  min-height: 52px;
+  margin: 6px 0;
+  padding: 14px 22px;
+  border: 0;
+  border-radius: 999px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+#AtWork,
+#startBtn {
+  background: var(--green);
+  color: #fff;
+}
+#LeaveWork,
+#stopBtn {
+  background: #4f655a;
+  color: #fff;
+}
+.res-btn,
+#OpenResourceBtn {
+  background: #f7f3e8;
+  color: var(--green);
+  border: 2px solid var(--gold);
+}
+
+#logoutBtn { margin-top: 18px; background: transparent; color: var(--muted); border: 1px solid #d9dedb; min-height: 42px; font-size: .85rem; }
+#ieraksti { text-align: center; color: var(--green); }
+#tableContainer {
+  width: min(100%, 980px);
+  margin: 20px auto;
+  background: #fff;
+  border-radius: 15px;
+  overflow-x: auto;
+  box-shadow: 0 4px 15px rgba(0,0,0,.05);
+}
+table { width: 100%; min-width: 720px; border-collapse: collapse; }
+thead { background: var(--green); color: var(--gold); cursor: pointer; user-select: none; }
+th, td { min-width: 120px; padding: 13px 10px; border-bottom: 1px solid #edf0ee; font-size: 15px; }
+.hidden-body, .hidden-rows { display: none !important; }
+#resourceModal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0,0,0,.5);
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal-content { width: min(92vw, 430px); background: #fff; padding: 24px; border-radius: 14px; text-align: left; }
+.modal-content h3 { margin-top: 0 !important; }
+.modal-content label { display: block; margin-top: 10px; font-weight: 700; color: var(--green); }
+#availableLabel { font-size: .85rem !important; color: var(--muted) !important; font-weight: 400; }
+.modal-actions { display: flex; gap: 10px; margin-top: 15px; }
+#modalCancel { flex: 1; background: #6c757d !important; color: #fff !important; }
+#modalSave { flex: 1; background: var(--success) !important; color: #fff !important; }
+@media (max-width: 600px) {
+  body.worker-page { padding: 12px; }
+  .card { padding: 18px 14px; min-height: auto; }
+  #welcome { font-size: 26px; }
+  #AtWork,
+#LeaveWork,
+#startBtn,
+#stopBtn,
+#OpenResourceBtn {
+  min-height: 66px;
+  font-size: 18px;
+  border-radius: 18px;
+}
+  select { min-height: 62px; font-size: 18px; }
+  #tableContainer { width: calc(100vw - 24px); }
+  th, td { white-space: nowrap; font-size: 14px; }
+}
