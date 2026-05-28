@@ -8,6 +8,7 @@ body.admin-page {
   width: 230px;
   min-width: 230px;
   height: 100vh;
+  max-height: 100vh;
   background: var(--green);
   color: #fff;
   display: flex;
@@ -15,6 +16,7 @@ body.admin-page {
   transition: width .25s ease, min-width .25s ease;
   z-index: 20;
   overflow-y: auto;
+  overflow-x: hidden;
 }
 .sidebar.collapsed { width: 72px; min-width: 72px; }
 
@@ -70,7 +72,7 @@ body.admin-page {
   color: var(--gold);
 }
 .nav-item.active { border-left: 4px solid var(--gold); padding-left: 16px; }
-.sidebar-footer { margin-top: auto; padding: 16px; display: grid; gap: 10px; flex-shrink: 0; }
+.sidebar-footer { margin-top: auto; padding: 16px; display: grid; gap: 10px; flex-shrink: 0; position: sticky; bottom: 0; background: var(--green); }
 .btn-all-delete, .btn-logout {
   width: 100% !important;
   min-height: 46px;
