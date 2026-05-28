@@ -92,6 +92,7 @@
             <h2 class="Admin-head">SIA Admin</h2>
         </div>
 
+        <div class="nav-groups-wrap">
         <div class="nav-group">
             <div class="nav-label">Iestatījumi</div>
             <div class="nav-item active" onclick="showView('v-workers', this)"><i>👷</i><span>Darbinieki</span></div>
@@ -108,13 +109,12 @@
             <div class="nav-item" onclick="showView('v-report-hours', this)"><i>⏱️</i><span>Darba stundas</span></div>
         </div>
 
+        </div><!-- /nav-groups-wrap -->
         <div class="sidebar-footer">
-            <button class="btn-sysconfig" onclick="openSysSettings()">🔧 <span>IESTATĪJUMI</span></button>
-            <button class="btn-settings" onclick="openAdminSettings()">⚙️ <span>ADMIN IESTATĪJUMI</span></button>
-            <button class="btn-all-delete" onclick="deleteAllData()">⚠️ <span>DZĒST VISUS DATUS</span></button>
-            <button class="btn-logout" onclick="logout()">
-                <i>🚪</i><span class="logout-text">Iziet</span>
-            </button>
+            <div class="nav-item" onclick="openSysSettings()"><i>🔧</i><span>Iestatījumi</span></div>
+            <div class="nav-item btn-settings" onclick="openAdminSettings()"><i>⚙️</i><span>Admin iestatījumi</span></div>
+            <div class="nav-item btn-all-delete" onclick="deleteAllData()"><i>⚠️</i><span>Dzēst visus datus</span></div>
+            <div class="nav-item" onclick="logout()"><i>🚪</i><span>Iziet</span></div>
         </div>
     </div>
 
@@ -421,6 +421,34 @@
 
     <script>
         // Konvertē laiku uz 24h HH:MM:SS formātu
+        function isValidTime(val) {
+            const clean = (val||'').replace('*','').trim();
+            return /^([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/.test(clean);
+        }
+
+        // Auto-formātē laika inputu — tikai cipari, auto-pievieno ':'
+        function setupTimeInput(el) {
+            if (!el || el._timeSetup) return;
+            el._timeSetup = true;
+            el.addEventListener('input', function() {
+                let v = this.value.replace(/[^0-9]/g, '');
+                if (v.length > 6) v = v.slice(0, 6);
+                let out = '';
+                if (v.length >= 1) out = v.slice(0, 2);
+                if (v.length >= 3) out += ':' + v.slice(2, 4);
+                if (v.length >= 5) out += ':' + v.slice(4, 6);
+                this.value = out;
+                // Trigger recalc
+                this.dispatchEvent(new Event('change'));
+            });
+            el.addEventListener('keydown', function(e) {
+                // Atļaujam: cipari, backspace, delete, tab, bultiņas
+                if (!/[0-9]/.test(e.key) && !['Backspace','Delete','Tab','ArrowLeft','ArrowRight'].includes(e.key)) {
+                    e.preventDefault();
+                }
+            });
+        }
+
         function to24h(val) {
             if (!val) return val;
             val = val.trim();
@@ -1313,6 +1341,8 @@ async function saveWorkerEdit() {
             };
             document.getElementById('editWorkStart').onchange = recalcWork;
             document.getElementById('editWorkEnd').onchange = recalcWork;
+            setupTimeInput(document.getElementById('editWorkStart'));
+            setupTimeInput(document.getElementById('editWorkEnd'));
             document.getElementById('editRecordModal').style.display = 'flex';
         }
 
@@ -1356,6 +1386,8 @@ async function saveWorkerEdit() {
             };
             document.getElementById('editShiftStart').onchange = recalc;
             document.getElementById('editShiftEnd').onchange = recalc;
+            setupTimeInput(document.getElementById('editShiftStart'));
+            setupTimeInput(document.getElementById('editShiftEnd'));
             document.getElementById('editRecordModal').style.display = 'flex';
         }
 
@@ -1368,15 +1400,15 @@ async function saveWorkerEdit() {
             if (type === 'work') {
                 const ws = to24h(document.getElementById('editWorkStart').value);
                 const we = to24h(document.getElementById('editWorkEnd').value);
-                if (ws && we && we.replace('*','') <= ws) {
-                    return alert('Kļūda! Beigu laiks nevar būt pirms vai vienāds ar sākuma laiku!');
-                }
+                if (!isValidTime(ws)) return alert('Kļūda! Sākuma laiks jābūt formātā HH:MM:SS (piem. 09:30:00)');
+                if (!isValidTime(we)) return alert('Kļūda! Beigu laiks jābūt formātā HH:MM:SS (piem. 17:00:00)');
+                if (we.replace('*','') <= ws) return alert('Kļūda! Beigu laiks nevar būt pirms vai vienāds ar sākuma laiku!');
             } else if (type === 'hours') {
                 const hs = to24h(document.getElementById('editShiftStart').value);
                 const he = to24h(document.getElementById('editShiftEnd').value);
-                if (hs && he && he.replace('*','') <= hs) {
-                    return alert('Kļūda! Beigu laiks nevar būt pirms vai vienāds ar sākuma laiku!');
-                }
+                if (!isValidTime(hs)) return alert('Kļūda! Sākuma laiks jābūt formātā HH:MM:SS (piem. 09:30:00)');
+                if (!isValidTime(he)) return alert('Kļūda! Beigu laiks jābūt formātā HH:MM:SS (piem. 17:00:00)');
+                if (he.replace('*','') <= hs) return alert('Kļūda! Beigu laiks nevar būt pirms vai vienāds ar sākuma laiku!');
             }
 
             if (type === 'work') {
