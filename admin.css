@@ -14,7 +14,7 @@ body.admin-page {
   flex-direction: column;
   transition: width .25s ease, min-width .25s ease;
   z-index: 20;
-  overflow: hidden;
+  overflow-x: hidden;
 }
 .sidebar.collapsed { width: 72px; min-width: 72px; }
 
@@ -45,7 +45,7 @@ body.admin-page {
   color: var(--gold);
   font-size: 20px;
 }
-.nav-groups-wrap { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; }
+.nav-groups-wrap { flex: 1; min-height: 0; overflow-y: auto; }
 .nav-group { padding: 14px 0 4px; flex-shrink: 0; }
 .nav-label {
   padding: 0 22px 10px;
