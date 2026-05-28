@@ -102,7 +102,7 @@
     #workControls { margin: 0 !important; }
 }
 </style>
-    <div class="card">
+    <div class="card" id="mainCard" style="visibility:hidden;">
         <h2 id="welcome"></h2>
         <div id="clockDisplay" class="time-label shift-time" style="margin-bottom:4px;"></div>
         <div style="display:flex; justify-content:center; align-items:center; gap:6px; flex-wrap:wrap;">
@@ -301,7 +301,8 @@
             }
 
             renderTable(allSchedule.filter(e => e.worker_name === user.name));
-        } catch (err) { console.error("Kļūda:", err); }
+            document.getElementById("mainCard").style.visibility = "";
+        } catch (err) { console.error("Kļūda:", err); document.getElementById("mainCard").style.visibility = ""; }
     }
 
     function renderTable(data) {
