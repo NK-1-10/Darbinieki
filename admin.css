@@ -14,8 +14,7 @@ body.admin-page {
   flex-direction: column;
   transition: width .25s ease, min-width .25s ease;
   z-index: 20;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: hidden;
 }
 .sidebar.collapsed { width: 72px; min-width: 72px; }
 
@@ -46,6 +45,7 @@ body.admin-page {
   color: var(--gold);
   font-size: 20px;
 }
+.nav-groups-wrap { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; }
 .nav-group { padding: 14px 0 4px; flex-shrink: 0; }
 .nav-label {
   padding: 0 22px 10px;
@@ -71,7 +71,7 @@ body.admin-page {
   color: var(--gold);
 }
 .nav-item.active { border-left: 4px solid var(--gold); padding-left: 16px; }
-.sidebar-footer { margin-top: auto; padding: 16px; display: grid; gap: 10px; flex-shrink: 0; }
+.sidebar-footer { flex-shrink: 0; padding: 16px; display: grid; gap: 10px; flex-shrink: 0; }
 .btn-all-delete, .btn-logout {
   width: 100% !important;
   min-height: 46px;
