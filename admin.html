@@ -861,6 +861,11 @@ if(workerEl) {
                                     <div class="col-filter-popup"><input type="date" value="${wSel('.date-sel').value}" onchange="wSec_setDate(this.value,'work')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">
                                     <button class="col-filter-clear" onclick="wSec_setDate('','work')">✕ Notīrīt</button></div>
                                 </div></th>
+                                <th><div class="col-filter-wrap"><span>Mēnesis</span>
+                                    <button class="col-filter-btn ${wSel('.month-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
+                                    <div class="col-filter-popup"><select onchange="wSec_set(this.value,'.month-sel','work')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">${Array.from(wSel('.month-sel').options).map(o=>`<option value="${o.value}" ${o.value===wSel('.month-sel').value?'selected':''}>${o.text}</option>`).join('')}</select>
+                                    <button class="col-filter-clear" onclick="wSec_set('','.month-sel','work')">✕ Notīrīt</button></div>
+                                </div></th>
                                 <th><div class="col-filter-wrap"><span>Darbinieks</span>
                                     <button class="col-filter-btn ${wSel('.worker-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
                                     <div class="col-filter-popup"><select onchange="wSec_set(this.value,'.worker-sel','work')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">${Array.from(wSel('.worker-sel').options).map(o=>`<option value="${o.value}" ${o.value===wSel('.worker-sel').value?'selected':''}>${o.text}</option>`).join('')}</select>
@@ -891,6 +896,7 @@ if(workerEl) {
                             ${fWork.map(e => `
                                 <tr>
                                     <td>${e.date}</td>
+                                    <td>${e.month || '-'}</td>
                                     <td>${e.worker_name}</td>
                                     <td>${e.darbs || '-'}</td>
                                     <td>${e.objekts || '-'}</td>
@@ -945,6 +951,11 @@ if(workerEl) {
                                     <div class="col-filter-popup"><input type="date" value="${fSel('.date-sel').value}" onchange="wSec_setDate(this.value,'fuel')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">
                                     <button class="col-filter-clear" onclick="wSec_setDate('','fuel')">✕ Notīrīt</button></div>
                                 </div></th>
+                                <th><div class="col-filter-wrap"><span>Mēnesis</span>
+                                    <button class="col-filter-btn ${fSel('.month-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
+                                    <div class="col-filter-popup"><select onchange="wSec_set(this.value,'.month-sel','fuel')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">${Array.from(fSel('.month-sel').options).map(o=>`<option value="${o.value}" ${o.value===fSel('.month-sel').value?'selected':''}>${o.text}</option>`).join('')}</select>
+                                    <button class="col-filter-clear" onclick="wSec_set('','.month-sel','fuel')">✕ Notīrīt</button></div>
+                                </div></th>
                                 <th><div class="col-filter-wrap"><span>Darbinieks</span>
                                     <button class="col-filter-btn ${fSel('.worker-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
                                     <div class="col-filter-popup"><select onchange="wSec_set(this.value,'.worker-sel','fuel')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">${Array.from(fSel('.worker-sel').options).map(o=>`<option value="${o.value}" ${o.value===fSel('.worker-sel').value?'selected':''}>${o.text}</option>`).join('')}</select>
@@ -976,6 +987,7 @@ if(workerEl) {
                                 const darbinieks = isPapild ? `${adminVards} (papildinājums)` : isAtnemšana ? `${adminVards} (atņemšana)` : (e.worker_name || '-');
                                 return '<tr>' +
                                     '<td>' + e.date + '</td>' +
+                                    '<td>' + (e.month || '-') + '</td>' +
                                     '<td>' + darbinieks + '</td>' +
                                     '<td>' + (e.car && e.car !== 'Papildinājums' && e.car !== 'Atņemšana' ? e.car : '-') + '</td>' +
                                     '<td>' + e.resource_name + '</td>' +
@@ -1036,6 +1048,11 @@ if(workerEl) {
                                     <div class="col-filter-popup"><input type="date" value="${hSel('.date-sel').value}" onchange="wSec_setDate(this.value,'hours')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">
                                     <button class="col-filter-clear" onclick="wSec_setDate('','hours')">✕ Notīrīt</button></div>
                                 </div></th>
+                                <th><div class="col-filter-wrap"><span>Mēnesis</span>
+                                    <button class="col-filter-btn ${hSel('.month-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
+                                    <div class="col-filter-popup"><select onchange="wSec_set(this.value,'.month-sel','hours')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">${Array.from(hSel('.month-sel').options).map(o=>`<option value="${o.value}" ${o.value===hSel('.month-sel').value?'selected':''}>${o.text}</option>`).join('')}</select>
+                                    <button class="col-filter-clear" onclick="wSec_set('','.month-sel','hours')">✕ Notīrīt</button></div>
+                                </div></th>
                                 <th><div class="col-filter-wrap"><span>Darbinieks</span>
                                     <button class="col-filter-btn ${hSel('.worker-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
                                     <div class="col-filter-popup"><select onchange="wSec_set(this.value,'.worker-sel','hours')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">${Array.from(hSel('.worker-sel').options).map(o=>`<option value="${o.value}" ${o.value===hSel('.worker-sel').value?'selected':''}>${o.text}</option>`).join('')}</select>
@@ -1066,6 +1083,7 @@ if(workerEl) {
                                 return `
                                 <tr>
                                     <td>${e.datums}</td>
+                                    <td>${e.month || '-'}</td>
                                     <td>${e.darbinieks}</td>
                                     <td>${startT}</td>
                                     <td>${beigasCell}</td>
