@@ -508,12 +508,12 @@
 
             fill('.year-sel', years, "Gads");
             fill('.month-sel', LV_MONTHS, "Mēnesis");
-            // Aizpildām mirror selects
+            // Aizpildām mirror selects un atjaunojam to vērtību
             ['work','fuel','hours'].forEach(t => {
                 const yr = document.querySelector(`.year-sel-mirror-${t}`);
                 const mo = document.querySelector(`.month-sel-mirror-${t}`);
-                if (yr) { yr.innerHTML = document.querySelector('.year-sel').innerHTML; }
-                if (mo) { mo.innerHTML = document.querySelector('.month-sel').innerHTML; }
+                if (yr) { yr.innerHTML = document.querySelector('.year-sel').innerHTML; yr.value = _filters[t]['.year-sel'] || ''; }
+                if (mo) { mo.innerHTML = document.querySelector('.month-sel').innerHTML; mo.value = _filters[t]['.month-sel'] || ''; }
             });
             fill('.worker-sel', workers.map(w => w.name), "Visi darbinieki"); 
             fill('.car-sel', cars.map(c => c.name || c), "Visi auto");
@@ -665,9 +665,17 @@ if(workerEl) {
             document.querySelectorAll('.col-filter-popup.open').forEach(p => p.classList.remove('open'));
             if (!isOpen) {
                 const rect = btn.getBoundingClientRect();
+                // Pagaidām novietojam, lai aprēķinātu platumu
                 popup.style.top = (rect.bottom + 6) + 'px';
-                popup.style.left = Math.max(4, rect.left - 80) + 'px';
+                popup.style.left = '0px';
                 popup.classList.add('open');
+                // Aprēķinām popup platumu pēc atvēršanas
+                const popupW = popup.offsetWidth || 200;
+                // Centrējam ap pogu, bet nepārsniedzam ekrāna robežas
+                let left = rect.left + rect.width / 2 - popupW / 2;
+                const margin = 6;
+                left = Math.max(margin, Math.min(left, window.innerWidth - popupW - margin));
+                popup.style.left = left + 'px';
             }
         }
 
@@ -723,7 +731,17 @@ if(workerEl) {
             const sec = document.querySelector(_secMap[table]);
             const els = sec?.querySelectorAll(sel);
             els?.forEach(el => el.value = val);
+            // Atjaunina arī mirror selects popup iekšā
+            const mirrorMap = {
+                '.year-sel': `year-sel-mirror-${table}`,
+                '.month-sel': `month-sel-mirror-${table}`
+            };
+            if (mirrorMap[sel]) {
+                const mirror = document.querySelector(`.${mirrorMap[sel]}`);
+                if (mirror) mirror.value = val;
+            }
             renderTables();
+            updateHeaderFilterBtns();
             document.querySelectorAll('.col-filter-popup.open').forEach(p => p.classList.remove('open'));
         }
         function wSec_setDate(val, table) {
@@ -732,7 +750,30 @@ if(workerEl) {
             const els = sec?.querySelectorAll('.date-sel');
             els?.forEach(el => el.value = val);
             renderTables();
+            updateHeaderFilterBtns();
             document.querySelectorAll('.col-filter-popup.open').forEach(p => p.classList.remove('open'));
+        }
+
+        // Atjaunina active klasi uz header filtru pogām (Gads/Mēnesis kārbiņas virs tabulas)
+        function updateHeaderFilterBtns() {
+            // Katrai sekcijai atrodam visas col-filter-wrap kārbiņas ārpus tabulas header
+            ['work', 'fuel', 'hours'].forEach(table => {
+                const sec = document.querySelector(_secMap[table]);
+                if (!sec) return;
+                // Augšējie wrapper-i (tie kas nav thead iekšā)
+                sec.querySelectorAll('.col-filter-wrap').forEach(wrap => {
+                    if (wrap.closest('thead')) return; // tabulas header - tos renderTables pats pārzīmē
+                    const btn = wrap.querySelector('.col-filter-btn');
+                    if (!btn) return;
+                    // Pārbaudām vai kāds no _filters[table] vērtībām ir aktīvs
+                    // Saistam pēc popup satura — skatāmies vai popup select/input ir ar vērtību
+                    const popup = btn.nextElementSibling;
+                    if (!popup) return;
+                    const inner = popup.querySelector('select, input[type=date]');
+                    const hasVal = inner && inner.value && inner.value !== '';
+                    btn.classList.toggle('active', !!hasVal);
+                });
+            });
         }
         function _fval(table, sel) {
             // Lasa no _filters objekta, fallback uz DOM
