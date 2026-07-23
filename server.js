@@ -56,7 +56,7 @@ function calculateHours(start, end) {
     // Ja beigas ir pirms sākuma (pusnakts pāreja), pievieno 24h
     // Bet ja starpība > 16h, visticamāk kļūda — atgriežam 0
     if (diff < 0) diff += 86400;
-    if (diff > 16 * 3600) diff = 0;
+    if (diff > 22 * 3600) diff = 0;
     return (diff / 3600).toFixed(2);
 }
 
