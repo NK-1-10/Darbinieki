@@ -156,9 +156,11 @@
 
             <section id="v-res" class="view-section">
                 <div class="card"> 
-                    <button class="btn-add"> rediģēt resursu daudzumu </button>
-                    <button class="btn-add" onclick="addNewItem('/api/resource-types', 'Resursa nosaukums:', {quantity:0})">+ Jauns resursa veids</button>
-                    <ul id="resourceList"></ul>
+                        <button class="btn-add" onclick="openResursList()">rediģēt resursu daudzumu</button>
+                    <div class="Hidden" id="hiddenPanel" style="display:none;">
+                        <button class="btn-add" onclick="addNewItem('/api/resource-types', 'Resursa nosaukums:', {quantity:0})">+ Jauns resursa veids</button>
+                        <ul id="resourceList"></ul>
+                    </div>
                     <button class="btn-add"> Admin pievienotā tabula </button>
                 </div>
             </section>
@@ -559,6 +561,13 @@
                     }).join("");
                 }
             };
+
+let isOpen = false;
+
+function openResursList(){
+    isOpen = !isOpen;
+    document.getElementById('hiddenPanel').style.display = isOpen ? 'block' : 'none';
+}
 
             const workerEl = document.getElementById('workerList');
 if(workerEl) {
