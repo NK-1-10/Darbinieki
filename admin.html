@@ -162,8 +162,9 @@
                         <ul id="resourceList"></ul>
                     </div>
                          <button class="btn-add" onclick="openResursTabula()" > Admin pievienotā tabula </button>
-                    <div class="Hidden" id="hiddenlist" style="display:none;">
+                    <div id="hiddenlist" style="display:none;">
                        <h1> Hello, world</h1>
+                        <div id="adminFuelTableContainer"></div>
                     </div>
                 </div>
             </section>
@@ -432,7 +433,8 @@
     <script>
 
         
-        let isOpen = true; let isOpen2 = false;
+        let isOpen = true; 
+        let isOpen2 = false;
 
         function openResursList(){
             isOpen = !isOpen;
@@ -933,99 +935,114 @@ if(workerEl) {
             }
 
             // Patēriņš
-            const fuelSec = document.getElementById('v-report-fuel');
-            if (fuelSec) {
-                const yearVal = _fval('fuel','.year-sel');
-                const monthVal = _fval('fuel','.month-sel');
-                const resVal = _fval('fuel','.res-sel');
-                const workerVal = _fval('fuel','.worker-sel');
-                const carVal = _fval('fuel','.car-sel');
+            // Patēriņš
+const fuelSec = document.getElementById('v-report-fuel');
+if (fuelSec) {
+    const yearVal = _fval('fuel','.year-sel');
+    const monthVal = _fval('fuel','.month-sel');
+    const resVal = _fval('fuel','.res-sel');
+    const workerVal = _fval('fuel','.worker-sel');
+    const carVal = _fval('fuel','.car-sel');
+    const fuelDateVal = _fval('fuel','.date-sel');
 
-                const fuelDateVal = _fval('fuel','.date-sel');
-                let fFuel = schedule.filter(e => 
-                    e.resource_amount && 
-                    (!yearVal || (e.date && e.date.includes(yearVal))) &&
-                    (!monthVal || e.month === monthVal) &&
-                    (!resVal || e.resource_name === resVal) &&
-                    (!workerVal || e.worker_name === workerVal) &&
-                    (!carVal || e.car === carVal) &&
-                    dateMatches(e.date || '', fuelDateVal)
-                );
+    let fFuel = schedule.filter(e => 
+        e.resource_amount && 
+        (!yearVal || (e.date && e.date.includes(yearVal))) &&
+        (!monthVal || e.month === monthVal) &&
+        (!resVal || e.resource_name === resVal) &&
+        (!workerVal || e.worker_name === workerVal) &&
+        (!carVal || e.car === carVal) &&
+        dateMatches(e.date || '', fuelDateVal)
+    );
 
-                // Kopsumma: tikai admin papildinājumi (+), VISS PĀRĒJAIS (patēriņš + atņemšana) mīnus
-                const totalNet = fFuel.reduce((s, e) => {
-                    const litri = parseFloat(e.resource_amount || 0);
-                    const isPlus = e.car === 'Papildinājums' || e.darbs === 'Resursu papildinājums';
-                    const isMinus = e.car === 'Atņemšana' || e.darbs === 'Resursu atņemšana';
-                    if (isPlus) return s + litri;
-                    return s - litri; // viss pārējais (darbinieki + admin atņemšana)
-                }, 0);
-                const totalSign = totalNet >= 0 ? '+' : '';
-                document.getElementById('totalFuelValue').innerText = totalSign + totalNet.toFixed(2) + " L";
+    // --- Sadalām: darbinieku patēriņš vs admin papildinājumi/atņemšana ---
+    const fFuelAdmin = fFuel.filter(e => e.car === 'Papildinājums' || e.car === 'Atņemšana' || e.darbs === 'Resursu papildinājums' || e.darbs === 'Resursu atņemšana');
+    const fFuelWorker = fFuel.filter(e => !(e.car === 'Papildinājums' || e.car === 'Atņemšana' || e.darbs === 'Resursu papildinājums' || e.darbs === 'Resursu atņemšana'));
 
-                const fSel = s => fuelSec.querySelector(s);
-                document.getElementById('fuelTableContainer').innerHTML = `
-                    <table class="sticky-table">
-                        <thead>
-                            <tr>
-                                <th><div class="col-filter-wrap"><span>Datums</span>
-                                    <button class="col-filter-btn ${fSel('.date-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
-                                    <div class="col-filter-popup"><input type="date" value="${fSel('.date-sel').value}" onchange="wSec_setDate(this.value,'fuel')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">
-                                    <button class="col-filter-clear" onclick="wSec_setDate('','fuel')">✕ Notīrīt</button></div>
-                                </div></th>
-                                <th><div class="col-filter-wrap"><span>Mēnesis</span>
-                                    <button class="col-filter-btn ${fSel('.month-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
-                                    <div class="col-filter-popup"><select onchange="wSec_set(this.value,'.month-sel','fuel')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">${Array.from(fSel('.month-sel').options).map(o=>`<option value="${o.value}" ${o.value===fSel('.month-sel').value?'selected':''}>${o.text}</option>`).join('')}</select>
-                                    <button class="col-filter-clear" onclick="wSec_set('','.month-sel','fuel')">✕ Notīrīt</button></div>
-                                </div></th>
-                                <th><div class="col-filter-wrap"><span>Darbinieks</span>
-                                    <button class="col-filter-btn ${fSel('.worker-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
-                                    <div class="col-filter-popup"><select onchange="wSec_set(this.value,'.worker-sel','fuel')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">${Array.from(fSel('.worker-sel').options).map(o=>`<option value="${o.value}" ${o.value===fSel('.worker-sel').value?'selected':''}>${o.text}</option>`).join('')}</select>
-                                    <button class="col-filter-clear" onclick="wSec_set('','.worker-sel','fuel')">✕ Notīrīt</button></div>
-                                </div></th>
-                                <th><div class="col-filter-wrap"><span>Auto</span>
-                                    <button class="col-filter-btn ${fSel('.car-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
-                                    <div class="col-filter-popup"><select onchange="wSec_set(this.value,'.car-sel','fuel')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">${Array.from(fSel('.car-sel').options).map(o=>`<option value="${o.value}" ${o.value===fSel('.car-sel').value?'selected':''}>${o.text}</option>`).join('')}</select>
-                                    <button class="col-filter-clear" onclick="wSec_set('','.car-sel','fuel')">✕ Notīrīt</button></div>
-                                </div></th>
-                                <th><div class="col-filter-wrap"><span>Resurss</span>
-                                    <button class="col-filter-btn ${fSel('.res-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
-                                    <div class="col-filter-popup"><select onchange="wSec_set(this.value,'.res-sel','fuel')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">${Array.from(fSel('.res-sel').options).map(o=>`<option value="${o.value}" ${o.value===fSel('.res-sel').value?'selected':''}>${o.text}</option>`).join('')}</select>
-                                    <button class="col-filter-clear" onclick="wSec_set('','.res-sel','fuel')">✕ Notīrīt</button></div>
-                                </div></th>
-                                <th style="text-align:center;">Litri</th>
-                                <th style="text-align:center;">mH</th>
-                                <th style="text-align:center;">L/mH</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${fFuel.map(e => {
-                                const isPapild = e.car === 'Papildinājums' || e.darbs === 'Resursu papildinājums';
-                                const isAtnemšana = e.car === 'Atņemšana' || e.darbs === 'Resursu atņemšana';
-                                const sign = isPapild ? '+' : '-';
-                                const colorClass = isPapild ? 'green-val' : 'red-val';
-                                const adminVards = e.worker_name || 'Admin';
-                                const darbinieks = isPapild ? `${adminVards} (papildinājums)` : isAtnemšana ? `${adminVards} (atņemšana)` : (e.worker_name || '-');
-                                return '<tr>' +
-                                    '<td>' + e.date + '</td>' +
-                                    '<td>' + (e.month || '-') + '</td>' +
-                                    '<td>' + darbinieks + '</td>' +
-                                    '<td>' + (e.car && e.car !== 'Papildinājums' && e.car !== 'Atņemšana' ? e.car : '-') + '</td>' +
-                                    '<td>' + e.resource_name + '</td>' +
-                                    '<td style="text-align: center;" class="' + colorClass + '">' + sign + e.resource_amount + ' L</td>' +
-                                    '<td style="text-align: center;">' + (e.mh_current != null ? e.mh_current + ' h' : '-') + '</td>' +
-                                    (() => { const l = parseFloat(e.resource_amount||0); const mhD = e.mh_current != null && e.mh_previous != null ? parseFloat(e.mh_current) - parseFloat(e.mh_previous) : 0; const pat = mhD > 0 ? (l/mhD).toFixed(2) + ' L/mH' : '-'; return '<td style="text-align: center;">' + pat + '</td>'; })() +
-                                    '<td style="white-space:nowrap;">' +
-                                        '<button class="pencil" onclick="openEditFuel(' + e.id + ',\'' + (e.resource_name||'') + '\',' + (e.resource_amount||0) + ',' + (e.mh_current||'null') + ')" style="margin-right:4px;">✏️</button>' +
-                                        '<button class="btn-del" onclick="deleteScheduleItem(' + e.id + ')">✖</button>' +
-                                    '</td>' +
-                                    '</tr>';
-                            }).join("")}
-                        </tbody>
-                    </table>`;
-            }
+    const totalNet = fFuel.reduce((s, e) => {
+        const litri = parseFloat(e.resource_amount || 0);
+        const isPlus = e.car === 'Papildinājums' || e.darbs === 'Resursu papildinājums';
+        if (isPlus) return s + litri;
+        return s - litri;
+    }, 0);
+    const totalSign = totalNet >= 0 ? '+' : '';
+    document.getElementById('totalFuelValue').innerText = totalSign + totalNet.toFixed(2) + " L";
 
+    const fSel = s => fuelSec.querySelector(s);
+
+    const filterHeaderHtml = `
+        <tr>
+            <th><div class="col-filter-wrap"><span>Datums</span>
+                <button class="col-filter-btn ${fSel('.date-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
+                <div class="col-filter-popup"><input type="date" value="${fSel('.date-sel').value}" onchange="wSec_setDate(this.value,'fuel')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">
+                <button class="col-filter-clear" onclick="wSec_setDate('','fuel')">✕ Notīrīt</button></div>
+            </div></th>
+            <th><div class="col-filter-wrap"><span>Mēnesis</span>
+                <button class="col-filter-btn ${fSel('.month-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
+                <div class="col-filter-popup"><select onchange="wSec_set(this.value,'.month-sel','fuel')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">${Array.from(fSel('.month-sel').options).map(o=>`<option value="${o.value}" ${o.value===fSel('.month-sel').value?'selected':''}>${o.text}</option>`).join('')}</select>
+                <button class="col-filter-clear" onclick="wSec_set('','.month-sel','fuel')">✕ Notīrīt</button></div>
+            </div></th>
+            <th><div class="col-filter-wrap"><span>Darbinieks</span>
+                <button class="col-filter-btn ${fSel('.worker-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
+                <div class="col-filter-popup"><select onchange="wSec_set(this.value,'.worker-sel','fuel')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">${Array.from(fSel('.worker-sel').options).map(o=>`<option value="${o.value}" ${o.value===fSel('.worker-sel').value?'selected':''}>${o.text}</option>`).join('')}</select>
+                <button class="col-filter-clear" onclick="wSec_set('','.worker-sel','fuel')">✕ Notīrīt</button></div>
+            </div></th>
+            <th><div class="col-filter-wrap"><span>Auto</span>
+                <button class="col-filter-btn ${fSel('.car-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
+                <div class="col-filter-popup"><select onchange="wSec_set(this.value,'.car-sel','fuel')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">${Array.from(fSel('.car-sel').options).map(o=>`<option value="${o.value}" ${o.value===fSel('.car-sel').value?'selected':''}>${o.text}</option>`).join('')}</select>
+                <button class="col-filter-clear" onclick="wSec_set('','.car-sel','fuel')">✕ Notīrīt</button></div>
+            </div></th>
+            <th><div class="col-filter-wrap"><span>Resurss</span>
+                <button class="col-filter-btn ${fSel('.res-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
+                <div class="col-filter-popup"><select onchange="wSec_set(this.value,'.res-sel','fuel')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">${Array.from(fSel('.res-sel').options).map(o=>`<option value="${o.value}" ${o.value===fSel('.res-sel').value?'selected':''}>${o.text}</option>`).join('')}</select>
+                <button class="col-filter-clear" onclick="wSec_set('','.res-sel','fuel')">✕ Notīrīt</button></div>
+            </div></th>
+            <th style="text-align:center;">Litri</th>
+            <th style="text-align:center;">mH</th>
+            <th style="text-align:center;">L/mH</th>
+            <th></th>
+        </tr>`;
+
+    const renderFuelRow = e => {
+        const isPapild = e.car === 'Papildinājums' || e.darbs === 'Resursu papildinājums';
+        const isAtnemšana = e.car === 'Atņemšana' || e.darbs === 'Resursu atņemšana';
+        const sign = isPapild ? '+' : '-';
+        const colorClass = isPapild ? 'green-val' : 'red-val';
+        const adminVards = e.worker_name || 'Admin';
+        const darbinieks = isPapild ? `${adminVards} (papildinājums)` : isAtnemšana ? `${adminVards} (atņemšana)` : (e.worker_name || '-');
+        return '<tr>' +
+            '<td>' + e.date + '</td>' +
+            '<td>' + (e.month || '-') + '</td>' +
+            '<td>' + darbinieks + '</td>' +
+            '<td>' + (e.car && e.car !== 'Papildinājums' && e.car !== 'Atņemšana' ? e.car : '-') + '</td>' +
+            '<td>' + e.resource_name + '</td>' +
+            '<td style="text-align: center;" class="' + colorClass + '">' + sign + e.resource_amount + ' L</td>' +
+            '<td style="text-align: center;">' + (e.mh_current != null ? e.mh_current + ' h' : '-') + '</td>' +
+            (() => { const l = parseFloat(e.resource_amount||0); const mhD = e.mh_current != null && e.mh_previous != null ? parseFloat(e.mh_current) - parseFloat(e.mh_previous) : 0; const pat = mhD > 0 ? (l/mhD).toFixed(2) + ' L/mH' : '-'; return '<td style="text-align: center;">' + pat + '</td>'; })() +
+            '<td style="white-space:nowrap;">' +
+                '<button class="pencil" onclick="openEditFuel(' + e.id + ',\'' + (e.resource_name||'') + '\',' + (e.resource_amount||0) + ',' + (e.mh_current||'null') + ')" style="margin-right:4px;">✏️</button>' +
+                '<button class="btn-del" onclick="deleteScheduleItem(' + e.id + ')">✖</button>' +
+            '</td>' +
+            '</tr>';
+    };
+
+    // Darbinieku patēriņš — paliek fuelTableContainer, kā līdz šim
+    document.getElementById('fuelTableContainer').innerHTML = `
+        <table class="sticky-table">
+            <thead>${filterHeaderHtml}</thead>
+            <tbody>${fFuelWorker.map(renderFuelRow).join("")}</tbody>
+        </table>`;
+
+    // Admin ieraksti — renderējas Resursi cilnē, #adminFuelTableContainer iekšā
+    const adminContainer = document.getElementById('adminFuelTableContainer');
+    if (adminContainer) {
+        adminContainer.innerHTML = `
+            <table class="sticky-table">
+                <thead>${filterHeaderHtml}</thead>
+                <tbody>${fFuelAdmin.map(renderFuelRow).join("")}</tbody>
+            </table>`;
+    }
+}
             // Darba stundas
             const hoursSec = document.getElementById('v-report-hours');
             if (hoursSec) {
