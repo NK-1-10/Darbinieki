@@ -161,7 +161,11 @@
                         <button class="btn-add" onclick="addNewItem('/api/resource-types', 'Resursa nosaukums:', {quantity:0})">+ Jauns resursa veids</button>
                         <ul id="resourceList"></ul>
                     </div>
-                    <button class="btn-add"> Admin pievienotā tabula </button>
+                     <button class="btn-add" onclick="openResursTabula()" > Admin pievienotā tabula </button>
+                    <div class="Hidden" id="hiddenlist" style="display:none;">
+                       something written
+                    </div>
+                    
                 </div>
             </section>
 
@@ -429,11 +433,15 @@
     <script>
 
         
-        let isOpen = false;
+        let isOpen = true; let isOpen2 = false;
 
         function openResursList(){
             isOpen = !isOpen;
             document.getElementById('hiddenPanel').style.display = isOpen ? 'block' : 'none';
+        }
+        function openResursTabula(){
+            isOpen2 = !isOpen2;
+            document.getElementById('hiddenList').style.display = isOpen ? 'block' : 'none';
         }
         
         // Konvertē laiku uz 24h HH:MM:SS formātu
