@@ -157,15 +157,14 @@
             <section id="v-res" class="view-section">
                 <div class="card"> 
                         <button class="btn-add" onclick="openResursList()">rediģēt resursu daudzumu</button>
-                    <div class="Hidden" id="hiddenPanel" style="display:none;">
+                    <div class="Hidden" id="hiddenPanel" style="display:block;">
                         <button class="btn-add" onclick="addNewItem('/api/resource-types', 'Resursa nosaukums:', {quantity:0})">+ Jauns resursa veids</button>
                         <ul id="resourceList"></ul>
                     </div>
-                     <button class="btn-add" onclick="openResursTabula()" > Admin pievienotā tabula </button>
+                         <button class="btn-add" onclick="openResursTabula()" > Admin pievienotā tabula </button>
                     <div class="Hidden" id="hiddenlist" style="display:none;">
-                       something written
+                       <ul id="resourceList"></ul>
                     </div>
-                    
                 </div>
             </section>
 
@@ -441,7 +440,7 @@
         }
         function openResursTabula(){
             isOpen2 = !isOpen2;
-            document.getElementById('hiddenList').style.display = isOpen ? 'block' : 'none';
+            document.getElementById('hiddenlist').style.display = isOpen ? 'block' : 'none';
         }
         
         // Konvertē laiku uz 24h HH:MM:SS formātu
