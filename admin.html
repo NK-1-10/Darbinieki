@@ -427,6 +427,15 @@
     </div>
 
     <script>
+
+        
+        let isOpen = false;
+
+        function openResursList(){
+            isOpen = !isOpen;
+            document.getElementById('hiddenPanel').style.display = isOpen ? 'block' : 'none';
+        }
+        
         // Konvertē laiku uz 24h HH:MM:SS formātu
         function isValidTime(val) {
             const clean = (val||'').replace('*','').trim();
@@ -562,12 +571,6 @@
                 }
             };
 
-let isOpen = false;
-
-function openResursList(){
-    isOpen = !isOpen;
-    document.getElementById('hiddenPanel').style.display = isOpen ? 'block' : 'none';
-}
 
             const workerEl = document.getElementById('workerList');
 if(workerEl) {
