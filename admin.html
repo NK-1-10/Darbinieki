@@ -1320,7 +1320,10 @@ async function saveWorkerEdit() {
         }
         async function deleteItem(url, name) { if(confirm(`Dzēst ${name}?`)) { await fetch(`${url}/${encodeURIComponent(name)}`, {method:'DELETE'}); loadData(); } }
         async function deleteWorker(name) { if(confirm(`Dzēst darbinieku ${name}?`)) { await fetch(`/api/workers/${encodeURIComponent(name)}`, {method:'DELETE'}); loadData(); } }
-        async function adjustRes(id, action) { const val = parseFloat(document.getElementById(`in-${id}`).value); if(!val) return; const adminUser = getAdminUser(); await fetch(`/api/resource-types/${id}`, {method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action, amount:val, adminName: adminUser?.name || 'Admin'})}); loadData(); }
+        async function adjustRes(id, action) { 
+            const val = parseFloat(document.getElementById(`in-${id}`).value); if(!val) return; 
+            const adminUser = getAdminUser(); await fetch(`/api/resource-types/${id}`, {method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action, amount:val, adminName: adminUser?.name || 'Admin'})}); loadData(); 
+        }
         function logout() { sessionStorage.removeItem('loggedInAdmin'); window.location.href = 'index.html'; }
 
         // Atjauno pēdējo aktīvo skatu pēc refresh
