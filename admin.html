@@ -1027,7 +1027,7 @@ if (fuelSec) {
         '</tr>';
 };
 
-    /document.getElementById('fuelTableContainer').innerHTML = `
+    document.getElementById('fuelTableContainer').innerHTML = `
         <table class="sticky-table">
             <thead>${filterHeaderHtml}</thead>
             <tbody>${fFuelWorker.map(e => renderFuelRow(e, true)).join("")}</tbody>
