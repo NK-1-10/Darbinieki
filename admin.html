@@ -163,7 +163,6 @@
                     </div>
                          <button class="btn-add" onclick="openResursTabula()" > Admin pievienotā tabula </button>
                     <div id="hiddenlist" style="display:none;">
-                       <h1> Hello, world</h1>
                         <div id="adminFuelTableContainer"></div>
                     </div>
                 </div>
@@ -969,7 +968,7 @@ if (fuelSec) {
 
     const fSel = s => fuelSec.querySelector(s);
 
-    const filterHeaderHtml = `
+    const workerHeaderHtml  = `
         <tr>
             <th><div class="col-filter-wrap"><span>Datums</span>
                 <button class="col-filter-btn ${fSel('.date-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
@@ -1001,21 +1000,39 @@ if (fuelSec) {
             <th style="text-align:center;">L/mH</th>
             <th></th>
         </tr>`;
+    const adminHeaderHtml = `
+    <tr>
+        <th><div class="col-filter-wrap"><span>Datums</span>
+            <button class="col-filter-btn ${fSel('.date-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
+            <div class="col-filter-popup"><input type="date" value="${fSel('.date-sel').value}" onchange="wSec_setDate(this.value,'fuel')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">
+            <button class="col-filter-clear" onclick="wSec_setDate('','fuel')">✕ Notīrīt</button></div>
+        </div></th>
+        <th><div class="col-filter-wrap"><span>Mēnesis</span>
+            <button class="col-filter-btn ${fSel('.month-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
+            <div class="col-filter-popup"><select onchange="wSec_set(this.value,'.month-sel','fuel')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">${Array.from(fSel('.month-sel').options).map(o=>`<option value="${o.value}" ${o.value===fSel('.month-sel').value?'selected':''}>${o.text}</option>`).join('')}</select>
+            <button class="col-filter-clear" onclick="wSec_set('','.month-sel','fuel')">✕ Notīrīt</button></div>
+        </div></th>
+        <th><div class="col-filter-wrap"><span>Resurss</span>
+            <button class="col-filter-btn ${fSel('.res-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
+            <div class="col-filter-popup"><select onchange="wSec_set(this.value,'.res-sel','fuel')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">${Array.from(fSel('.res-sel').options).map(o=>`<option value="${o.value}" ${o.value===fSel('.res-sel').value?'selected':''}>${o.text}</option>`).join('')}</select>
+            <button class="col-filter-clear" onclick="wSec_set('','.res-sel','fuel')">✕ Notīrīt</button></div>
+        </div></th>
+        <th style="text-align:center;">Litri</th>
+        <th></th>
+    </tr>`;
 
-    const renderFuelRow = (e, showWho = true) => {
+    const renderFuelRow = e => {
     const isPapild = e.car === 'Papildinājums' || e.darbs === 'Resursu papildinājums';
     const isAtnemšana = e.car === 'Atņemšana' || e.darbs === 'Resursu atņemšana';
     const sign = isPapild ? '+' : '-';
     const colorClass = isPapild ? 'green-val' : 'red-val';
     const adminVards = e.worker_name || 'Admin';
-    const darbinieks = showWho
-        ? (isPapild ? `${adminVards} (papildinājums)` : isAtnemšana ? `${adminVards} (atņemšana)` : (e.worker_name || '-'))
-        : (isPapild ? 'Papildinājums' : isAtnemšana ? 'Atņemšana' : '-');
+    const darbinieks = isPapild ? `${adminVards} (papildinājums)` : isAtnemšana ? `${adminVards} (atņemšana)` : (e.worker_name || '-');
     return '<tr>' +
         '<td>' + e.date + '</td>' +
         '<td>' + (e.month || '-') + '</td>' +
         '<td>' + darbinieks + '</td>' +
-        '<td>' + (showWho ? (e.car && e.car !== 'Papildinājums' && e.car !== 'Atņemšana' ? e.car : '-') : '') + '</td>' +
+        '<td>' + (e.car && e.car !== 'Papildinājums' && e.car !== 'Atņemšana' ? e.car : '-') + '</td>' +
         '<td>' + e.resource_name + '</td>' +
         '<td style="text-align: center;" class="' + colorClass + '">' + sign + e.resource_amount + ' L</td>' +
         '<td style="text-align: center;">' + (e.mh_current != null ? e.mh_current + ' h' : '-') + '</td>' +
@@ -1027,20 +1044,35 @@ if (fuelSec) {
         '</tr>';
 };
 
-    document.getElementById('fuelTableContainer').innerHTML = `
-        <table class="sticky-table">
-            <thead>${filterHeaderHtml}</thead>
-            <tbody>${fFuelWorker.map(e => renderFuelRow(e, true)).join("")}</tbody>
-        </table>`;
+const renderAdminFuelRow = e => {
+    const isPapild = e.car === 'Papildinājums' || e.darbs === 'Resursu papildinājums';
+    const sign = isPapild ? '+' : '-';
+    const colorClass = isPapild ? 'green-val' : 'red-val';
+    return '<tr>' +
+        '<td>' + e.date + '</td>' +
+        '<td>' + (e.month || '-') + '</td>' +
+        '<td>' + e.resource_name + '</td>' +
+        '<td style="text-align: center;" class="' + colorClass + '">' + sign + e.resource_amount + ' L</td>' +
+        '<td style="white-space:nowrap;">' +
+            '<button class="pencil" onclick="openEditFuel(' + e.id + ',\'' + (e.resource_name||'') + '\',' + (e.resource_amount||0) + ',' + (e.mh_current||'null') + ')" style="margin-right:4px;">✏️</button>' +
+            '<button class="btn-del" onclick="deleteScheduleItem(' + e.id + ')">✖</button>' +
+        '</td>' +
+        '</tr>';
+};
 
-    const adminContainer = document.getElementById('adminFuelTableContainer');
-    if (adminContainer) {
-        adminContainer.innerHTML = `
-            <table class="sticky-table">
-                <thead>${filterHeaderHtml}</thead>
-                <tbody>${fFuelAdmin.map(e => renderFuelRow(e, false)).join("")}</tbody>
-            </table>`;
-    }
+    document.getElementById('fuelTableContainer').innerHTML = `
+    <table class="sticky-table">
+        <thead>${workerHeaderHtml}</thead>
+        <tbody>${fFuelWorker.map(renderFuelRow).join("")}</tbody>
+    </table>`;
+
+const adminContainer = document.getElementById('adminFuelTableContainer');
+if (adminContainer) {
+    adminContainer.innerHTML = `
+        <table class="sticky-table">
+            <thead>${adminHeaderHtml}</thead>
+            <tbody>${fFuelAdmin.map(renderAdminFuelRow).join("")}</tbody>
+        </table>`;
 }
             // Darba stundas
             const hoursSec = document.getElementById('v-report-hours');
