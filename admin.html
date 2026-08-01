@@ -239,8 +239,18 @@
             </section>
 
             <section id="v-report-cars" class="view-section">
-                <div class="card">   
-                    <h2>Mašīnu izlietotais</h2>
+                <div class="card">
+                    <div style="display:flex; gap:8px; align-items:center; margin-bottom:16px; flex-wrap:wrap;">
+                        <select id="carReportCarSel" onchange="renderCarReport()" style="padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px;min-width:160px;">
+                            <option value="">Visas mašīnas</option>
+                        </select>
+                        <input type="date" id="carReportFrom" onchange="renderCarReport()" style="padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px;">
+                        <span style="color:#888;">—</span>
+                        <input type="date" id="carReportTo" onchange="renderCarReport()" style="padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px;">
+                        <button onclick="carReportClear()" style="padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px;background:#f5f5f5;cursor:pointer;">✕ Notīrīt</button>
+                    </div>
+                    <div id="carReportSummary" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;"></div>
+                    <div id="carReportTable" class="table-wrapper"></div>
                 </div>
             </section>
 
@@ -435,6 +445,67 @@
 
     <script>
 
+        function renderCarReport() {
+        const carVal = document.getElementById('carReportCarSel').value;
+        const fromVal = document.getElementById('carReportFrom').value;
+        const toVal = document.getElementById('carReportTo').value;
+
+            let data = schedule.filter(e => {
+                if (!e.car || e.car === 'Papildinājums' || e.car === 'Atņemšana') return false;
+                if (carVal && e.car !== carVal) return false;
+                if (fromVal || toVal) {
+                    // Pārveidojam DB datumu uz salīdzināmu formātu
+                    const parts = (e.date || '').replace(/\.$/, '').split('.');
+                    if (parts.length < 3) return false;
+                    const d = `${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`;
+                    if (fromVal && d < fromVal) return false;
+                    if (toVal && d > toVal) return false;
+                }
+                return true;
+            });
+
+            // Kopsummas
+            const totalHours = data.reduce((s, e) => s + parseFloat(e.hours || 0), 0);
+            const totalFuel = data.filter(e => e.resource_amount).reduce((s, e) => s + parseFloat(e.resource_amount || 0), 0);
+
+            document.getElementById('carReportSummary').innerHTML = `
+                <div class="summary-badge">Ieraksti: <span style="font-weight:800;">${data.length}</span></div>
+                <div class="summary-badge">Stundas: <span style="font-weight:800;">${totalHours.toFixed(2)} h</span></div>
+                ${totalFuel > 0 ? `<div class="summary-badge">Resursi: <span style="font-weight:800;">${totalFuel.toFixed(2)} L</span></div>` : ''}
+            `;
+
+            document.getElementById('carReportTable').innerHTML = data.length === 0 ? '<p style="color:#aaa;padding:16px;">Nav ierakstu</p>' : `
+                <table class="sticky-table">
+                    <thead><tr>
+                        <th>Datums</th>
+                        <th>Darbinieks</th>
+                        <th>Auto</th>
+                        <th>Darba veids</th>
+                        <th>Objekts</th>
+                        <th style="text-align:center;">Stundas</th>
+                        <th style="text-align:center;">Resursi</th>
+                    </tr></thead>
+                    <tbody>${data.map(e => `
+                        <tr>
+                            <td>${e.date}</td>
+                            <td>${e.worker_name || '-'}</td>
+                            <td>${e.car || '-'}</td>
+                            <td>${e.darbs || '-'}</td>
+                            <td>${e.objekts || '-'}</td>
+                            <td style="text-align:center;">${parseFloat(e.hours||0) > 0 ? parseFloat(e.hours).toFixed(2) + ' h' : '-'}</td>
+                            <td style="text-align:center;">${e.resource_amount ? e.resource_amount + ' L' : '-'}</td>
+                        </tr>`).join('')}
+                    </tbody>
+                </table>`;
+        }
+
+        function carReportClear() {
+            document.getElementById('carReportCarSel').value = '';
+            document.getElementById('carReportFrom').value = '';
+            document.getElementById('carReportTo').value = '';
+            renderCarReport();
+        }
+
         IsOut1 = true; IsOut2 = false; 
         function ResourseOut(){
             const list = document.getElementById("first");
@@ -531,12 +602,21 @@
                 updateFilterOptions();
                 renderLists();
                 renderTables();
+                renderCarReport();
             } catch (err) { console.error(err); }
         }
 
         function updateFilterOptions() {
             const years = [...new Set([...schedule, ...daySummary].map(d => (d.date || d.datums || "").split('.')[2]))].filter(Boolean).sort();
             
+            const carRepSel = document.getElementById('carReportCarSel');
+            if (carRepSel) {
+                const current = carRepSel.value;
+                carRepSel.innerHTML = '<option value="">Visas mašīnas</option>' + 
+                    cars.map(c => `<option value="${c.name||c}" ${(c.name||c)===current?'selected':''}>${c.name||c}</option>`).join('');
+            }
+
+
             const fill = (selector, data, defaultText) => {
                 document.querySelectorAll(selector).forEach(sel => {
                     const current = sel.value;
