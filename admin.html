@@ -161,8 +161,7 @@
                     </div>
                     <button class="btn-add" onclick="ResourseTableOut()"> Admin rediģēšana </button>
                     <div id="second"  style="display:none;"> 
-                        <h2>Helo, world</h2>
-                        <h3>Šeit var rediģēt resursu veidus, bet uzmanīgi!</h3>
+                        <div id="adminFuelTableContainer"></div>
                     </div>
                 </div>
             </section>
@@ -905,14 +904,16 @@ if(workerEl) {
 
                 const fuelDateVal = _fval('fuel','.date-sel');
                 let fFuel = schedule.filter(e => 
-                    e.resource_amount && 
-                    (!yearVal || (e.date && e.date.includes(yearVal))) &&
-                    (!monthVal || e.month === monthVal) &&
-                    (!resVal || e.resource_name === resVal) &&
-                    (!workerVal || e.worker_name === workerVal) &&
-                    (!carVal || e.car === carVal) &&
-                    dateMatches(e.date || '', fuelDateVal)
-                );
+                e.resource_amount &&
+                e.car !== 'Papildinājums' && e.car !== 'Atņemšana' &&
+                e.darbs !== 'Resursu papildinājums' && e.darbs !== 'Resursu atņemšana' &&
+                (!yearVal || (e.date && e.date.includes(yearVal))) &&
+                (!monthVal || e.month === monthVal) &&
+                (!resVal || e.resource_name === resVal) &&
+                (!workerVal || e.worker_name === workerVal) &&
+                (!carVal || e.car === carVal) &&
+                dateMatches(e.date || '', fuelDateVal)
+            );
 
                 // Kopsumma: tikai admin papildinājumi (+), VISS PĀRĒJAIS (patēriņš + atņemšana) mīnus
                 const totalNet = fFuel.reduce((s, e) => {
@@ -980,6 +981,37 @@ if(workerEl) {
                             }).join("")}
                         </tbody>
                     </table>`;
+
+                    // Admin tabula -> #second div
+                    const fFuelAdmin = schedule.filter(e =>
+                        e.resource_amount &&
+                        (e.car === 'Papildinājums' || e.car === 'Atņemšana' ||
+                        e.darbs === 'Resursu papildinājums' || e.darbs === 'Resursu atņemšana')
+                    );
+                    const adminCont = document.getElementById('adminFuelTableContainer');
+                    if (adminCont) {
+                        adminCont.innerHTML = `<table class="sticky-table">
+                            <thead><tr>
+                                <th>Datums</th><th>Darbība</th><th>Resurss</th>
+                                <th style="text-align:center;">Daudzums</th>
+                                <th style="text-align:center;">Cena/L</th>
+                                <th></th>
+                            </tr></thead>
+                            <tbody>${fFuelAdmin.map(e => {
+                                const isPapild = e.darbs === 'Resursu papildinājums';
+                                const sign = isPapild ? '+' : '-';
+                                const cls = isPapild ? 'green-val' : 'red-val';
+                                return '<tr>' +
+                                    '<td>' + e.date + '</td>' +
+                                    '<td>' + (isPapild ? 'Papildinājums' : 'Atņemšana') + '</td>' +
+                                    '<td>' + (e.resource_name || '-') + '</td>' +
+                                    '<td style="text-align:center;" class="' + cls + '">' + sign + e.resource_amount + ' L</td>' +
+                                    '<td style="text-align:center;">' + (e.gabala != null ? e.gabala + ' €' : '-') + '</td>' +
+                                    '<td><button class="btn-del" onclick="deleteScheduleItem(' + e.id + ')">✖</button></td>' +
+                                '</tr>';
+                            }).join('')}</tbody>
+                         </table>`;
+                        }
             }
 
             // Darba stundas
