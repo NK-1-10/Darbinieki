@@ -990,7 +990,17 @@ if(workerEl) {
                     );
                     const adminCont = document.getElementById('adminFuelTableContainer');
                     if (adminCont) {
-                        adminCont.innerHTML = `<table class="sticky-table">
+                        const adminTotal = fFuelAdmin.reduce((s, e) => {
+                        const isPapild = e.darbs === 'Resursu papildinājums';
+                        return isPapild ? s + parseFloat(e.resource_amount || 0) : s - parseFloat(e.resource_amount || 0);
+                    }, 0);
+                    const adminSign = adminTotal >= 0 ? '+' : '';
+
+                    adminCont.innerHTML = `
+                        <div style="display:flex;justify-content:flex-end;margin-bottom:8px;">
+                            <div class="summary-badge">Kopā: <span style="color:${adminTotal >= 0 ? '#2e7d32' : '#b00020'};font-weight:800;">${adminSign}${adminTotal.toFixed(2)} L</span></div>
+                        </div>
+                        <table class="sticky-table">
                             <thead><tr>
                                 <th>Datums</th><th>Darbība</th><th>Resurss</th>
                                 <th style="text-align:center;">Daudzums</th>
@@ -1010,7 +1020,7 @@ if(workerEl) {
                                     '<td><button class="btn-del" onclick="deleteScheduleItem(' + e.id + ')">✖</button></td>' +
                                 '</tr>';
                             }).join('')}</tbody>
-                         </table>`;
+                        </table>`;
                         }
             }
 
