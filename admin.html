@@ -154,8 +154,15 @@
 
             <section id="v-res" class="view-section">
                 <div class="card">
-                    <button class="btn-add" onclick="addNewItem('/api/resource-types', 'Resursa nosaukums:', {quantity:0})">+ Jauns resursa veids</button>
-                    <ul id="resourceList"></ul>
+                    <button class="btn-add" onclick="ResourseOut()"> Resursu saraksts </button>
+                    <div id="first"> 
+                        <button class="btn-add" onclick="addNewItem('/api/resource-types', 'Resursa nosaukums:', {quantity:0})">+ Jauns resursa veids</button>
+                        <ul id="resourceList"></ul>
+                    </div>
+                    <button class="btn-add" onclick="ResourseTableOut()"> Admin rediģēšana </button>
+                    <div id="second"> 
+                        <h2>Helo, world</h2>
+                    </div>
                 </div>
             </section>
 
@@ -420,6 +427,31 @@
     </div>
 
     <script>
+
+        IsOut1 = true; IsOut2 = false; 
+        function ResourseOut(){
+            const list = document.getElementById("first");
+            if(IsOut1 == false){ 
+                list.style.display='block' // is now shown
+                IsOut1 = true
+            } else{
+                list.style.display='none'
+                IsOut1 = false
+            }
+        }
+        function ResourseTableOut(){
+            const list = document.getElementById("second");
+            if(IsOut2 == false){
+                list.style.display='block'
+                IsOut2 = true
+            } else{
+                list.style.display='none'
+                IsOut2 = false
+            }
+        }
+
+
+        
         // Konvertē laiku uz 24h HH:MM:SS formātu
         function isValidTime(val) {
             const clean = (val||'').replace('*','').trim();
