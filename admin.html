@@ -990,14 +990,21 @@ if(workerEl) {
                     );
                     const adminCont = document.getElementById('adminFuelTableContainer');
                     if (adminCont) {
+                        const workerUsed = schedule.filter(e => 
+                            e.resource_amount &&
+                            e.car !== 'Papildinājums' && e.car !== 'Atņemšana' &&
+                            e.darbs !== 'Resursu papildinājums' && e.darbs !== 'Resursu atņemšana'
+                        ).reduce((s, e) => s + parseFloat(e.resource_amount || 0), 0);
+
                         const adminTotal = fFuelAdmin.reduce((s, e) => {
-                        const isPapild = e.darbs === 'Resursu papildinājums';
-                        return isPapild ? s + parseFloat(e.resource_amount || 0) : s - parseFloat(e.resource_amount || 0);
-                    }, 0);
-                    const adminSign = adminTotal >= 0 ? '+' : '';
-                    const adminIzmaksas = fFuelAdmin.reduce((s, e) => {
-                        return e.gabala != null ? s + parseFloat(e.gabala) * parseFloat(e.resource_amount || 0) : s;
-                    }, 0);
+                            const isPapild = e.darbs === 'Resursu papildinājums';
+                            return isPapild ? s + parseFloat(e.resource_amount || 0) : s - parseFloat(e.resource_amount || 0);
+                        }, 0) - workerUsed;
+
+                        const adminSign = adminTotal >= 0 ? '+' : '';
+                        const adminIzmaksas = fFuelAdmin.reduce((s, e) => {
+                            return e.gabala != null ? s + parseFloat(e.gabala) * parseFloat(e.resource_amount || 0) : s;
+                        }, 0);
 
                     adminCont.innerHTML = `
                         <div style="display:flex;justify-content:flex-end;gap:10px;margin-bottom:8px;">
