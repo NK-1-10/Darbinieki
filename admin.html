@@ -995,16 +995,21 @@ if(workerEl) {
                         return isPapild ? s + parseFloat(e.resource_amount || 0) : s - parseFloat(e.resource_amount || 0);
                     }, 0);
                     const adminSign = adminTotal >= 0 ? '+' : '';
+                    const adminIzmaksas = fFuelAdmin.reduce((s, e) => {
+                        return e.gabala != null ? s + parseFloat(e.gabala) * parseFloat(e.resource_amount || 0) : s;
+                    }, 0);
 
                     adminCont.innerHTML = `
-                        <div style="display:flex;justify-content:flex-end;margin-bottom:8px;">
+                        <div style="display:flex;justify-content:flex-end;gap:10px;margin-bottom:8px;">
                             <div class="summary-badge">Kopā: <span style="color:${adminTotal >= 0 ? '#2e7d32' : '#b00020'};font-weight:800;">${adminSign}${adminTotal.toFixed(2)} L</span></div>
+                            <div class="summary-badge">Izmaksas: <span style="font-weight:800;">${adminIzmaksas.toFixed(2)} €</span></div>
                         </div>
                         <table class="sticky-table">
                             <thead><tr>
                                 <th>Datums</th><th>Darbība</th><th>Resurss</th>
                                 <th style="text-align:center;">Daudzums</th>
                                 <th style="text-align:center;">Cena/L</th>
+                                <th style="text-align:center;">Izmaksas</th>
                                 <th></th>
                             </tr></thead>
                             <tbody>${fFuelAdmin.map(e => {
@@ -1015,8 +1020,8 @@ if(workerEl) {
                                     '<td>' + e.date + '</td>' +
                                     '<td>' + (isPapild ? 'Papildinājums' : 'Atņemšana') + '</td>' +
                                     '<td>' + (e.resource_name || '-') + '</td>' +
-                                    '<td style="text-align:center;" class="' + cls + '">' + sign + e.resource_amount + ' L</td>' +
                                     '<td style="text-align:center;">' + (e.gabala != null ? e.gabala + ' €' : '-') + '</td>' +
+                                    '<td style="text-align:center;">' + (e.gabala != null ? (parseFloat(e.gabala) * parseFloat(e.resource_amount || 0)).toFixed(2) + ' €' : '-') + '</td>' +
                                     '<td><button class="btn-del" onclick="deleteScheduleItem(' + e.id + ')">✖</button></td>' +
                                 '</tr>';
                             }).join('')}</tbody>
