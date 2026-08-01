@@ -65,20 +65,18 @@
         .col-filter-popup {
             display: none; position: fixed; z-index: 9999;
             background: #fff; border: 1px solid #ddd; border-radius: 10px;
-            box-shadow: 0 4px 20px rgba(0,0,0,.15); padding: 8px;
-            min-width: 210px; box-sizing: border-box; overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,.15); padding: 6px; min-width: 180px;
         }
         .col-filter-popup.open { display: block; }
         .col-filter-popup select, .col-filter-popup input[type=date] {
             width: 100%; padding: 7px 10px; border: 1px solid #ddd;
             border-radius: 7px; font-size: 13px; color: #333;
-            background: #fafafa; box-sizing: border-box; display: block;
+            background: #fafafa; box-sizing: border-box;
         }
         .col-filter-clear {
             margin-top: 5px; width: 100%; padding: 5px;
             background: none; border: none; color: #888;
             font-size: 12px; cursor: pointer; text-align: center;
-            box-sizing: border-box; display: block;
         }
         .col-filter-clear:hover { color: #c0392b; }
     </style>
@@ -155,16 +153,9 @@
             </section>
 
             <section id="v-res" class="view-section">
-                <div class="card"> 
-                        <button class="btn-add" onclick="openResursList()">rediģēt resursu daudzumu</button>
-                    <div class="Hidden" id="hiddenPanel" style="display:block;">
-                        <button class="btn-add" onclick="addNewItem('/api/resource-types', 'Resursa nosaukums:', {quantity:0})">+ Jauns resursa veids</button>
-                        <ul id="resourceList"></ul>
-                    </div>
-                         <button class="btn-add" onclick="openResursTabula()" > Admin pievienotā tabula </button>
-                    <div id="hiddenlist" style="display:none;">
-                        <div id="adminFuelTableContainer"></div>
-                    </div>
+                <div class="card">
+                    <button class="btn-add" onclick="addNewItem('/api/resource-types', 'Resursa nosaukums:', {quantity:0})">+ Jauns resursa veids</button>
+                    <ul id="resourceList"></ul>
                 </div>
             </section>
 
@@ -270,7 +261,6 @@
                             <div class="summary-badge">Pusdienas: <span id="totalPusdienas">0</span></div>
                             <div class="summary-badge">Kopā: <span id="totalDayHoursValue">0</span></div>
                             <div class="summary-badge">Darbā: <span id="totalDarbaH">0</span></div>
-                            <div class="summary-badge">Lietderīgi: <span id="totalLietderigais">0</span></div>
                         </div>
                     </div>
                     <div id="daySummaryContainer" class="table-wrapper"></div>
@@ -430,20 +420,6 @@
     </div>
 
     <script>
-
-        
-        let isOpen = true; 
-        let isOpen2 = false;
-
-        function openResursList(){
-            isOpen = !isOpen;
-            document.getElementById('hiddenPanel').style.display = isOpen ? 'block' : 'none';
-        }
-        function openResursTabula(){
-            isOpen2 = !isOpen2;
-            document.getElementById('hiddenlist').style.display = isOpen2 ? 'block' : 'none';
-        }
-        
         // Konvertē laiku uz 24h HH:MM:SS formātu
         function isValidTime(val) {
             const clean = (val||'').replace('*','').trim();
@@ -532,12 +508,12 @@
 
             fill('.year-sel', years, "Gads");
             fill('.month-sel', LV_MONTHS, "Mēnesis");
-            // Aizpildām mirror selects un atjaunojam to vērtību
+            // Aizpildām mirror selects
             ['work','fuel','hours'].forEach(t => {
                 const yr = document.querySelector(`.year-sel-mirror-${t}`);
                 const mo = document.querySelector(`.month-sel-mirror-${t}`);
-                if (yr) { yr.innerHTML = document.querySelector('.year-sel').innerHTML; yr.value = _filters[t]['.year-sel'] || ''; }
-                if (mo) { mo.innerHTML = document.querySelector('.month-sel').innerHTML; mo.value = _filters[t]['.month-sel'] || ''; }
+                if (yr) { yr.innerHTML = document.querySelector('.year-sel').innerHTML; }
+                if (mo) { mo.innerHTML = document.querySelector('.month-sel').innerHTML; }
             });
             fill('.worker-sel', workers.map(w => w.name), "Visi darbinieki"); 
             fill('.car-sel', cars.map(c => c.name || c), "Visi auto");
@@ -578,7 +554,6 @@
                     }).join("");
                 }
             };
-
 
             const workerEl = document.getElementById('workerList');
 if(workerEl) {
@@ -690,17 +665,9 @@ if(workerEl) {
             document.querySelectorAll('.col-filter-popup.open').forEach(p => p.classList.remove('open'));
             if (!isOpen) {
                 const rect = btn.getBoundingClientRect();
-                // Pagaidām novietojam, lai aprēķinātu platumu
                 popup.style.top = (rect.bottom + 6) + 'px';
-                popup.style.left = '0px';
+                popup.style.left = Math.max(4, rect.left - 80) + 'px';
                 popup.classList.add('open');
-                // Aprēķinām popup platumu pēc atvēršanas
-                const popupW = popup.offsetWidth || 200;
-                // Centrējam ap pogu, bet nepārsniedzam ekrāna robežas
-                let left = rect.left + rect.width / 2 - popupW / 2;
-                const margin = 6;
-                left = Math.max(margin, Math.min(left, window.innerWidth - popupW - margin));
-                popup.style.left = left + 'px';
             }
         }
 
@@ -756,17 +723,7 @@ if(workerEl) {
             const sec = document.querySelector(_secMap[table]);
             const els = sec?.querySelectorAll(sel);
             els?.forEach(el => el.value = val);
-            // Atjaunina arī mirror selects popup iekšā
-            const mirrorMap = {
-                '.year-sel': `year-sel-mirror-${table}`,
-                '.month-sel': `month-sel-mirror-${table}`
-            };
-            if (mirrorMap[sel]) {
-                const mirror = document.querySelector(`.${mirrorMap[sel]}`);
-                if (mirror) mirror.value = val;
-            }
             renderTables();
-            updateHeaderFilterBtns();
             document.querySelectorAll('.col-filter-popup.open').forEach(p => p.classList.remove('open'));
         }
         function wSec_setDate(val, table) {
@@ -775,30 +732,7 @@ if(workerEl) {
             const els = sec?.querySelectorAll('.date-sel');
             els?.forEach(el => el.value = val);
             renderTables();
-            updateHeaderFilterBtns();
             document.querySelectorAll('.col-filter-popup.open').forEach(p => p.classList.remove('open'));
-        }
-
-        // Atjaunina active klasi uz header filtru pogām (Gads/Mēnesis kārbiņas virs tabulas)
-        function updateHeaderFilterBtns() {
-            // Katrai sekcijai atrodam visas col-filter-wrap kārbiņas ārpus tabulas header
-            ['work', 'fuel', 'hours'].forEach(table => {
-                const sec = document.querySelector(_secMap[table]);
-                if (!sec) return;
-                // Augšējie wrapper-i (tie kas nav thead iekšā)
-                sec.querySelectorAll('.col-filter-wrap').forEach(wrap => {
-                    if (wrap.closest('thead')) return; // tabulas header - tos renderTables pats pārzīmē
-                    const btn = wrap.querySelector('.col-filter-btn');
-                    if (!btn) return;
-                    // Pārbaudām vai kāds no _filters[table] vērtībām ir aktīvs
-                    // Saistam pēc popup satura — skatāmies vai popup select/input ir ar vērtību
-                    const popup = btn.nextElementSibling;
-                    if (!popup) return;
-                    const inner = popup.querySelector('select, input[type=date]');
-                    const hasVal = inner && inner.value && inner.value !== '';
-                    btn.classList.toggle('active', !!hasVal);
-                });
-            });
         }
         function _fval(table, sel) {
             // Lasa no _filters objekta, fallback uz DOM
@@ -884,11 +818,6 @@ if(workerEl) {
                                     <div class="col-filter-popup"><input type="date" value="${wSel('.date-sel').value}" onchange="wSec_setDate(this.value,'work')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">
                                     <button class="col-filter-clear" onclick="wSec_setDate('','work')">✕ Notīrīt</button></div>
                                 </div></th>
-                                <th><div class="col-filter-wrap"><span>Mēnesis</span>
-                                    <button class="col-filter-btn ${wSel('.month-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
-                                    <div class="col-filter-popup"><select onchange="wSec_set(this.value,'.month-sel','work')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">${Array.from(wSel('.month-sel').options).map(o=>`<option value="${o.value}" ${o.value===wSel('.month-sel').value?'selected':''}>${o.text}</option>`).join('')}</select>
-                                    <button class="col-filter-clear" onclick="wSec_set('','.month-sel','work')">✕ Notīrīt</button></div>
-                                </div></th>
                                 <th><div class="col-filter-wrap"><span>Darbinieks</span>
                                     <button class="col-filter-btn ${wSel('.worker-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
                                     <div class="col-filter-popup"><select onchange="wSec_set(this.value,'.worker-sel','work')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">${Array.from(wSel('.worker-sel').options).map(o=>`<option value="${o.value}" ${o.value===wSel('.worker-sel').value?'selected':''}>${o.text}</option>`).join('')}</select>
@@ -919,7 +848,6 @@ if(workerEl) {
                             ${fWork.map(e => `
                                 <tr>
                                     <td>${e.date}</td>
-                                    <td>${e.month || '-'}</td>
                                     <td>${e.worker_name}</td>
                                     <td>${e.darbs || '-'}</td>
                                     <td>${e.objekts || '-'}</td>
@@ -934,147 +862,93 @@ if(workerEl) {
             }
 
             // Patēriņš
-const fuelSec = document.getElementById('v-report-fuel');
-if (fuelSec) {
-    const yearVal = _fval('fuel','.year-sel');
-    const monthVal = _fval('fuel','.month-sel');
-    const resVal = _fval('fuel','.res-sel');
-    const workerVal = _fval('fuel','.worker-sel');
-    const carVal = _fval('fuel','.car-sel');
-    const fuelDateVal = _fval('fuel','.date-sel');
+            const fuelSec = document.getElementById('v-report-fuel');
+            if (fuelSec) {
+                const yearVal = _fval('fuel','.year-sel');
+                const monthVal = _fval('fuel','.month-sel');
+                const resVal = _fval('fuel','.res-sel');
+                const workerVal = _fval('fuel','.worker-sel');
+                const carVal = _fval('fuel','.car-sel');
 
-    let fFuel = schedule.filter(e => 
-        e.resource_amount && 
-        (!yearVal || (e.date && e.date.includes(yearVal))) &&
-        (!monthVal || e.month === monthVal) &&
-        (!resVal || e.resource_name === resVal) &&
-        (!workerVal || e.worker_name === workerVal) &&
-        (!carVal || e.car === carVal) &&
-        dateMatches(e.date || '', fuelDateVal)
-    );
+                const fuelDateVal = _fval('fuel','.date-sel');
+                let fFuel = schedule.filter(e => 
+                    e.resource_amount && 
+                    (!yearVal || (e.date && e.date.includes(yearVal))) &&
+                    (!monthVal || e.month === monthVal) &&
+                    (!resVal || e.resource_name === resVal) &&
+                    (!workerVal || e.worker_name === workerVal) &&
+                    (!carVal || e.car === carVal) &&
+                    dateMatches(e.date || '', fuelDateVal)
+                );
 
-    // --- Sadalām: darbinieku patēriņš vs admin papildinājumi/atņemšana ---
-    const fFuelAdmin = fFuel.filter(e => e.car === 'Papildinājums' || e.car === 'Atņemšana' || e.darbs === 'Resursu papildinājums' || e.darbs === 'Resursu atņemšana');
-    const fFuelWorker = fFuel.filter(e => !(e.car === 'Papildinājums' || e.car === 'Atņemšana' || e.darbs === 'Resursu papildinājums' || e.darbs === 'Resursu atņemšana'));
+                // Kopsumma: tikai admin papildinājumi (+), VISS PĀRĒJAIS (patēriņš + atņemšana) mīnus
+                const totalNet = fFuel.reduce((s, e) => {
+                    const litri = parseFloat(e.resource_amount || 0);
+                    const isPlus = e.car === 'Papildinājums' || e.darbs === 'Resursu papildinājums';
+                    const isMinus = e.car === 'Atņemšana' || e.darbs === 'Resursu atņemšana';
+                    if (isPlus) return s + litri;
+                    return s - litri; // viss pārējais (darbinieki + admin atņemšana)
+                }, 0);
+                const totalSign = totalNet >= 0 ? '+' : '';
+                document.getElementById('totalFuelValue').innerText = totalSign + totalNet.toFixed(2) + " L";
 
-    const totalNet = fFuel.reduce((s, e) => {
-        const litri = parseFloat(e.resource_amount || 0);
-        const isPlus = e.car === 'Papildinājums' || e.darbs === 'Resursu papildinājums';
-        if (isPlus) return s + litri;
-        return s - litri;
-    }, 0);
-    const totalSign = totalNet >= 0 ? '+' : '';
-    document.getElementById('totalFuelValue').innerText = totalSign + totalNet.toFixed(2) + " L";
+                const fSel = s => fuelSec.querySelector(s);
+                document.getElementById('fuelTableContainer').innerHTML = `
+                    <table class="sticky-table">
+                        <thead>
+                            <tr>
+                                <th><div class="col-filter-wrap"><span>Datums</span>
+                                    <button class="col-filter-btn ${fSel('.date-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
+                                    <div class="col-filter-popup"><input type="date" value="${fSel('.date-sel').value}" onchange="wSec_setDate(this.value,'fuel')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">
+                                    <button class="col-filter-clear" onclick="wSec_setDate('','fuel')">✕ Notīrīt</button></div>
+                                </div></th>
+                                <th><div class="col-filter-wrap"><span>Darbinieks</span>
+                                    <button class="col-filter-btn ${fSel('.worker-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
+                                    <div class="col-filter-popup"><select onchange="wSec_set(this.value,'.worker-sel','fuel')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">${Array.from(fSel('.worker-sel').options).map(o=>`<option value="${o.value}" ${o.value===fSel('.worker-sel').value?'selected':''}>${o.text}</option>`).join('')}</select>
+                                    <button class="col-filter-clear" onclick="wSec_set('','.worker-sel','fuel')">✕ Notīrīt</button></div>
+                                </div></th>
+                                <th><div class="col-filter-wrap"><span>Auto</span>
+                                    <button class="col-filter-btn ${fSel('.car-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
+                                    <div class="col-filter-popup"><select onchange="wSec_set(this.value,'.car-sel','fuel')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">${Array.from(fSel('.car-sel').options).map(o=>`<option value="${o.value}" ${o.value===fSel('.car-sel').value?'selected':''}>${o.text}</option>`).join('')}</select>
+                                    <button class="col-filter-clear" onclick="wSec_set('','.car-sel','fuel')">✕ Notīrīt</button></div>
+                                </div></th>
+                                <th><div class="col-filter-wrap"><span>Resurss</span>
+                                    <button class="col-filter-btn ${fSel('.res-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
+                                    <div class="col-filter-popup"><select onchange="wSec_set(this.value,'.res-sel','fuel')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">${Array.from(fSel('.res-sel').options).map(o=>`<option value="${o.value}" ${o.value===fSel('.res-sel').value?'selected':''}>${o.text}</option>`).join('')}</select>
+                                    <button class="col-filter-clear" onclick="wSec_set('','.res-sel','fuel')">✕ Notīrīt</button></div>
+                                </div></th>
+                                <th style="text-align:center;">Litri</th>
+                                <th style="text-align:center;">mH</th>
+                                <th style="text-align:center;">L/mH</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${fFuel.map(e => {
+                                const isPapild = e.car === 'Papildinājums' || e.darbs === 'Resursu papildinājums';
+                                const isAtnemšana = e.car === 'Atņemšana' || e.darbs === 'Resursu atņemšana';
+                                const sign = isPapild ? '+' : '-';
+                                const colorClass = isPapild ? 'green-val' : 'red-val';
+                                const adminVards = e.worker_name || 'Admin';
+                                const darbinieks = isPapild ? `${adminVards} (papildinājums)` : isAtnemšana ? `${adminVards} (atņemšana)` : (e.worker_name || '-');
+                                return '<tr>' +
+                                    '<td>' + e.date + '</td>' +
+                                    '<td>' + darbinieks + '</td>' +
+                                    '<td>' + (e.car && e.car !== 'Papildinājums' && e.car !== 'Atņemšana' ? e.car : '-') + '</td>' +
+                                    '<td>' + e.resource_name + '</td>' +
+                                    '<td style="text-align: center;" class="' + colorClass + '">' + sign + e.resource_amount + ' L</td>' +
+                                    '<td style="text-align: center;">' + (e.mh_current != null ? e.mh_current + ' h' : '-') + '</td>' +
+                                    (() => { const l = parseFloat(e.resource_amount||0); const mhD = e.mh_current != null && e.mh_previous != null ? parseFloat(e.mh_current) - parseFloat(e.mh_previous) : 0; const pat = mhD > 0 ? (l/mhD).toFixed(2) + ' L/mH' : '-'; return '<td style="text-align: center;">' + pat + '</td>'; })() +
+                                    '<td style="white-space:nowrap;">' +
+                                        '<button class="pencil" onclick="openEditFuel(' + e.id + ',\'' + (e.resource_name||'') + '\',' + (e.resource_amount||0) + ',' + (e.mh_current||'null') + ')" style="margin-right:4px;">✏️</button>' +
+                                        '<button class="btn-del" onclick="deleteScheduleItem(' + e.id + ')">✖</button>' +
+                                    '</td>' +
+                                    '</tr>';
+                            }).join("")}
+                        </tbody>
+                    </table>`;
+            }
 
-    const fSel = s => fuelSec.querySelector(s);
-
-    const workerHeaderHtml  = `
-        <tr>
-            <th><div class="col-filter-wrap"><span>Datums</span>
-                <button class="col-filter-btn ${fSel('.date-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
-                <div class="col-filter-popup"><input type="date" value="${fSel('.date-sel').value}" onchange="wSec_setDate(this.value,'fuel')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">
-                <button class="col-filter-clear" onclick="wSec_setDate('','fuel')">✕ Notīrīt</button></div>
-            </div></th>
-            <th><div class="col-filter-wrap"><span>Mēnesis</span>
-                <button class="col-filter-btn ${fSel('.month-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
-                <div class="col-filter-popup"><select onchange="wSec_set(this.value,'.month-sel','fuel')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">${Array.from(fSel('.month-sel').options).map(o=>`<option value="${o.value}" ${o.value===fSel('.month-sel').value?'selected':''}>${o.text}</option>`).join('')}</select>
-                <button class="col-filter-clear" onclick="wSec_set('','.month-sel','fuel')">✕ Notīrīt</button></div>
-            </div></th>
-            <th><div class="col-filter-wrap"><span>Darbinieks</span>
-                <button class="col-filter-btn ${fSel('.worker-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
-                <div class="col-filter-popup"><select onchange="wSec_set(this.value,'.worker-sel','fuel')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">${Array.from(fSel('.worker-sel').options).map(o=>`<option value="${o.value}" ${o.value===fSel('.worker-sel').value?'selected':''}>${o.text}</option>`).join('')}</select>
-                <button class="col-filter-clear" onclick="wSec_set('','.worker-sel','fuel')">✕ Notīrīt</button></div>
-            </div></th>
-            <th><div class="col-filter-wrap"><span>Auto</span>
-                <button class="col-filter-btn ${fSel('.car-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
-                <div class="col-filter-popup"><select onchange="wSec_set(this.value,'.car-sel','fuel')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">${Array.from(fSel('.car-sel').options).map(o=>`<option value="${o.value}" ${o.value===fSel('.car-sel').value?'selected':''}>${o.text}</option>`).join('')}</select>
-                <button class="col-filter-clear" onclick="wSec_set('','.car-sel','fuel')">✕ Notīrīt</button></div>
-            </div></th>
-            <th><div class="col-filter-wrap"><span>Resurss</span>
-                <button class="col-filter-btn ${fSel('.res-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
-                <div class="col-filter-popup"><select onchange="wSec_set(this.value,'.res-sel','fuel')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">${Array.from(fSel('.res-sel').options).map(o=>`<option value="${o.value}" ${o.value===fSel('.res-sel').value?'selected':''}>${o.text}</option>`).join('')}</select>
-                <button class="col-filter-clear" onclick="wSec_set('','.res-sel','fuel')">✕ Notīrīt</button></div>
-            </div></th>
-            <th style="text-align:center;">Litri</th>
-            <th style="text-align:center;">mH</th>
-            <th style="text-align:center;">L/mH</th>
-            <th></th>
-        </tr>`;
-    const adminHeaderHtml = `
-    <tr>
-        <th><div class="col-filter-wrap"><span>Datums</span>
-            <button class="col-filter-btn ${fSel('.date-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
-            <div class="col-filter-popup"><input type="date" value="${fSel('.date-sel').value}" onchange="wSec_setDate(this.value,'fuel')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">
-            <button class="col-filter-clear" onclick="wSec_setDate('','fuel')">✕ Notīrīt</button></div>
-        </div></th>
-        <th><div class="col-filter-wrap"><span>Mēnesis</span>
-            <button class="col-filter-btn ${fSel('.month-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
-            <div class="col-filter-popup"><select onchange="wSec_set(this.value,'.month-sel','fuel')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">${Array.from(fSel('.month-sel').options).map(o=>`<option value="${o.value}" ${o.value===fSel('.month-sel').value?'selected':''}>${o.text}</option>`).join('')}</select>
-            <button class="col-filter-clear" onclick="wSec_set('','.month-sel','fuel')">✕ Notīrīt</button></div>
-        </div></th>
-        <th><div class="col-filter-wrap"><span>Resurss</span>
-            <button class="col-filter-btn ${fSel('.res-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
-            <div class="col-filter-popup"><select onchange="wSec_set(this.value,'.res-sel','fuel')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">${Array.from(fSel('.res-sel').options).map(o=>`<option value="${o.value}" ${o.value===fSel('.res-sel').value?'selected':''}>${o.text}</option>`).join('')}</select>
-            <button class="col-filter-clear" onclick="wSec_set('','.res-sel','fuel')">✕ Notīrīt</button></div>
-        </div></th>
-        <th style="text-align:center;">Litri</th>
-        <th></th>
-    </tr>`;
-
-    const renderFuelRow = e => {
-    const isPapild = e.car === 'Papildinājums' || e.darbs === 'Resursu papildinājums';
-    const isAtnemšana = e.car === 'Atņemšana' || e.darbs === 'Resursu atņemšana';
-    const sign = isPapild ? '+' : '-';
-    const colorClass = isPapild ? 'green-val' : 'red-val';
-    const adminVards = e.worker_name || 'Admin';
-    const darbinieks = isPapild ? `${adminVards} (papildinājums)` : isAtnemšana ? `${adminVards} (atņemšana)` : (e.worker_name || '-');
-    return '<tr>' +
-        '<td>' + e.date + '</td>' +
-        '<td>' + (e.month || '-') + '</td>' +
-        '<td>' + darbinieks + '</td>' +
-        '<td>' + (e.car && e.car !== 'Papildinājums' && e.car !== 'Atņemšana' ? e.car : '-') + '</td>' +
-        '<td>' + e.resource_name + '</td>' +
-        '<td style="text-align: center;" class="' + colorClass + '">' + sign + e.resource_amount + ' L</td>' +
-        '<td style="text-align: center;">' + (e.mh_current != null ? e.mh_current + ' h' : '-') + '</td>' +
-        (() => { const l = parseFloat(e.resource_amount||0); const mhD = e.mh_current != null && e.mh_previous != null ? parseFloat(e.mh_current) - parseFloat(e.mh_previous) : 0; const pat = mhD > 0 ? (l/mhD).toFixed(2) + ' L/mH' : '-'; return '<td style="text-align: center;">' + pat + '</td>'; })() +
-        '<td style="white-space:nowrap;">' +
-            '<button class="pencil" onclick="openEditFuel(' + e.id + ',\'' + (e.resource_name||'') + '\',' + (e.resource_amount||0) + ',' + (e.mh_current||'null') + ')" style="margin-right:4px;">✏️</button>' +
-            '<button class="btn-del" onclick="deleteScheduleItem(' + e.id + ')">✖</button>' +
-        '</td>' +
-        '</tr>';
-};
-
-const renderAdminFuelRow = e => {
-    const isPapild = e.car === 'Papildinājums' || e.darbs === 'Resursu papildinājums';
-    const sign = isPapild ? '+' : '-';
-    const colorClass = isPapild ? 'green-val' : 'red-val';
-    return '<tr>' +
-        '<td>' + e.date + '</td>' +
-        '<td>' + (e.month || '-') + '</td>' +
-        '<td>' + e.resource_name + '</td>' +
-        '<td style="text-align: center;" class="' + colorClass + '">' + sign + e.resource_amount + ' L</td>' +
-        '<td style="white-space:nowrap;">' +
-            '<button class="pencil" onclick="openEditFuel(' + e.id + ',\'' + (e.resource_name||'') + '\',' + (e.resource_amount||0) + ',' + (e.mh_current||'null') + ')" style="margin-right:4px;">✏️</button>' +
-            '<button class="btn-del" onclick="deleteScheduleItem(' + e.id + ')">✖</button>' +
-        '</td>' +
-        '</tr>';
-};
-
-    document.getElementById('fuelTableContainer').innerHTML = `
-    <table class="sticky-table">
-        <thead>${workerHeaderHtml}</thead>
-        <tbody>${fFuelWorker.map(renderFuelRow).join("")}</tbody>
-    </table>`;
-
-const adminContainer = document.getElementById('adminFuelTableContainer');
-if (adminContainer) {
-    adminContainer.innerHTML = `
-        <table class="sticky-table">
-            <thead>${adminHeaderHtml}</thead>
-            <tbody>${fFuelAdmin.map(renderAdminFuelRow).join("")}</tbody>
-        </table>`;
-    }
-}
             // Darba stundas
             const hoursSec = document.getElementById('v-report-hours');
             if (hoursSec) {
@@ -1103,37 +977,12 @@ if (adminContainer) {
                         .reduce((sum, s) => sum + parseFloat(s.hours || 0), 0);
                 }
 
-                // Lietderīgais darbs = visi schedule ieraksti (bez Pusdienām) šajā shift'ā
-                function getLietderigais(workerName, datums, sakadarbu, beidzadarbu) {
-                    return schedule
-                        .filter(s => {
-                            if (s.worker_name !== workerName || s.date !== datums) return false;
-                            if (!s.hours || parseFloat(s.hours) <= 0) return false;
-                            if (s.darbs === 'Pusdienas') return false;
-                            // Izslēdzam resursu ierakstus
-                            if (s.darbs === 'Degvielas uzpilde' || s.darbs === 'Eļļas papildināšana') return false;
-                            if (s.darbs === 'Resursu papildinājums' || s.darbs === 'Resursu atņemšana') return false;
-                            // Pārbaudām vai iekļaujas šajā shift'ā pēc laika
-                            if (sakadarbu && s.sākuma_laiks) {
-                                const cleanSaka = sakadarbu.replace('*','');
-                                const cleanBeidza = (beidzadarbu||'').replace('*','');
-                                const darbSak = s.sākuma_laiks.replace('*','');
-                                if (darbSak < cleanSaka) return false;
-                                if (cleanBeidza && darbSak > cleanBeidza) return false;
-                            }
-                            return true;
-                        })
-                        .reduce((sum, s) => sum + parseFloat(s.hours || 0), 0);
-                }
-
                 const totalKopa = fSum.reduce((s,i) => s + parseFloat(i.stundas || 0), 0);
                 const totalPusd = fSum.reduce((s,i) => s + getPusdienas(i.darbinieks, i.datums, i.sāka_darbu, i.beidza_darbu), 0);
                 const totalDarba = Math.max(0, totalKopa - totalPusd);
-                const totalLietd = fSum.reduce((s,i) => s + getLietderigais(i.darbinieks, i.datums, i.sāka_darbu, i.beidza_darbu), 0);
                 document.getElementById('totalDayHoursValue').innerText = totalKopa.toFixed(2) + ' h';
                 document.getElementById('totalPusdienas').innerText = totalPusd.toFixed(2) + ' h';
                 document.getElementById('totalDarbaH').innerText = totalDarba.toFixed(2) + ' h';
-                document.getElementById('totalLietderigais').innerText = totalLietd.toFixed(2) + ' h';
                 const hSel = s => hoursSec.querySelector(s);
                 document.getElementById('daySummaryContainer').innerHTML = `
                     <table class="sticky-table">
@@ -1143,11 +992,6 @@ if (adminContainer) {
                                     <button class="col-filter-btn ${hSel('.date-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
                                     <div class="col-filter-popup"><input type="date" value="${hSel('.date-sel').value}" onchange="wSec_setDate(this.value,'hours')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">
                                     <button class="col-filter-clear" onclick="wSec_setDate('','hours')">✕ Notīrīt</button></div>
-                                </div></th>
-                                <th><div class="col-filter-wrap"><span>Mēnesis</span>
-                                    <button class="col-filter-btn ${hSel('.month-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
-                                    <div class="col-filter-popup"><select onchange="wSec_set(this.value,'.month-sel','hours')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">${Array.from(hSel('.month-sel').options).map(o=>`<option value="${o.value}" ${o.value===hSel('.month-sel').value?'selected':''}>${o.text}</option>`).join('')}</select>
-                                    <button class="col-filter-clear" onclick="wSec_set('','.month-sel','hours')">✕ Notīrīt</button></div>
                                 </div></th>
                                 <th><div class="col-filter-wrap"><span>Darbinieks</span>
                                     <button class="col-filter-btn ${hSel('.worker-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
@@ -1159,7 +1003,6 @@ if (adminContainer) {
                                 <th style="text-align:center;">Pusdienas</th>
                                 <th style="text-align:center;">Kopā h</th>
                                 <th style="text-align:center;">Darbā h</th>
-                                <th style="text-align:center;">Lietderīgi h</th>
                                 <th style="width:50px;"></th>
                             </tr>
                         </thead>
@@ -1180,14 +1023,12 @@ if (adminContainer) {
                                 return `
                                 <tr>
                                     <td>${e.datums}</td>
-                                    <td>${e.month || '-'}</td>
                                     <td>${e.darbinieks}</td>
                                     <td>${startT}</td>
                                     <td>${beigasCell}</td>
                                     <td style="text-align: center;">${pusd > 0 ? pusd.toFixed(2) + ' h' : '-'}</td>
                                     <td style="${numStyle}">${kopaa.toFixed(2)}</td>
                                     <td style="${numStyle}">${darba.toFixed(2)}</td>
-                                    <td style="text-align:center;color:#1565c0;font-weight:800;">${getLietderigais(e.darbinieks, e.datums, e.sāka_darbu, e.beidza_darbu).toFixed(2)}</td>
                                     <td style="white-space:nowrap;">
                                         ${e.id ? `
                                             <button class="pencil" onclick="openEditHours(${e.id}, ${e.stundas}, '${startT}', '${endT}')" style="margin-right:4px;">✏️</button>
@@ -1320,10 +1161,28 @@ async function saveWorkerEdit() {
         }
         async function deleteItem(url, name) { if(confirm(`Dzēst ${name}?`)) { await fetch(`${url}/${encodeURIComponent(name)}`, {method:'DELETE'}); loadData(); } }
         async function deleteWorker(name) { if(confirm(`Dzēst darbinieku ${name}?`)) { await fetch(`/api/workers/${encodeURIComponent(name)}`, {method:'DELETE'}); loadData(); } }
-        async function adjustRes(id, action) { 
-            const val = parseFloat(document.getElementById(`in-${id}`).value); if(!val) return; 
-            
-            const adminUser = getAdminUser(); await fetch(`/api/resource-types/${id}`, {method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action, amount:val, adminName: adminUser?.name || 'Admin'})}); loadData(); 
+        async function adjustRes(id, action) {
+            const val = parseFloat(document.getElementById(`in-${id}`).value);
+            if (!val) return;
+
+            let price_per_unit = null;
+            if (action === 'add') {
+                const priceStr = prompt('Ievadi cenu par vienību (€/L vai €/gab.):\n(Atstāj tukšu, ja nav)');
+                if (priceStr === null) return; // Nospieda Atcelt
+                if (priceStr.trim() !== '') {
+                    const parsed = parseFloat(priceStr.replace(',', '.'));
+                    if (isNaN(parsed) || parsed < 0) return alert('Kļūda! Cena jābūt skaitlim.');
+                    price_per_unit = parsed;
+                }
+            }
+
+            const adminUser = getAdminUser();
+            await fetch(`/api/resource-types/${id}`, {
+                method: 'PATCH',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ action, amount: val, adminName: adminUser?.name || 'Admin', price_per_unit })
+            });
+            loadData();
         }
         function logout() { sessionStorage.removeItem('loggedInAdmin'); window.location.href = 'index.html'; }
 

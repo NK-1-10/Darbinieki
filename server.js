@@ -56,7 +56,7 @@ function calculateHours(start, end) {
     // Ja beigas ir pirms sākuma (pusnakts pāreja), pievieno 24h
     // Bet ja starpība > 16h, visticamāk kļūda — atgriežam 0
     if (diff < 0) diff += 86400;
-    if (diff > 22 * 3600) diff = 0;
+    if (diff > 23 * 3600) diff = 0;
     return (diff / 3600).toFixed(2);
 }
 
@@ -346,9 +346,10 @@ app.get('/api/resource-types', async (req, res) => {
 
 app.patch('/api/resource-types/:id', async (req, res) => {
     const { id } = req.params;
-    const { action, amount, adminName } = req.body;
+    const { action, amount, adminName, price_per_unit } = req.body;
     const adminLabel = adminName || 'Admin';
     const litri = parseFloat(amount) || 0;
+    const gabala = price_per_unit ? parseFloat(price_per_unit) : null;
     try {
         if (action === 'sub') {
             await pool.query('UPDATE resource_types SET quantity = COALESCE(quantity, 0) - $1 WHERE id = $2', [litri, id]);
@@ -381,8 +382,8 @@ app.patch('/api/resource-types/:id', async (req, res) => {
             const monthStr = tagad.toLocaleDateString('lv-LV', { ...opts, month: 'long' }).replace(/^\w/, c => c.toUpperCase());
 
             await pool.query(
-                `INSERT INTO schedule (worker_name, car, date, "sākuma_laiks", "beigu_laiks", month, resource_name, resource_amount, darbs, hours) VALUES ($1,$2,$3,$4,$4,$5,$6,$7,$8,0)`,
-                [ adminLabel, 'Papildinājums', datums, laiks, monthStr, resourceName, litri, 'Resursu papildinājums']
+                `INSERT INTO schedule (worker_name, car, date, "sākuma_laiks", "beigu_laiks", month, resource_name, resource_amount, darbs, hours, gabala) VALUES ($1,$2,$3,$4,$4,$5,$6,$7,$8,0,$9)`,
+                [ adminLabel, 'Papildinājums', datums, laiks, monthStr, resourceName, litri, 'Resursu papildinājums', gabala]
             );
         } else {
             await pool.query('UPDATE resource_types SET quantity = $1 WHERE id = $2', [litri, id]);
