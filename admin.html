@@ -535,7 +535,10 @@ function renderCarReport() {
         </tr>`;
     }).join('');
 
+    const totalLitri = Object.values(matMap).reduce((s, m) => s + m.used, 0);
+
     document.getElementById('carReportSummary').innerHTML = `
+        <div class="summary-badge">Kopā litri: <span style="font-weight:800;">${totalLitri.toFixed(2)} L</span></div>
         <div class="summary-badge">Kopā izmaksas: <span style="font-weight:800;">${totalCost.toFixed(2)} €</span></div>
     `;
 
