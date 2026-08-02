@@ -466,7 +466,6 @@ function renderCarReport() {
         return true;
     }
 
-    // Šīs mašīnas patēriņš periodā
     const usageData = schedule.filter(e =>
         e.resource_amount &&
         e.car === carVal &&
@@ -474,7 +473,6 @@ function renderCarReport() {
         inRange(e.date)
     );
 
-    // VISI admin papildinājumi periodā (krājums ir kopīgs, ne piesaistīts vienai mašīnai)
     const additionsData = schedule.filter(e =>
         e.resource_amount &&
         (e.car === 'Papildinājums' || e.darbs === 'Resursu papildinājums') &&
@@ -482,7 +480,6 @@ function renderCarReport() {
         inRange(e.date)
     );
 
-    // Sagrupējam patēriņu pēc resursa
     const matMap = {};
     usageData.forEach(e => {
         const name = e.resource_name || 'Nezināms';
@@ -491,7 +488,6 @@ function renderCarReport() {
         if (e.mh_current != null) matMap[name].mhEntries.push(e);
     });
 
-    // Sagrupējam papildinājumus pēc resursa -> svērtā vid. cena
     const addMap = {};
     additionsData.forEach(e => {
         const name = e.resource_name || 'Nezināms';
@@ -502,6 +498,12 @@ function renderCarReport() {
         addMap[name].cost += q * p;
     });
 
+    // Pārbaudām, vai KAUT VIENAM no izmantotajiem resursiem ir iespējota mH izsekošana
+    const anyMhTracked = Object.keys(matMap).some(name => {
+        const resType = resourceTypes.find(r => r.name === name);
+        return resType && resType.track_mh;
+    });
+
     let totalCost = 0;
     const rows = Object.entries(matMap).map(([name, m]) => {
         const add = addMap[name];
@@ -509,12 +511,19 @@ function renderCarReport() {
         const sum = avgPrice != null ? m.used * avgPrice : null;
         if (sum != null) totalCost += sum;
 
-        let mhText = '-';
-        if (m.mhEntries.length) {
-            const sorted = [...m.mhEntries].sort((a, b) => (a.date > b.date ? 1 : -1));
-            const first = parseFloat(sorted[0].mh_previous ?? sorted[0].mh_current);
-            const last = parseFloat(sorted[sorted.length - 1].mh_current);
-            if (!isNaN(first) && !isNaN(last)) mhText = (last - first).toFixed(1) + ' mH';
+        const resType = resourceTypes.find(r => r.name === name);
+        const tracksMh = resType && resType.track_mh;
+
+        let mhCell = '';
+        if (anyMhTracked) {
+            let mhText = '-';
+            if (tracksMh && m.mhEntries.length) {
+                const sorted = [...m.mhEntries].sort((a, b) => (a.date > b.date ? 1 : -1));
+                const first = parseFloat(sorted[0].mh_previous ?? sorted[0].mh_current);
+                const last = parseFloat(sorted[sorted.length - 1].mh_current);
+                if (!isNaN(first) && !isNaN(last)) mhText = (last - first).toFixed(1) + ' mH';
+            }
+            mhCell = `<td style="text-align:center;">${mhText}</td>`;
         }
 
         return `<tr>
@@ -522,7 +531,7 @@ function renderCarReport() {
             <td style="text-align:center;">${m.used.toFixed(2)} L</td>
             <td style="text-align:center;">${avgPrice != null ? avgPrice.toFixed(2) + ' €/L' : '-'}</td>
             <td style="text-align:center;">${sum != null ? sum.toFixed(2) + ' €' : '-'}</td>
-            <td style="text-align:center;">${mhText}</td>
+            ${mhCell}
         </tr>`;
     }).join('');
 
@@ -537,7 +546,7 @@ function renderCarReport() {
                 <th style="text-align:center;">Daudzums izmantots</th>
                 <th style="text-align:center;">Cena/vienība (periods)</th>
                 <th style="text-align:center;">Kopā izmaksas</th>
-                <th style="text-align:center;">mH starpība</th>
+                ${anyMhTracked ? '<th style="text-align:center;">mH starpība</th>' : ''}
             </tr></thead>
             <tbody>${rows}</tbody>
         </table>
