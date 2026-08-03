@@ -477,9 +477,9 @@ app.post('/api/objects', async (req, res) => {
 });
 
 app.post('/api/resource-types', async (req, res) => {
-    const { name, quantity } = req.body;
+    const { name, quantity, vien } = req.body;
     try {
-        await pool.query('INSERT INTO resource_types (name, quantity) VALUES ($1, $2)', [name, quantity || 0]);
+        await pool.query('INSERT INTO resource_types (name, quantity, vien) VALUES ($1, $2)', [name, quantity || 0]);
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
