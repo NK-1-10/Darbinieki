@@ -1159,7 +1159,7 @@ if(workerEl) {
                             <thead><tr>
                                 <th>Datums</th><th>Darbība</th><th>Resurss</th>
                                 <th style="text-align:center;">Daudzums</th>
-                                <th style="text-align:center;">Cena/L</th>
+                                <th style="text-align:center;">Cena(L/gab)</th>
                                 <th style="text-align:center;">Izmaksas</th>
                                 <th></th>
                             </tr></thead>
@@ -1171,7 +1171,7 @@ if(workerEl) {
                                 '<td>' + e.date + '</td>' +
                                 '<td>' + (isPapild ? 'Papildinājums' : 'Atņemšana') + '</td>' +
                                 '<td>' + (e.resource_name || '-') + '</td>' +
-                                '<td style="text-align:center;" class="' + cls + '">' + sign + e.resource_amount + '${r.vien} </td>' +
+                                '<td style="text-align:center;" class="' + cls + '">' + sign + e.resource_amount + " " + '${r.vien} </td>' +
                                 '<td style="text-align:center;">' + (e.gabala != null ? e.gabala + ' €' : '-') + '</td>' +
                                 '<td style="text-align:center;">' + (e.gabala != null ? (parseFloat(e.gabala) * parseFloat(e.resource_amount || 0)).toFixed(2) + ' €' : '-') + '</td>' +
                                 '<td><button class="btn-del" onclick="deleteScheduleItem(' + e.id + ')">✖</button></td>' +
