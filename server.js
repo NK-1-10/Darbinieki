@@ -396,7 +396,6 @@ app.get('/api/workers', async (req, res) => {
     try {
         // Atlasām vārdu un pagaidu paroli, lai admins varētu to pateikt darbiniekam
         const r = await pool.query("SELECT name, temp_password, role FROM users WHERE role = 'worker' OR role IS NULL ORDER BY name ASC");
-        console.log(r);
         res.json(r.rows);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -406,7 +405,6 @@ app.get('/api/workers', async (req, res) => {
 app.get('/api/cars', async (req, res) => {
     try {
         const r = await pool.query("SELECT id, name, track_mh, caurlaide_lidz FROM cars ORDER BY name ASC");
-        console.log(r);
         res.json(r.rows);
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -414,7 +412,6 @@ app.get('/api/cars', async (req, res) => {
 app.get('/api/objects', async (req, res) => {
     try {
         const r = await pool.query("SELECT name, latitude, longitude, radius_m FROM objects ORDER BY name ASC");
-        console.log(r);
         res.json(r.rows);
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -422,7 +419,6 @@ app.get('/api/objects', async (req, res) => {
 app.get('/api/work-types', async (req, res) => {
     try {
         const r = await pool.query("SELECT name FROM work_types ORDER BY name ASC");
-        console.log(r);
         res.json(r.rows.map(row => row.name));
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -439,7 +435,6 @@ app.get('/api/schedule', async (req, res) => {
         }
         query += ' ORDER BY id DESC';
         const result = await pool.query(query, params);
-        console.log(results);
         res.json(result.rows);
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -821,7 +816,6 @@ app.post('/api/stop-shift', async (req, res) => {
 app.get('/api/darbastundas', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM "darbastundas" ORDER BY id DESC');
-        console.log(r);
         res.json(result.rows);
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
