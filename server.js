@@ -345,12 +345,12 @@ app.get('/api/resource-types', async (req, res) => {
 });
 
 app.post('/api/resource-types', async (req, res) => {
-    const { name, quantity, track_mh, vien, cena } = req.body; // =------------------------------------------------------------------------------------------------------
-    console.log(name, quantity, track_mh, vien, cena);
+    const { name, quantity, track_mh, vien } = req.body; // =------------------------------------------------------------------------------------------------------
+    console.log(name, quantity, track_mh, vien);
     try {
         await pool.query(
-            'INSERT INTO resource_types (name, quantity, vien, cena) VALUES ($1, $2, $3, $4)',
-            [name, quantity || 0, vien, cena]
+            'INSERT INTO resource_types (name, quantity, vien) VALUES ($1, $2, $3)',
+            [name, quantity || 0, vien]
         );
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: err.message }); }
