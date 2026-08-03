@@ -805,7 +805,7 @@ if(workerEl) {
                     <li class="resource-row">
                         <div class="resource-main">
                             <strong>${r.name}</strong>
-                            <span class="gold-val">${parseFloat(r.quantity || 0).toFixed(2)} L</span>
+                            <span class="gold-val">${parseFloat(r.quantity || 0).toFixed(2)} ${r.vien}</span>
                         </div>
                         <div class="resource-controls">
                             <input type="number" id="in-${r.id}" placeholder="Daudzums">
