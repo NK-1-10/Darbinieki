@@ -1152,14 +1152,14 @@ if(workerEl) {
 
                     adminCont.innerHTML = `
                         <div style="display:flex;justify-content:flex-end;gap:10px;margin-bottom:8px;">
-                            <div class="summary-badge">Kopā: <span style="color:${adminTotal >= 0 ? '#2e7d32' : '#b00020'};font-weight:800;">${adminSign}${adminTotal.toFixed(2)} L</span></div>
+                            <div class="summary-badge">Kopā: <span style="ummary-badgefont-weight:800;">${adminSign}${adminTotal.toFixed(2)} L</span></div>
                             <div class="summary-badge">Izmaksas: <span style="font-weight:800;">${adminIzmaksas.toFixed(2)} €</span></div>
                         </div>
                         <table class="sticky-table">
                             <thead><tr>
                                 <th>Datums</th><th>Darbība</th><th>Resurss</th>
                                 <th style="text-align:center;">Daudzums</th>
-                                <th style="text-align:center;">Cena/L</th>
+                                <th style="text-align:center;">Cena(L/gab)</th>
                                 <th style="text-align:center;">Izmaksas</th>
                                 <th></th>
                             </tr></thead>
@@ -1171,7 +1171,7 @@ if(workerEl) {
                                 '<td>' + e.date + '</td>' +
                                 '<td>' + (isPapild ? 'Papildinājums' : 'Atņemšana') + '</td>' +
                                 '<td>' + (e.resource_name || '-') + '</td>' +
-                                '<td style="text-align:center;" class="' + cls + '">' + sign + e.resource_amount + ' L</td>' +
+                                '<td style="text-align:center;" class="' + cls + '">' + sign + e.resource_amount + " " + '${r.vien} </td>' +
                                 '<td style="text-align:center;">' + (e.gabala != null ? e.gabala + ' €' : '-') + '</td>' +
                                 '<td style="text-align:center;">' + (e.gabala != null ? (parseFloat(e.gabala) * parseFloat(e.resource_amount || 0)).toFixed(2) + ' €' : '-') + '</td>' +
                                 '<td><button class="btn-del" onclick="deleteScheduleItem(' + e.id + ')">✖</button></td>' +
@@ -1362,7 +1362,20 @@ async function saveWorkerEdit() {
     }
 }
         
-        async function addNewItem(url, msg, extra={}) { const n = prompt(msg); if(n) { await fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name:n, ...extra})}); loadData(); } }
+        async function addNewItem(url, msg, extra={}) { // changes to add gabals or liters
+            const n = prompt(msg); 
+            const isLiters = confirm("Click OK for Liters, Cancel for Gabals"); //keep like this for now. buttons maybe later
+            const vien = isLiters ? "L" : "Gab";
+            if(n) { 
+                await fetch(url, {
+                    method:'POST', 
+                    headers:{'Content-Type':'application/json'}, 
+                    body:JSON.stringify({name:n,vien:vien, ...extra})}); 
+                loadData(); 
+                  } 
+        }
+        
+        
         async function toggleResourceTrackMh(resName, checked) {
             await fetch(`/api/resource-types/${encodeURIComponent(resName)}`, {
                 method: 'PUT',

@@ -339,8 +339,20 @@ app.post('/api/change-password', async (req, res) => {
 // --- 2. RESURSU PĀRVALDĪBA ---
 app.get('/api/resource-types', async (req, res) => {
     try {
-        const r = await pool.query("SELECT id, name, quantity, track_mh FROM resource_types ORDER BY name ASC");
+        const r = await pool.query("SELECT id, name, quantity, track_mh, vien FROM resource_types ORDER BY name ASC");
         res.json(r.rows); 
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/resource-types', async (req, res) => {
+    const { name, quantity, track_mh, vien } = req.body; // =------------------------------------------------------------------------------------------------------
+    console.log(name, quantity, track_mh, vien);
+    try {
+        await pool.query(
+            'INSERT INTO resource_types (name, quantity, vien) VALUES ($1, $2, $3)',
+            [name, quantity || 0, vien]
+        );
+        res.json({ success: true });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -476,13 +488,7 @@ app.post('/api/objects', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-app.post('/api/resource-types', async (req, res) => {
-    const { name, quantity } = req.body;
-    try {
-        await pool.query('INSERT INTO resource_types (name, quantity) VALUES ($1, $2)', [name, quantity || 0]);
-        res.json({ success: true });
-    } catch (err) { res.status(500).json({ error: err.message }); }
-});
+
 
 // --- ADMIN: KRĀJUMU PAPILDINĀŠANA (Poga OK) ---
 
