@@ -536,12 +536,11 @@ function renderCarReport() {
     }).join('');
 
     const vienSums = {};
-    Object.entries(resMap).forEach(([name, r]) => {
-        const v = getVien(name);
-        if (!vienSums[v]) vienSums[v] = 0;
-        vienSums[v] += r.daudzums;
-    });
-
+        Object.entries(matMap).forEach(([name, m]) => {
+            const v = getVien(name);
+            if (!vienSums[v]) vienSums[v] = 0;
+            vienSums[v] += m.used;
+        });
     document.getElementById('carReportSummary').innerHTML = 
         Object.entries(vienSums).map(([v, sum]) => 
             `<div class="summary-badge">Kopā: <span style="font-weight:800;">${sum.toFixed(2)} ${v}</span></div>`
