@@ -535,12 +535,18 @@ function renderCarReport() {
         </tr>`;
     }).join('');
 
-    const totalLitri = Object.values(matMap).reduce((s, m) => s + m.used, 0);
+    const vienSums = {};
+    Object.entries(resMap).forEach(([name, r]) => {
+        const v = getVien(name);
+        if (!vienSums[v]) vienSums[v] = 0;
+        vienSums[v] += r.daudzums;
+    });
 
-    document.getElementById('carReportSummary').innerHTML = `
-        <div class="summary-badge">Kopā litri: <span style="font-weight:800;">${totalLitri.toFixed(2)} L</span></div>
-        <div class="summary-badge">Kopā izmaksas: <span style="font-weight:800;">${totalCost.toFixed(2)} €</span></div>
-    `;
+    document.getElementById('carReportSummary').innerHTML = 
+        Object.entries(vienSums).map(([v, sum]) => 
+            `<div class="summary-badge">Kopā: <span style="font-weight:800;">${sum.toFixed(2)} ${v}</span></div>`
+        ).join('') +
+        `<div class="summary-badge">Kopā izmaksas: <span style="font-weight:800;">${totalCost.toFixed(2)} €</span></div>`;
 
     document.getElementById('carReportTable').innerHTML = rows ? `
         <table class="sticky-table">
@@ -815,6 +821,11 @@ if(workerEl) {
                                 <input type="checkbox" ${r.track_mh ? 'checked' : ''} onchange="toggleResourceTrackMh('${r.name}', this.checked)" style="width:18px;height:18px;cursor:pointer;">
                                 mH
                             </label>
+                            <select onchange="updateVien(${r.id}, this.value)" style="padding:4px 6px;border:1px solid #ddd;border-radius:6px;font-size:12px;">
+                                <option value="L" ${(r.vien || 'L') === 'L' ? 'selected' : ''}>L</option>
+                                <option value="gab" ${r.vien === 'gab' ? 'selected' : ''}>gab</option>
+                                <option value="kg" ${r.vien === 'kg' ? 'selected' : ''}>kg</option>
+                            </select>
                             <button class="pencil" onclick="editItem('/api/resource-types', '${r.name}')">✏️</button>
                             <button class="btn-del" onclick="deleteItem('/api/resource-types', '${r.name}')">✖</button>
                         </div>
@@ -1869,6 +1880,15 @@ async function saveWorkerEdit() {
 function getVien(resName) {
     const r = resourceTypes.find(r => r.name === resName);
     return r?.vien || 'L';
+}
+
+async function updateVien(id, vien) {
+    await fetch(`/api/resource-types/${id}`, {
+        method: 'PATCH',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ vien })
+    });
+    loadData();
 }
 
     </script>
