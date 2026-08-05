@@ -358,7 +358,7 @@ app.post('/api/resource-types', async (req, res) => {
 
 app.patch('/api/resource-types/:id', async (req, res) => {
     const { id } = req.params;
-    const { action, amount, adminName, price_per_unit } = req.body;
+    const { action, amount, adminName, price_per_unit, vien } = req.body;
     const adminLabel = adminName || 'Admin';
     const litri = parseFloat(amount) || 0;
     const gabala = price_per_unit ? parseFloat(price_per_unit) : null;
@@ -398,8 +398,12 @@ app.patch('/api/resource-types/:id', async (req, res) => {
                 [ adminLabel, 'Papildinājums', datums, laiks, monthStr, resourceName, litri, 'Resursu papildinājums', gabala]
             );
         } else {
-            await pool.query('UPDATE resource_types SET quantity = $1 WHERE id = $2', [litri, id]);
-        }
+                if (vien !== undefined) {
+                    await pool.query('UPDATE resource_types SET vien = $1 WHERE id = $2', [vien, id]);
+                } else {
+                    await pool.query('UPDATE resource_types SET quantity = $1 WHERE id = $2', [litri, id]);
+                }
+            }
         res.json({ success: true });
     } catch (err) { console.error('PATCH resource-types kļūda:', err.message); res.status(500).json({ error: err.message }); }
 });
