@@ -138,7 +138,7 @@
             
             <label id="availableLabel" style="font-size: 0.85rem; color: var(--saulstari-gray);"></label>
             <label id="daudzumsLabel">Daudzums:</label>
-            <input type="number" id="modalAmountInput" step="0.1" min="0.1" placeholder="Ievadi litrus">
+            <input type="number" id="modalAmountInput" step="0.1" min="0.1" placeholder="Ievadi daudzumu">
 
             <div id="mhSection" style="display:none;">
                 <label>Motorstundas (mH):</label>
@@ -564,20 +564,21 @@
     };
 
     document.getElementById("modalResourceSelect").onchange = function() {
-        const selected = this.options[this.selectedIndex];
-        const qty = selected.getAttribute("data-qty");
-        const amountInput = document.getElementById("modalAmountInput");
-        const label = document.getElementById("availableLabel");
+    const selected = this.options[this.selectedIndex];
+    const qty = selected.getAttribute("data-qty");
+    const vien = selected.getAttribute("data-vien") || 'L'; // ← PĀRVIETO ŠEIT
+    window._currentVien = vien; // ← PIEVIENO
+    const amountInput = document.getElementById("modalAmountInput");
+    const label = document.getElementById("availableLabel");
 
-        if (qty) {
-            const vien = selected.getAttribute("data-vien") || 'L';
-            label.textContent = `Pieejams noliktavā: ${qty} ${vien}`;
-            amountInput.max = qty;
-        } else {
-            label.textContent = "";
-            amountInput.removeAttribute("max");
-        }
-    };
+    if (qty) {
+        label.textContent = `Pieejams noliktavā: ${qty} ${vien}`;
+        amountInput.max = qty;
+    } else {
+        label.textContent = "";
+        amountInput.removeAttribute("max");
+    }
+};
 
     document.getElementById("modalCancel").onclick = () => {
         document.getElementById("resourceModal").style.display = "none";
@@ -635,7 +636,7 @@
             document.getElementById("resourceModal").style.display = "none";
             document.getElementById("modalAmountInput").value = "";
             document.getElementById("modalMhInput").value = "";
-            alert(`Veiksmīgi reģistrēts: ${resourceName} (${litri} L)`);
+            alert(`Veiksmīgi reģistrēts: ${resourceName} (${litri} ${window._currentVien || 'L'})`);
             loadWorkerData();
         } catch (err) { 
             alert("Kļūda saglabājot datus!"); 
