@@ -1164,19 +1164,21 @@ if(workerEl) {
                                 <th></th>
                             </tr></thead>
                             <tbody>${fFuelAdmin.map(e => {
-                                const isPapild = e.darbs === 'Resursu papildinājums';
-                                const sign = isPapild ? '+' : '-';
-                                const cls = isPapild ? 'green-val' : 'red-val';
-                                return '<tr>' +
-                                '<td>' + e.date + '</td>' +
-                                '<td>' + (isPapild ? 'Papildinājums' : 'Atņemšana') + '</td>' +
-                                '<td>' + (e.resource_name || '-') + '</td>' +
-                                '<td style="text-align:center;" class="' + cls + '">' + sign + e.resource_amount + ' ' + (e.resursa_vienība || '') + '</td>'+
-                                '<td style="text-align:center;">' + (e.gabala != null ? e.gabala + ' €' : '-') + '</td>' +
-                                '<td style="text-align:center;">' + (e.gabala != null ? (parseFloat(e.gabala) * parseFloat(e.resource_amount || 0)).toFixed(2) + ' €' : '-') + '</td>' +
-                                '<td><button class="btn-del" onclick="deleteScheduleItem(' + e.id + ')">✖</button></td>' +
-                                '</tr>';
-                            }).join('')}</tbody>
+                            const isPapild = e.darbs === 'Resursu papildinājums';
+                            const sign = isPapild ? '+' : '-';
+                            const cls = isPapild ? 'green-val' : 'red-val';
+                            const resInfo = resourceTypes.find(rt => rt.name === e.resource_name);
+                            const unit = resInfo ? resInfo.vien : '';
+                            return '<tr>' +
+                            '<td>' + e.date + '</td>' +
+                            '<td>' + (isPapild ? 'Papildinājums' : 'Atņemšana') + '</td>' +
+                            '<td>' + (e.resource_name || '-') + '</td>' +
+                            '<td style="text-align:center;" class="' + cls + '">' + sign + e.resource_amount + ' ' + unit + '</td>' +
+                            '<td style="text-align:center;">' + (e.gabala != null ? e.gabala + ' €' : '-') + '</td>' +
+                            '<td style="text-align:center;">' + (e.gabala != null ? (parseFloat(e.gabala) * parseFloat(e.resource_amount || 0)).toFixed(2) + ' €' : '-') + '</td>' +
+                            '<td><button class="btn-del" onclick="deleteScheduleItem(' + e.id + ')">✖</button></td>' +
+                            '</tr>';
+                        }).join('')}</tbody>
                         </table>`;
                         }
             }
