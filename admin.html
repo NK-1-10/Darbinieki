@@ -528,8 +528,8 @@ function renderCarReport() {
 
         return `<tr>
             <td><strong>${name}</strong></td>
-            <td style="text-align:center;">${m.used.toFixed(2)} L</td>
-            <td style="text-align:center;">${avgPrice != null ? avgPrice.toFixed(2) + ' €/L' : '-'}</td>
+            <td style="text-align:center;">${m.used.toFixed(2)} ${getVien(name)}</td>
+            <td style="text-align:center;">${avgPrice != null ? avgPrice.toFixed(2) + ' €/' + getVien(name) : '-'}</td>
             <td style="text-align:center;">${sum != null ? sum.toFixed(2) + ' €' : '-'}</td>
             ${mhCell}
         </tr>`;
