@@ -805,7 +805,7 @@ if(workerEl) {
                     <li class="resource-row">
                         <div class="resource-main">
                             <strong>${r.name}</strong>
-                            <span class="gold-val">${parseFloat(r.quantity || 0).toFixed(2)} L</span>
+                            <span class="gold-val">${parseFloat(r.quantity || 0).toFixed(2)} ${r.vien || 'L'} </span>
                         </div>
                         <div class="resource-controls">
                             <input type="number" id="in-${r.id}" placeholder="Daudzums">
@@ -1114,9 +1114,9 @@ if(workerEl) {
                                     '<td>' + darbinieks + '</td>' +
                                     '<td>' + (e.car && e.car !== 'Papildinājums' && e.car !== 'Atņemšana' ? e.car : '-') + '</td>' +
                                     '<td>' + e.resource_name + '</td>' +
-                                    '<td style="text-align: center;" class="' + colorClass + '">' + sign + e.resource_amount + ' L</td>' +
+                                    '<td style="text-align: center;" class="' + colorClass + '">' + sign + e.resource_amount + ' ' + getVien(e.resource_name) + '</td>' +
                                     '<td style="text-align: center;">' + (e.mh_current != null ? e.mh_current + ' h' : '-') + '</td>' +
-                                    (() => { const l = parseFloat(e.resource_amount||0); const mhD = e.mh_current != null && e.mh_previous != null ? parseFloat(e.mh_current) - parseFloat(e.mh_previous) : 0; const pat = mhD > 0 ? (l/mhD).toFixed(2) + ' L/mH' : '-'; return '<td style="text-align: center;">' + pat + '</td>'; })() +
+                                    (() => { const l = parseFloat(e.resource_amount||0); const mhD = e.mh_current != null && e.mh_previous != null ? parseFloat(e.mh_current) - parseFloat(e.mh_previous) : 0; const pat = mhD > 0 ? (l/mhD).toFixed(2) + ' ' + getVien(e.resource_name) + '/mH' : '-'; return '<td style="text-align: center;">' + pat + '</td>'; })() +
                                     '<td style="white-space:nowrap;">' +
                                         '<button class="pencil" onclick="openEditFuel(' + e.id + ',\'' + (e.resource_name||'') + '\',' + (e.resource_amount||0) + ',' + (e.mh_current||'null') + ')" style="margin-right:4px;">✏️</button>' +
                                         '<button class="btn-del" onclick="deleteScheduleItem(' + e.id + ')">✖</button>' +
@@ -1850,6 +1850,12 @@ async function saveWorkerEdit() {
             if (res.ok) { alert('Saglabāts! Auto-stop laiks: ' + clean); closeSysSettings(); }
             else alert('Kļūda saglabājot!');
         }
+
+function getVien(resName) {
+    const r = resourceTypes.find(r => r.name === resName);
+    return r?.vien || 'L';
+}
+
     </script>
 </body>
 </html>
