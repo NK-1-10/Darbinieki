@@ -458,9 +458,18 @@ function renderCarReport() {
 
     function inRange(dateStr) {
         if (!fromVal && !toVal) return true;
-        const parts = (dateStr || '').replace(/\.$/, '').split('.');
-        if (parts.length < 3) return false;
-        const d = `${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`;
+        if (!dateStr) return false;
+        
+        let d;
+        // Pārbaudām formātu: vai ir DD.MM.YYYY vai YYYY-MM-DD
+        if (dateStr.includes('.')) {
+            const parts = dateStr.replace(/\.$/, '').split('.');
+            if (parts.length < 3) return false;
+            d = `${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`;
+        } else {
+            d = dateStr; // jau YYYY-MM-DD
+        }
+        
         if (fromVal && d < fromVal) return false;
         if (toVal && d > toVal) return false;
         return true;
