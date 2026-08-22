@@ -1230,7 +1230,6 @@ if(workerEl) {
                         })
                         .reduce((sum, s) => sum + parseFloat(s.hours || 0), 0);
                 }
-                const totalLietd = fSum.reduce((s,i) => s + getLietderigais(i.darbinieks, i.datums, i.sāka_darbu, i.beidza_darbu), 0);
                 
                 function getLietderigais(workerName, datums, sakadarbu, beidzadarbu) {
                     return schedule
@@ -1476,6 +1475,15 @@ async function saveWorkerEdit() {
             });
             loadData();
         }
+        function showView(viewId, el) {
+            document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+            el.classList.add('active');
+            document.getElementById('current-view-title').innerText = el.querySelector('span').innerText;
+            localStorage.setItem('adminActiveView', viewId);
+        }
+
         function logout() { sessionStorage.removeItem('loggedInAdmin'); window.location.href = 'index.html'; }
 
         // Atjauno pēdējo aktīvo skatu pēc refresh
