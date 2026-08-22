@@ -285,6 +285,7 @@
                             <div class="summary-badge">Pusdienas: <span id="totalPusdienas">0</span></div>
                             <div class="summary-badge">Kopā: <span id="totalDayHoursValue">0</span></div>
                             <div class="summary-badge">Darbā: <span id="totalDarbaH">0</span></div>
+                            <div class="summary-badge">Lietderīgi: <span id="totalLietderigais">0</span></div>
                         </div>
                     </div>
                     <div id="daySummaryContainer" class="table-wrapper"></div>
@@ -1229,13 +1230,36 @@ if(workerEl) {
                         })
                         .reduce((sum, s) => sum + parseFloat(s.hours || 0), 0);
                 }
+                const totalLietd = fSum.reduce((s,i) => s + getLietderigais(i.darbinieks, i.datums, i.sāka_darbu, i.beidza_darbu), 0);
+                
+                function getLietderigais(workerName, datums, sakadarbu, beidzadarbu) {
+                    return schedule
+                        .filter(s => {
+                            if (s.worker_name !== workerName || s.date !== datums) return false;
+                            if (!s.hours || parseFloat(s.hours) <= 0) return false;
+                            if (s.darbs === 'Pusdienas') return false;
+                            if (s.darbs === 'Degvielas uzpilde' || s.darbs === 'Eļļas papildināšana') return false;
+                            if (s.darbs === 'Resursu papildinājums' || s.darbs === 'Resursu atņemšana') return false;
+                            if (sakadarbu && s.sākuma_laiks) {
+                                const cleanSaka = sakadarbu.replace('*','');
+                                const cleanBeidza = (beidzadarbu||'').replace('*','');
+                                const darbSak = s.sākuma_laiks.replace('*','');
+                                if (darbSak < cleanSaka) return false;
+                                if (cleanBeidza && darbSak > cleanBeidza) return false;
+                            }
+                            return true;
+                        })
+                        .reduce((sum, s) => sum + parseFloat(s.hours || 0), 0);
+                    }
 
                 const totalKopa = fSum.reduce((s,i) => s + parseFloat(i.stundas || 0), 0);
                 const totalPusd = fSum.reduce((s,i) => s + getPusdienas(i.darbinieks, i.datums, i.sāka_darbu, i.beidza_darbu), 0);
                 const totalDarba = Math.max(0, totalKopa - totalPusd);
+                const totalLietd = fSum.reduce((s,i) => s + getLietderigais(i.darbinieks, i.datums, i.sāka_darbu, i.beidza_darbu), 0);
                 document.getElementById('totalDayHoursValue').innerText = totalKopa.toFixed(2) + ' h';
                 document.getElementById('totalPusdienas').innerText = totalPusd.toFixed(2) + ' h';
                 document.getElementById('totalDarbaH').innerText = totalDarba.toFixed(2) + ' h';
+                document.getElementById('totalLietderigais').innerText = totalLietd.toFixed(2) + ' h';
                 const hSel = s => hoursSec.querySelector(s);
                 document.getElementById('daySummaryContainer').innerHTML = `
                     <table class="sticky-table">
@@ -1256,6 +1280,7 @@ if(workerEl) {
                                 <th style="text-align:center;">Pusdienas</th>
                                 <th style="text-align:center;">Kopā h</th>
                                 <th style="text-align:center;">Darbā h</th>
+                                <th style="text-align:center;">Lietderīgi h</th>
                                 <th style="width:50px;"></th>
                             </tr>
                         </thead>
@@ -1282,6 +1307,7 @@ if(workerEl) {
                                     <td style="text-align: center;">${pusd > 0 ? pusd.toFixed(2) + ' h' : '-'}</td>
                                     <td style="${numStyle}">${kopaa.toFixed(2)}</td>
                                     <td style="${numStyle}">${darba.toFixed(2)}</td>
+                                    <td style="text-align:center;color:#1565c0;font-weight:800;">${getLietderigais(e.darbinieks, e.datums, e.sāka_darbu, e.beidza_darbu).toFixed(2)}</td>
                                     <td style="white-space:nowrap;">
                                         ${e.id ? `
                                             <button class="pencil" onclick="openEditHours(${e.id}, ${e.stundas}, '${startT}', '${endT}')" style="margin-right:4px;">✏️</button>
