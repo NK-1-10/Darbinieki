@@ -1019,7 +1019,9 @@ if(workerEl) {
                 function getPusdienas(workerName, datums, sakadarbu, beidzadarbu) {
                     return schedule
                         .filter(s => {
-                            if (s.worker_name !== workerName || s.date !== datums || s.darbs !== 'Pusdienas' || !s.hours) return false;
+                            const parts = (s.date || '').replace(/\.$/, '').split('.');
+                            const sDateNorm = parts.length === 3 ? `${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}` : s.date;
+                            if (s.worker_name !== workerName || sDateNorm !== datums || s.darbs !== 'Pusdienas' || !s.hours) return false;
                             // Ja ir shift laiki — pārbaudām vai pusdienas iekļaujas šajā shift'ā
                             if (sakadarbu && s.sākuma_laiks) {
                                 const cleanSaka = sakadarbu.replace('*','');
