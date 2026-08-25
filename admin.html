@@ -1190,9 +1190,9 @@ if(workerEl) {
                         ).reduce((s, e) => s + parseFloat(e.resource_amount || 0), 0);
 
                         const adminTotal = fFuelAdmin.reduce((s, e) => {
-                            const isPapild = e.darbs === 'Resursu papildinājums';
-                            return isPapild ? s + parseFloat(e.resource_amount || 0) : s - parseFloat(e.resource_amount || 0);
-                        }, 0) - workerUsed;
+                        const isPapild = e.darbs === 'Resursu papildinājums';
+                        return isPapild ? s + parseFloat(e.resource_amount || 0) : s - parseFloat(e.resource_amount || 0);
+                    }, 0);
 
                         const adminSign = adminTotal >= 0 ? '+' : '';
                         const adminIzmaksas = fFuelAdmin.reduce((s, e) => {
