@@ -1180,13 +1180,7 @@ if(workerEl) {
                     }
                     return true;
                 });
-
-                    // Admin tabula -> #second div
-                    const fFuelAdmin = schedule.filter(e =>
-                        e.resource_amount &&
-                        (e.car === 'Papildinājums' || e.car === 'Atņemšana' ||
-                        e.darbs === 'Resursu papildinājums' || e.darbs === 'Resursu atņemšana')
-                    );
+                
                     const adminCont = document.getElementById('adminFuelTableContainer');
                     if (adminCont) {
                         const workerUsed = schedule.filter(e => 
