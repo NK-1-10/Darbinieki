@@ -65,7 +65,8 @@
         .col-filter-popup {
             display: none; position: fixed; z-index: 9999;
             background: #fff; border: 1px solid #ddd; border-radius: 10px;
-            box-shadow: 0 4px 20px rgba(0,0,0,.15); padding: 6px; min-width: 180px;
+            box-shadow: 0 4px 20px rgba(0,0,0,.15); padding: 8px;
+            min-width: 210px; box-sizing: border-box; overflow: hidden;
         }
         .col-filter-popup.open { display: block; }
         .col-filter-popup select, .col-filter-popup input[type=date] {
