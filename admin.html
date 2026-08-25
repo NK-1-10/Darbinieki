@@ -1335,7 +1335,7 @@ if(workerEl) {
                                     <td style="text-align: center;">${pusd > 0 ? pusd.toFixed(2) + ' h' : '-'}</td>
                                     <td style="${numStyle}">${kopaa.toFixed(2)}</td>
                                     <td style="${numStyle}">${darba.toFixed(2)}</td>
-                                    <td style="text-align:center;color:#1565c0;font-weight:800;">${darba.toFixed(2)}</td>
+                                    <td style="text-align:center;color:#1565c0;font-weight:800;">${getLietderigais(e.darbinieks, e.datums, e.sāka_darbu, e.beidza_darbu).toFixed(2)}</td>
                                     <td style="white-space:nowrap;">
                                         ${e.id ? `
                                             <button class="pencil" onclick="openEditHours(${e.id}, ${e.stundas}, '${startT}', '${endT}')" style="margin-right:4px;">✏️</button>
