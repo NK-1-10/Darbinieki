@@ -2,6 +2,7 @@ const express = require('express');
 const { Pool } = require('pg');
 const path = require('path');
 const cors = require('cors');
+const cron = require('node-cron');
 
 const app = express();
 app.use(express.json());
@@ -853,6 +854,24 @@ app.put('/api/settings', async (req, res) => {
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
+
+cron.schedule('0 0 * * *', async () => {
+    console.log('🕛 Pusnakts auto-stop...');
+    try {
+        await pool.query(
+            `UPDATE schedule SET beigu_laiks = '00:00:00*', hours = '0.00' 
+             WHERE beigu_laiks IS NULL 
+             AND darbs NOT IN ('Degvielas uzpilde', 'Eļļas papildināšana')`
+        );
+        await pool.query(
+            `UPDATE darbastundas SET beidza_darbu = '00:00:00*', stundas = '0.00' 
+             WHERE beidza_darbu IS NULL`
+        );
+        console.log('✅ Auto-stop pabeigts');
+    } catch (err) {
+        console.error('Auto-stop kļūda:', err);
+    }
+}, { timezone: 'Europe/Riga' });
 
 
 
