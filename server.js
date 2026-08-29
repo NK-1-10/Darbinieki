@@ -885,5 +885,7 @@ cron.schedule('0 0 * * *', async () => {
 }, { timezone: 'Europe/Riga' });
      
 
+
+
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => console.log(`🚀 Server running on ${PORT}`));
