@@ -519,24 +519,23 @@
         };
         
        async function saveNewResource() {
-        const n = document.getElementById('rname').value.trim();
-        const vien = document.getElementById('mervieniba').value;
-        if (!n) return alert('Ievadi nosaukumu!');
-        
-        // Pārbaude vai nosaukums jau eksistē
-        if (resourceTypes.find(r => r.name.toLowerCase() === n.toLowerCase())) {
-            return alert(`Resurss "${n}" jau eksistē!`);
+            const n = document.getElementById('rname').value.trim();
+            const vien = document.getElementById('mervieniba').value;
+            if (!n) return alert('Ievadi nosaukumu!');
+            
+            if (resourceTypes.find(r => r.name.toLowerCase() === n.toLowerCase())) {
+                return alert(`Resurss "${n}" jau eksistē!`);
+            }
+            
+            await fetch('/api/resource-types', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ name: n, vien: vien, quantity: 0 })
+            });
+            console.log(n + ' tika pievienots');
+            document.getElementById('myModal').style.display = 'none';
+            loadData();
         }
-        
-        await fetch('/api/resource-types', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ name: n, vien: vien, quantity: 0 })
-            console.log(n + ' tika pievienots')
-        });
-        document.getElementById('myModal').style.display = 'none';
-        loadData();
-    }
 
 function renderCarReport() {
     const carVal = document.getElementById('carReportCarSel').value;
