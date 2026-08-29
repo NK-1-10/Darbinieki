@@ -25,6 +25,34 @@
             color: var(--gold);
             font-size: 11px;
         }
+      .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.35);
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background-color: #fff;
+            padding: 28px 24px;
+            border-radius: 12px;
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 8px 32px rgba(23,54,41,0.15);
+            width: 340px;
+            max-width: 90%;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 22px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+        }
+        .close:hover { color: #173629; }
         .btn-settings:hover { background: rgba(212,180,93,.15); }
         .settings-section h4 { margin: 0 0 12px; font-size: 14px; color: #444; }
         #adminSettingsModal .btn-save { background: #173629 !important; }
@@ -72,13 +100,12 @@
         .col-filter-popup select, .col-filter-popup input[type=date] {
             width: 100%; padding: 7px 10px; border: 1px solid #ddd;
             border-radius: 7px; font-size: 13px; color: #333;
-            background: #fafafa; box-sizing: border-box; display: block;
+            background: #fafafa; box-sizing: border-box;
         }
         .col-filter-clear {
             margin-top: 5px; width: 100%; padding: 5px;
             background: none; border: none; color: #888;
             font-size: 12px; cursor: pointer; text-align: center;
-            box-sizing: border-box; display: block;
         }
         .col-filter-clear:hover { color: #c0392b; }
     </style>
@@ -109,11 +136,11 @@
             <div class="nav-item" onclick="showView('v-report-work', this)"><i>📋</i><span>Darba gaita</span></div>
             <div class="nav-item" onclick="showView('v-report-fuel', this)"><i>⛽</i><span>Patēriņš</span></div>
             <div class="nav-item" onclick="showView('v-report-hours', this)"><i>⏱️</i><span>Darba stundas</span></div>
+            <div class="nav-item" onclick="showView('v-report-cars', this)"><i>⏱️</i><span>mašīnu izlietotais</span></div>
         </div>
 
         </div><!-- /nav-groups-wrap -->
         <div class="sidebar-footer">
-            <div class="nav-item" onclick="openSysSettings()"><i>🔧</i><span>Iestatījumi</span></div>
             <div class="nav-item btn-settings" onclick="openAdminSettings()"><i>⚙️</i><span>Admin iestatījumi</span></div>
             <div class="nav-item btn-all-delete" onclick="deleteAllData()"><i>⚠️</i><span>Dzēst visus datus</span></div>
             <div class="nav-item" onclick="logout()"><i>🚪</i><span>Iziet</span></div>
@@ -156,10 +183,45 @@
 
             <section id="v-res" class="view-section">
                 <div class="card">
-                    <button class="btn-add" onclick="addNewItem('/api/resource-types', 'Resursa nosaukums:', {quantity:0})">+ Jauns resursa veids</button>
-                    <ul id="resourceList"></ul>
+                    <button class="btn-add" onclick="ResourseOut()"> Resursu saraksts </button>
+                    <div id="first" style="max-height:35vh; overflow-y:auto; min-height:35vh;">
+                        <button class="btn-add" onclick="openMyModal()">+ Jauns resursa veids</button>
+                        <ul id="resourceList"></ul>
+                    </div>
+                    <button class="btn-add" onclick="ResourseTableOut()"> Admin rediģēšana </button>
+                    <div id="second" style="display:none; max-height:35vh; overflow-y:auto; min-height:35vh;">
+                    <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;justify-content:space-between;">
+                        <div style="display:flex;gap:8px;align-items:center;">
+                            <select id="adminResFilter" onchange="renderTables()" style="padding:8px;border:1px solid #ddd;border-radius:8px;font-size:13px;">
+                                <option value="">Visi resursi</option>
+                            </select>
+                            <select id="adminMonthFilter" onchange="renderTables()" style="padding:8px;border:1px solid #ddd;border-radius:8px;font-size:13px;">
+                                <option value="">Visi mēneši</option>
+                            </select>
+                            <button onclick="document.getElementById('adminResFilter').value='';document.getElementById('adminMonthFilter').value='';renderTables();" style="padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px;background:#f5f5f5;cursor:pointer;">✕ Notīrīt</button>
+                        </div>
+                        <div id="adminSummaryBadges" style="display:flex;gap:8px;"></div>
+                    </div>
+                    <div id="adminFuelTableContainer"></div>
+                </div>
                 </div>
             </section>
+
+            <!-- The Modal ------------------------------------------------------------------------------------------------------------------------------------------------------------------->
+            <div id="myModal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <p style="font-size:15px;font-weight:700;color:#173629;margin:0 0 16px;">Jauns resursa veids</p>
+                    <label style="font-size:12px;color:#666;display:block;margin-bottom:4px;">Nosaukums</label>
+                    <input type="text" id="rname" name="rname" style="width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;box-sizing:border-box;margin-bottom:14px;">
+                    <label style="font-size:12px;color:#666;display:block;margin-bottom:4px;">Mērvienība</label>
+                    <select name="mervieniba" id="mervieniba" style="width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;box-sizing:border-box;margin-bottom:20px;">
+                        <option value="L">L (Litros)</option>
+                        <option value="Gab">Gab (Gabalā)</option>
+                    </select>
+                    <button onclick="saveNewResource()" style="width:100%;padding:10px;background:#173629;color:#d4b45d;border:none;border-radius:8px;font-weight:700;font-size:14px;cursor:pointer;">Saglabāt</button>
+                </div>
+            </div>
 
             <section id="v-report-work" class="view-section">
                 <div class="card">
@@ -229,6 +291,22 @@
                         <div class="summary-badge">Kopā: <span id="totalFuelValue">0</span></div>
                     </div>
                     <div id="fuelTableContainer" class="table-wrapper"></div>
+                </div>
+            </section>
+
+            <section id="v-report-cars" class="view-section">
+                <div class="card">
+                    <div style="display:flex; gap:8px; align-items:center; margin-bottom:16px; flex-wrap:wrap;">
+                        <select id="carReportCarSel" onchange="renderCarReport()" style="padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px;min-width:160px;">
+                            <option value="">Visas mašīnas</option>
+                        </select>
+                        <input type="date" id="carReportFrom" onchange="renderCarReport()" style="padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px;">
+                        <span style="color:#888;">—</span>
+                        <input type="date" id="carReportTo" onchange="renderCarReport()" style="padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px;">
+                        <button onclick="carReportClear()" style="padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px;background:#f5f5f5;cursor:pointer;">✕ Notīrīt</button>
+                    </div>
+                    <div id="carReportSummary" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;"></div>
+                    <div id="carReportTable" class="table-wrapper"></div>
                 </div>
             </section>
 
@@ -423,6 +501,192 @@
     </div>
 
     <script>
+
+        function openMyModal() {
+            document.getElementById('rname').value = '';
+            document.getElementById('mervieniba').value = 'L';
+            document.getElementById('myModal').style.display = 'flex';
+        }
+        
+        document.querySelector('#myModal .close').onclick = () => {
+            document.getElementById('myModal').style.display = 'none';
+        };
+        
+       async function saveNewResource() {
+            const n = document.getElementById('rname').value.trim();
+            const vien = document.getElementById('mervieniba').value;
+            if (!n) return alert('Ievadi nosaukumu!');
+            
+            if (resourceTypes.find(r => r.name.toLowerCase() === n.toLowerCase())) {
+                return alert(`Resurss "${n}" jau eksistē!`);
+            }
+            
+            await fetch('/api/resource-types', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ name: n, vien: vien, quantity: 0 })
+            });
+            console.log(n + ' tika pievienots');
+            document.getElementById('myModal').style.display = 'none';
+            loadData();
+        }
+
+function renderCarReport() {
+    const carVal = document.getElementById('carReportCarSel').value;
+    const fromVal = document.getElementById('carReportFrom').value;
+    const toVal = document.getElementById('carReportTo').value;
+
+    if (!carVal) {
+        document.getElementById('carReportSummary').innerHTML = '';
+        document.getElementById('carReportTable').innerHTML = '<p style="color:#aaa;padding:16px;">Izvēlies mašīnu</p>';
+        return;
+    }
+
+    function inRange(dateStr) {
+        if (!fromVal && !toVal) return true;
+        if (!dateStr) return false;
+        
+        let d;
+        // Pārbaudām formātu: vai ir DD.MM.YYYY vai YYYY-MM-DD
+        if (dateStr.includes('.')) {
+            const parts = dateStr.replace(/\.$/, '').split('.');
+            if (parts.length < 3) return false;
+            d = `${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`;
+        } else {
+            d = dateStr; // jau YYYY-MM-DD
+        }
+        
+        if (fromVal && d < fromVal) return false;
+        if (toVal && d > toVal) return false;
+        return true;
+    }
+
+    const usageData = schedule.filter(e =>
+        e.resource_amount &&
+        e.car === carVal &&
+        e.darbs !== 'Resursu papildinājums' && e.darbs !== 'Resursu atņemšana' &&
+        inRange(e.date)
+    );
+
+    const additionsData = schedule.filter(e =>
+        e.resource_amount &&
+        (e.car === 'Papildinājums' || e.darbs === 'Resursu papildinājums') &&
+        e.gabala != null &&
+        inRange(e.date)
+    );
+
+    const matMap = {};
+    usageData.forEach(e => {
+        const name = e.resource_name || 'Nezināms';
+        if (!matMap[name]) matMap[name] = { used: 0, mhEntries: [] };
+        matMap[name].used += parseFloat(e.resource_amount || 0);
+        if (e.mh_current != null) matMap[name].mhEntries.push(e);
+    });
+
+    const addMap = {};
+    additionsData.forEach(e => {
+        const name = e.resource_name || 'Nezināms';
+        if (!addMap[name]) addMap[name] = { qty: 0, cost: 0 };
+        const q = parseFloat(e.resource_amount || 0);
+        const p = parseFloat(e.gabala || 0);
+        addMap[name].qty += q;
+        addMap[name].cost += q * p;
+    });
+
+    // Pārbaudām, vai KAUT VIENAM no izmantotajiem resursiem ir iespējota mH izsekošana
+    const anyMhTracked = Object.keys(matMap).some(name => {
+        const resType = resourceTypes.find(r => r.name === name);
+        return resType && resType.track_mh;
+    });
+
+    let totalCost = 0;
+    const rows = Object.entries(matMap).map(([name, m]) => {
+        const add = addMap[name];
+        const avgPrice = add && add.qty > 0 ? add.cost / add.qty : null;
+        const sum = avgPrice != null ? m.used * avgPrice : null;
+        if (sum != null) totalCost += sum;
+
+        const resType = resourceTypes.find(r => r.name === name);
+        const tracksMh = resType && resType.track_mh;
+
+        let mhCell = '';
+        if (anyMhTracked) {
+            let mhText = '-';
+            if (tracksMh && m.mhEntries.length) {
+                const sorted = [...m.mhEntries].sort((a, b) => (a.date > b.date ? 1 : -1));
+                const first = parseFloat(sorted[0].mh_previous ?? sorted[0].mh_current);
+                const last = parseFloat(sorted[sorted.length - 1].mh_current);
+                if (!isNaN(first) && !isNaN(last)) mhText = (last - first).toFixed(1) + ' mH';
+            }
+            mhCell = `<td style="text-align:center;">${mhText}</td>`;
+        }
+
+        return `<tr>
+            <td><strong>${name}</strong></td>
+            <td style="text-align:center;">${m.used.toFixed(2)} ${getVien(name)}</td>
+            <td style="text-align:center;">${avgPrice != null ? avgPrice.toFixed(2) + ' €/' + getVien(name) : '-'}</td>
+            <td style="text-align:center;">${sum != null ? sum.toFixed(2) + ' €' : '-'}</td>
+            ${mhCell}
+        </tr>`;
+    }).join('');
+
+    const vienSums = {};
+        Object.entries(matMap).forEach(([name, m]) => {
+            const v = getVien(name);
+            if (!vienSums[v]) vienSums[v] = 0;
+            vienSums[v] += m.used;
+        });
+    document.getElementById('carReportSummary').innerHTML = 
+        Object.entries(vienSums).map(([v, sum]) => 
+            `<div class="summary-badge">Kopā: <span style="font-weight:800;">${sum.toFixed(2)} ${v}</span></div>`
+        ).join('') +
+        `<div class="summary-badge">Kopā izmaksas: <span style="font-weight:800;">${totalCost.toFixed(2)} €</span></div>`;
+
+    document.getElementById('carReportTable').innerHTML = rows ? `
+        <table class="sticky-table">
+            <thead><tr>
+                <th>Resurss</th>
+                <th style="text-align:center;">Daudzums izmantots</th>
+                <th style="text-align:center;">Cena/vienība (periods)</th>
+                <th style="text-align:center;">Kopā izmaksas</th>
+                ${anyMhTracked ? '<th style="text-align:center;">mH starpība</th>' : ''}
+            </tr></thead>
+            <tbody>${rows}</tbody>
+        </table>
+    ` : '<p style="color:#aaa;padding:16px;">Nav resursu ierakstu šajā periodā</p>';
+}
+
+        function carReportClear() {
+            document.getElementById('carReportCarSel').value = '';
+            document.getElementById('carReportFrom').value = '';
+            document.getElementById('carReportTo').value = '';
+            renderCarReport();
+        }
+
+        IsOut1 = true; IsOut2 = false; 
+        function ResourseOut(){
+            const list = document.getElementById("first");
+            if(IsOut1 == false){ 
+                list.style.display='block' // is now shown
+                IsOut1 = true
+            } else{
+                list.style.display='none'
+                IsOut1 = false
+            }
+        }
+        function ResourseTableOut(){
+            const list = document.getElementById("second");
+            if(IsOut2 == false){
+                list.style.display='block'
+                IsOut2 = true
+            } else{
+                list.style.display='none'
+                IsOut2 = false
+            }
+        }
+
+
+        
         // Konvertē laiku uz 24h HH:MM:SS formātu
         function isValidTime(val) {
             const clean = (val||'').replace('*','').trim();
@@ -495,12 +759,21 @@
                 updateFilterOptions();
                 renderLists();
                 renderTables();
+                renderCarReport();
             } catch (err) { console.error(err); }
         }
 
         function updateFilterOptions() {
             const years = [...new Set([...schedule, ...daySummary].map(d => (d.date || d.datums || "").split('.')[2]))].filter(Boolean).sort();
             
+            const carRepSel = document.getElementById('carReportCarSel');
+            if (carRepSel) {
+                const current = carRepSel.value;
+                carRepSel.innerHTML = '<option value="">Visas mašīnas</option>' + 
+                    cars.map(c => `<option value="${c.name||c}" ${(c.name||c)===current?'selected':''}>${c.name||c}</option>`).join('');
+            }
+
+
             const fill = (selector, data, defaultText) => {
                 document.querySelectorAll(selector).forEach(sel => {
                     const current = sel.value;
@@ -511,18 +784,32 @@
 
             fill('.year-sel', years, "Gads");
             fill('.month-sel', LV_MONTHS, "Mēnesis");
-            // Aizpildām mirror selects un atjaunojam to vērtību
+            // Aizpildām mirror selects
             ['work','fuel','hours'].forEach(t => {
                 const yr = document.querySelector(`.year-sel-mirror-${t}`);
                 const mo = document.querySelector(`.month-sel-mirror-${t}`);
-                if (yr) { yr.innerHTML = document.querySelector('.year-sel').innerHTML; yr.value = _filters[t]['.year-sel'] || ''; }
-                if (mo) { mo.innerHTML = document.querySelector('.month-sel').innerHTML; mo.value = _filters[t]['.month-sel'] || ''; }
+                if (yr) { yr.innerHTML = document.querySelector('.year-sel').innerHTML; }
+                if (mo) { mo.innerHTML = document.querySelector('.month-sel').innerHTML; }
             });
             fill('.worker-sel', workers.map(w => w.name), "Visi darbinieki"); 
             fill('.car-sel', cars.map(c => c.name || c), "Visi auto");
             fill('.object-sel', objects.map(o => o.name || o), "Visi objekti");
             fill('.res-sel', resourceTypes.map(r => r.name), "Visi resursi");
             fill('.work-sel', workTypes, "Visi darba veidi");
+
+                        const adminResSel = document.getElementById('adminResFilter');
+                        if (adminResSel) {
+                            const current = adminResSel.value;
+                            adminResSel.innerHTML = '<option value="">Visi resursi</option>' +
+                                resourceTypes.map(r => `<option value="${r.name}" ${r.name===current?'selected':''}>${r.name}</option>`).join('');
+                        }
+            const adminMonthSel = document.getElementById('adminMonthFilter');
+            if (adminMonthSel) {
+                const current = adminMonthSel.value;
+                adminMonthSel.innerHTML = '<option value="">Visi mēneši</option>' +
+                    LV_MONTHS.map(m => `<option value="${m}" ${m===current?'selected':''}>${m}</option>`).join('');
+            }
+                    
         }
 
 
@@ -632,7 +919,7 @@ if(workerEl) {
                     <li class="resource-row">
                         <div class="resource-main">
                             <strong>${r.name}</strong>
-                            <span class="gold-val">${parseFloat(r.quantity || 0).toFixed(2)} L</span>
+                            <span class="gold-val">${parseFloat(r.quantity || 0).toFixed(2)} ${r.vien || 'L'} </span>
                         </div>
                         <div class="resource-controls">
                             <input type="number" id="in-${r.id}" placeholder="Daudzums">
@@ -642,6 +929,11 @@ if(workerEl) {
                                 <input type="checkbox" ${r.track_mh ? 'checked' : ''} onchange="toggleResourceTrackMh('${r.name}', this.checked)" style="width:18px;height:18px;cursor:pointer;">
                                 mH
                             </label>
+                            <select onchange="updateVien(${r.id}, this.value)" style="padding:4px 6px;border:1px solid #ddd;border-radius:6px;font-size:12px;">
+                                <option value="L" ${(r.vien || 'L') === 'L' ? 'selected' : ''}>L</option>
+                                <option value="gab" ${r.vien === 'gab' ? 'selected' : ''}>gab</option>
+                                <option value="kg" ${r.vien === 'kg' ? 'selected' : ''}>kg</option>
+                            </select>
                             <button class="pencil" onclick="editItem('/api/resource-types', '${r.name}')">✏️</button>
                             <button class="btn-del" onclick="deleteItem('/api/resource-types', '${r.name}')">✖</button>
                         </div>
@@ -668,17 +960,9 @@ if(workerEl) {
             document.querySelectorAll('.col-filter-popup.open').forEach(p => p.classList.remove('open'));
             if (!isOpen) {
                 const rect = btn.getBoundingClientRect();
-                // Pagaidām novietojam, lai aprēķinātu platumu
                 popup.style.top = (rect.bottom + 6) + 'px';
-                popup.style.left = '0px';
+                popup.style.left = Math.max(4, rect.left - 80) + 'px';
                 popup.classList.add('open');
-                // Aprēķinām popup platumu pēc atvēršanas
-                const popupW = popup.offsetWidth || 200;
-                // Centrējam ap pogu, bet nepārsniedzam ekrāna robežas
-                let left = rect.left + rect.width / 2 - popupW / 2;
-                const margin = 6;
-                left = Math.max(margin, Math.min(left, window.innerWidth - popupW - margin));
-                popup.style.left = left + 'px';
             }
         }
 
@@ -734,17 +1018,7 @@ if(workerEl) {
             const sec = document.querySelector(_secMap[table]);
             const els = sec?.querySelectorAll(sel);
             els?.forEach(el => el.value = val);
-            // Atjaunina arī mirror selects popup iekšā
-            const mirrorMap = {
-                '.year-sel': `year-sel-mirror-${table}`,
-                '.month-sel': `month-sel-mirror-${table}`
-            };
-            if (mirrorMap[sel]) {
-                const mirror = document.querySelector(`.${mirrorMap[sel]}`);
-                if (mirror) mirror.value = val;
-            }
             renderTables();
-            updateHeaderFilterBtns();
             document.querySelectorAll('.col-filter-popup.open').forEach(p => p.classList.remove('open'));
         }
         function wSec_setDate(val, table) {
@@ -753,30 +1027,7 @@ if(workerEl) {
             const els = sec?.querySelectorAll('.date-sel');
             els?.forEach(el => el.value = val);
             renderTables();
-            updateHeaderFilterBtns();
             document.querySelectorAll('.col-filter-popup.open').forEach(p => p.classList.remove('open'));
-        }
-
-        // Atjaunina active klasi uz header filtru pogām (Gads/Mēnesis kārbiņas virs tabulas)
-        function updateHeaderFilterBtns() {
-            // Katrai sekcijai atrodam visas col-filter-wrap kārbiņas ārpus tabulas header
-            ['work', 'fuel', 'hours'].forEach(table => {
-                const sec = document.querySelector(_secMap[table]);
-                if (!sec) return;
-                // Augšējie wrapper-i (tie kas nav thead iekšā)
-                sec.querySelectorAll('.col-filter-wrap').forEach(wrap => {
-                    if (wrap.closest('thead')) return; // tabulas header - tos renderTables pats pārzīmē
-                    const btn = wrap.querySelector('.col-filter-btn');
-                    if (!btn) return;
-                    // Pārbaudām vai kāds no _filters[table] vērtībām ir aktīvs
-                    // Saistam pēc popup satura — skatāmies vai popup select/input ir ar vērtību
-                    const popup = btn.nextElementSibling;
-                    if (!popup) return;
-                    const inner = popup.querySelector('select, input[type=date]');
-                    const hasVal = inner && inner.value && inner.value !== '';
-                    btn.classList.toggle('active', !!hasVal);
-                });
-            });
         }
         function _fval(table, sel) {
             // Lasa no _filters objekta, fallback uz DOM
@@ -862,11 +1113,6 @@ if(workerEl) {
                                     <div class="col-filter-popup"><input type="date" value="${wSel('.date-sel').value}" onchange="wSec_setDate(this.value,'work')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">
                                     <button class="col-filter-clear" onclick="wSec_setDate('','work')">✕ Notīrīt</button></div>
                                 </div></th>
-                                <th><div class="col-filter-wrap"><span>Mēnesis</span>
-                                    <button class="col-filter-btn ${wSel('.month-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
-                                    <div class="col-filter-popup"><select onchange="wSec_set(this.value,'.month-sel','work')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">${Array.from(wSel('.month-sel').options).map(o=>`<option value="${o.value}" ${o.value===wSel('.month-sel').value?'selected':''}>${o.text}</option>`).join('')}</select>
-                                    <button class="col-filter-clear" onclick="wSec_set('','.month-sel','work')">✕ Notīrīt</button></div>
-                                </div></th>
                                 <th><div class="col-filter-wrap"><span>Darbinieks</span>
                                     <button class="col-filter-btn ${wSel('.worker-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
                                     <div class="col-filter-popup"><select onchange="wSec_set(this.value,'.worker-sel','work')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">${Array.from(wSel('.worker-sel').options).map(o=>`<option value="${o.value}" ${o.value===wSel('.worker-sel').value?'selected':''}>${o.text}</option>`).join('')}</select>
@@ -897,7 +1143,6 @@ if(workerEl) {
                             ${fWork.map(e => `
                                 <tr>
                                     <td>${e.date}</td>
-                                    <td>${e.month || '-'}</td>
                                     <td>${e.worker_name}</td>
                                     <td>${e.darbs || '-'}</td>
                                     <td>${e.objekts || '-'}</td>
@@ -922,14 +1167,16 @@ if(workerEl) {
 
                 const fuelDateVal = _fval('fuel','.date-sel');
                 let fFuel = schedule.filter(e => 
-                    e.resource_amount && 
-                    (!yearVal || (e.date && e.date.includes(yearVal))) &&
-                    (!monthVal || e.month === monthVal) &&
-                    (!resVal || e.resource_name === resVal) &&
-                    (!workerVal || e.worker_name === workerVal) &&
-                    (!carVal || e.car === carVal) &&
-                    dateMatches(e.date || '', fuelDateVal)
-                );
+                e.resource_amount &&
+                e.car !== 'Papildinājums' && e.car !== 'Atņemšana' &&
+                e.darbs !== 'Resursu papildinājums' && e.darbs !== 'Resursu atņemšana' &&
+                (!yearVal || (e.date && e.date.includes(yearVal))) &&
+                (!monthVal || e.month === monthVal) &&
+                (!resVal || e.resource_name === resVal) &&
+                (!workerVal || e.worker_name === workerVal) &&
+                (!carVal || e.car === carVal) &&
+                dateMatches(e.date || '', fuelDateVal)
+            );
 
                 // Kopsumma: tikai admin papildinājumi (+), VISS PĀRĒJAIS (patēriņš + atņemšana) mīnus
                 const totalNet = fFuel.reduce((s, e) => {
@@ -951,11 +1198,6 @@ if(workerEl) {
                                     <button class="col-filter-btn ${fSel('.date-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
                                     <div class="col-filter-popup"><input type="date" value="${fSel('.date-sel').value}" onchange="wSec_setDate(this.value,'fuel')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">
                                     <button class="col-filter-clear" onclick="wSec_setDate('','fuel')">✕ Notīrīt</button></div>
-                                </div></th>
-                                <th><div class="col-filter-wrap"><span>Mēnesis</span>
-                                    <button class="col-filter-btn ${fSel('.month-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
-                                    <div class="col-filter-popup"><select onchange="wSec_set(this.value,'.month-sel','fuel')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">${Array.from(fSel('.month-sel').options).map(o=>`<option value="${o.value}" ${o.value===fSel('.month-sel').value?'selected':''}>${o.text}</option>`).join('')}</select>
-                                    <button class="col-filter-clear" onclick="wSec_set('','.month-sel','fuel')">✕ Notīrīt</button></div>
                                 </div></th>
                                 <th><div class="col-filter-wrap"><span>Darbinieks</span>
                                     <button class="col-filter-btn ${fSel('.worker-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
@@ -988,13 +1230,12 @@ if(workerEl) {
                                 const darbinieks = isPapild ? `${adminVards} (papildinājums)` : isAtnemšana ? `${adminVards} (atņemšana)` : (e.worker_name || '-');
                                 return '<tr>' +
                                     '<td>' + e.date + '</td>' +
-                                    '<td>' + (e.month || '-') + '</td>' +
                                     '<td>' + darbinieks + '</td>' +
                                     '<td>' + (e.car && e.car !== 'Papildinājums' && e.car !== 'Atņemšana' ? e.car : '-') + '</td>' +
                                     '<td>' + e.resource_name + '</td>' +
-                                    '<td style="text-align: center;" class="' + colorClass + '">' + sign + e.resource_amount + ' L</td>' +
+                                    '<td style="text-align: center;" class="' + colorClass + '">' + sign + e.resource_amount + ' ' + getVien(e.resource_name) + '</td>' +
                                     '<td style="text-align: center;">' + (e.mh_current != null ? e.mh_current + ' h' : '-') + '</td>' +
-                                    (() => { const l = parseFloat(e.resource_amount||0); const mhD = e.mh_current != null && e.mh_previous != null ? parseFloat(e.mh_current) - parseFloat(e.mh_previous) : 0; const pat = mhD > 0 ? (l/mhD).toFixed(2) + ' L/mH' : '-'; return '<td style="text-align: center;">' + pat + '</td>'; })() +
+                                    (() => { const l = parseFloat(e.resource_amount||0); const mhD = e.mh_current != null && e.mh_previous != null ? parseFloat(e.mh_current) - parseFloat(e.mh_previous) : 0; const pat = mhD > 0 ? (l/mhD).toFixed(2) + ' ' + getVien(e.resource_name) + '/mH' : '-'; return '<td style="text-align: center;">' + pat + '</td>'; })() +
                                     '<td style="white-space:nowrap;">' +
                                         '<button class="pencil" onclick="openEditFuel(' + e.id + ',\'' + (e.resource_name||'') + '\',' + (e.resource_amount||0) + ',' + (e.mh_current||'null') + ')" style="margin-right:4px;">✏️</button>' +
                                         '<button class="btn-del" onclick="deleteScheduleItem(' + e.id + ')">✖</button>' +
@@ -1003,6 +1244,70 @@ if(workerEl) {
                             }).join("")}
                         </tbody>
                     </table>`;
+
+                const adminResVal = document.getElementById('adminResFilter')?.value || '';
+                const adminMonthVal = document.getElementById('adminMonthFilter')?.value || '';
+                
+                const fFuelAdmin = schedule.filter(e => {
+                    if (!e.resource_amount) return false;
+                    if (!(e.car === 'Papildinājums' || e.car === 'Atņemšana' ||
+                        e.darbs === 'Resursu papildinājums' || e.darbs === 'Resursu atņemšana')) return false;
+                    if (adminResVal && e.resource_name !== adminResVal) return false;
+                    if (adminMonthVal && e.month !== adminMonthVal) return false;
+                    return true;
+                });
+                
+                    const adminCont = document.getElementById('adminFuelTableContainer');
+                    if (adminCont) {
+                        const workerUsed = schedule.filter(e => 
+                            e.resource_amount &&
+                            e.car !== 'Papildinājums' && e.car !== 'Atņemšana' &&
+                            e.darbs !== 'Resursu papildinājums' && e.darbs !== 'Resursu atņemšana'
+                        ).reduce((s, e) => s + parseFloat(e.resource_amount || 0), 0);
+
+                        const adminTotal = fFuelAdmin.reduce((s, e) => {
+                        const isPapild = e.darbs === 'Resursu papildinājums';
+                        return isPapild ? s + parseFloat(e.resource_amount || 0) : s - parseFloat(e.resource_amount || 0);
+                    }, 0);
+
+                        const adminSign = adminTotal >= 0 ? '+' : '';
+                        const adminIzmaksas = fFuelAdmin.reduce((s, e) => {
+                            return e.gabala != null ? s + parseFloat(e.gabala) * parseFloat(e.resource_amount || 0) : s;
+                        }, 0);
+
+                        document.getElementById('adminSummaryBadges').innerHTML = `
+                            <div class="summary-badge">Kopā: <span style="color:${adminTotal >= 0 ? '#2e7d32' : '#b00020'};font-weight:800;">${adminSign}${adminTotal.toFixed(2)} L</span></div>
+                            <div class="summary-badge">Izmaksas: <span style="font-weight:800;">${adminIzmaksas.toFixed(2)} €</span></div>
+                        `;
+                        
+                    adminCont.innerHTML = `
+                        
+                        <table class="sticky-table">
+                            <thead><tr>
+                                <th>Datums</th><th>Darbība</th><th>Resurss</th>
+                                <th style="text-align:center;">Daudzums</th>
+                                <th style="text-align:center;">Cena(L/gab)</th>
+                                <th style="text-align:center;">Izmaksas</th>
+                                <th></th>
+                            </tr></thead>
+                            <tbody>${fFuelAdmin.map(e => {
+                            const isPapild = e.darbs === 'Resursu papildinājums';
+                            const sign = isPapild ? '+' : '-';
+                            const cls = isPapild ? 'green-val' : 'red-val';
+                            const resInfo = resourceTypes.find(rt => rt.name === e.resource_name);
+                            const unit = resInfo ? resInfo.vien : '';
+                            return '<tr>' +
+                            '<td>' + e.date + '</td>' +
+                            '<td>' + (isPapild ? 'Papildinājums' : 'Atņemšana') + '</td>' +
+                            '<td>' + (e.resource_name || '-') + '</td>' +
+                            '<td style="text-align:center;" class="' + cls + '">' + sign + e.resource_amount + ' ' + unit + '</td>' +
+                            '<td style="text-align:center;">' + (e.gabala != null ? e.gabala + ' €' : '-') + '</td>' +
+                            '<td style="text-align:center;">' + (e.gabala != null ? (parseFloat(e.gabala) * parseFloat(e.resource_amount || 0)).toFixed(2) + ' €' : '-') + '</td>' +
+                            '<td><button class="btn-del" onclick="deleteScheduleItem(' + e.id + ')">✖</button></td>' +
+                            '</tr>';
+                        }).join('')}</tbody>
+                        </table>`;
+                        }
             }
 
             // Darba stundas
@@ -1019,10 +1324,7 @@ if(workerEl) {
                 function getPusdienas(workerName, datums, sakadarbu, beidzadarbu) {
                     return schedule
                         .filter(s => {
-                            const parts = (s.date || '').replace(/\.$/, '').split('.');
-                            const sDateNorm = parts.length === 3 ? `${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}` : s.date;
-                            if (s.worker_name !== workerName || sDateNorm !== datums || s.darbs !== 'Pusdienas' || !s.hours) return false;
-                            // Ja ir shift laiki — pārbaudām vai pusdienas iekļaujas šajā shift'ā
+                            if (s.worker_name !== workerName || s.date !== datums || s.darbs !== 'Pusdienas' || !s.hours) return false;
                             if (sakadarbu && s.sākuma_laiks) {
                                 const cleanSaka = sakadarbu.replace('*','');
                                 const cleanBeidza = (beidzadarbu||'').replace('*','');
@@ -1034,18 +1336,15 @@ if(workerEl) {
                         })
                         .reduce((sum, s) => sum + parseFloat(s.hours || 0), 0);
                 }
-
-                // Lietderīgais darbs = visi schedule ieraksti (bez Pusdienām) šajā shift'ā
+                
                 function getLietderigais(workerName, datums, sakadarbu, beidzadarbu) {
                     return schedule
                         .filter(s => {
                             if (s.worker_name !== workerName || s.date !== datums) return false;
                             if (!s.hours || parseFloat(s.hours) <= 0) return false;
                             if (s.darbs === 'Pusdienas') return false;
-                            // Izslēdzam resursu ierakstus
                             if (s.darbs === 'Degvielas uzpilde' || s.darbs === 'Eļļas papildināšana') return false;
                             if (s.darbs === 'Resursu papildinājums' || s.darbs === 'Resursu atņemšana') return false;
-                            // Pārbaudām vai iekļaujas šajā shift'ā pēc laika
                             if (sakadarbu && s.sākuma_laiks) {
                                 const cleanSaka = sakadarbu.replace('*','');
                                 const cleanBeidza = (beidzadarbu||'').replace('*','');
@@ -1075,11 +1374,6 @@ if(workerEl) {
                                     <button class="col-filter-btn ${hSel('.date-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
                                     <div class="col-filter-popup"><input type="date" value="${hSel('.date-sel').value}" onchange="wSec_setDate(this.value,'hours')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">
                                     <button class="col-filter-clear" onclick="wSec_setDate('','hours')">✕ Notīrīt</button></div>
-                                </div></th>
-                                <th><div class="col-filter-wrap"><span>Mēnesis</span>
-                                    <button class="col-filter-btn ${hSel('.month-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
-                                    <div class="col-filter-popup"><select onchange="wSec_set(this.value,'.month-sel','hours')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">${Array.from(hSel('.month-sel').options).map(o=>`<option value="${o.value}" ${o.value===hSel('.month-sel').value?'selected':''}>${o.text}</option>`).join('')}</select>
-                                    <button class="col-filter-clear" onclick="wSec_set('','.month-sel','hours')">✕ Notīrīt</button></div>
                                 </div></th>
                                 <th><div class="col-filter-wrap"><span>Darbinieks</span>
                                     <button class="col-filter-btn ${hSel('.worker-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
@@ -1112,7 +1406,6 @@ if(workerEl) {
                                 return `
                                 <tr>
                                     <td>${e.datums}</td>
-                                    <td>${e.month || '-'}</td>
                                     <td>${e.darbinieks}</td>
                                     <td>${startT}</td>
                                     <td>${beigasCell}</td>
@@ -1221,7 +1514,19 @@ async function saveWorkerEdit() {
     }
 }
         
-        async function addNewItem(url, msg, extra={}) { const n = prompt(msg); if(n) { await fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name:n, ...extra})}); loadData(); } }
+        async function addNewItem(url, msg, extra={}) {
+            const n = prompt(msg);
+            if(n) {
+                await fetch(url, {
+                    method:'POST',
+                    headers:{'Content-Type':'application/json'},
+                    body:JSON.stringify({name:n, ...extra})
+                });
+                loadData();
+            }
+        }
+        
+        
         async function toggleResourceTrackMh(resName, checked) {
             await fetch(`/api/resource-types/${encodeURIComponent(resName)}`, {
                 method: 'PUT',
@@ -1252,7 +1557,38 @@ async function saveWorkerEdit() {
         }
         async function deleteItem(url, name) { if(confirm(`Dzēst ${name}?`)) { await fetch(`${url}/${encodeURIComponent(name)}`, {method:'DELETE'}); loadData(); } }
         async function deleteWorker(name) { if(confirm(`Dzēst darbinieku ${name}?`)) { await fetch(`/api/workers/${encodeURIComponent(name)}`, {method:'DELETE'}); loadData(); } }
-        async function adjustRes(id, action) { const val = parseFloat(document.getElementById(`in-${id}`).value); if(!val) return; const adminUser = getAdminUser(); await fetch(`/api/resource-types/${id}`, {method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action, amount:val, adminName: adminUser?.name || 'Admin'})}); loadData(); }
+        async function adjustRes(id, action) {
+            const val = parseFloat(document.getElementById(`in-${id}`).value);
+            if (!val) return;
+
+            let price_per_unit = null;
+            if (action === 'add') {
+                const priceStr = prompt('Ievadi cenu par vienību (€/L vai €/gab.):\n(Atstāj tukšu, ja nav)');
+                if (priceStr === null) return; // Nospieda Atcelt
+                if (priceStr.trim() !== '') {
+                    const parsed = parseFloat(priceStr.replace(',', '.'));
+                    if (isNaN(parsed) || parsed < 0) return alert('Kļūda! Cena jābūt skaitlim.');
+                    price_per_unit = parsed;
+                }
+            }
+
+            const adminUser = getAdminUser();
+            await fetch(`/api/resource-types/${id}`, {
+                method: 'PATCH',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ action, amount: val, adminName: adminUser?.name || 'Admin', price_per_unit })
+            });
+            loadData();
+        }
+        function showView(viewId, el) {
+            document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+            el.classList.add('active');
+            document.getElementById('current-view-title').innerText = el.querySelector('span').innerText;
+            localStorage.setItem('adminActiveView', viewId);
+        }
+
         function logout() { sessionStorage.removeItem('loggedInAdmin'); window.location.href = 'index.html'; }
 
         // Atjauno pēdējo aktīvo skatu pēc refresh
@@ -1687,6 +2023,21 @@ async function saveWorkerEdit() {
             if (res.ok) { alert('Saglabāts! Auto-stop laiks: ' + clean); closeSysSettings(); }
             else alert('Kļūda saglabājot!');
         }
+
+function getVien(resName) {
+    const r = resourceTypes.find(r => r.name === resName);
+    return r?.vien || 'L';
+}
+
+async function updateVien(id, vien) {
+    await fetch(`/api/resource-types/${id}`, {
+        method: 'PATCH',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ vien })
+    });
+    loadData();
+}
+
     </script>
 </body>
 </html>

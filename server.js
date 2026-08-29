@@ -56,7 +56,7 @@ function calculateHours(start, end) {
     // Ja beigas ir pirms sākuma (pusnakts pāreja), pievieno 24h
     // Bet ja starpība > 16h, visticamāk kļūda — atgriežam 0
     if (diff < 0) diff += 86400;
-    if (diff > 22 * 3600) diff = 0;
+    if (diff > 23 * 3600) diff = 0;
     return (diff / 3600).toFixed(2);
 }
 
@@ -339,16 +339,29 @@ app.post('/api/change-password', async (req, res) => {
 // --- 2. RESURSU PĀRVALDĪBA ---
 app.get('/api/resource-types', async (req, res) => {
     try {
-        const r = await pool.query("SELECT id, name, quantity, track_mh FROM resource_types ORDER BY name ASC");
+        const r = await pool.query("SELECT id, name, quantity, track_mh, vien FROM resource_types ORDER BY name ASC");
         res.json(r.rows); 
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/resource-types', async (req, res) => {
+    const { name, quantity, track_mh, vien } = req.body; // =------------------------------------------------------------------------------------------------------
+    console.log(name, quantity, track_mh, vien);
+    try {
+        await pool.query(
+            'INSERT INTO resource_types (name, quantity, vien) VALUES ($1, $2, $3)',
+            [name, quantity || 0, vien]
+        );
+        res.json({ success: true });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.patch('/api/resource-types/:id', async (req, res) => {
     const { id } = req.params;
-    const { action, amount, adminName } = req.body;
+    const { action, amount, adminName, price_per_unit, vien } = req.body;
     const adminLabel = adminName || 'Admin';
     const litri = parseFloat(amount) || 0;
+    const gabala = price_per_unit ? parseFloat(price_per_unit) : null;
     try {
         if (action === 'sub') {
             await pool.query('UPDATE resource_types SET quantity = COALESCE(quantity, 0) - $1 WHERE id = $2', [litri, id]);
@@ -381,12 +394,16 @@ app.patch('/api/resource-types/:id', async (req, res) => {
             const monthStr = tagad.toLocaleDateString('lv-LV', { ...opts, month: 'long' }).replace(/^\w/, c => c.toUpperCase());
 
             await pool.query(
-                `INSERT INTO schedule (worker_name, car, date, "sākuma_laiks", "beigu_laiks", month, resource_name, resource_amount, darbs, hours) VALUES ($1,$2,$3,$4,$4,$5,$6,$7,$8,0)`,
-                [ adminLabel, 'Papildinājums', datums, laiks, monthStr, resourceName, litri, 'Resursu papildinājums']
+                `INSERT INTO schedule (worker_name, car, date, "sākuma_laiks", "beigu_laiks", month, resource_name, resource_amount, darbs, hours, gabala) VALUES ($1,$2,$3,$4,$4,$5,$6,$7,$8,0,$9)`,
+                [ adminLabel, 'Papildinājums', datums, laiks, monthStr, resourceName, litri, 'Resursu papildinājums', gabala]
             );
         } else {
-            await pool.query('UPDATE resource_types SET quantity = $1 WHERE id = $2', [litri, id]);
-        }
+                if (vien !== undefined) {
+                    await pool.query('UPDATE resource_types SET vien = $1 WHERE id = $2', [vien, id]);
+                } else {
+                    await pool.query('UPDATE resource_types SET quantity = $1 WHERE id = $2', [litri, id]);
+                }
+            }
         res.json({ success: true });
     } catch (err) { console.error('PATCH resource-types kļūda:', err.message); res.status(500).json({ error: err.message }); }
 });
@@ -475,13 +492,7 @@ app.post('/api/objects', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-app.post('/api/resource-types', async (req, res) => {
-    const { name, quantity } = req.body;
-    try {
-        await pool.query('INSERT INTO resource_types (name, quantity) VALUES ($1, $2)', [name, quantity || 0]);
-        res.json({ success: true });
-    } catch (err) { res.status(500).json({ error: err.message }); }
-});
+
 
 // --- ADMIN: KRĀJUMU PAPILDINĀŠANA (Poga OK) ---
 
@@ -872,6 +883,7 @@ cron.schedule('0 0 * * *', async () => {
         console.error('Auto-stop kļūda:', err);
     }
 }, { timezone: 'Europe/Riga' });
+     
 
 
 

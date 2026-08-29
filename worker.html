@@ -137,8 +137,8 @@
             <select id="modalCarSelect"></select>
             
             <label id="availableLabel" style="font-size: 0.85rem; color: var(--saulstari-gray);"></label>
-            <label>Daudzums (L):</label>
-            <input type="number" id="modalAmountInput" step="0.1" min="0.1" placeholder="Ievadi litrus">
+            <label id="daudzumsLabel">Daudzums:</label>
+            <input type="number" id="modalAmountInput" step="0.1" min="0.1" placeholder="Ievadi daudzumu">
 
             <div id="mhSection" style="display:none;">
                 <label>Motorstundas (mH):</label>
@@ -198,7 +198,7 @@
             // Noliktavas resursu ielāde
             const resModalSelect = document.getElementById("modalResourceSelect");
             resModalSelect.innerHTML = '<option value="">-- Ko Tu lej? --</option>' + 
-                resources.map(r => `<option value="${r.id}" data-qty="${r.quantity}">${r.name} (Pieejams: ${r.quantity}L)</option>`).join("");
+                resources.map(r => `<option value="${r.id}" data-qty="${r.quantity}" data-vien="${r.vien || 'L'}">${r.name} (Pieejams: ${r.quantity} ${r.vien || 'L'})</option>`).join("");
 
             const shiftRes = await fetch(`/api/shift-status?worker_name=${encodeURIComponent(user.name)}`);
             const shiftData = await shiftRes.json();
@@ -562,22 +562,23 @@
             window._lastMh = null;
         }
     };
-    document.getElementById("modalResourceSelect").addEventListener('change', checkMhVisibility);
 
     document.getElementById("modalResourceSelect").onchange = function() {
-        const selected = this.options[this.selectedIndex];
-        const qty = selected.getAttribute("data-qty");
-        const amountInput = document.getElementById("modalAmountInput");
-        const label = document.getElementById("availableLabel");
+    const selected = this.options[this.selectedIndex];
+    const qty = selected.getAttribute("data-qty");
+    const vien = selected.getAttribute("data-vien") || 'L'; // ← PĀRVIETO ŠEIT
+    window._currentVien = vien; // ← PIEVIENO
+    const amountInput = document.getElementById("modalAmountInput");
+    const label = document.getElementById("availableLabel");
 
-        if (qty) {
-            label.textContent = `Pieejams noliktavā: ${qty} L`;
-            amountInput.max = qty;
-        } else {
-            label.textContent = "";
-            amountInput.removeAttribute("max");
-        }
-    };
+    if (qty) {
+        label.textContent = `Pieejams noliktavā: ${qty} ${vien}`;
+        amountInput.max = qty;
+    } else {
+        label.textContent = "";
+        amountInput.removeAttribute("max");
+    }
+};
 
     document.getElementById("modalCancel").onclick = () => {
         document.getElementById("resourceModal").style.display = "none";
@@ -635,7 +636,7 @@
             document.getElementById("resourceModal").style.display = "none";
             document.getElementById("modalAmountInput").value = "";
             document.getElementById("modalMhInput").value = "";
-            alert(`Veiksmīgi reģistrēts: ${resourceName} (${litri} L)`);
+            alert(`Veiksmīgi reģistrēts: ${resourceName} (${litri} ${window._currentVien || 'L'})`);
             loadWorkerData();
         } catch (err) { 
             alert("Kļūda saglabājot datus!"); 
