@@ -1515,17 +1515,16 @@ async function saveWorkerEdit() {
     }
 }
         
-        async function addNewItem(url, msg, extra={}) { // changes to add gabals or liters
-            const n = prompt(msg); 
-            const isLiters = confirm("Click OK for Liters, Cancel for Gabals"); //keep like this for now. buttons maybe later
-            const vien = isLiters ? "L" : "Gab";
-            if(n) { 
+        async function addNewItem(url, msg, extra={}) {
+            const n = prompt(msg);
+            if(n) {
                 await fetch(url, {
-                    method:'POST', 
-                    headers:{'Content-Type':'application/json'}, 
-                    body:JSON.stringify({name:n,vien:vien, ...extra})}); 
-                loadData(); 
-                  } 
+                    method:'POST',
+                    headers:{'Content-Type':'application/json'},
+                    body:JSON.stringify({name:n, ...extra})
+                });
+                loadData();
+            }
         }
         
         
