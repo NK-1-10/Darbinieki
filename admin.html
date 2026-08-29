@@ -25,40 +25,34 @@
             color: var(--gold);
             font-size: 11px;
         }
-        .modal {
-          display: none;
-          position: fixed;
-          z-index: 1000;
-          top: 0;
-          width: 100%;
-          height: 100%;
-          overflow: auto;
-          background-color: rgba(0,0,0,0.4);
+      .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.35);
+            align-items: center;
+            justify-content: center;
         }
-
         .modal-content {
-          background-color: #fefefe;
-          padding: 20px;
-          border: 1px solid #888;
-          border-radius: 10px;
-          width: 400px;
-          max-width: 90%;
+            background-color: #fff;
+            padding: 28px 24px;
+            border-radius: 12px;
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 8px 32px rgba(23,54,41,0.15);
+            width: 340px;
+            max-width: 90%;
         }
-
-/* The Close Button */
-.close {
-  color: #aaaaaa;
-  float: right;
-  font-size: 28px;
-  font-weight: bold;
-}
-
-.close:hover,
-.close:focus {
-  color: #000;
-  text-decoration: none;
-  cursor: pointer;
-}
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 22px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+        }
+        .close:hover { color: #173629; }
         .btn-settings:hover { background: rgba(212,180,93,.15); }
         .settings-section h4 { margin: 0 0 12px; font-size: 14px; color: #444; }
         #adminSettingsModal .btn-save { background: #173629 !important; }
@@ -215,21 +209,18 @@
 
             <!-- The Modal ------------------------------------------------------------------------------------------------------------------------------------------------------------------->
             <div id="myModal" class="modal">
-            
-              <!-- Modal content -->
-              <div class="modal-content" style="width: 25%; background-color: var(--green); color: var(--gold);">
-                <span class="close">&times;</span>
-                <p style="font-size: 20; font-weight: bold;">Ievadi resursa nosaukumu:</p>
-                  <input type="text" id="rname" name="rname"> <br> <br> <br>
-                <label for="cars">Izvēlies mērvienību:</label>
-                  <select name="mervieniba" id="mervieniba">
-                    <option value="Gab">Gab (Gabalā) </option>
-                    <option value="L">L (Litros) </option>
-                  </select>
-                  <br><br>
-                  <button onclick="saveNewResource()" style="border-radius: 20%;">Saglabāt</button>
-              </div>
-            
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <p style="font-size:15px;font-weight:700;color:#173629;margin:0 0 16px;">Jauns resursa veids</p>
+                    <label style="font-size:12px;color:#666;display:block;margin-bottom:4px;">Nosaukums</label>
+                    <input type="text" id="rname" name="rname" style="width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;box-sizing:border-box;margin-bottom:14px;">
+                    <label style="font-size:12px;color:#666;display:block;margin-bottom:4px;">Mērvienība</label>
+                    <select name="mervieniba" id="mervieniba" style="width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;box-sizing:border-box;margin-bottom:20px;">
+                        <option value="L">L (Litros)</option>
+                        <option value="Gab">Gab (Gabalā)</option>
+                    </select>
+                    <button onclick="saveNewResource()" style="width:100%;padding:10px;background:#173629;color:#d4b45d;border:none;border-radius:8px;font-weight:700;font-size:14px;cursor:pointer;">Saglabāt</button>
+                </div>
             </div>
 
             <section id="v-report-work" class="view-section">
