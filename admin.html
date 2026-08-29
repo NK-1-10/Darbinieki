@@ -532,7 +532,7 @@
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({ name: n, vien: vien, quantity: 0 })
-            log(n + ' tika pievienots')
+            console.log(n + ' tika pievienots')
         });
         document.getElementById('myModal').style.display = 'none';
         loadData();
