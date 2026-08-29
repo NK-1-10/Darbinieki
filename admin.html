@@ -196,7 +196,8 @@
                     </div>
                     <button class="btn-add" onclick="ResourseTableOut()"> Admin rediģēšana </button>
                     <div id="second" style="display:none; max-height:35vh; overflow-y:auto; min-height:35vh;">
-                        <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
+                    <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;justify-content:space-between;">
+                        <div style="display:flex;gap:8px;align-items:center;">
                             <select id="adminResFilter" onchange="renderTables()" style="padding:8px;border:1px solid #ddd;border-radius:8px;font-size:13px;">
                                 <option value="">Visi resursi</option>
                             </select>
@@ -205,8 +206,10 @@
                             </select>
                             <button onclick="document.getElementById('adminResFilter').value='';document.getElementById('adminMonthFilter').value='';renderTables();" style="padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px;background:#f5f5f5;cursor:pointer;">✕ Notīrīt</button>
                         </div>
-                        <div id="adminFuelTableContainer"></div>
+                        <div id="adminSummaryBadges" style="display:flex;gap:8px;"></div>
                     </div>
+                    <div id="adminFuelTableContainer"></div>
+                </div>
                 </div>
             </section>
 
@@ -1281,11 +1284,13 @@ if(workerEl) {
                             return e.gabala != null ? s + parseFloat(e.gabala) * parseFloat(e.resource_amount || 0) : s;
                         }, 0);
 
-                    adminCont.innerHTML = `
-                        <div style="display:flex;justify-content:flex-end;gap:10px;margin-bottom:8px;">
-                            <div class="summary-badge">Kopā: <span style="ummary-badgefont-weight:800;">${adminSign}${adminTotal.toFixed(2)} L</span></div>
+                        document.getElementById('adminSummaryBadges').innerHTML = `
+                            <div class="summary-badge">Kopā: <span style="color:${adminTotal >= 0 ? '#2e7d32' : '#b00020'};font-weight:800;">${adminSign}${adminTotal.toFixed(2)} L</span></div>
                             <div class="summary-badge">Izmaksas: <span style="font-weight:800;">${adminIzmaksas.toFixed(2)} €</span></div>
-                        </div>
+                        `;
+                        
+                    adminCont.innerHTML = `
+                        
                         <table class="sticky-table">
                             <thead><tr>
                                 <th>Datums</th><th>Darbība</th><th>Resurss</th>
