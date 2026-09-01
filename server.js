@@ -590,6 +590,9 @@ app.put('/api/cars/:name', async (req, res) => {
             'UPDATE cars SET name = $1, track_mh = $2, caurlaide_lidz = $3 WHERE name = $4',
             [name, track_mh !== undefined ? track_mh : false, caurlaide_lidz || null, req.params.name]
         );
+        if (name && name !== req.params.name) {
+            await pool.query('UPDATE schedule SET car = $1 WHERE car = $2', [name, req.params.name]);
+        }
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -597,6 +600,9 @@ app.put('/api/cars/:name', async (req, res) => {
 app.put('/api/work-types/:name', async (req, res) => {
     try {
         await pool.query('UPDATE work_types SET name = $1 WHERE name = $2', [req.body.name, req.params.name]);
+        if (req.body.name && req.body.name !== req.params.name) {
+            await pool.query('UPDATE schedule SET darbs = $1 WHERE darbs = $2', [req.body.name, req.params.name]);
+        }
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -608,10 +614,12 @@ app.put('/api/objects/:name', async (req, res) => {
             'UPDATE objects SET name = $1, latitude = $2, longitude = $3, radius_m = $4 WHERE name = $5',
             [name, latitude || null, longitude || null, radius_m || 200, req.params.name]
         );
+        if (name && name !== req.params.name) {
+            await pool.query('UPDATE schedule SET objekts = $1 WHERE objekts = $2', [name, req.params.name]);
+        }
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
-
 app.put('/api/resource-types/:name', async (req, res) => {
     try {
         const { name, track_mh } = req.body;
@@ -619,6 +627,9 @@ app.put('/api/resource-types/:name', async (req, res) => {
             await pool.query('UPDATE resource_types SET name = $1, track_mh = $2 WHERE name = $3', [name, track_mh, req.params.name]);
         } else {
             await pool.query('UPDATE resource_types SET name = $1 WHERE name = $2', [name, req.params.name]);
+        }
+        if (name && name !== req.params.name) {
+            await pool.query('UPDATE schedule SET resource_name = $1 WHERE resource_name = $2', [name, req.params.name]);
         }
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: err.message }); }
