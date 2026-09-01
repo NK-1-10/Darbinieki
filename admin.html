@@ -599,36 +599,47 @@ function renderCarReport() {
         return resType && resType.track_mh;
     });
 
-    let totalCost = 0;
-    const rows = Object.entries(matMap).map(([name, m]) => {
-        const add = addMap[name];
-        const avgPrice = add && add.qty > 0 ? add.cost / add.qty : null;
-        const sum = avgPrice != null ? m.used * avgPrice : null;
-        if (sum != null) totalCost += sum;
+        let totalCost = 0;
+            const rows = Object.entries(matMap).map(([name, m]) => {
+                const add = addMap[name];
+                const avgPrice = add && add.qty > 0 ? add.cost / add.qty : null;
+                const sum = avgPrice != null ? m.used * avgPrice : null;
+                if (sum != null) totalCost += sum;
 
-        const resType = resourceTypes.find(r => r.name === name);
-        const tracksMh = resType && resType.track_mh;
+                const resType = resourceTypes.find(r => r.name === name);
+                const tracksMh = resType && resType.track_mh;
 
-        let mhCell = '';
-        if (anyMhTracked) {
-            let mhText = '-';
-            if (tracksMh && m.mhEntries.length) {
-                const sorted = [...m.mhEntries].sort((a, b) => a.id - b.id);
-                const first = parseFloat(sorted[0].mh_previous ?? sorted[0].mh_current);
-                const last = parseFloat(sorted[sorted.length - 1].mh_current);
-                if (!isNaN(first) && !isNaN(last)) mhText = (last - first).toFixed(1) + ' mH';
-            }
-            mhCell = `<td style="text-align:center;">${mhText}</td>`;
-        }
+                let mhCell = '';
+                let lPerMhCell = '';
+                if (anyMhTracked) {
+                    let mhText = '-';
+                    let lPerMhText = '-';
+                    if (tracksMh && m.mhEntries.length) {
+                        const sorted = [...m.mhEntries].sort((a, b) => a.id - b.id);
+                        const first = parseFloat(sorted[0].mh_previous ?? sorted[0].mh_current);
+                        const last = parseFloat(sorted[sorted.length - 1].mh_current);
+                        if (!isNaN(first) && !isNaN(last)) {
+                            const mhDiff = last - first;
+                            mhText = mhDiff.toFixed(1) + ' mH';
+                            if (mhDiff > 0) {
+                                const subUsed = sorted.reduce((s, e) => s + parseFloat(e.resource_amount || 0), 0);
+                                lPerMhText = (subUsed / mhDiff).toFixed(2) + ' ' + getVien(name) + '/mH';
+                            }
+                        }
+                    }
+                    mhCell = `<td style="text-align:center;">${mhText}</td>`;
+                    lPerMhCell = `<td style="text-align:center;">${lPerMhText}</td>`;
+                }
 
-        return `<tr>
-            <td><strong>${name}</strong></td>
-            <td style="text-align:center;">${m.used.toFixed(2)} ${getVien(name)}</td>
-            <td style="text-align:center;">${avgPrice != null ? avgPrice.toFixed(2) + ' €/' + getVien(name) : '-'}</td>
-            <td style="text-align:center;">${sum != null ? sum.toFixed(2) + ' €' : '-'}</td>
-            ${mhCell}
-        </tr>`;
-    }).join('');
+                return `<tr>
+                    <td><strong>${name}</strong></td>
+                    <td style="text-align:center;">${m.used.toFixed(2)} ${getVien(name)}</td>
+                    <td style="text-align:center;">${avgPrice != null ? avgPrice.toFixed(2) + ' €/' + getVien(name) : '-'}</td>
+                    <td style="text-align:center;">${sum != null ? sum.toFixed(2) + ' €' : '-'}</td>
+                    ${mhCell}
+                    ${lPerMhCell}
+                </tr>`;
+            }).join('');
 
     const vienSums = {};
         Object.entries(matMap).forEach(([name, m]) => {
@@ -642,18 +653,19 @@ function renderCarReport() {
         ).join('') +
         `<div class="summary-badge">Kopā izmaksas: <span style="font-weight:800;">${totalCost.toFixed(2)} €</span></div>`;
 
-    document.getElementById('carReportTable').innerHTML = rows ? `
-        <table class="sticky-table">
-            <thead><tr>
-                <th>Resurss</th>
-                <th style="text-align:center;">Daudzums izmantots</th>
-                <th style="text-align:center;">Cena/vienība (periods)</th>
-                <th style="text-align:center;">Kopā izmaksas</th>
-                ${anyMhTracked ? '<th style="text-align:center;">mH starpība</th>' : ''}
-            </tr></thead>
-            <tbody>${rows}</tbody>
-        </table>
-    ` : '<p style="color:#aaa;padding:16px;">Nav resursu ierakstu šajā periodā</p>';
+        document.getElementById('carReportTable').innerHTML = rows ? `
+            <table class="sticky-table">
+                <thead><tr>
+                    <th>Resurss</th>
+                    <th style="text-align:center;">Daudzums izmantots</th>
+                    <th style="text-align:center;">Cena/vienība (periods)</th>
+                    <th style="text-align:center;">Kopā izmaksas</th>
+                    ${anyMhTracked ? '<th style="text-align:center;">mH starpība</th>' : ''}
+                    ${anyMhTracked ? '<th style="text-align:center;">L/mH (mH periodā)</th>' : ''}
+                </tr></thead>
+                <tbody>${rows}</tbody>
+            </table>
+        ` : '<p style="color:#aaa;padding:16px;">Nav resursu ierakstu šajā periodā</p>';
 }
 
         function carReportClear() {
