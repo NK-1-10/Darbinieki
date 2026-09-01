@@ -60,6 +60,24 @@ function calculateHours(start, end) {
     return (diff / 3600).toFixed(2);
 }
 
+// --- mH ĶĒDES PĀRRĒĶINS ---
+async function recalcMhChain(car) {
+    if (!car) return;
+    try {
+        const rows = await pool.query(
+            `SELECT id, mh_current FROM schedule WHERE car = $1 AND mh_current IS NOT NULL ORDER BY id ASC`,
+            [car]
+        );
+        let prev = null;
+        for (const row of rows.rows) {
+            await pool.query('UPDATE schedule SET mh_previous = $1 WHERE id = $2', [prev, row.id]);
+            prev = row.mh_current;
+        }
+    } catch (err) {
+        console.error("mH ķēdes pārrēķina kļūda:", err.message);
+    }
+}
+
 function getTodayLV() {
     return new Date().toLocaleDateString('lv-LV', { timeZone: 'Europe/Riga' });
 }
@@ -119,8 +137,9 @@ app.delete('/api/schedule/:id', async (req, res) => {
             );
         }
 
-        await pool.query("DELETE FROM schedule WHERE id = $1", [id]);
-        res.json({ success: true, message: "Ieraksts izdzēsts" });
+                await pool.query("DELETE FROM schedule WHERE id = $1", [id]);
+                if (e.car) await recalcMhChain(e.car);
+                res.json({ success: true, message: "Ieraksts izdzēsts" });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: "Servera kļūda: " + err.message });
@@ -147,87 +166,79 @@ app.put('/api/schedule/:id', async (req, res) => {
         const isConsumption = e.darbs === 'Degvielas uzpilde' || e.darbs === 'Eļļas papildināšana' || e.darbs === 'Resursu atņemšana';
         const isAddition = e.darbs === 'Resursu papildinājums';
 
-        if ((resChanged || amtChanged) && (isConsumption || isAddition)) {
-            if (resChanged) {
-                // Atdodam veco resursam atpakaļ
-                if (oldResName) {
-                    const sign = isConsumption ? 1 : -1;
-                    await pool.query('UPDATE resource_types SET quantity = COALESCE(quantity,0) + $1 WHERE name = $2', [sign * oldAmt, oldResName]);
+                if ((resChanged || amtChanged) && (isConsumption || isAddition)) {
+                    if (resChanged) {
+                        // Atdodam veco resursam atpakaļ
+                        if (oldResName) {
+                            const sign = isConsumption ? 1 : -1;
+                            await pool.query('UPDATE resource_types SET quantity = COALESCE(quantity,0) + $1 WHERE name = $2', [sign * oldAmt, oldResName]);
+                        }
+                        // Atņemam no jaunā resursa
+                        if (newResName) {
+                            const sign = isConsumption ? -1 : 1;
+                            await pool.query('UPDATE resource_types SET quantity = COALESCE(quantity,0) + $1 WHERE name = $2', [sign * newAmt, newResName]);
+                        }
+                    } else {
+                        // Tikai daudzums mainījās
+                        if (isConsumption) {
+                            await pool.query('UPDATE resource_types SET quantity = COALESCE(quantity,0) + $1 - $2 WHERE name = $3', [oldAmt, newAmt, oldResName]);
+                        } else if (isAddition) {
+                            await pool.query('UPDATE resource_types SET quantity = COALESCE(quantity,0) - $1 + $2 WHERE name = $3', [oldAmt, newAmt, oldResName]);
+                        }
+                    }
                 }
-                // Atņemam no jaunā resursa
-                if (newResName) {
-                    const sign = isConsumption ? -1 : 1;
-                    await pool.query('UPDATE resource_types SET quantity = COALESCE(quantity,0) + $1 WHERE name = $2', [sign * newAmt, newResName]);
+
+                // Ja mainās sākuma/beigu laiks → pārrēķinām stundas
+                let finalHours = hours || null;
+                if (sākuma_laiks && beigu_laiks) {
+                    const cleanEnd = beigu_laiks.replace('*', '');
+                    finalHours = calculateHours(sākuma_laiks, cleanEnd);
                 }
-            } else {
-                // Tikai daudzums mainījās
-                if (isConsumption) {
-                    await pool.query('UPDATE resource_types SET quantity = COALESCE(quantity,0) + $1 - $2 WHERE name = $3', [oldAmt, newAmt, oldResName]);
-                } else if (isAddition) {
-                    await pool.query('UPDATE resource_types SET quantity = COALESCE(quantity,0) - $1 + $2 WHERE name = $3', [oldAmt, newAmt, oldResName]);
-                }
-            }
-        }
 
-        // Aprēķinām jauno mh_previous ja mainās mh_current
-        let newMhPrev = e.mh_previous;
-        if (mh_current !== undefined && e.car) {
-            const prev = await pool.query(
-                'SELECT mh_current FROM schedule WHERE car = $1 AND mh_current IS NOT NULL AND id != $2 ORDER BY id DESC LIMIT 1',
-                [e.car, id]
-            );
-            newMhPrev = prev.rows[0]?.mh_current || null;
-        }
+                await pool.query(`
+                    UPDATE schedule SET
+                        resource_amount = COALESCE($1, resource_amount),
+                        resource_name = COALESCE($2, resource_name),
+                        mh_current = COALESCE($3, mh_current),
+                        hours = COALESCE($4, hours),
+                        darbs = COALESCE($5, darbs),
+                        objekts = COALESCE($6, objekts),
+                        car = COALESCE($7, car),
+                        "sākuma_laiks" = COALESCE($9, "sākuma_laiks"),
+                        beigu_laiks = COALESCE($10, beigu_laiks)
+                    WHERE id = $8`,
+                    [resource_amount || null, resource_name || null, mh_current || null, finalHours, darbs || null, objekts || null, car || null, id, sākuma_laiks || null, beigu_laiks || null]
+                );
 
-        // Ja mainās sākuma/beigu laiks → pārrēķinām stundas
-        let finalHours = hours || null;
-        if (sākuma_laiks && beigu_laiks) {
-            const cleanEnd = beigu_laiks.replace('*', '');
-            finalHours = calculateHours(sākuma_laiks, cleanEnd);
-        }
+                await recalcMhChain(e.car);
+                if (car && car !== e.car) await recalcMhChain(car);
 
-        await pool.query(`
-            UPDATE schedule SET
-                resource_amount = COALESCE($1, resource_amount),
-                resource_name = COALESCE($2, resource_name),
-                mh_current = COALESCE($3, mh_current),
-                mh_previous = $4,
-                hours = COALESCE($5, hours),
-                darbs = COALESCE($6, darbs),
-                objekts = COALESCE($7, objekts),
-                car = COALESCE($8, car),
-                "sākuma_laiks" = COALESCE($10, "sākuma_laiks"),
-                beigu_laiks = COALESCE($11, beigu_laiks)
-            WHERE id = $9`,
-            [resource_amount || null, resource_name || null, mh_current || null, newMhPrev, finalHours, darbs || null, objekts || null, car || null, id, sākuma_laiks || null, beigu_laiks || null]
-        );
+                // Automātiska darbastundas korekcija
+                // Summējam visus darbus šim darbiniekam šajā datumā (ne degviela/eļļa)
+                const updatedRow = await pool.query('SELECT * FROM schedule WHERE id = $1', [id]);
+                if (updatedRow.rows.length > 0) {
+                    const row = updatedRow.rows[0];
+                    const workerName = row.worker_name;
+                    const date = row.date;
 
-        // Automātiska darbastundas korekcija
-        // Summējam visus darbus šim darbiniekam šajā datumā (ne degviela/eļļa)
-        const updatedRow = await pool.query('SELECT * FROM schedule WHERE id = $1', [id]);
-        if (updatedRow.rows.length > 0) {
-            const row = updatedRow.rows[0];
-            const workerName = row.worker_name;
-            const date = row.date;
+                    const sumResult = await pool.query(`
+                        SELECT COALESCE(SUM(CAST(REPLACE(hours::text, '*', '') AS NUMERIC)), 0) as total
+                        FROM schedule
+                        WHERE worker_name = $1
+                        AND date = $2
+                        AND darbs NOT IN ('Degvielas uzpilde', 'Eļļas papildināšana', 'Resursu papildinājums', 'Resursu atņemšana')
+                        AND hours IS NOT NULL`,
+                        [workerName, date]
+                    );
+                    const scheduleTotal = parseFloat(sumResult.rows[0].total);
 
-            const sumResult = await pool.query(`
-                SELECT COALESCE(SUM(CAST(REPLACE(hours::text, '*', '') AS NUMERIC)), 0) as total
-                FROM schedule
-                WHERE worker_name = $1
-                AND date = $2
-                AND darbs NOT IN ('Degvielas uzpilde', 'Eļļas papildināšana', 'Resursu papildinājums', 'Resursu atņemšana')
-                AND hours IS NOT NULL`,
-                [workerName, date]
-            );
-            const scheduleTotal = parseFloat(sumResult.rows[0].total);
-
-            // Atrodam darbastundas ierakstu šim darbiniekam šajā datumā
-            const shiftRow = await pool.query(`
-                SELECT id, stundas FROM "darbastundas"
-                WHERE darbinieks = $1 AND datums = $2
-                ORDER BY id DESC LIMIT 1`,
-                [workerName, date]
-            );
+                    // Atrodam darbastundas ierakstu šim darbiniekam šajā datumā
+                    const shiftRow = await pool.query(`
+                        SELECT id, stundas FROM "darbastundas"
+                        WHERE darbinieks = $1 AND datums = $2
+                        ORDER BY id DESC LIMIT 1`,
+                        [workerName, date]
+                    );
 
             if (shiftRow.rows.length > 0) {
                 const currentShiftHours = parseFloat(shiftRow.rows[0].stundas || 0);
@@ -675,49 +686,41 @@ app.post('/api/update-resources', async (req, res) => {
     const laiks = tagad.toLocaleTimeString('lv-LV', { ...opts, hour12: false });
     const monthStr = tagad.toLocaleDateString('lv-LV', { ...opts, month: 'long' }).replace(/^\w/, c => c.toUpperCase());
 
-    try {
-        // 1. IERAKSTĀM VĒSTURĒ (Schedule tabulā)
-        // Iegūstam iepriekšējo mH šai mašīnai
-        let mh_previous = null;
-        if (req.body.mh_current != null && car) {
-            const prevRow = await pool.query(
-                `SELECT mh_current FROM schedule WHERE car = $1 AND mh_current IS NOT NULL ORDER BY id DESC LIMIT 1`,
-                [car]
+        try {
+            const mh_current = req.body.mh_current || null;
+
+            await pool.query(`
+                INSERT INTO schedule (
+                    worker_name, car, date, sākuma_laiks, beigu_laiks, 
+                    month, resource_name, resource_amount, 
+                    pielietā_eļļa, pielietā_degviela, darbs, hours,
+                    mh_current
+                ) VALUES ($1, $2, $3, $4, $4, $5, $6, $7, $8, $9, $10, 0, $11)`,
+            [
+                worker_name, 
+                car, 
+                datums, 
+                laiks, 
+                monthStr, 
+                resource_name, 
+                resource_amount, 
+                (type === 'Ella' ? resource_amount : null), 
+                (type === 'Degviela' ? resource_amount : null), 
+                (type === 'Ella' ? 'Eļļas papildināšana' : 'Degvielas uzpilde'),
+                mh_current
+            ]);
+
+            // 2. ATŅEMAM NO NOLIKTAVAS (resource_types tabulā)
+            await pool.query(
+                'UPDATE resource_types SET quantity = COALESCE(quantity, 0) - $1 WHERE name = $2',
+                [parseFloat(resource_amount), resource_name]
             );
-            mh_previous = prevRow.rows[0]?.mh_current || null;
-        }
-        const mh_current = req.body.mh_current || null;
 
-        await pool.query(`
-            INSERT INTO schedule (
-                worker_name, car, date, sākuma_laiks, beigu_laiks, 
-                month, resource_name, resource_amount, 
-                pielietā_eļļa, pielietā_degviela, darbs, hours,
-                mh_current, mh_previous
-            ) VALUES ($1, $2, $3, $4, $4, $5, $6, $7, $8, $9, $10, 0, $11, $12)`,
-        [
-            worker_name, 
-            car, 
-            datums, 
-            laiks, 
-            monthStr, 
-            resource_name, 
-            resource_amount, 
-            (type === 'Ella' ? resource_amount : null), 
-            (type === 'Degviela' ? resource_amount : null), 
-            (type === 'Ella' ? 'Eļļas papildināšana' : 'Degvielas uzpilde'),
-            mh_current,
-            mh_previous
-        ]);
+            // 3. PĀRRĒĶINĀM mH ĶĒDI ŠAI MAŠĪNAI
+            await recalcMhChain(car);
 
-        // 2. ATŅEMAM NO NOLIKTAVAS (resource_types tabulā)
-        await pool.query(
-            'UPDATE resource_types SET quantity = COALESCE(quantity, 0) - $1 WHERE name = $2',
-            [parseFloat(resource_amount), resource_name]
-        );
-
-        // Tikai tagad sūtām atbildi, kad abas darbības veiksmīgas
-        res.json({ success: true });
+            // Tikai tagad sūtām atbildi, kad visas darbības veiksmīgas
+            res.json({ success: true });
 
     } catch (err) {
         console.error("Resursu atjaunošanas kļūda:", err);
