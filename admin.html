@@ -136,7 +136,7 @@
             <div class="nav-item" onclick="showView('v-report-work', this)"><i>📋</i><span>Darba gaita</span></div>
             <div class="nav-item" onclick="showView('v-report-fuel', this)"><i>⛽</i><span>Patēriņš</span></div>
             <div class="nav-item" onclick="showView('v-report-hours', this)"><i>⏱️</i><span>Darba stundas</span></div>
-            <div class="nav-item" onclick="showView('v-report-cars', this)"><i>⏱️</i><span>mašīnu izlietotais</span></div>
+            <div class="nav-item" onclick="showView('v-report-cars', this)"><i>📊</i><span>Mašīnu kopsumma</span></div>
         </div>
 
         </div><!-- /nav-groups-wrap -->
@@ -300,10 +300,19 @@
                         <select id="carReportCarSel" onchange="renderCarReport()" style="padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px;min-width:160px;">
                             <option value="">Visas mašīnas</option>
                         </select>
-                        <input type="date" id="carReportFrom" onchange="renderCarReport()" style="padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px;">
-                        <span style="color:#888;">—</span>
-                        <input type="date" id="carReportTo" onchange="renderCarReport()" style="padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px;">
-                        <button onclick="carReportClear()" style="padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px;background:#f5f5f5;cursor:pointer;">✕ Notīrīt</button>
+                       <input type="date" id="carReportFrom" onchange="carReportDateManual()" style="padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px;">
+                            <span style="color:#888;">—</span>
+                            <input type="date" id="carReportTo" onchange="carReportDateManual()" style="padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px;">
+                            <button onclick="carReportClear()" style="padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px;background:#f5f5f5;cursor:pointer;">✕ Notīrīt</button>
+                            <div class="col-filter-wrap" style="background:#f8f8f8;border:1px solid #e0e0e0;border-radius:8px;padding:5px 10px;">
+                                <span style="font-size:13px;color:#444;font-weight:600;">Mēnesis</span>
+                                <button class="col-filter-btn" id="carReportMonthBtn" onclick="toggleColFilter(this)">▾</button>
+                                <div class="col-filter-popup">
+                                    <select id="carReportMonth" onchange="carReportMonthPick(this.value)" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;"></select>
+                                    <button class="col-filter-clear" onclick="carReportMonthPick('')">✕ Notīrīt</button>
+                            </div>
+                        </div>
+                    
                     </div>
                     <div id="carReportSummary" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;"></div>
                     <div id="carReportTable" class="table-wrapper"></div>
@@ -531,6 +540,7 @@
             loadData();
         }
 
+        
 function renderCarReport() {
     const carVal = document.getElementById('carReportCarSel').value;
     const fromVal = document.getElementById('carReportFrom').value;
@@ -660,6 +670,8 @@ function renderCarReport() {
             document.getElementById('carReportCarSel').value = '';
             document.getElementById('carReportFrom').value = '';
             document.getElementById('carReportTo').value = '';
+            document.getElementById('carReportMonth').value = '';
+            document.getElementById('carReportMonthBtn').classList.remove('active');
             renderCarReport();
         }
 
@@ -773,6 +785,14 @@ function renderCarReport() {
                     cars.map(c => `<option value="${c.name||c}" ${(c.name||c)===current?'selected':''}>${c.name||c}</option>`).join('');
             }
 
+            const crMonth = document.getElementById('carReportMonth');
+            if (crMonth) {
+                const cur = crMonth.value;
+                crMonth.innerHTML = '<option value="">Visi mēneši</option>' +
+                    LV_MONTHS.map(m => `<option value="${m}">${m}</option>`).join('');
+                crMonth.value = cur;
+            }
+
 
             const fill = (selector, data, defaultText) => {
                 document.querySelectorAll(selector).forEach(sel => {
@@ -810,6 +830,33 @@ function renderCarReport() {
                     LV_MONTHS.map(m => `<option value="${m}" ${m===current?'selected':''}>${m}</option>`).join('');
             }
                     
+        }
+
+        function carReportMonthPick(m) {
+            const fromEl = document.getElementById('carReportFrom');
+            const toEl = document.getElementById('carReportTo');
+            document.getElementById('carReportMonth').value = m;
+            document.getElementById('carReportMonthBtn').classList.toggle('active', !!m);
+            document.querySelectorAll('.col-filter-popup.open').forEach(p => p.classList.remove('open'));
+        
+            if (!m) {
+                fromEl.value = '';
+                toEl.value = '';
+            } else {
+                const idx = LV_MONTHS.indexOf(m);
+                const y = fromEl.value ? fromEl.value.slice(0, 4) : new Date().getFullYear();
+                const mm = String(idx + 1).padStart(2, '0');
+                const lastDay = new Date(y, idx + 1, 0).getDate();
+                fromEl.value = `${y}-${mm}-01`;
+                toEl.value = `${y}-${mm}-${lastDay}`;
+            }
+            renderCarReport();
+        }
+        
+        function carReportDateManual() {
+            document.getElementById('carReportMonth').value = '';
+            document.getElementById('carReportMonthBtn').classList.remove('active');
+            renderCarReport();
         }
 
 
