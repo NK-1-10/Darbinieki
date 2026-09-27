@@ -136,7 +136,7 @@
             <div class="nav-item" onclick="showView('v-report-work', this)"><i>📋</i><span>Darba gaita</span></div>
             <div class="nav-item" onclick="showView('v-report-fuel', this)"><i>⛽</i><span>Patēriņš</span></div>
             <div class="nav-item" onclick="showView('v-report-hours', this)"><i>⏱️</i><span>Darba stundas</span></div>
-            <div class="nav-item" onclick="showView('v-report-cars', this)"><i>⏱️</i><span>mašīnu izlietotais</span></div>
+            <div class="nav-item" onclick="showView('v-report-cars', this)"><i>⏱️</i><span>Ma's'inu kopsumma </span></div>
         </div>
 
         </div><!-- /nav-groups-wrap -->
@@ -304,6 +304,15 @@
                         <span style="color:#888;">—</span>
                         <input type="date" id="carReportTo" onchange="renderCarReport()" style="padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px;">
                         <button onclick="carReportClear()" style="padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px;background:#f5f5f5;cursor:pointer;">✕ Notīrīt</button>
+                        <div class="col-filter-wrap" style="background:#f8f8f8;border:1px solid #e0e0e0;border-radius:8px;padding:5px 10px;">
+                            <span style="font-size:13px;color:#444;font-weight:600;">Mēnesis</span>
+                            <button class="col-filter-btn" onclick="toggleColFilter(this)">▾</button>
+                            <div class="col-filter-popup">
+                                <select onchange="wSec_set(this.value,'.month-sel','fuel')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;" class="month-sel-mirror-fuel"></select>
+                                <button class="col-filter-clear" onclick="wSec_set('','.month-sel','fuel')">✕ Notīrīt</button> //change
+                            </div>
+                        </div>
+                    
                     </div>
                     <div id="carReportSummary" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;"></div>
                     <div id="carReportTable" class="table-wrapper"></div>
