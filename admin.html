@@ -623,10 +623,14 @@ function renderCarReport() {
         if (anyMhTracked) {
             let mhText = '-';
             if (tracksMh && m.mhEntries.length) {
-                const sorted = [...m.mhEntries].sort((a, b) => (a.date > b.date ? 1 : -1));
-                const first = parseFloat(sorted[0].mh_previous ?? sorted[0].mh_current);
-                const last = parseFloat(sorted[sorted.length - 1].mh_current);
-                if (!isNaN(first) && !isNaN(last)) mhText = (last - first).toFixed(1) + ' mH';
+                const vals = m.mhEntries
+                    .map(e => parseFloat(e.mh_current))
+                    .filter(v => !isNaN(v));
+                if (vals.length) {
+                    const minMh = Math.min(...vals);
+                    const maxMh = Math.max(...vals);
+                    mhText = (maxMh - minMh).toFixed(1) + ' mH';
+                }
             }
             mhCell = `<td style="text-align:center;">${mhText}</td>`;
         }
