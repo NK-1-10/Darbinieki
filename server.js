@@ -576,8 +576,11 @@ app.put('/api/cars/:name', async (req, res) => {
     try {
         const { name, track_mh, caurlaide_lidz } = req.body;
         await pool.query(
-            'UPDATE cars SET name = $1, track_mh = $2, caurlaide_lidz = $3 WHERE name = $4',
-            [name, track_mh !== undefined ? track_mh : false, caurlaide_lidz || null, req.params.name]
+            `UPDATE cars SET name = $1,
+                track_mh = COALESCE($2, track_mh),
+                caurlaide_lidz = COALESCE($3, caurlaide_lidz)
+             WHERE name = $4`,
+            [name, track_mh ?? null, caurlaide_lidz ?? null, req.params.name]
         );
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: err.message }); }
