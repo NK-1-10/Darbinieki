@@ -198,7 +198,7 @@
                             <select id="adminMonthFilter" onchange="renderTables()" style="padding:8px;border:1px solid #ddd;border-radius:8px;font-size:13px;">
                                 <option value="">Visi mēneši</option>
                             </select>
-                            <button onclick="document.getElementById('adminResFilter').value='';document.getElementById('adminMonthFilter').value='';renderTables();" style="padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px;background:#f5f5f5;cursor:pointer;">✕ Notīrīt</button>
+                            <button onclick="document.getElementById('adminResFilter').value='';document.getElementById('adminMonthFilter').value='';renderTables();" style="padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px;background:#f5f5f5;cursor:pointer;">✕ Notīrīt Filtru</button>
                         </div>
                         <div id="adminSummaryBadges" style="display:flex;gap:8px;"></div>
                     </div>
@@ -241,7 +241,7 @@
                                 <button class="col-filter-btn" onclick="toggleColFilter(this)">▾</button>
                                 <div class="col-filter-popup">
                                     <select onchange="wSec_set(this.value,'.year-sel','work')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;" class="year-sel-mirror-work"></select>
-                                    <button class="col-filter-clear" onclick="wSec_set('','.year-sel','work')">✕ Notīrīt</button>
+                                    <button class="col-filter-clear" onclick="wSec_set('','.year-sel','work')">✕ Notīrīt Filtru </button>
                                 </div>
                             </div>
                             <div class="col-filter-wrap" style="background:#f8f8f8;border:1px solid #e0e0e0;border-radius:8px;padding:5px 10px;">
@@ -249,7 +249,7 @@
                                 <button class="col-filter-btn" onclick="toggleColFilter(this)">▾</button>
                                 <div class="col-filter-popup">
                                     <select onchange="wSec_set(this.value,'.month-sel','work')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;" class="month-sel-mirror-work"></select>
-                                    <button class="col-filter-clear" onclick="wSec_set('','.month-sel','work')">✕ Notīrīt</button>
+                                    <button class="col-filter-clear" onclick="wSec_set('','.month-sel','work')">✕ Notīrīt Filtru</button>
                                 </div>
                             </div>
                         </div>
@@ -276,7 +276,7 @@
                                 <button class="col-filter-btn" onclick="toggleColFilter(this)">▾</button>
                                 <div class="col-filter-popup">
                                     <select onchange="wSec_set(this.value,'.year-sel','fuel')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;" class="year-sel-mirror-fuel"></select>
-                                    <button class="col-filter-clear" onclick="wSec_set('','.year-sel','fuel')">✕ Notīrīt</button>
+                                    <button class="col-filter-clear" onclick="wSec_set('','.year-sel','fuel')">✕ Notīrīt Filtru</button>
                                 </div>
                             </div>
                             <div class="col-filter-wrap" style="background:#f8f8f8;border:1px solid #e0e0e0;border-radius:8px;padding:5px 10px;">
@@ -284,7 +284,7 @@
                                 <button class="col-filter-btn" onclick="toggleColFilter(this)">▾</button>
                                 <div class="col-filter-popup">
                                     <select onchange="wSec_set(this.value,'.month-sel','fuel')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;" class="month-sel-mirror-fuel"></select>
-                                    <button class="col-filter-clear" onclick="wSec_set('','.month-sel','fuel')">✕ Notīrīt</button>
+                                    <button class="col-filter-clear" onclick="wSec_set('','.month-sel','fuel')">✕ Notīrīt Filtru</button>
                                 </div>
                             </div>
                         </div>
@@ -303,13 +303,13 @@
                        <input type="date" id="carReportFrom" onchange="carReportDateManual()" style="padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px;">
                             <span style="color:#888;">—</span>
                             <input type="date" id="carReportTo" onchange="carReportDateManual()" style="padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px;">
-                            <button onclick="carReportClear()" style="padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px;background:#f5f5f5;cursor:pointer;">✕ Notīrīt</button>
+                            <button onclick="carReportClear()" style="padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px;background:#f5f5f5;cursor:pointer;">✕ Notīrīt Filtru</button>
                             <div class="col-filter-wrap" style="background:#f8f8f8;border:1px solid #e0e0e0;border-radius:8px;padding:5px 10px;">
                                 <span style="font-size:13px;color:#444;font-weight:600;">Mēnesis</span>
                                 <button class="col-filter-btn" id="carReportMonthBtn" onclick="toggleColFilter(this)">▾</button>
                                 <div class="col-filter-popup">
                                     <select id="carReportMonth" onchange="carReportMonthPick(this.value)" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;"></select>
-                                    <button class="col-filter-clear" onclick="carReportMonthPick('')">✕ Notīrīt</button>
+                                    <button class="col-filter-clear" onclick="carReportMonthPick('')">✕ Notīrīt Filtru</button>
                             </div>
                         </div>
                     
@@ -334,7 +334,7 @@
                                 <button class="col-filter-btn" onclick="toggleColFilter(this)">▾</button>
                                 <div class="col-filter-popup">
                                     <select onchange="wSec_set(this.value,'.year-sel','hours')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;" class="year-sel-mirror-hours"></select>
-                                    <button class="col-filter-clear" onclick="wSec_set('','.year-sel','hours')">✕ Notīrīt</button>
+                                    <button class="col-filter-clear" onclick="wSec_set('','.year-sel','hours')">✕ Notīrīt Filtru</button>
                                 </div>
                             </div>
                             <div class="col-filter-wrap" style="background:#f8f8f8;border:1px solid #e0e0e0;border-radius:8px;padding:5px 10px;">
@@ -342,7 +342,7 @@
                                 <button class="col-filter-btn" onclick="toggleColFilter(this)">▾</button>
                                 <div class="col-filter-popup">
                                     <select onchange="wSec_set(this.value,'.month-sel','hours')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;" class="month-sel-mirror-hours"></select>
-                                    <button class="col-filter-clear" onclick="wSec_set('','.month-sel','hours')">✕ Notīrīt</button>
+                                    <button class="col-filter-clear" onclick="wSec_set('','.month-sel','hours')">✕ Notīrīt Filtru</button>
                                 </div>
                             </div>
                         </div>
@@ -1037,7 +1037,7 @@ if(workerEl) {
                     <button class="col-filter-btn ${hasVal ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
                     <div class="col-filter-popup">
                         ${selectEl.outerHTML}
-                        <button class="col-filter-clear" onclick="clearColFilter('${id}')">✕ Notīrīt</button>
+                        <button class="col-filter-clear" onclick="clearColFilter('${id}')">✕ Notīrīt Filtru</button>
                     </div>
                 </div>
             </th>`;
@@ -1162,27 +1162,27 @@ if(workerEl) {
                                 <th><div class="col-filter-wrap"><span>Datums</span>
                                     <button class="col-filter-btn ${wSel('.date-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
                                     <div class="col-filter-popup"><input type="date" value="${wSel('.date-sel').value}" onchange="wSec_setDate(this.value,'work')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">
-                                    <button class="col-filter-clear" onclick="wSec_setDate('','work')">✕ Notīrīt</button></div>
+                                    <button class="col-filter-clear" onclick="wSec_setDate('','work')">✕ Notīrīt Filtru</button></div>
                                 </div></th>
                                 <th><div class="col-filter-wrap"><span>Darbinieks</span>
                                     <button class="col-filter-btn ${wSel('.worker-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
                                     <div class="col-filter-popup"><select onchange="wSec_set(this.value,'.worker-sel','work')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">${Array.from(wSel('.worker-sel').options).map(o=>`<option value="${o.value}" ${o.value===wSel('.worker-sel').value?'selected':''}>${o.text}</option>`).join('')}</select>
-                                    <button class="col-filter-clear" onclick="wSec_set('','.worker-sel','work')">✕ Notīrīt</button></div>
+                                    <button class="col-filter-clear" onclick="wSec_set('','.worker-sel','work')">✕ Notīrīt Filtru</button></div>
                                 </div></th>
                                 <th><div class="col-filter-wrap"><span>Darba veids</span>
                                     <button class="col-filter-btn ${wSel('.work-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
                                     <div class="col-filter-popup"><select onchange="wSec_set(this.value,'.work-sel','work')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">${Array.from(wSel('.work-sel').options).map(o=>`<option value="${o.value}" ${o.value===wSel('.work-sel').value?'selected':''}>${o.text}</option>`).join('')}</select>
-                                    <button class="col-filter-clear" onclick="wSec_set('','.work-sel','work')">✕ Notīrīt</button></div>
+                                    <button class="col-filter-clear" onclick="wSec_set('','.work-sel','work')">✕ Notīrīt Filtru</button></div>
                                 </div></th>
                                 <th><div class="col-filter-wrap"><span>Objekts</span>
                                     <button class="col-filter-btn ${wSel('.object-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
                                     <div class="col-filter-popup"><select onchange="wSec_set(this.value,'.object-sel','work')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">${Array.from(wSel('.object-sel').options).map(o=>`<option value="${o.value}" ${o.value===wSel('.object-sel').value?'selected':''}>${o.text}</option>`).join('')}</select>
-                                    <button class="col-filter-clear" onclick="wSec_set('','.object-sel','work')">✕ Notīrīt</button></div>
+                                    <button class="col-filter-clear" onclick="wSec_set('','.object-sel','work')">✕ Notīrīt Filtru</button></div>
                                 </div></th>
                                 <th><div class="col-filter-wrap"><span>Auto</span>
                                     <button class="col-filter-btn ${wSel('.car-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
                                     <div class="col-filter-popup"><select onchange="wSec_set(this.value,'.car-sel','work')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">${Array.from(wSel('.car-sel').options).map(o=>`<option value="${o.value}" ${o.value===wSel('.car-sel').value?'selected':''}>${o.text}</option>`).join('')}</select>
-                                    <button class="col-filter-clear" onclick="wSec_set('','.car-sel','work')">✕ Notīrīt</button></div>
+                                    <button class="col-filter-clear" onclick="wSec_set('','.car-sel','work')">✕ Notīrīt Filtru</button></div>
                                 </div></th>
                                 <th>Sākums</th>
                                 <th>Beigas</th>
@@ -1248,22 +1248,22 @@ if(workerEl) {
                                 <th><div class="col-filter-wrap"><span>Datums</span>
                                     <button class="col-filter-btn ${fSel('.date-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
                                     <div class="col-filter-popup"><input type="date" value="${fSel('.date-sel').value}" onchange="wSec_setDate(this.value,'fuel')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">
-                                    <button class="col-filter-clear" onclick="wSec_setDate('','fuel')">✕ Notīrīt</button></div>
+                                    <button class="col-filter-clear" onclick="wSec_setDate('','fuel')">✕ Notīrīt Filtru</button></div>
                                 </div></th>
                                 <th><div class="col-filter-wrap"><span>Darbinieks</span>
                                     <button class="col-filter-btn ${fSel('.worker-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
                                     <div class="col-filter-popup"><select onchange="wSec_set(this.value,'.worker-sel','fuel')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">${Array.from(fSel('.worker-sel').options).map(o=>`<option value="${o.value}" ${o.value===fSel('.worker-sel').value?'selected':''}>${o.text}</option>`).join('')}</select>
-                                    <button class="col-filter-clear" onclick="wSec_set('','.worker-sel','fuel')">✕ Notīrīt</button></div>
+                                    <button class="col-filter-clear" onclick="wSec_set('','.worker-sel','fuel')">✕ Notīrīt Filtru</button></div>
                                 </div></th>
                                 <th><div class="col-filter-wrap"><span>Auto</span>
                                     <button class="col-filter-btn ${fSel('.car-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
                                     <div class="col-filter-popup"><select onchange="wSec_set(this.value,'.car-sel','fuel')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">${Array.from(fSel('.car-sel').options).map(o=>`<option value="${o.value}" ${o.value===fSel('.car-sel').value?'selected':''}>${o.text}</option>`).join('')}</select>
-                                    <button class="col-filter-clear" onclick="wSec_set('','.car-sel','fuel')">✕ Notīrīt</button></div>
+                                    <button class="col-filter-clear" onclick="wSec_set('','.car-sel','fuel')">✕ Notīrīt Filtru</button></div>
                                 </div></th>
                                 <th><div class="col-filter-wrap"><span>Resurss</span>
                                     <button class="col-filter-btn ${fSel('.res-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
                                     <div class="col-filter-popup"><select onchange="wSec_set(this.value,'.res-sel','fuel')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">${Array.from(fSel('.res-sel').options).map(o=>`<option value="${o.value}" ${o.value===fSel('.res-sel').value?'selected':''}>${o.text}</option>`).join('')}</select>
-                                    <button class="col-filter-clear" onclick="wSec_set('','.res-sel','fuel')">✕ Notīrīt</button></div>
+                                    <button class="col-filter-clear" onclick="wSec_set('','.res-sel','fuel')">✕ Notīrīt Filtru</button></div>
                                 </div></th>
                                 <th style="text-align:center;">Litri</th>
                                 <th style="text-align:center;">mH</th>
@@ -1424,12 +1424,12 @@ if(workerEl) {
                                 <th><div class="col-filter-wrap"><span>Datums</span>
                                     <button class="col-filter-btn ${hSel('.date-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
                                     <div class="col-filter-popup"><input type="date" value="${hSel('.date-sel').value}" onchange="wSec_setDate(this.value,'hours')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">
-                                    <button class="col-filter-clear" onclick="wSec_setDate('','hours')">✕ Notīrīt</button></div>
+                                    <button class="col-filter-clear" onclick="wSec_setDate('','hours')">✕ Notīrīt Filtru</button></div>
                                 </div></th>
                                 <th><div class="col-filter-wrap"><span>Darbinieks</span>
                                     <button class="col-filter-btn ${hSel('.worker-sel').value ? 'active' : ''}" onclick="toggleColFilter(this)">▾</button>
                                     <div class="col-filter-popup"><select onchange="wSec_set(this.value,'.worker-sel','hours')" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:7px;font-size:13px;">${Array.from(hSel('.worker-sel').options).map(o=>`<option value="${o.value}" ${o.value===hSel('.worker-sel').value?'selected':''}>${o.text}</option>`).join('')}</select>
-                                    <button class="col-filter-clear" onclick="wSec_set('','.worker-sel','hours')">✕ Notīrīt</button></div>
+                                    <button class="col-filter-clear" onclick="wSec_set('','.worker-sel','hours')">✕ Notīrīt Filtru</button></div>
                                 </div></th>
                                 <th>Sākums</th>
                                 <th>Beigas</th>
