@@ -1425,6 +1425,14 @@ if(workerEl) {
                         </tbody>
                     </table>`;
             }
+
+            ['work','fuel','hours'].forEach(t => {
+                ['.year-sel','.month-sel'].forEach(sel => {
+                    const btn = document.querySelector(`${sel}-mirror-${t}`)
+                        ?.closest('.col-filter-wrap')?.querySelector('.col-filter-btn');
+                    btn?.classList.toggle('active', !!_fval(t, sel));
+                });
+            });
         }
 
         async function deleteScheduleItem(id) { if (confirm("Dzēst ierakstu?")) { await fetch(`/api/schedule/${id}`, { method: 'DELETE' }); loadData(); } }
