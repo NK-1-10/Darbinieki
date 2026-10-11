@@ -986,17 +986,20 @@ if(workerEl) {
 
         // Kolonnas galvene ar filtru pogu
 
-        function toggleColFilter(btn) {
-            const popup = btn.nextElementSibling;
-            const isOpen = popup.classList.contains('open');
-            document.querySelectorAll('.col-filter-popup.open').forEach(p => p.classList.remove('open'));
-            if (!isOpen) {
-                const rect = btn.getBoundingClientRect();
-                popup.style.top = (rect.bottom + 6) + 'px';
-                popup.style.left = Math.max(4, rect.left - 80) + 'px';
-                popup.classList.add('open');
-            }
-        }
+                function toggleColFilter(btn) {
+                    const popup = btn.nextElementSibling;
+                    const isOpen = popup.classList.contains('open');
+                    document.querySelectorAll('.col-filter-popup.open').forEach(p => p.classList.remove('open'));
+                    if (!isOpen) {
+                        const sel = popup.querySelector('select');
+                        if (sel) sel.size = Math.max(2, Math.min(sel.options.length, 8));
+        
+                        const rect = btn.getBoundingClientRect();
+                        popup.style.top = (rect.bottom + 6) + 'px';
+                        popup.style.left = Math.max(4, rect.left - 80) + 'px';
+                        popup.classList.add('open');
+                    }
+                }
 
         // Aizver popupus klikšķinot ārpus
         document.addEventListener('click', e => {
