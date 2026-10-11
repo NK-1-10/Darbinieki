@@ -108,6 +108,12 @@
             font-size: 12px; cursor: pointer; text-align: center;
         }
         .col-filter-clear:hover { color: #c0392b; }
+        .col-filter-popup select[size] { padding: 4px; outline: none; overflow-y: auto; }
+        .col-filter-popup select[size] option { padding: 5px 10px; border-radius: 6px; cursor: pointer; }
+        .col-filter-popup select[size] option:hover { background: #f3ecd6; }
+        .col-filter-popup select[size] option:checked { background: linear-gradient(#d4b45d, #d4b45d); color: #173629; font-weight: 600; }
+        .col-filter-popup select[size]::-webkit-scrollbar { width: 6px; }
+        .col-filter-popup select[size]::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
     </style>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
@@ -992,7 +998,7 @@ if(workerEl) {
                     document.querySelectorAll('.col-filter-popup.open').forEach(p => p.classList.remove('open'));
                     if (!isOpen) {
                         const sel = popup.querySelector('select');
-                        if (sel) sel.size = Math.max(2, Math.min(sel.options.length, 8));
+                        if (sel) sel.size = Math.max(2, Math.min(sel.options.length, 10));
         
                         const rect = btn.getBoundingClientRect();
                         popup.style.top = (rect.bottom + 6) + 'px';
