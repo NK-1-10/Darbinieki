@@ -198,13 +198,22 @@
                     <div id="second" style="display:none; max-height:35vh; overflow-y:auto; min-height:35vh;">
                     <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;justify-content:space-between;">
                         <div style="display:flex;gap:8px;align-items:center;">
-                            <select id="adminResFilter" onchange="renderTables()" style="padding:8px;border:1px solid #ddd;border-radius:8px;font-size:13px;">
-                                <option value="">Visi resursi</option>
-                            </select>
-                            <select id="adminMonthFilter" onchange="renderTables()" style="padding:8px;border:1px solid #ddd;border-radius:8px;font-size:13px;">
-                                <option value="">Visi mēneši</option>
-                            </select>
-                            <button onclick="clearFilter('adminRes')" style="padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px;background:#f5f5f5;cursor:pointer;">✕ Notīrīt Filtru</button>
+                            <div class="col-filter-wrap" style="background:#f8f8f8;border:1px solid #e0e0e0;border-radius:8px;padding:5px 10px;">
+                                <span style="font-size:13px;color:#444;font-weight:600;">Resurss</span>
+                                <button class="col-filter-btn" onclick="toggleColFilter(this)">▾</button>
+                                <div class="col-filter-popup">
+                                    <select id="adminResFilter" onchange="adminFilterPick()"></select>
+                                    <button class="col-filter-clear" onclick="clearFilter('adminRes','adminResFilter')">✕ Notīrīt Filtru</button>
+                                </div>
+                            </div>
+                            <div class="col-filter-wrap" style="background:#f8f8f8;border:1px solid #e0e0e0;border-radius:8px;padding:5px 10px;">
+                                <span style="font-size:13px;color:#444;font-weight:600;">Mēnesis</span>
+                                <button class="col-filter-btn" onclick="toggleColFilter(this)">▾</button>
+                                <div class="col-filter-popup">
+                                    <select id="adminMonthFilter" onchange="adminFilterPick()"></select>
+                                    <button class="col-filter-clear" onclick="clearFilter('adminRes','adminMonthFilter')">✕ Notīrīt Filtru</button>
+                                </div>
+                            </div>
                         </div>
                         <div id="adminSummaryBadges" style="display:flex;gap:8px;"></div>
                     </div>
@@ -1442,6 +1451,12 @@ if(workerEl) {
                     btn?.classList.toggle('active', !!_fval(t, sel));
                 });
             });
+
+                        ['adminResFilter', 'adminMonthFilter'].forEach(id => {
+                const el = document.getElementById(id);
+                el?.closest('.col-filter-wrap')?.querySelector('.col-filter-btn')
+                    ?.classList.toggle('active', !!el.value);
+            });
         }
 
         async function deleteScheduleItem(id) { if (confirm("Dzēst ierakstu?")) { await fetch(`/api/schedule/${id}`, { method: 'DELETE' }); loadData(); } }
@@ -2048,6 +2063,11 @@ function getVien(resName) {
     return r?.vien || 'L';
 }
 
+        function adminFilterPick() {
+    renderTables();
+    document.querySelectorAll('.col-filter-popup.open').forEach(p => p.classList.remove('open'));
+}
+
         function clearFilter(scope, key) {
             if (_filters[scope]) {
                 _filters[scope][key] = '';
@@ -2061,8 +2081,8 @@ function getVien(resName) {
                 document.getElementById('carReportMonthBtn').classList.remove('active');
                 renderCarReport();
             } else if (scope === 'adminRes') {
-                document.getElementById('adminResFilter').value = '';
-                document.getElementById('adminMonthFilter').value = '';
+                (key ? [key] : ['adminResFilter', 'adminMonthFilter'])
+                    .forEach(id => document.getElementById(id).value = '');
                 renderTables();
             }
             document.querySelectorAll('.col-filter-popup.open').forEach(p => p.classList.remove('open'));
