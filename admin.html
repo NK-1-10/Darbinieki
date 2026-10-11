@@ -114,6 +114,19 @@
         .col-filter-popup select[size] option:checked { background: linear-gradient(#d4b45d, #d4b45d); color: #173629; font-weight: 600; }
         .col-filter-popup select[size]::-webkit-scrollbar { width: 6px; }
         .col-filter-popup select[size]::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+
+        @media (max-width: 600px) {
+            .summary-badge {
+                padding: 3px 8px !important;
+                font-size: 11px !important;
+                border-radius: 6px !important;
+                min-height: 0 !important;
+                #current-view-title { font-size: 16px !important; }
+                .main-content header { padding-top: 10px !important; padding-bottom: 10px !important; }
+            }
+            div:has(> .summary-badge) { gap: 4px !important; }
+        }
+        
     </style>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
