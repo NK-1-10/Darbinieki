@@ -115,17 +115,17 @@
         .cf-list::-webkit-scrollbar { width: 6px; }
         .cf-list::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
 
-        @media (max-width: 600px) {
-            .summary-badge {
-                padding: 3px 8px !important;
-                font-size: 11px !important;
-                border-radius: 6px !important;
-                min-height: 0 !important;
-                #current-view-title { font-size: 16px !important; }
-                .main-content header { padding-top: 10px !important; padding-bottom: 10px !important; }
-            }
-            div:has(> .summary-badge) { gap: 4px !important; }
-        }
+               @media (max-width: 600px) {
+                    .summary-badge {
+                        padding: 3px 8px !important;
+                        font-size: 11px !important;
+                        border-radius: 6px !important;
+                        min-height: 0 !important;
+                    }
+                    #current-view-title { font-size: 16px !important; }
+                    .main-content header { padding-top: 10px !important; padding-bottom: 10px !important; }
+                    div:has(> .summary-badge) { gap: 4px !important; }
+                }
         
     </style>
     
@@ -1014,52 +1014,38 @@ if(workerEl) {
 
         // Kolonnas galvene ar filtru pogu
 
-            function toggleColFilter(btn) {
-                const popup = btn.nextElementSibling;
-                const isOpen = popup.classList.contains('open');
-                document.querySelectorAll('.col-filter-popup.open').forEach(p => p.classList.remove('open'));
-                if (isOpen) return;
-            
-                const sel = popup.querySelector('select');
-                if (sel) {
-                    sel.style.display = 'none';
-                    let list = popup.querySelector('.cf-list');
-                    if (!list) {
-                        list = document.createElement('div');
-                        list.className = 'cf-list';
-                        sel.after(list);
-                    }
-                    list.innerHTML = Array.from(sel.options).map((o, i) =>
-                        `<div class="cf-item ${o.value === sel.value ? 'sel' : ''}" data-i="${i}">${o.text}</div>`
-                    ).join('');
-                    list.onclick = e => {
-                        const item = e.target.closest('.cf-item');
-                        if (!item) return;
-                        sel.selectedIndex = +item.dataset.i;
-                        sel.dispatchEvent(new Event('change'));
-                    };
-                }
-            
-                const rect = btn.getBoundingClientRect();
-                popup.style.top = (rect.bottom + 6) + 'px';
-                popup.style.left = Math.max(4, rect.left - 80) + 'px';
-                popup.classList.add('open');
-            }   
-        
         function toggleColFilter(btn) {
-                    const popup = btn.nextElementSibling;
-                    const isOpen = popup.classList.contains('open');
-                    document.querySelectorAll('.col-filter-popup.open').forEach(p => p.classList.remove('open'));
-                    if (!isOpen) {
-                        const sel = popup.querySelector('select');
-                        if (sel) sel.size = Math.max(2, Math.min(sel.options.length, 10));
-        
-                        const rect = btn.getBoundingClientRect();
-                        popup.style.top = (rect.bottom + 6) + 'px';
-                        popup.style.left = Math.max(4, rect.left - 80) + 'px';
-                        popup.classList.add('open');
-                    }
+            const popup = btn.nextElementSibling;
+            const isOpen = popup.classList.contains('open');
+            document.querySelectorAll('.col-filter-popup.open').forEach(p => p.classList.remove('open'));
+            if (isOpen) return;
+
+            const sel = popup.querySelector('select');
+            if (sel) {
+                sel.style.display = 'none';
+                let list = popup.querySelector('.cf-list');
+                if (!list) {
+                    list = document.createElement('div');
+                    list.className = 'cf-list';
+                    sel.after(list);
                 }
+                list.innerHTML = Array.from(sel.options).map((o, i) =>
+                    `<div class="cf-item ${o.value === sel.value ? 'sel' : ''}" data-i="${i}">${o.text}</div>`
+                ).join('');
+                list.onclick = e => {
+                    const item = e.target.closest('.cf-item');
+                    if (!item) return;
+                    sel.selectedIndex = +item.dataset.i;
+                    sel.dispatchEvent(new Event('change'));
+                };
+            }
+
+            const rect = btn.getBoundingClientRect();
+            popup.style.top = (rect.bottom + 6) + 'px';
+            popup.style.left = Math.max(4, rect.left - 80) + 'px';
+            popup.classList.add('open');
+        }
+        
 
         // Aizver popupus klikšķinot ārpus
         document.addEventListener('click', e => {
