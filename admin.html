@@ -598,6 +598,12 @@ function renderCarReport() {
         if (toVal && d > toVal) return false;
         return true;
     }
+    function toISO(dateStr) {
+        if (!dateStr) return '';
+        if (!dateStr.includes('.')) return dateStr;
+        const p = dateStr.replace(/\.$/, '').split('.');
+        return `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;
+    }
 
     const usageData = schedule.filter(e =>
         e.resource_amount &&
@@ -655,9 +661,19 @@ function renderCarReport() {
                     .map(e => parseFloat(e.mh_current))
                     .filter(v => !isNaN(v));
                 if (vals.length) {
-                    const minMh = Math.min(...vals);
                     const maxMh = Math.max(...vals);
-                    mhText = (maxMh - minMh).toFixed(1) + ' mH';
+                    let startMh = Math.min(...vals);
+                    if (fromVal) {
+                        const before = schedule
+                            .filter(e => {
+                                const d = toISO(e.date);
+                                return e.car === carVal && e.mh_current != null && d && d < fromVal;
+                            })
+                            .map(e => parseFloat(e.mh_current))
+                            .filter(v => !isNaN(v));
+                        if (before.length) startMh = Math.max(...before);
+                    }
+                    mhText = (maxMh - startMh).toFixed(1) + ' mH';
                 }
             }
             mhCell = `<td style="text-align:center;">${mhText}</td>`;
