@@ -116,16 +116,16 @@
         .cf-list::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
 
                @media (max-width: 600px) {
-            .summary-badge {
-                padding: 3px 8px !important;
-                font-size: 11px !important;
-                border-radius: 6px !important;
-                min-height: 0 !important;
-            }
-            #current-view-title { font-size: 16px !important; }
-            .main-content header { padding-top: 10px !important; padding-bottom: 10px !important; }
-            div:has(> .summary-badge) { gap: 4px !important; }
-        }
+                    .summary-badge {
+                        padding: 3px 8px !important;
+                        font-size: 11px !important;
+                        border-radius: 6px !important;
+                        min-height: 0 !important;
+                    }
+                    #current-view-title { font-size: 16px !important; }
+                    .main-content header { padding-top: 10px !important; padding-bottom: 10px !important; }
+                    div:has(> .summary-badge) { gap: 4px !important; }
+                }
         
     </style>
     
@@ -598,6 +598,12 @@ function renderCarReport() {
         if (toVal && d > toVal) return false;
         return true;
     }
+    function toISO(dateStr) {
+        if (!dateStr) return '';
+        if (!dateStr.includes('.')) return dateStr;
+        const p = dateStr.replace(/\.$/, '').split('.');
+        return `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;
+    }
 
     const usageData = schedule.filter(e =>
         e.resource_amount &&
@@ -655,9 +661,19 @@ function renderCarReport() {
                     .map(e => parseFloat(e.mh_current))
                     .filter(v => !isNaN(v));
                 if (vals.length) {
-                    const minMh = Math.min(...vals);
                     const maxMh = Math.max(...vals);
-                    mhText = (maxMh - minMh).toFixed(1) + ' mH';
+                    let startMh = Math.min(...vals);
+                    if (fromVal) {
+                        const before = schedule
+                            .filter(e => {
+                                const d = toISO(e.date);
+                                return e.car === carVal && e.mh_current != null && d && d < fromVal;
+                            })
+                            .map(e => parseFloat(e.mh_current))
+                            .filter(v => !isNaN(v));
+                        if (before.length) startMh = Math.max(...before);
+                    }
+                    mhText = (maxMh - startMh).toFixed(1) + ' mH';
                 }
             }
             mhCell = `<td style="text-align:center;">${mhText}</td>`;
@@ -1014,37 +1030,37 @@ if(workerEl) {
 
         // Kolonnas galvene ar filtru pogu
 
-            function toggleColFilter(btn) {
-                const popup = btn.nextElementSibling;
-                const isOpen = popup.classList.contains('open');
-                document.querySelectorAll('.col-filter-popup.open').forEach(p => p.classList.remove('open'));
-                if (isOpen) return;
-            
-                const sel = popup.querySelector('select');
-                if (sel) {
-                    sel.style.display = 'none';
-                    let list = popup.querySelector('.cf-list');
-                    if (!list) {
-                        list = document.createElement('div');
-                        list.className = 'cf-list';
-                        sel.after(list);
-                    }
-                    list.innerHTML = Array.from(sel.options).map((o, i) =>
-                        `<div class="cf-item ${o.value === sel.value ? 'sel' : ''}" data-i="${i}">${o.text}</div>`
-                    ).join('');
-                    list.onclick = e => {
-                        const item = e.target.closest('.cf-item');
-                        if (!item) return;
-                        sel.selectedIndex = +item.dataset.i;
-                        sel.dispatchEvent(new Event('change'));
-                    };
+        function toggleColFilter(btn) {
+            const popup = btn.nextElementSibling;
+            const isOpen = popup.classList.contains('open');
+            document.querySelectorAll('.col-filter-popup.open').forEach(p => p.classList.remove('open'));
+            if (isOpen) return;
+
+            const sel = popup.querySelector('select');
+            if (sel) {
+                sel.style.display = 'none';
+                let list = popup.querySelector('.cf-list');
+                if (!list) {
+                    list = document.createElement('div');
+                    list.className = 'cf-list';
+                    sel.after(list);
                 }
-            
-                const rect = btn.getBoundingClientRect();
-                popup.style.top = (rect.bottom + 6) + 'px';
-                popup.style.left = Math.max(4, rect.left - 80) + 'px';
-                popup.classList.add('open');
-            }   
+                list.innerHTML = Array.from(sel.options).map((o, i) =>
+                    `<div class="cf-item ${o.value === sel.value ? 'sel' : ''}" data-i="${i}">${o.text}</div>`
+                ).join('');
+                list.onclick = e => {
+                    const item = e.target.closest('.cf-item');
+                    if (!item) return;
+                    sel.selectedIndex = +item.dataset.i;
+                    sel.dispatchEvent(new Event('change'));
+                };
+            }
+
+            const rect = btn.getBoundingClientRect();
+            popup.style.top = (rect.bottom + 6) + 'px';
+            popup.style.left = Math.max(4, rect.left - 80) + 'px';
+            popup.classList.add('open');
+        }
         
 
         // Aizver popupus klikšķinot ārpus
